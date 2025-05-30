@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: ac379c70b998c8c42b15dd75a7b51e3f
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 232692
+  packageName: 'Military Heroes: Character Editor 4D'
+  packageVersion: 5.5
+  assetPath: Assets/HeroEditor4D/InventorySystem/Prefabs/InventoryH.prefab
+  uploadId: 582620

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 6260eb04c11563b4bbcc9aaf221110d8
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 4343727234628468602
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 232692
+  packageName: 'Military Heroes: Character Editor 4D'
+  packageVersion: 5.5
+  assetPath: Assets/HeroEditor4D/MilitaryHeroes/Atlases/Sprites.spriteatlas
+  uploadId: 582620

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: fa53b3a81e8356a4bbd652cb16cbdea8
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 232692
+  packageName: 'Military Heroes: Character Editor 4D'
+  packageVersion: 5.5
+  assetPath: Assets/HeroEditor4D/Common/Prefabs/Links.prefab
+  uploadId: 582620

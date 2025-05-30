@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: bb85bf64f1a83334ea214710d08fd7f7
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 232692
+  packageName: 'Military Heroes: Character Editor 4D'
+  packageVersion: 5.5
+  assetPath: Assets/HeroEditor4D/MilitaryHeroes/MouseInteractionExample.unity
+  uploadId: 582620
