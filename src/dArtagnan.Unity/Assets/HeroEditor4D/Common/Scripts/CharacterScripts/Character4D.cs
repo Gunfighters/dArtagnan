@@ -174,40 +174,86 @@ namespace Assets.HeroEditor4D.Common.Scripts.CharacterScripts
 
         public void Update()
         {
-            if (Input.GetKeyDown(KeyCode.W))
-                SetDirection(Vector2.up);
-            else if (Input.GetKeyDown(KeyCode.A))
-                SetDirection(Vector2.left);
-            else if (Input.GetKeyDown(KeyCode.S))
-                SetDirection(Vector2.down);
-            else if (Input.GetKeyDown(KeyCode.D)) SetDirection(Vector2.right);
-
+            // 키 입력 방향 체크 (누를 때와 뗄 때만 방향 업데이트)
+            Vector2 inputDirection = Vector2.zero;
+            Vector3 movement = Vector3.zero;
             var moving = false;
             var isRunning = Input.GetKey(KeyCode.LeftShift);
             var moveSpeed = isRunning ? 4f : 1f; // 달릴 때는 4배 속도
 
+            // 키를 누를 때와 뗄 때만 방향 업데이트
+            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyUp(KeyCode.W) ||
+                Input.GetKeyDown(KeyCode.S) || Input.GetKeyUp(KeyCode.S) ||
+                Input.GetKeyDown(KeyCode.A) || Input.GetKeyUp(KeyCode.A) ||
+                Input.GetKeyDown(KeyCode.D) || Input.GetKeyUp(KeyCode.D))
+            {
+                // 현재 눌린 키들에 따라 방향 결정
+                if (Input.GetKey(KeyCode.W))
+                    inputDirection.y += 1;
+                if (Input.GetKey(KeyCode.S))
+                    inputDirection.y -= 1;
+                if (Input.GetKey(KeyCode.A))
+                    inputDirection.x -= 1;
+                if (Input.GetKey(KeyCode.D))
+                    inputDirection.x += 1;
+
+                // 방향 업데이트 (주요 방향에 따라)
+                if (inputDirection != Vector2.zero)
+                {
+                    Vector2 lookDirection;
+                    
+                    // 대각선 입력시 더 강한 축으로 방향 결정
+                    if (Mathf.Abs(inputDirection.x) > Mathf.Abs(inputDirection.y))
+                    {
+                        lookDirection = inputDirection.x > 0 ? Vector2.right : Vector2.left;
+                    }
+                    else if (Mathf.Abs(inputDirection.y) > Mathf.Abs(inputDirection.x))
+                    {
+                        lookDirection = inputDirection.y > 0 ? Vector2.up : Vector2.down;
+                    }
+                    else
+                    {
+                        // 동일한 강도일 때는 마지막 입력 우선
+                        if (Input.GetKey(KeyCode.W))
+                            lookDirection = Vector2.up;
+                        else if (Input.GetKey(KeyCode.S))
+                            lookDirection = Vector2.down;
+                        else if (Input.GetKey(KeyCode.D))
+                            lookDirection = Vector2.right;
+                        else
+                            lookDirection = Vector2.left;
+                    }
+                    
+                    SetDirection(lookDirection);
+                }
+            }
+
+            // 이동은 계속 처리 (GetKey 사용)
             if (Input.GetKey(KeyCode.W))
             {
-                gameObject.transform.position += Vector3.up * Time.deltaTime * moveSpeed;
+                movement += Vector3.up;
                 moving = true;
             }
-
-            if (Input.GetKey(KeyCode.A))
-            {
-                gameObject.transform.position += Vector3.left * Time.deltaTime * moveSpeed;
-                moving = true;
-            }
-
             if (Input.GetKey(KeyCode.S))
             {
-                gameObject.transform.position += Vector3.down * Time.deltaTime * moveSpeed;
+                movement += Vector3.down;
+                moving = true;
+            }
+            if (Input.GetKey(KeyCode.A))
+            {
+                movement += Vector3.left;
+                moving = true;
+            }
+            if (Input.GetKey(KeyCode.D))
+            {
+                movement += Vector3.right;
                 moving = true;
             }
 
-            if (Input.GetKey(KeyCode.D))
+            // 이동 처리
+            if (moving)
             {
-                gameObject.transform.position += Vector3.right * Time.deltaTime * moveSpeed;
-                moving = true;
+                gameObject.transform.position += movement.normalized * Time.deltaTime * moveSpeed;
             }
 
             if (moving)
