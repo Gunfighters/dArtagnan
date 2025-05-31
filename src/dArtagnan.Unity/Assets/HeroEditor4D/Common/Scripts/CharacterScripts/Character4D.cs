@@ -183,32 +183,35 @@ namespace Assets.HeroEditor4D.Common.Scripts.CharacterScripts
             else if (Input.GetKeyDown(KeyCode.D)) SetDirection(Vector2.right);
 
             var moving = false;
+            var isRunning = Input.GetKey(KeyCode.LeftShift);
+            var moveSpeed = isRunning ? 4f : 1f; // 달릴 때는 4배 속도
+
             if (Input.GetKey(KeyCode.W))
             {
-                gameObject.transform.position += Vector3.up * Time.deltaTime;
+                gameObject.transform.position += Vector3.up * Time.deltaTime * moveSpeed;
                 moving = true;
             }
 
             if (Input.GetKey(KeyCode.A))
             {
-                gameObject.transform.position += Vector3.left * Time.deltaTime;
+                gameObject.transform.position += Vector3.left * Time.deltaTime * moveSpeed;
                 moving = true;
             }
 
             if (Input.GetKey(KeyCode.S))
             {
-                gameObject.transform.position += Vector3.down * Time.deltaTime;
+                gameObject.transform.position += Vector3.down * Time.deltaTime * moveSpeed;
                 moving = true;
             }
 
             if (Input.GetKey(KeyCode.D))
             {
-                gameObject.transform.position += Vector3.right * Time.deltaTime;
+                gameObject.transform.position += Vector3.right * Time.deltaTime * moveSpeed;
                 moving = true;
             }
 
             if (moving)
-                AnimationManager.SetState(CharacterState.Walk);
+                AnimationManager.SetState(isRunning ? CharacterState.Run : CharacterState.Walk);
             else
                 AnimationManager.SetState(CharacterState.Idle);
 
