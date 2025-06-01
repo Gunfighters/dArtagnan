@@ -18,22 +18,24 @@ namespace Assets.HeroEditor4D.Common.Scripts.CharacterScripts
     /// </summary>
     public class Character4D : MonoBehaviour
     {
-        [Header("Parts")] public Character Front;
-
+        [Header("Parts")]
+        public Character Front;
         public Character Back;
         public Character Left;
         public Character Right;
         public List<Character> Parts;
         public List<GameObject> Shadows;
 
-        [Header("Animation")] public Animator Animator;
+        [Header("Animation")]
+        public Animator Animator;
 
         public AnimationManager AnimationManager;
 
-        [Header("Other")] public LayerManager LayerManager;
-
+        [Header("Other")]
+        public LayerManager LayerManager;
         public Color BodyColor;
         public FirearmFxExample FirearmFx;
+        public float speed;
 
         public SpriteCollection SpriteCollection => Parts[0].SpriteCollection;
         private List<Character> PartsExceptBack => new() { Front, Left, Right };
@@ -164,11 +166,6 @@ namespace Assets.HeroEditor4D.Common.Scripts.CharacterScripts
 
         public void Start()
         {
-            var stateHandler = Animator.GetBehaviours<StateHandler>().SingleOrDefault(i => i.Name == "Death");
-
-            if (stateHandler) stateHandler.StateExit.AddListener(() => SetExpression("Default"));
-
-            Animator.keepAnimatorStateOnDisable = true;
             SetDirection(Vector2.down);
         }
 
