@@ -157,14 +157,9 @@ make dev
 5. Open a Pull Request
    Pull Request를 생성합니다
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-이 프로젝트는 MIT 라이선스 하에 있습니다 - 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
-
 ## Acknowledgments | 감사의 말
 
-- Inspired by "Gunslinger Theory" from StarCraft II Arcade
+- Inspired by "[Gunslinger Theory](https://namu.wiki/w/총잡이%20이론)" from StarCraft II Arcade
   스타크래프트 II 아케이드의 '총잡이 이론'에서 영감을 받았습니다
 - Based on the "Gunslinger's Dilemma" from game theory
   게임 이론의 '총잡이의 딜레마'를 기반으로 합니다 
