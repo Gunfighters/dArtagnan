@@ -18,21 +18,20 @@ namespace Assets.HeroEditor4D.Common.Scripts.CharacterScripts
     /// </summary>
     public class Character4D : MonoBehaviour
     {
-        [Header("Parts")]
-        public Character Front;
+        [Header("Parts")] public Character Front;
+
         public Character Back;
         public Character Left;
         public Character Right;
         public List<Character> Parts;
         public List<GameObject> Shadows;
 
-        [Header("Animation")]
-        public Animator Animator;
+        [Header("Animation")] public Animator Animator;
 
         public AnimationManager AnimationManager;
 
-        [Header("Other")]
-        public LayerManager LayerManager;
+        [Header("Other")] public LayerManager LayerManager;
+
         public Color BodyColor;
         public FirearmFxExample FirearmFx;
         public float speed;
@@ -166,116 +165,26 @@ namespace Assets.HeroEditor4D.Common.Scripts.CharacterScripts
 
         public void Start()
         {
-            SetDirection(Vector2.down);
-        }
-
-        public void Update()
-        {
-            // 키 입력 방향 체크 (누를 때와 뗄 때만 방향 업데이트)
-            Vector2 inputDirection = Vector2.zero;
-            Vector3 movement = Vector3.zero;
-            var moving = false;
-            var isRunning = Input.GetKey(KeyCode.LeftShift);
-            var moveSpeed = isRunning ? 4f : 1f; // 달릴 때는 4배 속도
-
-            // 키를 누를 때와 뗄 때만 방향 업데이트
-            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyUp(KeyCode.W) ||
-                Input.GetKeyDown(KeyCode.S) || Input.GetKeyUp(KeyCode.S) ||
-                Input.GetKeyDown(KeyCode.A) || Input.GetKeyUp(KeyCode.A) ||
-                Input.GetKeyDown(KeyCode.D) || Input.GetKeyUp(KeyCode.D))
-            {
-                // 현재 눌린 키들에 따라 방향 결정
-                if (Input.GetKey(KeyCode.W))
-                    inputDirection.y += 1;
-                if (Input.GetKey(KeyCode.S))
-                    inputDirection.y -= 1;
-                if (Input.GetKey(KeyCode.A))
-                    inputDirection.x -= 1;
-                if (Input.GetKey(KeyCode.D))
-                    inputDirection.x += 1;
-
-                // 방향 업데이트 (주요 방향에 따라)
-                if (inputDirection != Vector2.zero)
-                {
-                    Vector2 lookDirection;
-                    
-                    // 대각선 입력시 더 강한 축으로 방향 결정
-                    if (Mathf.Abs(inputDirection.x) > Mathf.Abs(inputDirection.y))
-                    {
-                        lookDirection = inputDirection.x > 0 ? Vector2.right : Vector2.left;
-                    }
-                    else if (Mathf.Abs(inputDirection.y) > Mathf.Abs(inputDirection.x))
-                    {
-                        lookDirection = inputDirection.y > 0 ? Vector2.up : Vector2.down;
-                    }
-                    else
-                    {
-                        // 동일한 강도일 때는 마지막 입력 우선
-                        if (Input.GetKey(KeyCode.W))
-                            lookDirection = Vector2.up;
-                        else if (Input.GetKey(KeyCode.S))
-                            lookDirection = Vector2.down;
-                        else if (Input.GetKey(KeyCode.D))
-                            lookDirection = Vector2.right;
-                        else
-                            lookDirection = Vector2.left;
-                    }
-                    
-                    SetDirection(lookDirection);
-                }
-            }
-
-            // 이동은 계속 처리 (GetKey 사용)
-            if (Input.GetKey(KeyCode.W))
-            {
-                movement += Vector3.up;
-                moving = true;
-            }
-            if (Input.GetKey(KeyCode.S))
-            {
-                movement += Vector3.down;
-                moving = true;
-            }
-            if (Input.GetKey(KeyCode.A))
-            {
-                movement += Vector3.left;
-                moving = true;
-            }
-            if (Input.GetKey(KeyCode.D))
-            {
-                movement += Vector3.right;
-                moving = true;
-            }
-
-            // 이동 처리
-            if (moving)
-            {
-                gameObject.transform.position += movement.normalized * Time.deltaTime * moveSpeed;
-            }
-
-            if (moving)
-                AnimationManager.SetState(isRunning ? CharacterState.Run : CharacterState.Walk);
-            else
-                AnimationManager.SetState(CharacterState.Idle);
-
-            if (Input.GetKeyDown(KeyCode.LeftControl))
-            {
-                AnimationManager.Fire();
-                var firearm =
-                    Front.SpriteCollection.Firearm1H.SingleOrDefault(i => i.Sprites.Contains(Parts[0].PrimaryWeapon))
-                    ?? Front.SpriteCollection.Firearm2H.SingleOrDefault(i =>
-                        i.Sprites.Contains(Parts[0].PrimaryWeapon));
-
-                if (firearm != null) FirearmFx.CreateFireMuzzle(firearm.Name, firearm.Collection);
-            }
-        }
-
-        public void OnValidate()
-        {
             Parts = new List<Character> { Front, Back, Left, Right };
             Parts.ForEach(i => i.BodyRenderers.ForEach(j => j.color = BodyColor));
             Parts.ForEach(i => i.EarsRenderers.ForEach(j => j.color = BodyColor));
             SetDirection(Vector2.down);
+        }
+
+        public void SetState(CharacterState state)
+        {
+            AnimationManager.SetState(state);
+        }
+
+        public void Fire()
+        {
+            AnimationManager.Fire();
+            var firearm =
+                Front.SpriteCollection.Firearm1H.SingleOrDefault(i => i.Sprites.Contains(Parts[0].PrimaryWeapon))
+                ?? Front.SpriteCollection.Firearm2H.SingleOrDefault(i =>
+                    i.Sprites.Contains(Parts[0].PrimaryWeapon));
+
+            if (firearm != null) FirearmFx.CreateFireMuzzle(firearm.Name, firearm.Collection);
         }
 
         public void Initialize()
