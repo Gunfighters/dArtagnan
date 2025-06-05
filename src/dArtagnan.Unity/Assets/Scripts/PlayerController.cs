@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviour
     public float speed;
     private Vector3 _direction;
     private bool firing;
-    private bool moving = false;
+    private bool running;
     private Character4D SpriteManager;
 
     private void Start()
@@ -28,7 +28,7 @@ public class PlayerController : MonoBehaviour
             transform.position += Time.deltaTime * speed * _direction;
             var cardinalized = SnapToCardinalDirection(_direction);
             SpriteManager.SetDirection(cardinalized);
-            SpriteManager.SetState(CharacterState.Walk);
+            SpriteManager.SetState(running ? CharacterState.Run : CharacterState.Walk);
         }
         else
         {
@@ -50,6 +50,14 @@ public class PlayerController : MonoBehaviour
     public void StopMoving()
     {
         _direction = Vector3.zero;
+        running = false;
+        speed = 1f;
+    }
+
+    public void SetRunning()
+    {
+        running = true;
+        speed = 4f;
     }
 
     public void Fire()

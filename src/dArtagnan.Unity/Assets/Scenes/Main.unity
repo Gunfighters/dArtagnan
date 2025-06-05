@@ -284,6 +284,7 @@ MonoBehaviour:
   playerPrefab: {fileID: 3770431050435661283, guid: 73d5a3bc7ce50484d9daa27e06557574, type: 3}
   mainCamera: {fileID: 1731515874}
   controlledPlayerIndex: 0
+  doubleTapThreshold: 0.3
 --- !u!4 &343319303
 Transform:
   m_ObjectHideFlags: 0
