@@ -27,71 +27,73 @@ public class GameManager : MonoBehaviour
 
     public void Update()
     {
+        Vector2 clicked;
+        bool firstTap = false;
         if (Touch.activeTouches.Count > 0)
         {
             var touch = Touch.activeTouches[0];
             if (touch.phase == TouchPhase.Began)
             {
-                tapCount++;
-                if (tapCount == 1)
-                {
-                    StartCoroutine(ResetTapCount());
-                }
-
-                if (tapCount >= 2)
-                {
-                    ControlledPlayer.SetRunning();
-                }
+                firstTap = true;
+                HandleDoubleTap();
             }
 
-            Vector3 screenPosition = new(
-                touch.screenPosition.x,
-                touch.screenPosition.y,
-                Mathf.Abs(mainCamera.transform.position.z - ControlledPlayer.transform.position.z)
-            );
-            var worldPoint = mainCamera.ScreenToWorldPoint(screenPosition);
-            worldPoint.z = ControlledPlayer.transform.position.z;
-            ControlledPlayer.SetDirectionTowards(worldPoint);
+            clicked = touch.screenPosition;
         }
         else if (Mouse.current.leftButton.isPressed)
         {
-            var point = Mouse.current.position.ReadValue();
             if (Mouse.current.leftButton.wasPressedThisFrame)
             {
-                tapCount++;
-                if (tapCount == 1)
-                {
-                    StartCoroutine(ResetTapCount());
-                }
-
-                if (tapCount >= 2)
-                {
-                    ControlledPlayer.SetRunning();
-                }
+                firstTap = true;
+                HandleDoubleTap();
             }
 
-            Vector3 screenPosition = new(
-                point.x,
-                point.y,
-                Mathf.Abs(mainCamera.transform.position.z - ControlledPlayer.transform.position.z)
-            );
-            var worldPoint = mainCamera.ScreenToWorldPoint(screenPosition);
-            worldPoint.z = ControlledPlayer.transform.position.z;
-            ControlledPlayer.SetDirectionTowards(worldPoint);
+            clicked = Mouse.current.position.ReadValue();
         }
         else
         {
             ControlledPlayer.StopMoving();
+            return;
+        }
+
+        Vector3 screenPosition = clicked;
+        screenPosition.z = Mathf.Abs(mainCamera.transform.position.z - ControlledPlayer.transform.position.z);
+        var worldPoint = mainCamera.ScreenToWorldPoint(screenPosition);
+        if (firstTap)
+        {
+            var hit = Physics2D.Raycast(worldPoint, Vector2.zero);
+            if (hit.collider && hit.transform.CompareTag(playerPrefab.tag))
+            {
+                ControlledPlayer.Fire();
+                var hitPlayer = hit.transform.gameObject.GetComponent<PlayerController>();
+                hitPlayer.Die();
+            }
+        }
+        else
+        {
+            worldPoint.z = ControlledPlayer.transform.position.z;
+            ControlledPlayer.SetDirectionTowards(worldPoint);
+        }
+    }
+
+    private void HandleDoubleTap()
+    {
+        tapCount++;
+        if (tapCount == 1)
+        {
+            StartCoroutine(ResetTapCount());
+        }
+
+        if (tapCount >= 2)
+        {
+            ControlledPlayer.SetRunning();
         }
     }
 
     private IEnumerator ResetTapCount()
     {
         yield return new WaitForSeconds(doubleTapThreshold);
-        if (tapCount == 1)
-            tapCount = 0;
-        else if (tapCount >= 2)
-            tapCount = 0;
+        tapCount = 0;
     }
 
     public void AddPlayer(int index)

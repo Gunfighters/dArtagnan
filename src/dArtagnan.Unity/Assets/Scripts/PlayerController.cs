@@ -9,7 +9,9 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     public float speed;
+    public float range;
     private Vector3 _direction;
+    private bool dead;
     private bool firing;
     private bool running;
     private Character4D SpriteManager;
@@ -40,11 +42,21 @@ public class PlayerController : MonoBehaviour
             firing = false;
             SpriteManager.Fire();
         }
+
+        if (dead)
+        {
+            SpriteManager.SetState(CharacterState.Death);
+        }
     }
 
     public void SetDirectionTowards(Vector3 destination)
     {
         _direction = (destination - transform.position).normalized;
+    }
+
+    public void ImmediatelyMoveTo(Vector3 position)
+    {
+        transform.position = position;
     }
 
     public void StopMoving()
@@ -65,6 +77,10 @@ public class PlayerController : MonoBehaviour
         firing = true;
     }
 
+    public void Die()
+    {
+        dead = true;
+    }
 
     private static Vector2 SnapToCardinalDirection(Vector2 dir)
     {
