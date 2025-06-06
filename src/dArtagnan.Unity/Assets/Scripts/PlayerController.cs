@@ -10,48 +10,39 @@ public class PlayerController : MonoBehaviour
 {
     public float speed;
     public float range;
-    private Vector3 _direction;
+    public int Accuracy;
+    private Vector3 currentDirection;
     private bool dead;
+    private float directionLerpSpeed = 0.4f;
     private bool firing;
     private bool running;
     private Character4D SpriteManager;
+    private Vector3 targetDirection;
 
     private void Start()
     {
         SpriteManager = GetComponent<Character4D>();
-        SetDirectionTowards(transform.position);
         SpriteManager.SetState(CharacterState.Idle);
     }
 
     private void Update()
     {
-        if (_direction != Vector3.zero)
-        {
-            transform.position += Time.deltaTime * speed * _direction;
-            var cardinalized = SnapToCardinalDirection(_direction);
-            SpriteManager.SetDirection(cardinalized);
-            SpriteManager.SetState(running ? CharacterState.Run : CharacterState.Walk);
-        }
-        else
+        currentDirection = Vector3.Lerp(currentDirection, targetDirection, Time.deltaTime * directionLerpSpeed);
+        transform.position += speed * Time.deltaTime * currentDirection;
+        if (currentDirection == Vector3.zero)
         {
             SpriteManager.SetState(CharacterState.Idle);
         }
-
-        if (firing)
+        else
         {
-            firing = false;
-            SpriteManager.Fire();
-        }
-
-        if (dead)
-        {
-            SpriteManager.SetState(CharacterState.Death);
+            SpriteManager.SetDirection(SnapToCardinalDirection(currentDirection));
+            SpriteManager.SetState(running ? CharacterState.Run : CharacterState.Walk);
         }
     }
 
-    public void SetDirectionTowards(Vector3 destination)
+    public void SetDirection(Vector3 normalizedDirection)
     {
-        _direction = (destination - transform.position).normalized;
+        targetDirection = normalizedDirection;
     }
 
     public void ImmediatelyMoveTo(Vector3 position)
@@ -59,17 +50,9 @@ public class PlayerController : MonoBehaviour
         transform.position = position;
     }
 
-    public void StopMoving()
+    public void SetRunning(bool isRunning)
     {
-        _direction = Vector3.zero;
-        running = false;
-        speed = 1f;
-    }
-
-    public void SetRunning()
-    {
-        running = true;
-        speed = 4f;
+        running = isRunning;
     }
 
     public void Fire()
@@ -82,19 +65,19 @@ public class PlayerController : MonoBehaviour
         dead = true;
     }
 
-    private static Vector2 SnapToCardinalDirection(Vector2 dir)
+    private static Vector3 SnapToCardinalDirection(Vector3 dir)
     {
-        if (dir == Vector2.zero) return Vector2.zero;
+        if (dir == Vector3.zero) return Vector3.zero;
 
         var angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
         if (angle < 0) angle += 360f;
 
         return angle switch
         {
-            >= 45f and < 135f => Vector2.up,
-            >= 135f and < 225f => Vector2.left,
-            >= 225f and < 315f => Vector2.down,
-            _ => Vector2.right
+            >= 45f and < 135f => Vector3.up,
+            >= 135f and < 225f => Vector3.left,
+            >= 225f and < 315f => Vector3.down,
+            _ => Vector3.right
         };
     }
 }

@@ -1,118 +1,76 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using dArtagnan.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
-using TouchPhase = UnityEngine.InputSystem.TouchPhase;
 
 /// <summary>
 ///     게임 내 플레이어 전원을 조종합니다. Input 처리도 겸합니다.
 /// </summary>
 public class GameManager : MonoBehaviour
 {
+    public Camera mainCamera;
     public NetworkManager networkManager;
     public GameObject playerPrefab;
-    public Camera mainCamera;
-    public int controlledPlayerIndex;
-    public float doubleTapThreshold;
     private readonly List<PlayerController> players = new();
-    private int tapCount;
-    public PlayerController ControlledPlayer => players[controlledPlayerIndex];
+    private int controlledPlayerIndex;
+    PlayerController ControlledPlayer => players[controlledPlayerIndex];
 
-    private async void Start()
+    void Update()
     {
-        for (var i = 0; i < 8; i++)
-            AddPlayer(i);
-        mainCamera.transform.SetParent(ControlledPlayer.transform);
+        Vector3 direction = Vector3.zero;
+        if (Keyboard.current.wKey.isPressed)
+        {
+            direction += Vector3.up;
+        }
+
+        if (Keyboard.current.sKey.isPressed)
+        {
+            direction += Vector3.down;
+        }
+
+        if (Keyboard.current.aKey.isPressed)
+        {
+            direction += Vector3.left;
+        }
+
+        if (Keyboard.current.dKey.isPressed)
+        {
+            direction += Vector3.right;
+        }
+
+        networkManager.SendPlayerDirection(direction); // TODO: send only on difference
     }
 
-    public async void Update()
-    {
-        Vector2 clicked;
-        bool firstTap = false;
-        if (Touch.activeTouches.Count > 0)
-        {
-            var touch = Touch.activeTouches[0];
-            if (touch.phase == TouchPhase.Began)
-            {
-                firstTap = true;
-                HandleDoubleTap();
-            }
-
-            clicked = touch.screenPosition;
-        }
-        else if (Mouse.current.leftButton.isPressed)
-        {
-            if (Mouse.current.leftButton.wasPressedThisFrame)
-            {
-                firstTap = true;
-                HandleDoubleTap();
-            }
-
-            clicked = Mouse.current.position.ReadValue();
-        }
-        else
-        {
-            ControlledPlayer.StopMoving();
-            return;
-        }
-
-        Vector3 screenPosition = clicked;
-        screenPosition.z = Mathf.Abs(mainCamera.transform.position.z - ControlledPlayer.transform.position.z);
-        var worldPoint = mainCamera.ScreenToWorldPoint(screenPosition);
-        if (firstTap)
-        {
-            var hit = Physics2D.Raycast(worldPoint, Vector2.zero);
-            if (hit.collider && hit.transform.CompareTag(playerPrefab.tag))
-            {
-                ControlledPlayer.Fire();
-                var hitPlayer = hit.transform.gameObject.GetComponent<PlayerController>();
-                hitPlayer.Die();
-            }
-        }
-        else
-        {
-            worldPoint.z = ControlledPlayer.transform.position.z;
-            ControlledPlayer.SetDirectionTowards(worldPoint);
-            // var normalized = (worldPoint - ControlledPlayer.transform.position).normalized;
-            networkManager.Enqueue(ControlledPlayer.transform.position);
-        }
-    }
-
-    private void HandleDoubleTap()
-    {
-        tapCount++;
-        if (tapCount == 1)
-        {
-            StartCoroutine(ResetTapCount());
-        }
-
-        if (tapCount >= 2)
-        {
-            ControlledPlayer.SetRunning();
-        }
-    }
-
-    private IEnumerator ResetTapCount()
-    {
-        yield return new WaitForSeconds(doubleTapThreshold);
-        tapCount = 0;
-    }
-
-    public void AddPlayer(int index)
+    void AddPlayer(int index, Vector2 position, int accuracy)
     {
         var created = Instantiate(playerPrefab); // TODO: Object Pooling.
         var player = created.GetComponent<PlayerController>();
+        player.Accuracy = accuracy;
+        player.ImmediatelyMoveTo(position);
         players.Add(player);
     }
 
-    public void OnPlayerMove(int index, Vector2 position)
+    public void OnYouAre(YouAre payload)
     {
-        players[index].SetDirectionTowards(position);
+        controlledPlayerIndex = payload.playerId;
     }
 
-    public void OnPlayerFire(int firingIndex, int targetIndex)
+    public void OnJoinResponseFromServer(JoinResponseFromServer payload)
     {
-        players[firingIndex].Fire();
+        AddPlayer(payload.playerId, payload.position, payload.accuracy);
+        if (payload.playerId == controlledPlayerIndex)
+        {
+            mainCamera.transform.SetParent(ControlledPlayer.transform);
+        }
+    }
+
+    public void OnPlayerDirectionFromServer(PlayerDirectionFromServer payload)
+    {
+        players[payload.playerId].SetDirection(payload.direction);
+    }
+
+    public void OnPlayerRunningFromServer(PlayerRunningFromServer payload)
+    {
+        players[payload.playerId].SetRunning(payload.isRunning);
     }
 }

@@ -1,4 +1,6 @@
-﻿using System.Net.Sockets;
+﻿using System;
+using System.Collections.Generic;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using dArtagnan.Shared;
 using UnityEngine;
@@ -8,7 +10,9 @@ public class NetworkManager : MonoBehaviour
     public GameManager GameManager;
     private TcpClient _client;
     private NetworkStream _stream;
-    private bool sending = false;
+
+    private Queue<Func<Task>> Q;
+    private bool sending;
     public static NetworkManager Instance { get; private set; }
 
     private void Awake()
@@ -29,61 +33,82 @@ public class NetworkManager : MonoBehaviour
         if (!sending) _ = SendLoop();
     }
 
-    public async Task SendPacket<T>(PacketType type, T packet) where T : struct
+    async Task SendPacket<T>(PacketType type, T packet) where T : struct
     {
         await NetworkUtils.SendPacketAsync(_stream, NetworkUtils.CreatePacket(type, packet));
     }
 
-    public void Enqueue(Vector2 v)
-    {
-        Q.Enqueue(v);
-    }
-
-    private async Task SendLoop()
+    async Task SendLoop()
     {
         sending = true;
         while (Q.Count > 0)
         {
-            var v = Q.Dequeue();
-            Debug.Log(v);
-            await SendPacket(PacketType.PlayerMove, new MovePacket
-            {
-                PlayerId = GameManager.controlledPlayerIndex,
-                X = v.x,
-                Y = v.y
-            });
+            var t = Q.Dequeue();
+            await t();
         }
 
         sending = false;
     }
 
-    private async Task ListenLoop()
+    void Enqueue(Func<Task> T)
     {
-        await SendPacket(PacketType.PlayerJoin, new PlayerJoinPacket
+        Q.Enqueue(T);
+    }
+
+    public void SendJoinRequest()
+    {
+        Enqueue(async () => await SendPacket(PacketType.JoinRequestFromClient, new JoinRequestFromClient()));
+    }
+
+    public void SendPlayerDirection(Vector2 direction)
+    {
+        Enqueue(async () => await SendPacket(PacketType.PlayerDirectionFromClient, new PlayerDirectionFromClient
         {
-            Nickname = "hello"
-        });
-        await SendPacket(PacketType.PlayerMove, new MovePacket
+            direction = direction
+        }));
+    }
+
+    public void SendRunning(bool isRunning)
+    {
+        Enqueue(async () => await SendPacket(PacketType.PlayerRunningFromClient, new PlayerRunningFromClient
         {
-            PlayerId = 0,
-            X = 0,
-            Y = 0
-        });
-        Debug.Log("Joined!");
+            isRunning = isRunning
+        }));
+    }
+
+    async Task ListenLoop()
+    {
         while (true)
         {
             var packet = await NetworkUtils.ReceivePacketAsync(_stream);
-            UnityMainThreadDispatcher.Enqueue(() => { HandlePacket(packet.Value); });
+            if (packet is null)
+            {
+                Debug.LogError("ReceivePacketAsync returned null");
+                return;
+            }
+
+            HandlePacket((Packet)packet);
         }
     }
 
-    private void HandlePacket(Packet packet)
+    void HandlePacket(Packet packet)
     {
         switch (packet.Type)
         {
-            case PacketType.PlayerMove:
-                var movePacket = NetworkUtils.GetData<MovePacket>(packet);
-                GameManager.OnPlayerMove(movePacket.PlayerId, new Vector2(movePacket.X, movePacket.Y));
+            case PacketType.JoinResponseFromServer:
+                GameManager.OnJoinResponseFromServer(NetworkUtils.GetData<JoinResponseFromServer>(packet));
+                break;
+            case PacketType.PlayerDirectionFromServer:
+                GameManager.OnPlayerDirectionFromServer(NetworkUtils.GetData<PlayerDirectionFromServer>(packet));
+                break;
+            case PacketType.PlayerRunningFromServer:
+                GameManager.OnPlayerRunningFromServer(NetworkUtils.GetData<PlayerRunningFromServer>(packet));
+                break;
+            case PacketType.YouAre:
+                GameManager.OnYouAre(NetworkUtils.GetData<YouAre>(packet));
+                break;
+            default:
+                Debug.LogError($"Unhandled packet type in HandlePacket(): {packet.Type}");
                 break;
         }
     }

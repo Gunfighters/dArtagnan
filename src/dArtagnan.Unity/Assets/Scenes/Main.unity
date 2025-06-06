@@ -281,11 +281,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: adfcb06afd9a44da884d18f93ee6785d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  networkManager: {fileID: 656021098}
-  playerPrefab: {fileID: 3770431050435661283, guid: 73d5a3bc7ce50484d9daa27e06557574, type: 3}
   mainCamera: {fileID: 468190383}
-  controlledPlayerIndex: 0
-  doubleTapThreshold: 0.3
+  networkManager: {fileID: 0}
+  playerPrefab: {fileID: 3770431050435661283, guid: 73d5a3bc7ce50484d9daa27e06557574, type: 3}
 --- !u!4 &343319303
 Transform:
   m_ObjectHideFlags: 0
@@ -532,7 +530,6 @@ GameObject:
   m_Component:
   - component: {fileID: 656021099}
   - component: {fileID: 656021098}
-  - component: {fileID: 656021097}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -540,18 +537,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &656021097
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 656021096}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 45b2bb4d625800e42bd1af3f79e253a4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &656021098
 MonoBehaviour:
   m_ObjectHideFlags: 0
