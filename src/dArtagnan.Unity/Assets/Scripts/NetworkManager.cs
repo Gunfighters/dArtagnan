@@ -64,7 +64,7 @@ public class NetworkManager : MonoBehaviour
     {
         Enqueue(async () => await SendPacket(PacketType.PlayerDirectionFromClient, new PlayerDirectionFromClient
         {
-            direction = direction
+            direction = GameManager.DirectionToInt(direction)
         }));
     }
 

@@ -57,7 +57,7 @@ public class GameManager : MonoBehaviour
 
     public void OnJoinResponseFromServer(JoinResponseFromServer payload)
     {
-        AddPlayer(payload.playerId, payload.position, payload.accuracy);
+        AddPlayer(payload.playerId, new Vector2(payload.initX, payload.initY), payload.accuracy);
         if (payload.playerId == controlledPlayerIndex)
         {
             mainCamera.transform.SetParent(ControlledPlayer.transform);
@@ -66,11 +66,37 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayerDirectionFromServer(PlayerDirectionFromServer payload)
     {
-        players[payload.playerId].SetDirection(payload.direction);
+        players[payload.playerId].SetDirection(IntToDirection(payload.direction));
     }
 
     public void OnPlayerRunningFromServer(PlayerRunningFromServer payload)
     {
         players[payload.playerId].SetRunning(payload.isRunning);
+    }
+
+    public static int DirectionToInt(Vector3 direction)
+    {
+        if (direction == Vector3.zero) return 0;
+        var angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        angle = (angle + 360f + 22.5f) % 360f; // Normalize and offset
+        var index = Mathf.FloorToInt(angle / 45f); // 0 to 7
+        return index + 1; // 1 to 8 
+    }
+
+    public static Vector3 IntToDirection(int direction)
+    {
+        return direction switch
+        {
+            0 => Vector2.zero,
+            1 => new Vector2(0, 1),
+            2 => new Vector2(1, 1),
+            3 => new Vector2(1, 0),
+            4 => new Vector2(1, -1),
+            5 => new Vector2(0, -1),
+            6 => new Vector2(-1, -1),
+            7 => new Vector2(-1, 0),
+            8 => new Vector2(-1, 1),
+            _ => Vector2.zero // fallback
+        };
     }
 }
