@@ -16,6 +16,22 @@ namespace dArtagnan.Shared
     }
 
     [MessagePackObject]
+    public struct Packet
+    {
+        [Key(0)]
+        public PacketType Type { get; set; }
+
+        [Key(1)]
+        public byte[] Data { get; set; }
+
+        public Packet(PacketType type, byte[] data = null)
+        {
+            Type = type;
+            Data = data ?? new byte[0];
+        }
+    }
+
+    [MessagePackObject]
     public struct JoinRequestFromClient
     {
     }
