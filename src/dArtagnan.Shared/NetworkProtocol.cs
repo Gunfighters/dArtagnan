@@ -1,6 +1,5 @@
 using System;
 using MessagePack;
-using UnityEngine;
 
 namespace dArtagnan.Shared
 {
@@ -50,9 +49,12 @@ namespace dArtagnan.Shared
         public int playerId { get; set; }
 
         [Key(1)]
-        public Vector2 position { get; set; }
+        public int initX { get; set; }
 
         [Key(2)]
+        public int initY { get; set; }
+
+        [Key(3)]
         public int accuracy { get; set; }
     }
 
@@ -60,7 +62,7 @@ namespace dArtagnan.Shared
     public struct PlayerDirectionFromClient
     {
         [Key(0)]
-        public Vector2 direction { get; set; }
+        public int direction { get; set; }
     }
 
     [MessagePackObject]
@@ -70,7 +72,7 @@ namespace dArtagnan.Shared
         public int playerId { get; set; }
 
         [Key(1)]
-        public Vector2 direction { get; set; }
+        public int direction { get; set; }
     }
 
     [MessagePackObject]
