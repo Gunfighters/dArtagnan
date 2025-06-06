@@ -1,19 +1,15 @@
 ﻿using System.Net.Sockets;
 using System.Threading.Tasks;
-using UnityEngine;
 using dArtagnan.Shared;
+using UnityEngine;
 
 public class NetworkManager : MonoBehaviour
 {
-    public static NetworkManager Instance { get; private set; }
     public GameManager GameManager;
     private TcpClient _client;
     private NetworkStream _stream;
-
-    public async Task SendPacket<T>(PacketType type, T packet) where T : struct
-    {
-        await NetworkUtils.SendPacketAsync(_stream, NetworkUtils.CreatePacket(type, packet));
-    }
+    private bool sending = false;
+    public static NetworkManager Instance { get; private set; }
 
     private void Awake()
     {
@@ -28,11 +24,50 @@ public class NetworkManager : MonoBehaviour
         _ = ListenLoop();
     }
 
+    async void Update()
+    {
+        if (!sending) _ = SendLoop();
+    }
+
+    public async Task SendPacket<T>(PacketType type, T packet) where T : struct
+    {
+        await NetworkUtils.SendPacketAsync(_stream, NetworkUtils.CreatePacket(type, packet));
+    }
+
+    public void Enqueue(Vector2 v)
+    {
+        Q.Enqueue(v);
+    }
+
+    private async Task SendLoop()
+    {
+        sending = true;
+        while (Q.Count > 0)
+        {
+            var v = Q.Dequeue();
+            Debug.Log(v);
+            await SendPacket(PacketType.PlayerMove, new MovePacket
+            {
+                PlayerId = GameManager.controlledPlayerIndex,
+                X = v.x,
+                Y = v.y
+            });
+        }
+
+        sending = false;
+    }
+
     private async Task ListenLoop()
     {
         await SendPacket(PacketType.PlayerJoin, new PlayerJoinPacket
         {
             Nickname = "hello"
+        });
+        await SendPacket(PacketType.PlayerMove, new MovePacket
+        {
+            PlayerId = 0,
+            X = 0,
+            Y = 0
         });
         Debug.Log("Joined!");
         while (true)

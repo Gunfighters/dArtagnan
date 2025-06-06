@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using dArtagnan.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
@@ -20,7 +19,7 @@ public class GameManager : MonoBehaviour
     private int tapCount;
     public PlayerController ControlledPlayer => players[controlledPlayerIndex];
 
-    private void Start()
+    private async void Start()
     {
         for (var i = 0; i < 8; i++)
             AddPlayer(i);
@@ -76,12 +75,7 @@ public class GameManager : MonoBehaviour
             worldPoint.z = ControlledPlayer.transform.position.z;
             ControlledPlayer.SetDirectionTowards(worldPoint);
             // var normalized = (worldPoint - ControlledPlayer.transform.position).normalized;
-            // await networkManager.SendPacket(PacketType.PlayerMove, new MovePacket
-            // {
-            //     PlayerId = controlledPlayerIndex,
-            //     X = ControlledPlayer.transform.position.x + Time.deltaTime * ControlledPlayer.speed * normalized.x,
-            //     Y = ControlledPlayer.transform.position.y + Time.deltaTime * ControlledPlayer.speed * normalized.y,
-            // });
+            networkManager.Enqueue(ControlledPlayer.transform.position);
         }
     }
 
