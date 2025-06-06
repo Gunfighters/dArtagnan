@@ -1,30 +1,55 @@
-﻿using dArtagnan.Shared;
-using MagicOnion;
-using MagicOnion.Client;
+﻿using System.Net.Sockets;
+using System.Threading.Tasks;
 using UnityEngine;
+using dArtagnan.Shared;
 
-/// <summary>
-///     서버에서 정보를 받아 GameManager의 함수를 호출합니다.
-/// </summary>
-public class NetworkManager
+public class NetworkManager : MonoBehaviour
 {
-    private IGameHub client;
+    public static NetworkManager Instance { get; private set; }
     public GameManager GameManager;
-    private GameHubReceiver receiver;
+    private TcpClient _client;
+    private NetworkStream _stream;
 
-    private async void Start()
+    public async Task SendPacket<T>(PacketType type, T packet) where T : struct
     {
-        var channel = GrpcChannelx.ForAddress("http://localhost:5080");
-        var serviceClient = MagicOnionClient.Create<IGameService>(channel);
-        Debug.Log("Start");
-        var result = await serviceClient.SumAsync(1, 2);
-        Debug.Log(result);
-        Debug.Log("Start");
-        receiver = new GameHubReceiver();
-        Debug.Log("Start");
-        client = await StreamingHubClient.ConnectAsync<IGameHub, IGameHubReceiver>(channel, receiver);
-        Debug.Log("Start");
-        await client.JoinAsync(1);
-        Debug.Log("Start");
+        await NetworkUtils.SendPacketAsync(_stream, NetworkUtils.CreatePacket(type, packet));
+    }
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
+    async void Start()
+    {
+        _client = new TcpClient();
+        await _client.ConnectAsync("localhost", 7777);
+        _stream = _client.GetStream();
+        _ = ListenLoop();
+    }
+
+    private async Task ListenLoop()
+    {
+        await SendPacket(PacketType.PlayerJoin, new PlayerJoinPacket
+        {
+            Nickname = "hello"
+        });
+        Debug.Log("Joined!");
+        while (true)
+        {
+            var packet = await NetworkUtils.ReceivePacketAsync(_stream);
+            UnityMainThreadDispatcher.Enqueue(() => { HandlePacket(packet.Value); });
+        }
+    }
+
+    private void HandlePacket(Packet packet)
+    {
+        switch (packet.Type)
+        {
+            case PacketType.PlayerMove:
+                var movePacket = NetworkUtils.GetData<MovePacket>(packet);
+                GameManager.OnPlayerMove(movePacket.PlayerId, new Vector2(movePacket.X, movePacket.Y));
+                break;
+        }
     }
 }

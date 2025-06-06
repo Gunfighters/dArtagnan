@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using dArtagnan.Shared;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
@@ -10,6 +11,7 @@ using TouchPhase = UnityEngine.InputSystem.TouchPhase;
 /// </summary>
 public class GameManager : MonoBehaviour
 {
+    public NetworkManager networkManager;
     public GameObject playerPrefab;
     public Camera mainCamera;
     public int controlledPlayerIndex;
@@ -25,7 +27,7 @@ public class GameManager : MonoBehaviour
         mainCamera.transform.SetParent(ControlledPlayer.transform);
     }
 
-    public void Update()
+    public async void Update()
     {
         Vector2 clicked;
         bool firstTap = false;
@@ -73,6 +75,13 @@ public class GameManager : MonoBehaviour
         {
             worldPoint.z = ControlledPlayer.transform.position.z;
             ControlledPlayer.SetDirectionTowards(worldPoint);
+            // var normalized = (worldPoint - ControlledPlayer.transform.position).normalized;
+            // await networkManager.SendPacket(PacketType.PlayerMove, new MovePacket
+            // {
+            //     PlayerId = controlledPlayerIndex,
+            //     X = ControlledPlayer.transform.position.x + Time.deltaTime * ControlledPlayer.speed * normalized.x,
+            //     Y = ControlledPlayer.transform.position.y + Time.deltaTime * ControlledPlayer.speed * normalized.y,
+            // });
         }
     }
 
