@@ -1,30 +1,90 @@
-﻿using dArtagnan.Shared;
-using MagicOnion;
-using MagicOnion.Client;
+﻿using System.Net.Sockets;
+using System.Threading.Tasks;
+using dArtagnan.Shared;
 using UnityEngine;
 
-/// <summary>
-///     서버에서 정보를 받아 GameManager의 함수를 호출합니다.
-/// </summary>
-public class NetworkManager
+public class NetworkManager : MonoBehaviour
 {
-    private IGameHub client;
     public GameManager GameManager;
-    private GameHubReceiver receiver;
+    private TcpClient _client;
+    private NetworkStream _stream;
+    private bool sending = false;
+    public static NetworkManager Instance { get; private set; }
 
-    private async void Start()
+    private void Awake()
     {
-        var channel = GrpcChannelx.ForAddress("http://localhost:5080");
-        var serviceClient = MagicOnionClient.Create<IGameService>(channel);
-        Debug.Log("Start");
-        var result = await serviceClient.SumAsync(1, 2);
-        Debug.Log(result);
-        Debug.Log("Start");
-        receiver = new GameHubReceiver();
-        Debug.Log("Start");
-        client = await StreamingHubClient.ConnectAsync<IGameHub, IGameHubReceiver>(channel, receiver);
-        Debug.Log("Start");
-        await client.JoinAsync(1);
-        Debug.Log("Start");
+        Instance = this;
+    }
+
+    async void Start()
+    {
+        _client = new TcpClient();
+        await _client.ConnectAsync("localhost", 7777);
+        _stream = _client.GetStream();
+        _ = ListenLoop();
+    }
+
+    async void Update()
+    {
+        if (!sending) _ = SendLoop();
+    }
+
+    public async Task SendPacket<T>(PacketType type, T packet) where T : struct
+    {
+        await NetworkUtils.SendPacketAsync(_stream, NetworkUtils.CreatePacket(type, packet));
+    }
+
+    public void Enqueue(Vector2 v)
+    {
+        Q.Enqueue(v);
+    }
+
+    private async Task SendLoop()
+    {
+        sending = true;
+        while (Q.Count > 0)
+        {
+            var v = Q.Dequeue();
+            Debug.Log(v);
+            await SendPacket(PacketType.PlayerMove, new MovePacket
+            {
+                PlayerId = GameManager.controlledPlayerIndex,
+                X = v.x,
+                Y = v.y
+            });
+        }
+
+        sending = false;
+    }
+
+    private async Task ListenLoop()
+    {
+        await SendPacket(PacketType.PlayerJoin, new PlayerJoinPacket
+        {
+            Nickname = "hello"
+        });
+        await SendPacket(PacketType.PlayerMove, new MovePacket
+        {
+            PlayerId = 0,
+            X = 0,
+            Y = 0
+        });
+        Debug.Log("Joined!");
+        while (true)
+        {
+            var packet = await NetworkUtils.ReceivePacketAsync(_stream);
+            UnityMainThreadDispatcher.Enqueue(() => { HandlePacket(packet.Value); });
+        }
+    }
+
+    private void HandlePacket(Packet packet)
+    {
+        switch (packet.Type)
+        {
+            case PacketType.PlayerMove:
+                var movePacket = NetworkUtils.GetData<MovePacket>(packet);
+                GameManager.OnPlayerMove(movePacket.PlayerId, new Vector2(movePacket.X, movePacket.Y));
+                break;
+        }
     }
 }

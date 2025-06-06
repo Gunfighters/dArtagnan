@@ -10,6 +10,7 @@ using TouchPhase = UnityEngine.InputSystem.TouchPhase;
 /// </summary>
 public class GameManager : MonoBehaviour
 {
+    public NetworkManager networkManager;
     public GameObject playerPrefab;
     public Camera mainCamera;
     public int controlledPlayerIndex;
@@ -18,14 +19,14 @@ public class GameManager : MonoBehaviour
     private int tapCount;
     public PlayerController ControlledPlayer => players[controlledPlayerIndex];
 
-    private void Start()
+    private async void Start()
     {
         for (var i = 0; i < 8; i++)
             AddPlayer(i);
         mainCamera.transform.SetParent(ControlledPlayer.transform);
     }
 
-    public void Update()
+    public async void Update()
     {
         Vector2 clicked;
         bool firstTap = false;
@@ -73,6 +74,8 @@ public class GameManager : MonoBehaviour
         {
             worldPoint.z = ControlledPlayer.transform.position.z;
             ControlledPlayer.SetDirectionTowards(worldPoint);
+            // var normalized = (worldPoint - ControlledPlayer.transform.position).normalized;
+            networkManager.Enqueue(ControlledPlayer.transform.position);
         }
     }
 
