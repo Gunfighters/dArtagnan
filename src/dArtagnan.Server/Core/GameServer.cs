@@ -54,24 +54,7 @@ namespace dArtagnan.Server.Core
 
         // 플레이어 게임 참가 처리
         public async Task JoinGame(ClientConnection client, string nickname)
-        {
-            // 플레이어 정보 설정
-            client.SetPlayerInfo(nickname);
-            
-            // 최대 인원 체크 (8명)
-            if (clients.Count > 8)
-            {
-                var failResponse = new PlayerJoinResponsePacket
-                {
-                    Success = false,
-                    Message = "인원 초과",
-                    PlayerInfo = default
-                };
-                await client.SendPacketAsync(PacketType.PlayerJoinResponse, failResponse);
-                Console.WriteLine($"[게임] 플레이어 {client.PlayerId}({nickname}) 참가 실패 - 인원 초과");
-                return;
-            }
-            
+        {   
             Console.WriteLine($"[게임] 플레이어 {client.PlayerId}({nickname}) 참가 (현재 인원: {clients.Count})");
 
             // 성공 응답 전송
