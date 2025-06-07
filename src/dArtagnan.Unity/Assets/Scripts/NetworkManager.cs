@@ -80,10 +80,18 @@ public class NetworkManager : MonoBehaviour
         });
     }
 
+    public void SendPlayerIsRunning(bool isRunning)
+    {
+        Enqueue(new PlayerRunningFromClient() { isRunning = isRunning });
+    }
+
     void HandlePacket(IPacket packet)
     {
         switch (packet)
         {
+            case InformationOfPlayers informationOfPlayers:
+                gameManager.OnInformationOfPlayers(informationOfPlayers);
+                break;
             case JoinResponseFromServer response:
                 gameManager.OnJoinResponseFromServer(response);
                 break;

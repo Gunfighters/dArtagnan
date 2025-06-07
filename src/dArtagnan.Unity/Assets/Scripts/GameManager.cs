@@ -52,10 +52,20 @@ public class GameManager : MonoBehaviour
             lastDirection = direction;
             networkManager.SendPlayerDirection(direction); // TODO: send only on difference
         }
+
+        if (Keyboard.current.spaceKey.wasPressedThisFrame)
+        {
+            networkManager.SendPlayerIsRunning(true);
+        }
+        else if (Keyboard.current.spaceKey.wasReleasedThisFrame)
+        {
+            networkManager.SendPlayerIsRunning(false);
+        }
     }
 
     void AddPlayer(int index, Vector2 position, int accuracy)
     {
+        Debug.Log($"Add Player #{index} at {position} with accuracy {accuracy}%");
         if (players.ContainsKey(index))
         {
             Debug.LogError($"Player {index} already exists");
@@ -72,6 +82,15 @@ public class GameManager : MonoBehaviour
     public void OnYouAre(YouAre payload)
     {
         controlledPlayerIndex = payload.playerId;
+    }
+
+    public void OnInformationOfPlayers(InformationOfPlayers informationOfPlayers)
+    {
+        Debug.Log(informationOfPlayers.info);
+        foreach (var info in informationOfPlayers.info)
+        {
+            AddPlayer(info.playerId, new Vector2(info.x, info.y), info.accuracy);
+        }
     }
 
     public void OnJoinResponseFromServer(JoinResponseFromServer payload)

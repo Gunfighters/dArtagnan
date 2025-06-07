@@ -8,7 +8,7 @@ namespace dArtagnan.Server.Core
     public class GameServer
     {
         // 클라이언트 관리- ConcurrentDictionary는 스레드 안전함
-        private readonly ConcurrentDictionary<int, ClientConnection> clients = new();
+        public readonly ConcurrentDictionary<int, ClientConnection> clients = new();
         private bool isRunning;
         private int nextPlayerId = 1;
         private TcpListener tcpListener;
@@ -30,9 +30,13 @@ namespace dArtagnan.Server.Core
                     try
                     {
                         var tcpClient = await tcpListener.AcceptTcpClientAsync();
-                        var client = new ClientConnection(tcpClient, this, nextPlayerId++);
-                        clients.TryAdd(client.PlayerId, client);
-                        Console.WriteLine($"새 클라이언트 연결됨 (ID: {client.PlayerId})");
+                        var client = new ClientConnection(nextPlayerId++, tcpClient, this);
+                        await client.SendPacketAsync(new InformationOfPlayers
+                        {
+                            info = clients.Values.Where(c => c != client).Select(c => c.playerinfo).ToList()
+                        });
+                        clients.TryAdd(client.Id, client);
+                        Console.WriteLine($"새 클라이언트 연결됨 (ID: {client.Id})");
                     }
                     catch (ObjectDisposedException)
                     {
@@ -54,11 +58,11 @@ namespace dArtagnan.Server.Core
         // 플레이어 게임 참가 처리
         public async Task JoinGame(ClientConnection client)
         {
-            Console.WriteLine($"[게임] 플레이어 {client.PlayerId} 참가 (현재 인원: {clients.Count})");
-
+            Console.WriteLine($"[게임] 플레이어 {client.Id} 참가 (현재 인원: {clients.Count})");
+            client.SetPlayerInfo(client.Id, "asdf");
             await client.SendPacketAsync(new YouAre
             {
-                playerId = client.PlayerId,
+                playerId = client.playerinfo.playerId
             });
 
             var response = new JoinResponseFromServer
@@ -66,7 +70,7 @@ namespace dArtagnan.Server.Core
                 accuracy = Random.Shared.Next(1, 100),
                 initX = 0,
                 initY = 0,
-                playerId = client.PlayerId
+                playerId = client.playerinfo.playerId
             };
 
             await BroadcastToAll(response);
@@ -93,7 +97,7 @@ namespace dArtagnan.Server.Core
 
             foreach (var client in clients.Values)
             {
-                if (client.PlayerId != excludePlayerId && client.IsConnected && client.IsInGame)
+                if (client.Id != excludePlayerId && client.IsConnected && client.IsInGame)
                 {
                     tasks.Add(client.SendPacketAsync(data));
                 }
@@ -108,8 +112,8 @@ namespace dArtagnan.Server.Core
         // 클라이언트 제거
         public async Task RemoveClient(ClientConnection client)
         {
-            clients.TryRemove(client.PlayerId, out _);
-            Console.WriteLine($"클라이언트 {client.PlayerId} 제거됨 (현재 접속자: {clients.Count})");
+            clients.TryRemove(client.Id, out _);
+            Console.WriteLine($"클라이언트 {client.Id} 제거됨 (현재 접속자: {clients.Count})");
         }
 
         // 서버 종료
@@ -124,7 +128,7 @@ namespace dArtagnan.Server.Core
                 var disconnectTasks = clients.Values.Select(client => client.DisconnectAsync());
                 await Task.WhenAll(disconnectTasks);
 
-                tcpListener?.Stop();
+                tcpListener.Stop();
             }
             catch (Exception ex)
             {
@@ -145,7 +149,7 @@ namespace dArtagnan.Server.Core
 
             foreach (var client in gameClients)
             {
-                Console.WriteLine($"  플레이어 {client.PlayerId}: {client.Nickname}");
+                Console.WriteLine($"  플레이어 {client.Id}: {client.playerinfo.nickname}");
             }
 
             Console.WriteLine($"================");

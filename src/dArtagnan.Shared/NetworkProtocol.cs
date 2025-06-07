@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using MessagePack;
 
 namespace dArtagnan.Shared
@@ -9,6 +10,7 @@ namespace dArtagnan.Shared
     [Union(4, typeof(PlayerDirectionFromServer))]
     [Union(5, typeof(PlayerRunningFromClient))]
     [Union(6, typeof(PlayerRunningFromServer))]
+    [Union(7, typeof(InformationOfPlayers))]
     public interface IPacket
     {
     };
@@ -34,6 +36,24 @@ namespace dArtagnan.Shared
         [Key(2)] public float initY { get; set; }
 
         [Key(3)] public int accuracy { get; set; }
+    }
+
+    [MessagePackObject]
+    public struct InformationOfPlayers : IPacket
+    {
+        [Key(0)] public List<PlayerInformation> info;
+    }
+
+    [MessagePackObject]
+    public struct PlayerInformation
+    {
+        [Key(0)] public int playerId;
+        [Key(1)] public string nickname;
+        [Key(2)] public int direction;
+        [Key(3)] public float x;
+        [Key(4)] public float y;
+        [Key(5)] public int accuracy;
+        [Key(6)] public bool isRunning;
     }
 
     [MessagePackObject]
