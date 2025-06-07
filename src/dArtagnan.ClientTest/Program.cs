@@ -16,7 +16,7 @@ namespace dArtagnan.ClientTest
             Console.WriteLine("명령어:");
             Console.WriteLine("  connect [host] [port] - 서버 연결 (기본: localhost 7777)");
             Console.WriteLine("  join [nickname] - 게임 참가");
-            Console.WriteLine("  move [x] [y] - 플레이어 이동");
+            Console.WriteLine("  dir [i] - 플레이어 이동 방향 변경");
             Console.WriteLine("  shoot [targetId] - 플레이어 공격");
             Console.WriteLine("  quit - 종료");
             Console.WriteLine("=====================================");
@@ -57,30 +57,29 @@ namespace dArtagnan.ClientTest
                         await JoinGame(nickname);
                         break;
 
-                    case "move":
-                        if (parts.Length >= 3)
+                    case "dir":
+                        if (parts.Length >= 2)
                         {
-                            var x = float.Parse(parts[1]);
-                            var y = float.Parse(parts[2]);
-                            await SendMove(x, y);
+                            var i = int.Parse(parts[1]);
+                            await SendDirection(i);
                         }
                         else
                         {
-                            Console.WriteLine("사용법: move [x] [y]");
+                            Console.WriteLine("사용법: dir [i]");
                         }
                         break;
 
-                    case "shoot":
-                        if (parts.Length >= 2)
-                        {
-                            var targetId = int.Parse(parts[1]);
-                            await SendShoot(targetId);
-                        }
-                        else
-                        {
-                            Console.WriteLine("사용법: shoot [targetId]");
-                        }
-                        break;
+                    // case "shoot":
+                    //     if (parts.Length >= 2)
+                    //     {
+                    //         var targetId = int.Parse(parts[1]);
+                    //         await SendShoot(targetId);
+                    //     }
+                    //     else
+                    //     {
+                    //         Console.WriteLine("사용법: shoot [targetId]");
+                    //     }
+                    //     break;
 
                     case "quit":
                         await Disconnect();
@@ -131,12 +130,7 @@ namespace dArtagnan.ClientTest
 
             try
             {
-                var joinPacket = NetworkUtils.CreatePacket(PacketType.PlayerJoin, new PlayerJoinPacket
-                {
-                    Nickname = nickname
-                });
-
-                Console.WriteLine($"[전송] 패킷: {PacketType.PlayerJoin} (데이터 크기: {joinPacket.Data.Length} bytes)");
+                var joinPacket = new JoinRequestFromClient();
                 await NetworkUtils.SendPacketAsync(stream, joinPacket);
                 Console.WriteLine($"게임 참가 요청을 보냈습니다: {nickname}");
             }
@@ -146,7 +140,7 @@ namespace dArtagnan.ClientTest
             }
         }
 
-        static async Task SendMove(float x, float y)
+        static async Task SendDirection(int direction)
         {
             if (!isConnected || stream == null)
             {
@@ -156,16 +150,9 @@ namespace dArtagnan.ClientTest
 
             try
             {
-                var movePacket = NetworkUtils.CreatePacket(PacketType.PlayerMove, new MovePacket
-                {
-                    PlayerId = 0, // 서버에서 설정됨
-                    X = x,
-                    Y = y
-                });
-
-                Console.WriteLine($"[전송] 패킷: {PacketType.PlayerMove} (데이터 크기: {movePacket.Data.Length} bytes)");
-                await NetworkUtils.SendPacketAsync(stream, movePacket);
-                Console.WriteLine($"이동 패킷 전송: ({x}, {y})");
+                var playerDirection = new PlayerDirectionFromClient() { direction = direction };
+                await NetworkUtils.SendPacketAsync(stream, playerDirection);
+                Console.WriteLine($"이동 패킷 전송: {direction}");
             }
             catch (Exception ex)
             {
@@ -173,97 +160,85 @@ namespace dArtagnan.ClientTest
             }
         }
 
-        static async Task SendShoot(int targetId)
-        {
-            if (!isConnected || stream == null)
-            {
-                Console.WriteLine("먼저 서버에 연결해주세요.");
-                return;
-            }
-
-            try
-            {
-                var shootPacket = NetworkUtils.CreatePacket(PacketType.PlayerShoot, new ShootPacket
-                {
-                    PlayerId = 0, // 서버에서 설정됨
-                    TargetPlayerId = targetId
-                });
-
-                Console.WriteLine($"[전송] 패킷: {PacketType.PlayerShoot} (데이터 크기: {shootPacket.Data.Length} bytes)");
-                await NetworkUtils.SendPacketAsync(stream, shootPacket);
-                Console.WriteLine($"공격 패킷 전송: 타겟 {targetId}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"공격 패킷 전송 실패: {ex.Message}");
-            }
-        }
+        // static async Task SendShoot(int targetId)
+        // {
+        //     if (!isConnected || stream == null)
+        //     {
+        //         Console.WriteLine("먼저 서버에 연결해주세요.");
+        //         return;
+        //     }
+        //
+        //     try
+        //     {
+        //         var shootPacket = NetworkUtils.CreatePacket(PacketType.PlayerShoot, new ShootPacket
+        //         {
+        //             PlayerId = 0, // 서버에서 설정됨
+        //             TargetPlayerId = targetId
+        //         });
+        //
+        //         Console.WriteLine($"[전송] 패킷: {PacketType.PlayerShoot} (데이터 크기: {shootPacket.Data.Length} bytes)");
+        //         await NetworkUtils.SendPacketAsync(stream, shootPacket);
+        //         Console.WriteLine($"공격 패킷 전송: 타겟 {targetId}");
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         Console.WriteLine($"공격 패킷 전송 실패: {ex.Message}");
+        //     }
+        // }
 
         static async Task ReceiveLoop()
         {
             while (isRunning)
             {
-                try
+                if (stream != null && isConnected)
                 {
-                    if (stream != null && isConnected)
+                    try
                     {
                         var packet = await NetworkUtils.ReceivePacketAsync(stream);
-                        if (packet != null)
-                        {
-                            Console.WriteLine($"[수신] 패킷: {packet.Value.Type} (데이터 크기: {packet.Value.Data.Length} bytes)");
-                            await HandlePacket(packet.Value);
-                        }
-                        else
-                        {
-                            Console.WriteLine("서버와의 연결이 끊어졌습니다.");
-                            isConnected = false;
-                            break;
-                        }
+                        Console.WriteLine($"[수신] 패킷: {packet}");
+                        await HandlePacket(packet);
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        await Task.Delay(100); // 연결 대기
+                        Console.WriteLine("서버와의 연결이 끊어졌습니다.");
+                        isConnected = false;
+                        break;
                     }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"패킷 수신 오류: {ex.Message}");
-                    isConnected = false;
-                    break;
+
+                    
                 }
             }
         }
 
-        static async Task HandlePacket(Packet packet)
+        static async Task HandlePacket(IPacket packet)
         {
             try
             {
-                switch (packet.Type)
+                switch (packet)
                 {
-                    case PacketType.PlayerJoinResponse:
-                        var joinResponse = NetworkUtils.GetData<PlayerJoinResponsePacket>(packet);
-                        if (joinResponse.Success)
+                    case JoinResponseFromServer joinResponse:
+                        Console.WriteLine($"게임 참가 성공! 플레이어 ID: {joinResponse.playerId}, 명중률: {joinResponse.accuracy}");
+                        break;
+                    case PlayerDirectionFromServer playerDirection:
+                        Console.WriteLine($"{playerDirection.playerId}번 플레이어 방향 변경: {playerDirection.direction}");
+                        break;
+                    case PlayerRunningFromServer running:
+                        var msg = running.isRunning ? "달립니다" : "그만 달립니다";
+                        Console.WriteLine($"{running.playerId}번 플레이어가 {msg}.");
+                        break;
+                    case InformationOfPlayers infoPlayers:
+                        foreach (var info in infoPlayers.info)
                         {
-                            Console.WriteLine($"게임 참가 성공! 플레이어 ID: {joinResponse.PlayerInfo.PlayerId}, 닉네임: {joinResponse.PlayerInfo.Nickname}");
+                            Console.WriteLine($"{info.playerId}번 플레이어가 있습니다., 명중률: {info.accuracy}%");
                         }
-                        else
-                        {
-                            Console.WriteLine($"게임 참가 실패: {joinResponse.Message}");
-                        }
+                        
                         break;
-
-                    case PacketType.PlayerMoveResponse:
-                        var moveResponse = NetworkUtils.GetData<MovePacket>(packet);
-                        Console.WriteLine($"플레이어 {moveResponse.PlayerId} 이동: ({moveResponse.X}, {moveResponse.Y})");
-                        break;
-
-                    case PacketType.PlayerShootResponse:
-                        var shootResponse = NetworkUtils.GetData<ShootPacket>(packet);
-                        Console.WriteLine($"플레이어 {shootResponse.PlayerId}가 플레이어 {shootResponse.TargetPlayerId}를 공격했습니다!");
-                        break;
-
+                    // case PlayerShootResponse:
+                    //     var shootResponse = NetworkUtils.GetData<ShootPacket>(packet);
+                    //     Console.WriteLine($"플레이어 {shootResponse.PlayerId}가 플레이어 {shootResponse.TargetPlayerId}를 공격했습니다!");
+                    //     break;
                     default:
-                        Console.WriteLine($"처리되지 않은 패킷 타입: {packet.Type}");
+                        Console.WriteLine($"처리되지 않은 패킷 타입: {packet}");
                         break;
                 }
             }

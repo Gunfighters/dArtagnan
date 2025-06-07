@@ -63,7 +63,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void AddPlayer(int index, Vector2 position, int accuracy)
+    void AddPlayer(int index, Vector2 position, int direction, int accuracy)
     {
         Debug.Log($"Add Player #{index} at {position} with accuracy {accuracy}%");
         if (players.ContainsKey(index))
@@ -75,6 +75,7 @@ public class GameManager : MonoBehaviour
         var created = Instantiate(playerPrefab); // TODO: Object Pooling.
         var player = created.GetComponent<PlayerController>();
         player.Accuracy = accuracy;
+        player.SetDirection(DirectionHelper.IntToDirection(direction));
         player.ImmediatelyMoveTo(position);
         players[index] = player;
     }
@@ -89,13 +90,13 @@ public class GameManager : MonoBehaviour
         Debug.Log(informationOfPlayers.info);
         foreach (var info in informationOfPlayers.info)
         {
-            AddPlayer(info.playerId, new Vector2(info.x, info.y), info.accuracy);
+            AddPlayer(info.playerId, new Vector2(info.x, info.y), info.direction, info.accuracy);
         }
     }
 
     public void OnJoinResponseFromServer(JoinResponseFromServer payload)
     {
-        AddPlayer(payload.playerId, new Vector2(payload.initX, payload.initY), payload.accuracy);
+        AddPlayer(payload.playerId, new Vector2(payload.initX, payload.initY), 0, payload.accuracy);
         if (payload.playerId == controlledPlayerIndex)
         {
             mainCamera.transform.SetParent(ControlledPlayer.transform);
