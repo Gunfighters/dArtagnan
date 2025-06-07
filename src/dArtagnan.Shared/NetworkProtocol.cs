@@ -1,94 +1,66 @@
-using System;
 using MessagePack;
 
 namespace dArtagnan.Shared
 {
-    public enum PacketType : byte
+    [Union(0, typeof(JoinRequestFromClient))]
+    [Union(1, typeof(YouAre))]
+    [Union(2, typeof(JoinResponseFromServer))]
+    [Union(3, typeof(PlayerDirectionFromClient))]
+    [Union(4, typeof(PlayerDirectionFromServer))]
+    [Union(5, typeof(PlayerRunningFromClient))]
+    [Union(6, typeof(PlayerRunningFromServer))]
+    public interface IPacket
     {
-        JoinRequestFromClient,
-        YouAre,
-        JoinResponseFromServer,
-        PlayerDirectionFromClient,
-        PlayerDirectionFromServer,
-        PlayerRunningFromClient,
-        PlayerRunningFromServer
-    }
+    };
 
     [MessagePackObject]
-    public struct Packet
-    {
-        [Key(0)]
-        public PacketType Type { get; set; }
-
-        [Key(1)]
-        public byte[] Data { get; set; }
-
-        public Packet(PacketType type, byte[] data = null)
-        {
-            Type = type;
-            Data = data ?? new byte[0];
-        }
-    }
-
-    [MessagePackObject]
-    public struct JoinRequestFromClient
+    public struct JoinRequestFromClient : IPacket
     {
     }
 
     [MessagePackObject]
-    public struct YouAre
+    public struct YouAre : IPacket
     {
-        [Key(0)]
-        public int playerId { get; set; }
+        [Key(0)] public int playerId { get; set; }
     }
 
     [MessagePackObject]
-    public struct JoinResponseFromServer
+    public struct JoinResponseFromServer : IPacket
     {
-        [Key(0)]
-        public int playerId { get; set; }
+        [Key(0)] public int playerId { get; set; }
 
-        [Key(1)]
-        public int initX { get; set; }
+        [Key(1)] public float initX { get; set; }
 
-        [Key(2)]
-        public int initY { get; set; }
+        [Key(2)] public float initY { get; set; }
 
-        [Key(3)]
-        public int accuracy { get; set; }
+        [Key(3)] public int accuracy { get; set; }
     }
 
     [MessagePackObject]
-    public struct PlayerDirectionFromClient
+    public struct PlayerDirectionFromClient : IPacket
     {
-        [Key(0)]
-        public int direction { get; set; }
+        [Key(0)] public int direction { get; set; }
     }
 
     [MessagePackObject]
-    public struct PlayerDirectionFromServer
+    public struct PlayerDirectionFromServer : IPacket
     {
-        [Key(0)]
-        public int playerId { get; set; }
+        [Key(0)] public int playerId { get; set; }
 
-        [Key(1)]
-        public int direction { get; set; }
+        [Key(1)] public int direction { get; set; }
     }
 
     [MessagePackObject]
-    public struct PlayerRunningFromClient
+    public struct PlayerRunningFromClient : IPacket
     {
-        [Key(0)]
-        public bool isRunning { get; set; }
+        [Key(0)] public bool isRunning { get; set; }
     }
 
     [MessagePackObject]
-    public struct PlayerRunningFromServer
+    public struct PlayerRunningFromServer : IPacket
     {
-        [Key(0)]
-        public int playerId { get; set; }
+        [Key(0)] public int playerId { get; set; }
 
-        [Key(1)]
-        public bool isRunning { get; set; }
+        [Key(1)] public bool isRunning { get; set; }
     }
-} 
+}

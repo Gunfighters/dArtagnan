@@ -11,12 +11,19 @@ public class GameManager : MonoBehaviour
     public Camera mainCamera;
     public NetworkManager networkManager;
     public GameObject playerPrefab;
-    private readonly List<PlayerController> players = new();
-    private int controlledPlayerIndex;
+    private readonly Dictionary<int, PlayerController> players = new();
+    private int controlledPlayerIndex = -1;
+    private Vector3 lastDirection = Vector3.zero;
     PlayerController ControlledPlayer => players[controlledPlayerIndex];
+
+    void Start()
+    {
+        networkManager.SendJoinRequest();
+    }
 
     void Update()
     {
+        if (controlledPlayerIndex == -1) return;
         Vector3 direction = Vector3.zero;
         if (Keyboard.current.wKey.isPressed)
         {
@@ -38,16 +45,28 @@ public class GameManager : MonoBehaviour
             direction += Vector3.right;
         }
 
-        networkManager.SendPlayerDirection(direction); // TODO: send only on difference
+        direction = direction.normalized;
+
+        if (direction != lastDirection)
+        {
+            lastDirection = direction;
+            networkManager.SendPlayerDirection(direction); // TODO: send only on difference
+        }
     }
 
     void AddPlayer(int index, Vector2 position, int accuracy)
     {
+        if (players.ContainsKey(index))
+        {
+            Debug.LogError($"Player {index} already exists");
+            return;
+        }
+
         var created = Instantiate(playerPrefab); // TODO: Object Pooling.
         var player = created.GetComponent<PlayerController>();
         player.Accuracy = accuracy;
         player.ImmediatelyMoveTo(position);
-        players.Add(player);
+        players[index] = player;
     }
 
     public void OnYouAre(YouAre payload)
@@ -66,37 +85,13 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayerDirectionFromServer(PlayerDirectionFromServer payload)
     {
-        players[payload.playerId].SetDirection(IntToDirection(payload.direction));
+        var direction = DirectionHelper.IntToDirection(payload.direction);
+        Debug.Log(direction);
+        players[payload.playerId].SetDirection(direction);
     }
 
     public void OnPlayerRunningFromServer(PlayerRunningFromServer payload)
     {
         players[payload.playerId].SetRunning(payload.isRunning);
-    }
-
-    public static int DirectionToInt(Vector3 direction)
-    {
-        if (direction == Vector3.zero) return 0;
-        var angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        angle = (angle + 360f + 22.5f) % 360f; // Normalize and offset
-        var index = Mathf.FloorToInt(angle / 45f); // 0 to 7
-        return index + 1; // 1 to 8 
-    }
-
-    public static Vector3 IntToDirection(int direction)
-    {
-        return direction switch
-        {
-            0 => Vector2.zero,
-            1 => new Vector2(0, 1),
-            2 => new Vector2(1, 1),
-            3 => new Vector2(1, 0),
-            4 => new Vector2(1, -1),
-            5 => new Vector2(0, -1),
-            6 => new Vector2(-1, -1),
-            7 => new Vector2(-1, 0),
-            8 => new Vector2(-1, 1),
-            _ => Vector2.zero // fallback
-        };
     }
 }

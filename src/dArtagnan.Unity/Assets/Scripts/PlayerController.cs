@@ -13,7 +13,7 @@ public class PlayerController : MonoBehaviour
     public int Accuracy;
     private Vector3 currentDirection;
     private bool dead;
-    private float directionLerpSpeed = 0.4f;
+    private float directionLerpSpeed = 10f;
     private bool firing;
     private bool running;
     private Character4D SpriteManager;
@@ -27,7 +27,9 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        currentDirection = Vector3.Lerp(currentDirection, targetDirection, Time.deltaTime * directionLerpSpeed);
+        currentDirection = targetDirection == Vector3.zero
+            ? Vector3.zero
+            : Vector3.Lerp(currentDirection, targetDirection, Time.deltaTime * directionLerpSpeed);
         transform.position += speed * Time.deltaTime * currentDirection;
         if (currentDirection == Vector3.zero)
         {

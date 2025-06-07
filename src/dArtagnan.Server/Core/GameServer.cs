@@ -7,12 +7,11 @@ namespace dArtagnan.Server.Core
 {
     public class GameServer
     {
-        private TcpListener tcpListener;
-        private bool isRunning;
-        private int nextPlayerId = 1;
-        
         // 클라이언트 관리- ConcurrentDictionary는 스레드 안전함
         private readonly ConcurrentDictionary<int, ClientConnection> clients = new();
+        private bool isRunning;
+        private int nextPlayerId = 1;
+        private TcpListener tcpListener;
 
         public async Task StartAsync(int port)
         {
@@ -53,53 +52,50 @@ namespace dArtagnan.Server.Core
         }
 
         // 플레이어 게임 참가 처리
-        public async Task JoinGame(ClientConnection client, string nickname)
-        {   
-            Console.WriteLine($"[게임] 플레이어 {client.PlayerId}({nickname}) 참가 (현재 인원: {clients.Count})");
+        public async Task JoinGame(ClientConnection client)
+        {
+            Console.WriteLine($"[게임] 플레이어 {client.PlayerId} 참가 (현재 인원: {clients.Count})");
 
-            // 성공 응답 전송
-            var response = new PlayerJoinResponsePacket
+            await client.SendPacketAsync(new YouAre
             {
-                Success = true,
-                Message = "참가 성공",
-                PlayerInfo = client.PlayerInfo
+                playerId = client.PlayerId,
+            });
+
+            var response = new JoinResponseFromServer
+            {
+                accuracy = Random.Shared.Next(1, 100),
+                initX = 0,
+                initY = 0,
+                playerId = client.PlayerId
             };
 
-            await client.SendPacketAsync(PacketType.PlayerJoinResponse, response);
-
-            // 다른 플레이어들에게 새 플레이어 참가 알림
-            await BroadcastToAll(PacketType.PlayerJoinResponse, new PlayerJoinResponsePacket
-            {
-                Success = true,
-                Message = "새 플레이어 참가",
-                PlayerInfo = client.PlayerInfo
-            }, client.PlayerId);
+            await BroadcastToAll(response);
         }
 
         // 플레이어 게임 퇴장 처리
-        public async Task LeaveGame(ClientConnection client)
-        {
-            if (!client.IsInGame) return;
-
-            Console.WriteLine($"[게임] 플레이어 {client.PlayerId}({client.Nickname}) 퇴장 (현재 인원: {clients.Count - 1})");
-
-            // 다른 플레이어들에게 퇴장 알림
-            await BroadcastToAll(PacketType.PlayerLeave, new PlayerJoinPacket
-            {
-                Nickname = client.Nickname
-            }, client.PlayerId);
-        }
+        // public async Task LeaveGame(ClientConnection client)
+        // {
+        //     if (!client.IsInGame) return;
+        //
+        //     Console.WriteLine($"[게임] 플레이어 {client.PlayerId}({client.Nickname}) 퇴장 (현재 인원: {clients.Count - 1})");
+        //
+        //     // 다른 플레이어들에게 퇴장 알림
+        //     await BroadcastToAll(PacketType.PlayerLeave, new PlayerJoinPacket
+        //     {
+        //         Nickname = client.Nickname
+        //     }, client.PlayerId);
+        // }
 
         // 모든 플레이어에게 브로드캐스트 (본인 제외)
-        public async Task BroadcastToAll<T>(PacketType packetType, T data, int excludePlayerId = -1) where T : struct
+        public async Task BroadcastToAll(IPacket data, int excludePlayerId = -1)
         {
             var tasks = new List<Task>();
-            
+
             foreach (var client in clients.Values)
             {
                 if (client.PlayerId != excludePlayerId && client.IsConnected && client.IsInGame)
                 {
-                    tasks.Add(client.SendPacketAsync(packetType, data));
+                    tasks.Add(client.SendPacketAsync(data));
                 }
             }
 
@@ -143,15 +139,16 @@ namespace dArtagnan.Server.Core
         {
             Console.WriteLine($"=== 서버 상태 ===");
             Console.WriteLine($"접속 중인 클라이언트: {clients.Count}명");
-            
+
             var gameClients = clients.Values.Where(c => c.IsInGame).ToList();
             Console.WriteLine($"게임 중인 플레이어: {gameClients.Count}명");
-            
+
             foreach (var client in gameClients)
             {
                 Console.WriteLine($"  플레이어 {client.PlayerId}: {client.Nickname}");
             }
+
             Console.WriteLine($"================");
         }
     }
-} 
+}

@@ -282,7 +282,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainCamera: {fileID: 468190383}
-  networkManager: {fileID: 0}
+  networkManager: {fileID: 656021098}
   playerPrefab: {fileID: 3770431050435661283, guid: 73d5a3bc7ce50484d9daa27e06557574, type: 3}
 --- !u!4 &343319303
 Transform:
@@ -549,7 +549,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cbd1f4b5a0af4c34b7bebe285c8fd720, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GameManager: {fileID: 343319302}
+  gameManager: {fileID: 343319302}
 --- !u!4 &656021099
 Transform:
   m_ObjectHideFlags: 0
