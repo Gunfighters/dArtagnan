@@ -127,7 +127,7 @@ namespace dArtagnan.Server.Core
 
             foreach (var client in gameServer.clients.Values)
             {
-                PrintPlayerInfo(client, true);
+                PrintPlayers(client, true);
                 Console.WriteLine();
             }
 
@@ -153,7 +153,7 @@ namespace dArtagnan.Server.Core
             }
 
             Console.WriteLine($"=== 플레이어 {playerId} 상세 정보 ===");
-            PrintPlayerInfo(client, false);
+            PrintPlayers(client, false);
             Console.WriteLine("================================");
         }
 

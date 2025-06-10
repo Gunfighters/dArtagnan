@@ -5,7 +5,7 @@ namespace dArtagnan.Server
     class Program
     {
         private static readonly GameServer gameServer = new GameServer();
-        private static AdminCommandHandler adminCommandHandler = null!; // null!는 "나중에 초기화할 것"을 의미
+        private static CommandHandler commandHandler = null!; // null!는 "나중에 초기화할 것"을 의미
 
         static async Task Main(string[] args)
         {
@@ -13,13 +13,13 @@ namespace dArtagnan.Server
             Console.WriteLine("==================");
 
             // 관리자 명령어 핸들러 초기화
-            adminCommandHandler = new AdminCommandHandler(gameServer);
+            commandHandler = new CommandHandler(gameServer);
 
             // 종료 시그널 처리
             Console.CancelKeyPress += async (sender, e) =>
             {
                 e.Cancel = true;
-                adminCommandHandler.Stop();
+                commandHandler.Stop();
                 await gameServer.StopAsync();
                 Environment.Exit(0);
             };
@@ -29,7 +29,7 @@ namespace dArtagnan.Server
             var serverTask = gameServer.StartAsync(port);
 
             // 관리자 명령어 처리
-            _ = Task.Run(() => adminCommandHandler.StartHandlingAsync());
+            _ = Task.Run(() => commandHandler.StartHandlingAsync());
 
             await serverTask;
         }
