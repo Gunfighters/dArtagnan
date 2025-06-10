@@ -8,16 +8,17 @@ using UnityEngine;
 [RequireComponent(typeof(Character4D))]
 public class PlayerController : MonoBehaviour
 {
+    public int id;
     public float range;
     public int Accuracy;
-    private Vector3 currentDirection;
+    public Vector3 currentDirection;
+    public Vector3 targetDirection;
     private bool dead;
     private float directionLerpSpeed = 10f;
     private bool firing;
     private bool running;
     private float speed = 1f;
     private Character4D SpriteManager;
-    private Vector3 targetDirection;
 
     private void Start()
     {
@@ -27,9 +28,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        currentDirection = targetDirection == Vector3.zero
-            ? Vector3.zero
-            : Vector3.Lerp(currentDirection, targetDirection, Time.deltaTime * directionLerpSpeed);
+        currentDirection = targetDirection;
         transform.position += (running ? speed * 4 : speed) * Time.deltaTime * currentDirection;
         if (currentDirection == Vector3.zero)
         {
@@ -39,6 +38,12 @@ public class PlayerController : MonoBehaviour
         {
             SpriteManager.SetDirection(SnapToCardinalDirection(currentDirection));
             SpriteManager.SetState(running ? CharacterState.Run : CharacterState.Walk);
+        }
+
+        if (firing)
+        {
+            firing = false;
+            SpriteManager.Fire();
         }
     }
 

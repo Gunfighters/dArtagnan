@@ -11,9 +11,11 @@ namespace dArtagnan.Shared
     [Union(5, typeof(PlayerRunningFromClient))]
     [Union(6, typeof(PlayerRunningFromServer))]
     [Union(7, typeof(InformationOfPlayers))]
+    [Union(8, typeof(PlayerShootingFromClient))]
+    [Union(9, typeof(PlayerShootingFromServer))]
     public interface IPacket
     {
-    };
+    }
 
     [MessagePackObject]
     public struct JoinRequestFromClient : IPacket
@@ -82,5 +84,18 @@ namespace dArtagnan.Shared
         [Key(0)] public int playerId { get; set; }
 
         [Key(1)] public bool isRunning { get; set; }
+    }
+
+    [MessagePackObject]
+    public struct PlayerShootingFromClient : IPacket
+    {
+        [Key(0)] public int targetId { get; set; }
+    }
+
+    [MessagePackObject]
+    public struct PlayerShootingFromServer : IPacket
+    {
+        [Key(0)] public int playerId { get; set; }
+        [Key(1)] public int targetId { get; set; }
     }
 }

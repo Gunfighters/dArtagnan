@@ -34,7 +34,6 @@ namespace Assets.HeroEditor4D.Common.Scripts.CharacterScripts
 
         public Color BodyColor;
         public FirearmFxExample FirearmFx;
-        public float speed;
 
         public SpriteCollection SpriteCollection => Parts[0].SpriteCollection;
         private List<Character> PartsExceptBack => new() { Front, Left, Right };

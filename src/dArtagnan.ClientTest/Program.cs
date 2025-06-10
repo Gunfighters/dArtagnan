@@ -22,7 +22,7 @@ namespace dArtagnan.ClientTest
             Console.WriteLine("=====================================");
 
             var receiveTask = Task.Run(ReceiveLoop);
-            
+
             while (isRunning)
             {
                 Console.Write("> ");
@@ -67,19 +67,21 @@ namespace dArtagnan.ClientTest
                         {
                             Console.WriteLine("사용법: dir [i]");
                         }
+
                         break;
 
-                    // case "shoot":
-                    //     if (parts.Length >= 2)
-                    //     {
-                    //         var targetId = int.Parse(parts[1]);
-                    //         await SendShoot(targetId);
-                    //     }
-                    //     else
-                    //     {
-                    //         Console.WriteLine("사용법: shoot [targetId]");
-                    //     }
-                    //     break;
+                    case "shoot":
+                        if (parts.Length >= 2)
+                        {
+                            var targetId = int.Parse(parts[1]);
+                            await SendShoot(targetId);
+                        }
+                        else
+                        {
+                            Console.WriteLine("사용법: shoot [targetId]");
+                        }
+
+                        break;
 
                     case "quit":
                         await Disconnect();
@@ -160,31 +162,27 @@ namespace dArtagnan.ClientTest
             }
         }
 
-        // static async Task SendShoot(int targetId)
-        // {
-        //     if (!isConnected || stream == null)
-        //     {
-        //         Console.WriteLine("먼저 서버에 연결해주세요.");
-        //         return;
-        //     }
-        //
-        //     try
-        //     {
-        //         var shootPacket = NetworkUtils.CreatePacket(PacketType.PlayerShoot, new ShootPacket
-        //         {
-        //             PlayerId = 0, // 서버에서 설정됨
-        //             TargetPlayerId = targetId
-        //         });
-        //
-        //         Console.WriteLine($"[전송] 패킷: {PacketType.PlayerShoot} (데이터 크기: {shootPacket.Data.Length} bytes)");
-        //         await NetworkUtils.SendPacketAsync(stream, shootPacket);
-        //         Console.WriteLine($"공격 패킷 전송: 타겟 {targetId}");
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         Console.WriteLine($"공격 패킷 전송 실패: {ex.Message}");
-        //     }
-        // }
+        static async Task SendShoot(int targetId)
+        {
+            if (!isConnected || stream == null)
+            {
+                Console.WriteLine("먼저 서버에 연결해주세요.");
+                return;
+            }
+
+            try
+            {
+                await NetworkUtils.SendPacketAsync(stream, new PlayerShootingFromClient
+                {
+                    targetId = targetId
+                });
+                Console.WriteLine($"공격 패킷 전송: 타겟 {targetId}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"공격 패킷 전송 실패: {ex.Message}");
+            }
+        }
 
         static async Task ReceiveLoop()
         {
@@ -204,8 +202,6 @@ namespace dArtagnan.ClientTest
                         isConnected = false;
                         break;
                     }
-
-                    
                 }
             }
         }
@@ -231,12 +227,11 @@ namespace dArtagnan.ClientTest
                         {
                             Console.WriteLine($"{info.playerId}번 플레이어가 있습니다., 명중률: {info.accuracy}%");
                         }
-                        
+
                         break;
-                    // case PlayerShootResponse:
-                    //     var shootResponse = NetworkUtils.GetData<ShootPacket>(packet);
-                    //     Console.WriteLine($"플레이어 {shootResponse.PlayerId}가 플레이어 {shootResponse.TargetPlayerId}를 공격했습니다!");
-                    //     break;
+                    case PlayerShootingFromServer shooting:
+                        Console.WriteLine($"플레이어 {shooting.playerId}가 플레이어 {shooting.targetId}를 공격했습니다!");
+                        break;
                     default:
                         Console.WriteLine($"처리되지 않은 패킷 타입: {packet}");
                         break;

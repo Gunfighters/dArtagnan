@@ -7,13 +7,14 @@ using UnityEngine;
 
 public class NetworkManager : MonoBehaviour
 {
-    public GameManager gameManager;
     private Channel<IPacket> _channel;
     private TcpClient _client;
     private NetworkStream _stream;
+    public static NetworkManager Instance { get; private set; }
 
     void Awake()
     {
+        Instance = this;
         _channel = Channel.CreateUnbounded<IPacket>(new UnboundedChannelOptions
         {
             SingleReader = true,
@@ -85,24 +86,32 @@ public class NetworkManager : MonoBehaviour
         Enqueue(new PlayerRunningFromClient() { isRunning = isRunning });
     }
 
+    public void SendPlayerShooting(int target)
+    {
+        Enqueue(new PlayerShootingFromClient { targetId = target });
+    }
+
     void HandlePacket(IPacket packet)
     {
         switch (packet)
         {
             case InformationOfPlayers informationOfPlayers:
-                gameManager.OnInformationOfPlayers(informationOfPlayers);
+                GameManager.Instance.OnInformationOfPlayers(informationOfPlayers);
                 break;
             case JoinResponseFromServer response:
-                gameManager.OnJoinResponseFromServer(response);
+                GameManager.Instance.OnJoinResponseFromServer(response);
                 break;
             case PlayerDirectionFromServer direction:
-                gameManager.OnPlayerDirectionFromServer(direction);
+                GameManager.Instance.OnPlayerDirectionFromServer(direction);
                 break;
             case PlayerRunningFromServer running:
-                gameManager.OnPlayerRunningFromServer(running);
+                GameManager.Instance.OnPlayerRunningFromServer(running);
+                break;
+            case PlayerShootingFromServer shooting:
+                GameManager.Instance.OnPlayerShootingFromServer(shooting);
                 break;
             case YouAre are:
-                gameManager.OnYouAre(are);
+                GameManager.Instance.OnYouAre(are);
                 break;
             default:
                 Debug.LogWarning($"Unhandled packet: {packet}");

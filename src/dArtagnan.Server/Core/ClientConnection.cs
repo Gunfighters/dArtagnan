@@ -102,6 +102,9 @@ namespace dArtagnan.Server.Core
                 case PlayerRunningFromClient running:
                     await HandlePlayerRunning(running);
                     break;
+                case PlayerShootingFromClient shooting:
+                    await HandlePlayerShooting(shooting);
+                    break;
                 default:
                     Console.WriteLine($"Unhandled packet: {packet}");
                     break;
@@ -125,6 +128,7 @@ namespace dArtagnan.Server.Core
         {
             if (IsInGame)
             {
+                playerinfo.direction = moveData.direction;
                 await gameServer.BroadcastToAll(new PlayerDirectionFromServer
                 {
                     direction = moveData.direction,
@@ -133,13 +137,17 @@ namespace dArtagnan.Server.Core
             }
         }
 
-        // private async Task HandlePlayerShoot(ShootPacket shootData)
-        // {
-        //     if (IsInGame)
-        //     {
-        //         await gameServer.BroadcastToAll(PacketType.PlayerShootResponse, shootData, PlayerId);
-        //     }
-        // }
+        private async Task HandlePlayerShooting(PlayerShootingFromClient shooting)
+        {
+            if (IsInGame)
+            {
+                await gameServer.BroadcastToAll(new PlayerShootingFromServer
+                {
+                    playerId = playerinfo.playerId,
+                    targetId = shooting.targetId
+                });
+            }
+        }
 
         private async Task HandleDisconnect()
         {

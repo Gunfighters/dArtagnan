@@ -9,16 +9,21 @@ using UnityEngine.InputSystem;
 public class GameManager : MonoBehaviour
 {
     public Camera mainCamera;
-    public NetworkManager networkManager;
     public GameObject playerPrefab;
     private readonly Dictionary<int, PlayerController> players = new();
     private int controlledPlayerIndex = -1;
     private Vector3 lastDirection = Vector3.zero;
+    public static GameManager Instance { get; private set; }
     PlayerController ControlledPlayer => players[controlledPlayerIndex];
+
+    void Awake()
+    {
+        Instance = this;
+    }
 
     void Start()
     {
-        networkManager.SendJoinRequest();
+        NetworkManager.Instance.SendJoinRequest();
     }
 
     void Update()
@@ -50,17 +55,22 @@ public class GameManager : MonoBehaviour
         if (direction != lastDirection)
         {
             lastDirection = direction;
-            networkManager.SendPlayerDirection(direction); // TODO: send only on difference
+            NetworkManager.Instance.SendPlayerDirection(direction);
         }
 
         if (Keyboard.current.spaceKey.wasPressedThisFrame)
         {
-            networkManager.SendPlayerIsRunning(true);
+            NetworkManager.Instance.SendPlayerIsRunning(true);
         }
         else if (Keyboard.current.spaceKey.wasReleasedThisFrame)
         {
-            networkManager.SendPlayerIsRunning(false);
+            NetworkManager.Instance.SendPlayerIsRunning(false);
         }
+    }
+
+    public void ShootAt(PlayerController target)
+    {
+        NetworkManager.Instance.SendPlayerShooting(target.id);
     }
 
     void AddPlayer(int index, Vector2 position, int direction, int accuracy)
@@ -77,6 +87,7 @@ public class GameManager : MonoBehaviour
         player.Accuracy = accuracy;
         player.SetDirection(DirectionHelper.IntToDirection(direction));
         player.ImmediatelyMoveTo(position);
+        player.id = index;
         players[index] = player;
     }
 
@@ -90,6 +101,7 @@ public class GameManager : MonoBehaviour
         Debug.Log(informationOfPlayers.info);
         foreach (var info in informationOfPlayers.info)
         {
+            Debug.Log(info.direction);
             AddPlayer(info.playerId, new Vector2(info.x, info.y), info.direction, info.accuracy);
         }
     }
@@ -113,5 +125,10 @@ public class GameManager : MonoBehaviour
     public void OnPlayerRunningFromServer(PlayerRunningFromServer payload)
     {
         players[payload.playerId].SetRunning(payload.isRunning);
+    }
+
+    public void OnPlayerShootingFromServer(PlayerShootingFromServer shooting)
+    {
+        players[shooting.playerId].Fire();
     }
 }

@@ -31,10 +31,6 @@ namespace dArtagnan.Server.Core
                     {
                         var tcpClient = await tcpListener.AcceptTcpClientAsync();
                         var client = new ClientConnection(nextPlayerId++, tcpClient, this);
-                        await client.SendPacketAsync(new InformationOfPlayers
-                        {
-                            info = clients.Values.Where(c => c != client).Select(c => c.playerinfo).ToList()
-                        });
                         clients.TryAdd(client.Id, client);
                         Console.WriteLine($"새 클라이언트 연결됨 (ID: {client.Id})");
                     }
@@ -137,7 +133,5 @@ namespace dArtagnan.Server.Core
 
             Console.WriteLine("서버가 종료되었습니다.");
         }
-
-
     }
 }
