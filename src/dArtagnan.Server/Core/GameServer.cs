@@ -11,7 +11,7 @@ namespace dArtagnan.Server.Core
         public readonly ConcurrentDictionary<int, ClientConnection> clients = new();
         private bool isRunning;
         private int nextPlayerId = 1;
-        private TcpListener tcpListener;
+        private TcpListener tcpListener = null!; // null!는 "나중에 초기화할 것"을 의미
 
         public async Task StartAsync(int port)
         {
@@ -110,7 +110,7 @@ namespace dArtagnan.Server.Core
         }
 
         // 클라이언트 제거
-        public async Task RemoveClient(ClientConnection client)
+        public void RemoveClient(ClientConnection client)
         {
             clients.TryRemove(client.Id, out _);
             Console.WriteLine($"클라이언트 {client.Id} 제거됨 (현재 접속자: {clients.Count})");
@@ -138,21 +138,6 @@ namespace dArtagnan.Server.Core
             Console.WriteLine("서버가 종료되었습니다.");
         }
 
-        // 서버 상태 출력
-        public void PrintStatus()
-        {
-            Console.WriteLine($"=== 서버 상태 ===");
-            Console.WriteLine($"접속 중인 클라이언트: {clients.Count}명");
 
-            var gameClients = clients.Values.Where(c => c.IsInGame).ToList();
-            Console.WriteLine($"게임 중인 플레이어: {gameClients.Count}명");
-
-            foreach (var client in gameClients)
-            {
-                Console.WriteLine($"  플레이어 {client.Id}: {client.playerinfo.nickname}");
-            }
-
-            Console.WriteLine($"================");
-        }
     }
 }
