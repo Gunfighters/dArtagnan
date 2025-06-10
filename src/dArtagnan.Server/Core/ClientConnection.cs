@@ -156,7 +156,7 @@ namespace dArtagnan.Server.Core
             {
                 stream?.Close();
                 tcpClient?.Close();
-                await gameServer.RemoveClient(this);
+                gameServer.RemoveClient(this);
             }
             catch (Exception ex)
             {
