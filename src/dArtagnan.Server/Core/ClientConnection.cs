@@ -11,7 +11,14 @@ namespace dArtagnan.Server.Core
         public int Id;
         private bool isConnected;
         private bool isInGame;
-        public PlayerInformation playerinfo;
+        // Player state properties (only for server-side logic)
+        public int PlayerId { get; private set; }
+        public string Nickname { get; private set; } = string.Empty;
+        public int Accuracy { get; private set; }
+        public int Direction { get; private set; }
+        public float X { get; private set; }
+        public float Y { get; private set; }
+        public bool IsRunning { get; private set; }
 
         public ClientConnection(int id, TcpClient client, GameServer server)
         {
@@ -36,16 +43,13 @@ namespace dArtagnan.Server.Core
 
         public void SetPlayerInfo(int playerId, string nickname)
         {
-            playerinfo = new PlayerInformation()
-            {
-                playerId = playerId,
-                nickname = nickname,
-                accuracy = Random.Shared.Next(1, 100),
-                direction = 0, // Vector3.zero
-                isRunning = false,
-                x = 0,
-                y = 0
-            };
+            PlayerId = playerId;
+            Nickname = nickname;
+            Accuracy = Random.Shared.Next(1, 100);
+            Direction = 0;
+            IsRunning = false;
+            X = 0;
+            Y = 0;
         }
 
         // 패킷 전송
@@ -113,9 +117,9 @@ namespace dArtagnan.Server.Core
 
         private async Task HandlePlayerRunning(PlayerRunningFromClient running)
         {
-            playerinfo.isRunning = running.isRunning;
-            await gameServer.BroadcastToAll(new PlayerRunningFromServer()
-                { isRunning = playerinfo.isRunning, playerId = playerinfo.playerId });
+            IsRunning = running.isRunning;
+            await gameServer.BroadcastToAll(new PlayerRunningFromServer
+                { isRunning = IsRunning, playerId = PlayerId });
         }
 
         private async Task HandlePlayerJoin(JoinRequestFromClient joinData)
@@ -128,11 +132,11 @@ namespace dArtagnan.Server.Core
         {
             if (IsInGame)
             {
-                playerinfo.direction = moveData.direction;
+                Direction = moveData.direction;
                 await gameServer.BroadcastToAll(new PlayerDirectionFromServer
                 {
-                    direction = moveData.direction,
-                    playerId = Id
+                    direction = Direction,
+                    playerId = PlayerId
                 });
             }
         }
@@ -143,7 +147,7 @@ namespace dArtagnan.Server.Core
             {
                 await gameServer.BroadcastToAll(new PlayerShootingFromServer
                 {
-                    playerId = playerinfo.playerId,
+                    playerId = PlayerId,
                     targetId = shooting.targetId
                 });
             }

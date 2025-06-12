@@ -55,18 +55,18 @@ namespace dArtagnan.Server.Core
         public async Task JoinGame(ClientConnection client)
         {
             Console.WriteLine($"[게임] 플레이어 {client.Id} 참가 (현재 인원: {clients.Count})");
-            client.SetPlayerInfo(client.Id, "asdf");
+            client.SetPlayerInfo(client.Id, "sample_nickname");
             await client.SendPacketAsync(new YouAre
             {
-                playerId = client.playerinfo.playerId
+                playerId = client.PlayerId
             });
 
             var response = new JoinResponseFromServer
             {
-                accuracy = Random.Shared.Next(1, 100),
-                initX = 0,
-                initY = 0,
-                playerId = client.playerinfo.playerId
+                accuracy = client.Accuracy,
+                initX = client.X,
+                initY = client.Y,
+                playerId = client.PlayerId
             };
 
             await BroadcastToAll(response);

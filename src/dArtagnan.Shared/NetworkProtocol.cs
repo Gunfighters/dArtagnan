@@ -57,7 +57,6 @@ namespace dArtagnan.Shared
         [Key(5)] public int accuracy;
         [Key(6)] public bool isRunning;
     }
-
     [MessagePackObject]
     public struct PlayerDirectionFromClient : IPacket
     {

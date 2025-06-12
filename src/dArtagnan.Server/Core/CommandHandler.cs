@@ -102,7 +102,7 @@ namespace dArtagnan.Server.Core
 
             foreach (var client in gameClients)
             {
-                Console.WriteLine($"  플레이어 {client.Id}: {client.playerinfo.nickname}");
+                Console.WriteLine($"  플레이어 {client.PlayerId}: {client.Nickname}");
             }
 
             Console.WriteLine($"================");
@@ -170,16 +170,16 @@ namespace dArtagnan.Server.Core
             Console.WriteLine($"  연결 상태: {(client.IsConnected ? "연결됨" : "끊김")}");
             Console.WriteLine($"  게임 상태: {(client.IsInGame ? "게임 중" : "대기 중")}");
             
-            if (!string.IsNullOrEmpty(client.playerinfo.nickname))
+            if (!string.IsNullOrEmpty(client.Nickname))
             {
                 Console.WriteLine($"  === PlayerInformation ===");
-                Console.WriteLine($"  플레이어 ID: {client.playerinfo.playerId}");
-                Console.WriteLine($"  닉네임: {client.playerinfo.nickname}");
-                Console.WriteLine($"  방향: {client.playerinfo.direction}");
-                Console.WriteLine($"  위치 X: {client.playerinfo.x}");
-                Console.WriteLine($"  위치 Y: {client.playerinfo.y}");
-                Console.WriteLine($"  명중률: {client.playerinfo.accuracy}%");
-                Console.WriteLine($"  달리기 상태: {(client.playerinfo.isRunning ? "달리는 중" : "정지")}");
+                Console.WriteLine($"  플레이어 ID: {client.PlayerId}");
+                Console.WriteLine($"  닉네임: {client.Nickname}");
+                Console.WriteLine($"  방향: {client.Direction}");
+                Console.WriteLine($"  위치 X: {client.X}");
+                Console.WriteLine($"  위치 Y: {client.Y}");
+                Console.WriteLine($"  명중률: {client.Accuracy}%");
+                Console.WriteLine($"  달리기 상태: {(client.IsRunning ? "달리는 중" : "정지")}");
             }
             else
             {
