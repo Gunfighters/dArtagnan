@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using dArtagnan.Shared;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -84,7 +85,7 @@ public class GameManager : MonoBehaviour
 
         var created = Instantiate(playerPrefab); // TODO: Object Pooling.
         var player = created.GetComponent<PlayerController>();
-        player.Accuracy = accuracy;
+        player.SetAccuracy(accuracy);
         player.SetDirection(DirectionHelper.IntToDirection(direction));
         player.ImmediatelyMoveTo(position);
         player.id = index;

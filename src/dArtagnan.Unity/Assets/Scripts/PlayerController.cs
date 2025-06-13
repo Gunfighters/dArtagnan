@@ -1,5 +1,6 @@
 ﻿using Assets.HeroEditor4D.Common.Scripts.CharacterScripts;
 using Assets.HeroEditor4D.Common.Scripts.Enums;
+using TMPro;
 using UnityEngine;
 
 /// <summary>
@@ -10,7 +11,7 @@ public class PlayerController : MonoBehaviour
 {
     public int id;
     public float range;
-    public int Accuracy;
+    [SerializeField] private int accuracy;
     public Vector3 currentDirection;
     private bool dead;
     private float directionLerpSpeed = 10f;
@@ -18,11 +19,14 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float speed;
     private bool running => speed > 1;
     private Character4D SpriteManager;
+    public GameObject textGameObject;
+    private TextMeshProUGUI textMeshPro;
 
     private void Start()
     {
         SpriteManager = GetComponent<Character4D>();
         SpriteManager.SetState(CharacterState.Idle);
+        textMeshPro = textGameObject.GetComponent<TextMeshProUGUI>();
     }
 
     private void Update()
@@ -63,6 +67,12 @@ public class PlayerController : MonoBehaviour
     public void Die()
     {
         dead = true;
+    }
+
+    public void SetAccuracy(int newAccuracy)
+    {
+        accuracy = newAccuracy;
+        textMeshPro.SetText($"{accuracy}%");
     }
 
     public void SetSpeed(float newSpeed)
