@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using dArtagnan.Shared;
-using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 /// <summary>
 ///     게임 내 플레이어 전원을 조종합니다. Input 처리도 겸합니다.
@@ -31,22 +29,22 @@ public class GameManager : MonoBehaviour
     {
         if (controlledPlayerIndex == -1) return;
         Vector3 direction = Vector3.zero;
-        if (Keyboard.current.wKey.isPressed)
+        if (Input.GetKey(KeyCode.W))
         {
             direction += Vector3.up;
         }
 
-        if (Keyboard.current.sKey.isPressed)
+        if (Input.GetKey(KeyCode.S))
         {
             direction += Vector3.down;
         }
 
-        if (Keyboard.current.aKey.isPressed)
+        if (Input.GetKey(KeyCode.A))
         {
             direction += Vector3.left;
         }
 
-        if (Keyboard.current.dKey.isPressed)
+        if (Input.GetKey(KeyCode.D))
         {
             direction += Vector3.right;
         }
@@ -59,11 +57,11 @@ public class GameManager : MonoBehaviour
             NetworkManager.Instance.SendPlayerDirection(direction);
         }
 
-        if (Keyboard.current.spaceKey.wasPressedThisFrame)
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             NetworkManager.Instance.SendPlayerIsRunning(true);
         }
-        else if (Keyboard.current.spaceKey.wasReleasedThisFrame)
+        else if (Input.GetKeyUp(KeyCode.Space))
         {
             NetworkManager.Instance.SendPlayerIsRunning(false);
         }
