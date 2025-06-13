@@ -70,7 +70,7 @@ public class NetworkManager : MonoBehaviour
 
     public void SendJoinRequest()
     {
-        Enqueue(new JoinRequestFromClient());
+        Enqueue(new PlayerJoinRequest());
     }
 
     public void SendPlayerDirection(Vector3 direction)
@@ -95,23 +95,32 @@ public class NetworkManager : MonoBehaviour
     {
         switch (packet)
         {
-            case InformationOfPlayers informationOfPlayers:
-                GameManager.Instance.OnInformationOfPlayers(informationOfPlayers);
-                break;
-            case JoinResponseFromServer response:
-                GameManager.Instance.OnJoinResponseFromServer(response);
-                break;
-            case PlayerDirectionFromServer direction:
-                GameManager.Instance.OnPlayerDirectionFromServer(direction);
-                break;
-            case PlayerRunningFromServer running:
-                GameManager.Instance.OnPlayerRunningFromServer(running);
-                break;
-            case PlayerShootingFromServer shooting:
-                GameManager.Instance.OnPlayerShootingFromServer(shooting);
-                break;
             case YouAre are:
                 GameManager.Instance.OnYouAre(are);
+                break;
+            case InformationOfPlayers info:
+                GameManager.Instance.OnInformationOfPlayers(info);
+                break;
+            case PlayerJoinBroadcast joinBroadcast:
+                GameManager.Instance.OnPlayerJoinBroadcast(joinBroadcast);
+                break;
+            case PlayerDirectionBroadcast playerDirectionBroadcast:
+                GameManager.Instance.OnPlayerDirectionBroadcast(playerDirectionBroadcast);
+                break;
+            case UpdatePlayerSpeedBroadcast update:
+                GameManager.Instance.OnUpdatePlayerSpeedBroadcast(update);
+                break;
+            case PlayerShootingBroadcast shootingBroadcast:
+                GameManager.Instance.OnPlayerShootingBroadcast(shootingBroadcast);
+                break;
+            case UpdatePlayerAlive updatePlayerAlive:
+                GameManager.Instance.OnUpdatePlayerAlive(updatePlayerAlive);
+                break;
+            case PlayerLeaveBroadcast playerLeaveBroadcast:
+                GameManager.Instance.OnPlayerLeaveBroadcast(playerLeaveBroadcast);
+                break;
+            case UpdatePlayerPosition position:
+                GameManager.Instance.OnUpdatePlayerPosition(position);
                 break;
             default:
                 Debug.LogWarning($"Unhandled packet: {packet}");

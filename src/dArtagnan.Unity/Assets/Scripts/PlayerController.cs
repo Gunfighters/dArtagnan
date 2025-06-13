@@ -12,12 +12,11 @@ public class PlayerController : MonoBehaviour
     public float range;
     public int Accuracy;
     public Vector3 currentDirection;
-    public Vector3 targetDirection;
     private bool dead;
     private float directionLerpSpeed = 10f;
     private bool firing;
-    private bool running;
-    private float speed = 1f;
+    [SerializeField] private float speed;
+    private bool running => speed > 1;
     private Character4D SpriteManager;
 
     private void Start()
@@ -28,7 +27,6 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        currentDirection = targetDirection;
         transform.position += (running ? speed * 4 : speed) * Time.deltaTime * currentDirection;
         if (currentDirection == Vector3.zero)
         {
@@ -49,17 +47,12 @@ public class PlayerController : MonoBehaviour
 
     public void SetDirection(Vector3 normalizedDirection)
     {
-        targetDirection = normalizedDirection;
+        currentDirection = normalizedDirection;
     }
 
     public void ImmediatelyMoveTo(Vector3 position)
     {
         transform.position = position;
-    }
-
-    public void SetRunning(bool isRunning)
-    {
-        running = isRunning;
     }
 
     public void Fire()
@@ -70,6 +63,11 @@ public class PlayerController : MonoBehaviour
     public void Die()
     {
         dead = true;
+    }
+
+    public void SetSpeed(float newSpeed)
+    {
+        speed = newSpeed;
     }
 
     private static Vector3 SnapToCardinalDirection(Vector3 dir)

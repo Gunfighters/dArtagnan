@@ -106,7 +106,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void OnJoinResponseFromServer(JoinResponseFromServer payload)
+    public void OnPlayerJoinBroadcast(PlayerJoinBroadcast payload)
     {
         AddPlayer(payload.playerId, new Vector2(payload.initX, payload.initY), 0, payload.accuracy);
         if (payload.playerId == controlledPlayerIndex)
@@ -115,20 +115,39 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void OnPlayerDirectionFromServer(PlayerDirectionFromServer payload)
+    public void OnPlayerDirectionBroadcast(PlayerDirectionBroadcast payload)
     {
         var direction = DirectionHelper.IntToDirection(payload.direction);
         Debug.Log(direction);
         players[payload.playerId].SetDirection(direction);
     }
 
-    public void OnPlayerRunningFromServer(PlayerRunningFromServer payload)
+    public void OnUpdatePlayerSpeedBroadcast(UpdatePlayerSpeedBroadcast update)
     {
-        players[payload.playerId].SetRunning(payload.isRunning);
+        players[update.playerId].SetSpeed(update.speed);
     }
 
-    public void OnPlayerShootingFromServer(PlayerShootingFromServer shooting)
+    public void OnPlayerShootingBroadcast(PlayerShootingBroadcast shooting)
     {
-        players[shooting.playerId].Fire();
+        players[shooting.shooterId].Fire();
+        // TODO: show hit or miss text
+    }
+
+    public void OnUpdatePlayerAlive(UpdatePlayerAlive updatePlayerAlive)
+    {
+        players[updatePlayerAlive.playerId].gameObject.SetActive(updatePlayerAlive.alive);
+    }
+
+    public void OnPlayerLeaveBroadcast(PlayerLeaveBroadcast leave)
+    {
+        players[leave.playerId].gameObject.SetActive(false);
+    }
+
+    public void OnUpdatePlayerPosition(UpdatePlayerPosition update)
+    {
+        update.positionList.ForEach(p =>
+        {
+            players[p.playerId].ImmediatelyMoveTo(new Vector2(p.x, p.y));
+        });
     }
 }
