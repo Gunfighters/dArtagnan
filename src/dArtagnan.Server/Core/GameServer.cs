@@ -12,6 +12,7 @@ namespace dArtagnan.Server.Core
         private bool isRunning;
         private int nextPlayerId = 1;
         private TcpListener tcpListener = null!; // null!는 "나중에 초기화할 것"을 의미
+        private GameLoop gameLoop = null!; // 게임 루프
 
         public async Task StartAsync(int port)
         {
@@ -23,6 +24,10 @@ namespace dArtagnan.Server.Core
 
                 Console.WriteLine($"D'Artagnan 게임 서버가 포트 {port}에서 시작되었습니다.");
                 Console.WriteLine("클라이언트 연결을 기다리는 중...");
+
+                // 게임 루프 초기화 및 시작
+                gameLoop = new GameLoop(this);
+                _ = Task.Run(() => gameLoop.StartAsync());
 
                 // 클라이언트 연결 대기 루프
                 while (isRunning)
@@ -120,6 +125,9 @@ namespace dArtagnan.Server.Core
 
             try
             {
+                // 게임 루프 중지
+                gameLoop?.Stop();
+
                 // 모든 클라이언트 연결 해제
                 var disconnectTasks = clients.Values.Select(client => client.DisconnectAsync());
                 await Task.WhenAll(disconnectTasks);

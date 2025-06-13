@@ -52,6 +52,15 @@ namespace dArtagnan.Server.Core
             Y = 0;
         }
 
+        /// <summary>
+        /// 플레이어의 위치를 업데이트합니다
+        /// </summary>
+        public void UpdatePosition(float newX, float newY)
+        {
+            X = newX;
+            Y = newY;
+        }
+
         // 패킷 전송
         public async Task SendPacketAsync(IPacket packet)
         {
