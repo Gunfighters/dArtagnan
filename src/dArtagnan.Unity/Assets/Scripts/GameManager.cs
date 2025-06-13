@@ -10,7 +10,7 @@ public class GameManager : MonoBehaviour
     public Camera mainCamera;
     public GameObject playerPrefab;
     private readonly Dictionary<int, PlayerController> players = new();
-    private int controlledPlayerIndex = -1;
+    [SerializeField] private int controlledPlayerIndex = -1;
     private Vector3 lastDirection = Vector3.zero;
     public static GameManager Instance { get; private set; }
     PlayerController ControlledPlayer => players[controlledPlayerIndex];
@@ -100,7 +100,7 @@ public class GameManager : MonoBehaviour
         Debug.Log($"Add Player #{index} at {position} with accuracy {accuracy}%");
         if (players.ContainsKey(index))
         {
-            Debug.LogError($"Player {index} already exists");
+            Debug.LogWarning($"Trying to add player #{index} that already exists");
             return;
         }
 

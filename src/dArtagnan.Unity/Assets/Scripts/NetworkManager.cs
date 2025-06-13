@@ -58,8 +58,15 @@ public class NetworkManager : MonoBehaviour
     {
         while (true)
         {
-            var received = await NetworkUtils.ReceivePacketAsync(_stream);
-            HandlePacket(received);
+            try
+            {
+                var received = await NetworkUtils.ReceivePacketAsync(_stream);
+                HandlePacket(received);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }
         }
     }
 

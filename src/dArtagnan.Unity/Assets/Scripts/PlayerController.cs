@@ -21,28 +21,28 @@ public class PlayerController : MonoBehaviour
     private bool running => speed > 1;
     private Character4D SpriteManager;
     public GameObject textGameObject;
-    private TextMeshProUGUI textMeshPro;
-    private LineRenderer rangeCircleRenderer;
+    // private TextMeshPro textMeshPro;
+    // private LineRenderer rangeCircleRenderer;
 
     private void Start()
     {
         SpriteManager = GetComponent<Character4D>();
         SpriteManager.SetState(CharacterState.Idle);
-        textMeshPro = textGameObject.GetComponent<TextMeshProUGUI>();
+        // textMeshPro = textGameObject.GetComponent<TextMeshPro>();
         range = 5;
 
-        var rangeCirclePoints = 36;
-        rangeCircleRenderer = gameObject.GetComponent<LineRenderer>();
-        rangeCircleRenderer.loop = true;
-        rangeCircleRenderer.useWorldSpace = false;
-        rangeCircleRenderer.positionCount = rangeCirclePoints;
-        var points = new Vector3[rangeCirclePoints];
-        for (var i = 0; i < rangeCirclePoints; i++)
-        {
-            var angle = 2 * Mathf.PI * i / rangeCirclePoints;
-            points[i] = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0) * range;
-        }
-        rangeCircleRenderer.SetPositions(points);
+        // var rangeCirclePoints = 36;
+        // rangeCircleRenderer = gameObject.GetComponent<LineRenderer>();
+        // rangeCircleRenderer.loop = true;
+        // rangeCircleRenderer.useWorldSpace = false;
+        // rangeCircleRenderer.positionCount = rangeCirclePoints;
+        // var points = new Vector3[rangeCirclePoints];
+        // for (var i = 0; i < rangeCirclePoints; i++)
+        // {
+        //     var angle = 2 * Mathf.PI * i / rangeCirclePoints;
+        //     points[i] = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0) * range;
+        // }
+        // rangeCircleRenderer.SetPositions(points);
     }
 
     private void Update()
@@ -88,7 +88,7 @@ public class PlayerController : MonoBehaviour
     public void SetAccuracy(int newAccuracy)
     {
         accuracy = newAccuracy;
-        textMeshPro.SetText($"{accuracy}%");
+        // textMeshPro.SetText($"{accuracy}%");
     }
 
     public void SetSpeed(float newSpeed)
