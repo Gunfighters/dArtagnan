@@ -18,7 +18,12 @@ namespace dArtagnan.Server.Core
         public int Direction { get; private set; }
         public float X { get; private set; }
         public float Y { get; private set; }
-        public bool IsRunning { get; private set; }
+        
+        // 새로운 프로토콜 필드들
+        public float TotalReloadTime { get; private set; }
+        public float RemainingReloadTime { get; private set; }
+        public float Speed { get; private set; }
+        public bool Alive { get; private set; }
 
         public ClientConnection(int id, TcpClient client, GameServer server)
         {
@@ -47,9 +52,14 @@ namespace dArtagnan.Server.Core
             Nickname = nickname;
             Accuracy = Random.Shared.Next(1, 100);
             Direction = 0;
-            IsRunning = false;
             X = 0;
             Y = 0;
+            
+            // 새로운 필드들 초기화
+            TotalReloadTime = 2.0f; // 기본 재장전 시간 2초
+            RemainingReloadTime = 0.0f;
+            Speed = 60.0f; // 기본 속도 (걷기)
+            Alive = true;
         }
 
         /// <summary>
@@ -59,6 +69,30 @@ namespace dArtagnan.Server.Core
         {
             X = newX;
             Y = newY;
+        }
+
+        /// <summary>
+        /// 플레이어의 속도를 업데이트합니다
+        /// </summary>
+        public void UpdateSpeed(float newSpeed)
+        {
+            Speed = newSpeed;
+        }
+
+        /// <summary>
+        /// 플레이어의 생존 상태를 업데이트합니다
+        /// </summary>
+        public void UpdateAlive(bool alive)
+        {
+            Alive = alive;
+        }
+
+        /// <summary>
+        /// 재장전 시간을 업데이트합니다
+        /// </summary>
+        public void UpdateReloadTime(float remaining)
+        {
+            RemainingReloadTime = remaining;
         }
 
         // 패킷 전송
@@ -98,7 +132,15 @@ namespace dArtagnan.Server.Core
             }
             finally
             {
-                await DisconnectAsync();
+                // 연결 해제 시 퇴장 처리 (정상/비정상 모두 동일한 경로)
+                if (isInGame)
+                {
+                    await HandlePlayerLeave(new PlayerLeaveFromClient());
+                }
+                else
+                {
+                    await DisconnectAsync();
+                }
             }
         }
 
@@ -106,7 +148,7 @@ namespace dArtagnan.Server.Core
         {
             switch (packet)
             {
-                case JoinRequestFromClient request:
+                case PlayerJoinRequest request:
                     await HandlePlayerJoin(request);
                     break;
                 case PlayerDirectionFromClient direction:
@@ -118,20 +160,30 @@ namespace dArtagnan.Server.Core
                 case PlayerShootingFromClient shooting:
                     await HandlePlayerShooting(shooting);
                     break;
+                case PlayerLeaveFromClient leave:
+                    await HandlePlayerLeave(leave);
+                    break;
                 default:
-                    Console.WriteLine($"Unhandled packet: {packet}");
+                    Console.WriteLine($"처리되지 않은 패킷: {packet}");
                     break;
             }
         }
 
         private async Task HandlePlayerRunning(PlayerRunningFromClient running)
         {
-            IsRunning = running.isRunning;
-            await gameServer.BroadcastToAll(new PlayerRunningFromServer
-                { isRunning = IsRunning, playerId = PlayerId });
+            // 달리기 상태에 따라 속도 직접 설정
+            float newSpeed = running.isRunning ? 240.0f : 60.0f;
+            UpdateSpeed(newSpeed);
+            
+            // 속도 업데이트 브로드캐스트
+            await gameServer.BroadcastToAll(new UpdatePlayerSpeedBroadcast
+            {
+                playerId = PlayerId,
+                speed = Speed
+            });
         }
 
-        private async Task HandlePlayerJoin(JoinRequestFromClient joinData)
+        private async Task HandlePlayerJoin(PlayerJoinRequest joinData)
         {
             isInGame = true;
             await gameServer.JoinGame(this);
@@ -142,7 +194,7 @@ namespace dArtagnan.Server.Core
             if (IsInGame)
             {
                 Direction = moveData.direction;
-                await gameServer.BroadcastToAll(new PlayerDirectionFromServer
+                await gameServer.BroadcastToAll(new PlayerDirectionBroadcast
                 {
                     direction = Direction,
                     playerId = PlayerId
@@ -152,18 +204,43 @@ namespace dArtagnan.Server.Core
 
         private async Task HandlePlayerShooting(PlayerShootingFromClient shooting)
         {
-            if (IsInGame)
+            if (IsInGame && Alive)
             {
-                await gameServer.BroadcastToAll(new PlayerShootingFromServer
+                // 재장전 중인지 확인
+                if (RemainingReloadTime > 0)
                 {
-                    playerId = PlayerId,
-                    targetId = shooting.targetId
+                    Console.WriteLine($"[클라이언트 {Id}] 재장전 중이므로 사격 불가");
+                    return;
+                }
+
+                // 명중 여부 계산 (Accuracy 기반)
+                bool hit = Random.Shared.Next(1, 101) <= Accuracy;
+                
+                // 재장전 시간 설정
+                RemainingReloadTime = TotalReloadTime;
+                
+                // 사격 브로드캐스트
+                await gameServer.BroadcastToAll(new PlayerShootingBroadcast
+                {
+                    shooterId = PlayerId,
+                    targetId = shooting.targetId,
+                    hit = hit
                 });
+                
+                // 명중 시 타겟 플레이어 처리
+                if (hit)
+                {
+                    await gameServer.HandlePlayerHit(shooting.targetId);
+                }
             }
         }
 
-        private async Task HandleDisconnect()
+        private async Task HandlePlayerLeave(PlayerLeaveFromClient leave)
         {
+            if (isInGame)
+            {
+                await gameServer.HandlePlayerLeave(this);
+            }
             await DisconnectAsync();
         }
 

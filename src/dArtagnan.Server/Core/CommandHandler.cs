@@ -176,10 +176,13 @@ namespace dArtagnan.Server.Core
                 Console.WriteLine($"  플레이어 ID: {client.PlayerId}");
                 Console.WriteLine($"  닉네임: {client.Nickname}");
                 Console.WriteLine($"  방향: {client.Direction}");
-                Console.WriteLine($"  위치 X: {client.X}");
-                Console.WriteLine($"  위치 Y: {client.Y}");
+                Console.WriteLine($"  위치 X: {client.X:F2}");
+                Console.WriteLine($"  위치 Y: {client.Y:F2}");
                 Console.WriteLine($"  명중률: {client.Accuracy}%");
-                Console.WriteLine($"  달리기 상태: {(client.IsRunning ? "달리는 중" : "정지")}");
+                Console.WriteLine($"  속도: {client.Speed:F2}");
+                Console.WriteLine($"  총 재장전 시간: {client.TotalReloadTime:F2}초");
+                Console.WriteLine($"  남은 재장전 시간: {client.RemainingReloadTime:F2}초");
+                Console.WriteLine($"  생존 상태: {(client.Alive ? "생존" : "사망")}");
             }
             else
             {

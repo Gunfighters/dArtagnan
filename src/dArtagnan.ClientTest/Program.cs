@@ -17,7 +17,9 @@ namespace dArtagnan.ClientTest
             Console.WriteLine("  connect [host] [port] - 서버 연결 (기본: localhost 7777)");
             Console.WriteLine("  join [nickname] - 게임 참가");
             Console.WriteLine("  dir [i] - 플레이어 이동 방향 변경");
+            Console.WriteLine("  run [true/false] - 달리기 상태 변경");
             Console.WriteLine("  shoot [targetId] - 플레이어 공격");
+            Console.WriteLine("  leave - 게임 나가기");
             Console.WriteLine("  quit - 종료");
             Console.WriteLine("=====================================");
 
@@ -67,7 +69,18 @@ namespace dArtagnan.ClientTest
                         {
                             Console.WriteLine("사용법: dir [i]");
                         }
+                        break;
 
+                    case "run":
+                        if (parts.Length >= 2)
+                        {
+                            var isRunning = bool.Parse(parts[1]);
+                            await SendRunning(isRunning);
+                        }
+                        else
+                        {
+                            Console.WriteLine("사용법: run [true/false]");
+                        }
                         break;
 
                     case "shoot":
@@ -80,7 +93,10 @@ namespace dArtagnan.ClientTest
                         {
                             Console.WriteLine("사용법: shoot [targetId]");
                         }
+                        break;
 
+                    case "leave":
+                        await SendLeave();
                         break;
 
                     case "quit":
@@ -132,7 +148,7 @@ namespace dArtagnan.ClientTest
 
             try
             {
-                var joinPacket = new JoinRequestFromClient();
+                var joinPacket = new PlayerJoinRequest();
                 await NetworkUtils.SendPacketAsync(stream, joinPacket);
                 Console.WriteLine($"게임 참가 요청을 보냈습니다: {nickname}");
             }
@@ -152,13 +168,33 @@ namespace dArtagnan.ClientTest
 
             try
             {
-                var playerDirection = new PlayerDirectionFromClient() { direction = direction };
+                var playerDirection = new PlayerDirectionFromClient { direction = direction };
                 await NetworkUtils.SendPacketAsync(stream, playerDirection);
                 Console.WriteLine($"이동 패킷 전송: {direction}");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"이동 패킷 전송 실패: {ex.Message}");
+            }
+        }
+
+        static async Task SendRunning(bool isRunning)
+        {
+            if (!isConnected || stream == null)
+            {
+                Console.WriteLine("먼저 서버에 연결해주세요.");
+                return;
+            }
+
+            try
+            {
+                var runningPacket = new PlayerRunningFromClient { isRunning = isRunning };
+                await NetworkUtils.SendPacketAsync(stream, runningPacket);
+                Console.WriteLine($"달리기 패킷 전송: {isRunning}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"달리기 패킷 전송 실패: {ex.Message}");
             }
         }
 
@@ -181,6 +217,25 @@ namespace dArtagnan.ClientTest
             catch (Exception ex)
             {
                 Console.WriteLine($"공격 패킷 전송 실패: {ex.Message}");
+            }
+        }
+
+        static async Task SendLeave()
+        {
+            if (!isConnected || stream == null)
+            {
+                Console.WriteLine("먼저 서버에 연결해주세요.");
+                return;
+            }
+
+            try
+            {
+                await NetworkUtils.SendPacketAsync(stream, new PlayerLeaveFromClient());
+                Console.WriteLine("게임 나가기 패킷 전송");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"게임 나가기 패킷 전송 실패: {ex.Message}");
             }
         }
 
@@ -212,26 +267,57 @@ namespace dArtagnan.ClientTest
             {
                 switch (packet)
                 {
-                    case JoinResponseFromServer joinResponse:
-                        Console.WriteLine($"게임 참가 성공! 플레이어 ID: {joinResponse.playerId}, 명중률: {joinResponse.accuracy}");
+                    case YouAre youAre:
+                        Console.WriteLine($"서버에서 플레이어 ID 할당: {youAre.playerId}");
                         break;
-                    case PlayerDirectionFromServer playerDirection:
+                        
+                    case PlayerJoinBroadcast joinBroadcast:
+                        Console.WriteLine($"플레이어 {joinBroadcast.playerId} 참가! 명중률: {joinBroadcast.accuracy}%");
+                        break;
+                        
+                    case PlayerDirectionBroadcast playerDirection:
                         Console.WriteLine($"{playerDirection.playerId}번 플레이어 방향 변경: {playerDirection.direction}");
                         break;
-                    case PlayerRunningFromServer running:
-                        var msg = running.isRunning ? "달립니다" : "그만 달립니다";
-                        Console.WriteLine($"{running.playerId}번 플레이어가 {msg}.");
+                        
+                    case UpdatePlayerSpeedBroadcast speedUpdate:
+                        Console.WriteLine($"{speedUpdate.playerId}번 플레이어 속도 변경: {speedUpdate.speed}");
                         break;
+                        
                     case InformationOfPlayers infoPlayers:
+                        Console.WriteLine($"=== 플레이어 정보 업데이트 ===");
                         foreach (var info in infoPlayers.info)
                         {
-                            Console.WriteLine($"{info.playerId}번 플레이어가 있습니다., 명중률: {info.accuracy}%");
+                            Console.WriteLine($"  플레이어 {info.playerId}: {info.nickname}");
+                            Console.WriteLine($"    위치: ({info.x:F2}, {info.y:F2})");
+                            Console.WriteLine($"    명중률: {info.accuracy}%");
+                            Console.WriteLine($"    속도: {info.speed:F2}");
+                            Console.WriteLine($"    재장전: {info.remainingReloadTime:F2}/{info.totalReloadTime:F2}초");
+                            Console.WriteLine($"    생존: {(info.alive ? "생존" : "사망")}");
                         }
-
                         break;
-                    case PlayerShootingFromServer shooting:
-                        Console.WriteLine($"플레이어 {shooting.playerId}가 플레이어 {shooting.targetId}를 공격했습니다!");
+                        
+                    case PlayerShootingBroadcast shooting:
+                        var hitMsg = shooting.hit ? "명중!" : "빗나감";
+                        Console.WriteLine($"플레이어 {shooting.shooterId}가 플레이어 {shooting.targetId}를 공격 - {hitMsg}");
                         break;
+                        
+                    case UpdatePlayerAlive aliveUpdate:
+                        var statusMsg = aliveUpdate.alive ? "부활" : "사망";
+                        Console.WriteLine($"플레이어 {aliveUpdate.playerId} {statusMsg}");
+                        break;
+                        
+                    case PlayerLeaveBroadcast leaveBroadcast:
+                        Console.WriteLine($"플레이어 {leaveBroadcast.playerId}가 게임을 떠났습니다");
+                        break;
+                        
+                    case UpdatePlayerPosition positionUpdate:
+                        Console.WriteLine($"=== 위치 업데이트 ===");
+                        foreach (var pos in positionUpdate.positionList)
+                        {
+                            Console.WriteLine($"  플레이어 {pos.playerId}: ({pos.x:F2}, {pos.y:F2})");
+                        }
+                        break;
+                        
                     default:
                         Console.WriteLine($"처리되지 않은 패킷 타입: {packet}");
                         break;

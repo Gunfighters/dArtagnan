@@ -14,6 +14,10 @@ namespace dArtagnan.Server.Core
         private const int TARGET_FPS = 50; // 0.02초 간격 (50 FPS)
         private const double TARGET_FRAME_TIME = 1000.0 / TARGET_FPS; // ms per frame (20ms)
         
+        // 위치 브로드캐스트 주기 제어 (1초에 한 번)
+        private int positionBroadcastCounter = 0;
+        private const int POSITION_BROADCAST_INTERVAL = 50; // 50프레임 = 1초
+        
         // Direction 벡터 정의 (0은 정지, 1~8 위쪽부터 시계방향)
         private readonly Dictionary<int, (float x, float y)> directionVectors = new()
         {
@@ -89,7 +93,15 @@ namespace dArtagnan.Server.Core
         private void FixedUpdate(float deltaTime)
         {
             UpdatePlayerPositions(deltaTime);
-            BroadcastPlayerPositions();
+            UpdateReloadTimes(deltaTime);
+            
+            // 위치 브로드캐스트는 1초에 한 번만 실행
+            positionBroadcastCounter++;
+            if (positionBroadcastCounter >= POSITION_BROADCAST_INTERVAL)
+            {
+                BroadcastPlayerPositions();
+                positionBroadcastCounter = 0;
+            }
         }
 
         /// <summary>
@@ -99,7 +111,7 @@ namespace dArtagnan.Server.Core
         {
             foreach (var client in gameServer.clients.Values)
             {
-                if (!client.IsConnected || !client.IsInGame) continue;
+                if (!client.IsConnected || !client.IsInGame || !client.Alive) continue;
 
                 // Direction이 유효한 범위인지 확인
                 if (!directionVectors.ContainsKey(client.Direction)) continue;
@@ -109,11 +121,10 @@ namespace dArtagnan.Server.Core
                 // 정지 상태가 아닐 때만 이동
                 if (vector.x != 0 || vector.y != 0)
                 {
-                    // 초당 이동 속도 (units per second)
-                    float baseSpeed = client.IsRunning ? 240.0f : 60.0f; // 초당 240 또는 60 유닛
+                    // 현재 속도 사용
+                    float speed = client.Speed;
                     
                     // 대각선 이동 시 속도 정규화
-                    float speed = baseSpeed;
                     if (vector.x != 0 && vector.y != 0)
                     {
                         speed /= 1.414f; // sqrt(2)
@@ -133,46 +144,46 @@ namespace dArtagnan.Server.Core
         }
 
         /// <summary>
+        /// 모든 플레이어의 재장전 시간을 업데이트
+        /// </summary>
+        private void UpdateReloadTimes(float deltaTime)
+        {
+            foreach (var client in gameServer.clients.Values)
+            {
+                if (!client.IsConnected || !client.IsInGame || !client.Alive) continue;
+
+                if (client.RemainingReloadTime > 0)
+                {
+                    float newReloadTime = Math.Max(0, client.RemainingReloadTime - deltaTime);
+                    client.UpdateReloadTime(newReloadTime);
+                }
+            }
+        }
+
+        /// <summary>
         /// 플레이어들의 위치 정보를 모든 클라이언트에게 브로드캐스트
         /// </summary>
         private void BroadcastPlayerPositions()
         {
-            // // 게임에 참여 중인 플레이어가 없으면 브로드캐스트하지 않음
-            // var playersInGame = gameServer.clients.Values
-            //     .Where(c => c.IsConnected && c.IsInGame)
-            //     .ToList();
+            // 게임에 참여 중인 플레이어가 없으면 브로드캐스트하지 않음
+            var playersInGame = gameServer.clients.Values
+                .Where(c => c.IsConnected && c.IsInGame)
+                .ToList();
                 
-            // if (playersInGame.Count == 0) return;
+            if (playersInGame.Count == 0) return;
 
-            // // 플레이어 정보 리스트 생성
-            // var playerInfoList = playersInGame.Select(client => new PlayerInformation
-            // {
-            //     playerId = client.PlayerId,
-            //     nickname = client.Nickname,
-            //     direction = client.Direction,
-            //     x = client.X,
-            //     y = client.Y,
-            //     accuracy = client.Accuracy,
-            //     isRunning = client.IsRunning
-            // }).ToList();
-
-            // var packet = new InformationOfPlayers
-            // {
-            //     info = playerInfoList
-            // };
-
-            // // 모든 플레이어에게 브로드캐스트 (비동기로 실행하지만 대기하지 않음)
-            // _ = Task.Run(async () =>
-            // {
-            //     try
-            //     {
-            //         await gameServer.BroadcastToAll(packet);
-            //     }
-            //     catch (Exception ex)
-            //     {
-            //         Console.WriteLine($"플레이어 정보 브로드캐스트 오류: {ex.Message}");
-            //     }
-            // });
+            // 위치 정보 브로드캐스트 (비동기로 실행하지만 대기하지 않음)
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await gameServer.BroadcastPlayerPositions();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"플레이어 위치 브로드캐스트 오류: {ex.Message}");
+                }
+            });
         }
     }
 } 

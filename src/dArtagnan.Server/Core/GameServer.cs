@@ -61,35 +61,114 @@ namespace dArtagnan.Server.Core
         {
             Console.WriteLine($"[게임] 플레이어 {client.Id} 참가 (현재 인원: {clients.Count})");
             client.SetPlayerInfo(client.Id, "sample_nickname");
+            
+            // YouAre 패킷 전송
             await client.SendPacketAsync(new YouAre
             {
                 playerId = client.PlayerId
             });
 
-            var response = new JoinResponseFromServer
+            // PlayerJoinBroadcast 전송
+            await BroadcastToAll(new PlayerJoinBroadcast
             {
-                accuracy = client.Accuracy,
-                initX = client.X,
-                initY = client.Y,
-                playerId = client.PlayerId
-            };
+                playerId = client.PlayerId,
+                initX = (int)client.X,
+                initY = (int)client.Y,
+                accuracy = client.Accuracy
+            });
 
-            await BroadcastToAll(response);
+            // 현재 모든 플레이어 정보 전송
+            await SendPlayersInformation();
+        }
+
+        // 플레이어 피격 처리
+        public async Task HandlePlayerHit(int targetPlayerId)
+        {
+            var targetClient = clients.Values.FirstOrDefault(c => c.PlayerId == targetPlayerId);
+            if (targetClient != null && targetClient.Alive)
+            {
+                Console.WriteLine($"[게임] 플레이어 {targetPlayerId} 피격됨");
+                
+                // 플레이어 사망 처리
+                targetClient.UpdateAlive(false);
+                
+                // 사망 브로드캐스트
+                await BroadcastToAll(new UpdatePlayerAlive
+                {
+                    playerId = targetPlayerId,
+                    alive = false
+                });
+            }
         }
 
         // 플레이어 게임 퇴장 처리
-        // public async Task LeaveGame(ClientConnection client)
-        // {
-        //     if (!client.IsInGame) return;
-        //
-        //     Console.WriteLine($"[게임] 플레이어 {client.PlayerId}({client.Nickname}) 퇴장 (현재 인원: {clients.Count - 1})");
-        //
-        //     // 다른 플레이어들에게 퇴장 알림
-        //     await BroadcastToAll(PacketType.PlayerLeave, new PlayerJoinPacket
-        //     {
-        //         Nickname = client.Nickname
-        //     }, client.PlayerId);
-        // }
+        public async Task HandlePlayerLeave(ClientConnection client)
+        {
+            if (!client.IsInGame) return;
+
+            Console.WriteLine($"[게임] 플레이어 {client.PlayerId}({client.Nickname}) 퇴장 (현재 인원: {clients.Count - 1})");
+
+            // 다른 플레이어들에게 퇴장 알림
+            await BroadcastToAll(new PlayerLeaveBroadcast
+            {
+                playerId = client.PlayerId
+            }, client.Id);
+        }
+
+        // 모든 플레이어 정보 전송
+        public async Task SendPlayersInformation()
+        {
+            var playersInGame = clients.Values
+                .Where(c => c.IsConnected && c.IsInGame)
+                .ToList();
+
+            if (playersInGame.Count == 0) return;
+
+            var playerInfoList = playersInGame.Select(client => new PlayerInformation
+            {
+                playerId = client.PlayerId,
+                nickname = client.Nickname,
+                direction = client.Direction,
+                x = client.X,
+                y = client.Y,
+                accuracy = client.Accuracy,
+                totalReloadTime = client.TotalReloadTime,
+                remainingReloadTime = client.RemainingReloadTime,
+                speed = client.Speed,
+                alive = client.Alive
+            }).ToList();
+
+            var packet = new InformationOfPlayers
+            {
+                info = playerInfoList
+            };
+
+            await BroadcastToAll(packet);
+        }
+
+        // 플레이어 위치 업데이트 브로드캐스트
+        public async Task BroadcastPlayerPositions()
+        {
+            var playersInGame = clients.Values
+                .Where(c => c.IsConnected && c.IsInGame)
+                .ToList();
+
+            if (playersInGame.Count == 0) return;
+
+            var positionList = playersInGame.Select(client => new PlayerPosition
+            {
+                playerId = client.PlayerId,
+                x = client.X,
+                y = client.Y
+            }).ToList();
+
+            var packet = new UpdatePlayerPosition
+            {
+                positionList = positionList
+            };
+
+            await BroadcastToAll(packet);
+        }
 
         // 모든 플레이어에게 브로드캐스트 (본인 제외)
         public async Task BroadcastToAll(IPacket data, int excludePlayerId = -1)
