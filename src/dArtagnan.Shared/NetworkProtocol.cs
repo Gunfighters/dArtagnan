@@ -3,22 +3,26 @@ using MessagePack;
 
 namespace dArtagnan.Shared
 {
-    [Union(0, typeof(JoinRequestFromClient))]
+    [Union(0, typeof(PlayerJoinRequest))]
     [Union(1, typeof(YouAre))]
-    [Union(2, typeof(JoinResponseFromServer))]
-    [Union(3, typeof(PlayerDirectionFromClient))]
-    [Union(4, typeof(PlayerDirectionFromServer))]
-    [Union(5, typeof(PlayerRunningFromClient))]
-    [Union(6, typeof(PlayerRunningFromServer))]
-    [Union(7, typeof(InformationOfPlayers))]
+    [Union(2, typeof(InformationOfPlayers))]
+    [Union(3, typeof(PlayerJoinBroadcast))]
+    [Union(4, typeof(PlayerDirectionFromClient))]
+    [Union(5, typeof(PlayerDirectionBroadcast))]
+    [Union(6, typeof(PlayerRunningFromClient))]
+    [Union(7, typeof(UpdatePlayerSpeedBroadcast))]
     [Union(8, typeof(PlayerShootingFromClient))]
-    [Union(9, typeof(PlayerShootingFromServer))]
+    [Union(9, typeof(PlayerShootingBroadcast))]
+    [Union(10, typeof(UpdatePlayerAlive))]
+    [Union(11, typeof(PlayerLeaveFromClient))]
+    [Union(12, typeof(PlayerLeaveBroadcast))]
+    [Union(13, typeof(UpdatePlayerPosition))]
     public interface IPacket
     {
     }
 
     [MessagePackObject]
-    public struct JoinRequestFromClient : IPacket
+    public struct PlayerJoinRequest : IPacket
     {
     }
 
@@ -29,21 +33,9 @@ namespace dArtagnan.Shared
     }
 
     [MessagePackObject]
-    public struct JoinResponseFromServer : IPacket
-    {
-        [Key(0)] public int playerId { get; set; }
-
-        [Key(1)] public float initX { get; set; }
-
-        [Key(2)] public float initY { get; set; }
-
-        [Key(3)] public int accuracy { get; set; }
-    }
-
-    [MessagePackObject]
     public struct InformationOfPlayers : IPacket
     {
-        [Key(0)] public List<PlayerInformation> info;
+        [Key(0)] public List<PlayerInformation> info { get; set; }
     }
 
     [MessagePackObject]
@@ -55,8 +47,21 @@ namespace dArtagnan.Shared
         [Key(3)] public float x;
         [Key(4)] public float y;
         [Key(5)] public int accuracy;
-        [Key(6)] public bool isRunning;
+        [Key(6)] public float totalReloadTime;
+        [Key(7)] public float remainingReloadTime;
+        [Key(8)] public float speed;
+        [Key(9)] public bool alive;
     }
+
+    [MessagePackObject]
+    public struct PlayerJoinBroadcast : IPacket
+    {
+        [Key(0)] public int playerId { get; set; }
+        [Key(1)] public int initX { get; set; }
+        [Key(2)] public int initY { get; set; }
+        [Key(3)] public int accuracy { get; set; }
+    }
+
     [MessagePackObject]
     public struct PlayerDirectionFromClient : IPacket
     {
@@ -64,10 +69,9 @@ namespace dArtagnan.Shared
     }
 
     [MessagePackObject]
-    public struct PlayerDirectionFromServer : IPacket
+    public struct PlayerDirectionBroadcast : IPacket
     {
         [Key(0)] public int playerId { get; set; }
-
         [Key(1)] public int direction { get; set; }
     }
 
@@ -78,11 +82,10 @@ namespace dArtagnan.Shared
     }
 
     [MessagePackObject]
-    public struct PlayerRunningFromServer : IPacket
+    public struct UpdatePlayerSpeedBroadcast : IPacket
     {
         [Key(0)] public int playerId { get; set; }
-
-        [Key(1)] public bool isRunning { get; set; }
+        [Key(1)] public float speed { get; set; }
     }
 
     [MessagePackObject]
@@ -92,9 +95,42 @@ namespace dArtagnan.Shared
     }
 
     [MessagePackObject]
-    public struct PlayerShootingFromServer : IPacket
+    public struct PlayerShootingBroadcast : IPacket
+    {
+        [Key(0)] public int shooterId { get; set; }
+        [Key(1)] public int targetId { get; set; }
+        [Key(2)] public bool hit { get; set; }
+    }
+
+    [MessagePackObject]
+    public struct UpdatePlayerAlive : IPacket
     {
         [Key(0)] public int playerId { get; set; }
-        [Key(1)] public int targetId { get; set; }
+        [Key(1)] public bool alive { get; set; }
+    }
+
+    [MessagePackObject]
+    public struct PlayerLeaveFromClient : IPacket
+    {
+    }
+
+    [MessagePackObject]
+    public struct PlayerLeaveBroadcast : IPacket
+    {
+        [Key(0)] public int playerId { get; set; }
+    }
+
+    [MessagePackObject]
+    public struct UpdatePlayerPosition : IPacket
+    {
+        [Key(0)] public List<PlayerPosition> positionList { get; set; }
+    }
+
+    [MessagePackObject]
+    public struct PlayerPosition
+    {
+        [Key(0)] public int playerId;
+        [Key(1)] public float x;
+        [Key(2)] public float y;
     }
 }
