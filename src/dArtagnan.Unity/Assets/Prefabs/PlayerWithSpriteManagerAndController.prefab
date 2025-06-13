@@ -8033,7 +8033,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   id: 0
-  range: 0
   accuracy: 0
   currentDirection: {x: 0, y: 0, z: 0}
   speed: 1
@@ -19036,8 +19035,16 @@ PrefabInstance:
       value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 3443109079145763804, guid: e4764cd969d91ba42bf957edff097744, type: 3}
+      propertyPath: m_fontColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3443109079145763804, guid: e4764cd969d91ba42bf957edff097744, type: 3}
       propertyPath: m_fontSizeBase
       value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3443109079145763804, guid: e4764cd969d91ba42bf957edff097744, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 4528209657414258562, guid: e4764cd969d91ba42bf957edff097744, type: 3}
       propertyPath: m_Pivot.x

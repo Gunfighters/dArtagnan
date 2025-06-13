@@ -65,6 +65,29 @@ public class GameManager : MonoBehaviour
         {
             NetworkManager.Instance.SendPlayerIsRunning(false);
         }
+
+        if (Input.GetKeyDown(KeyCode.LeftControl))
+        {
+            float nearestDist = 0x7fffffff;
+            PlayerController nearestPlayer = null;
+            foreach (var other in players.Values)
+            {
+                if (other != ControlledPlayer)
+                {
+                    var dist = Vector3.Distance(other.transform.position, ControlledPlayer.transform.position);
+                    if (dist <= ControlledPlayer.range && nearestDist > dist)
+                    {
+                        nearestDist = dist;
+                        nearestPlayer = other;
+                    }
+                }
+            }
+
+            if (nearestPlayer)
+            {
+                NetworkManager.Instance.SendPlayerShooting(nearestPlayer.id);
+            }
+        }
     }
 
     public void ShootAt(PlayerController target)

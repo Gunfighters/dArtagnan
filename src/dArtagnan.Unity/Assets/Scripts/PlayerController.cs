@@ -1,4 +1,5 @@
-﻿using Assets.HeroEditor4D.Common.Scripts.CharacterScripts;
+﻿using System;
+using Assets.HeroEditor4D.Common.Scripts.CharacterScripts;
 using Assets.HeroEditor4D.Common.Scripts.Enums;
 using TMPro;
 using UnityEngine;
@@ -10,7 +11,7 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     public int id;
-    public float range;
+    public float range { get; private set; }
     [SerializeField] private int accuracy;
     public Vector3 currentDirection;
     private bool dead;
@@ -21,12 +22,27 @@ public class PlayerController : MonoBehaviour
     private Character4D SpriteManager;
     public GameObject textGameObject;
     private TextMeshProUGUI textMeshPro;
+    private LineRenderer rangeCircleRenderer;
 
     private void Start()
     {
         SpriteManager = GetComponent<Character4D>();
         SpriteManager.SetState(CharacterState.Idle);
         textMeshPro = textGameObject.GetComponent<TextMeshProUGUI>();
+        range = 5;
+
+        var rangeCirclePoints = 36;
+        rangeCircleRenderer = gameObject.GetComponent<LineRenderer>();
+        rangeCircleRenderer.loop = true;
+        rangeCircleRenderer.useWorldSpace = false;
+        rangeCircleRenderer.positionCount = rangeCirclePoints;
+        var points = new Vector3[rangeCirclePoints];
+        for (var i = 0; i < rangeCirclePoints; i++)
+        {
+            var angle = 2 * Mathf.PI * i / rangeCirclePoints;
+            points[i] = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0) * range;
+        }
+        rangeCircleRenderer.SetPositions(points);
     }
 
     private void Update()
