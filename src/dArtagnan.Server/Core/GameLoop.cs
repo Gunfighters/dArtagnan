@@ -82,12 +82,12 @@ namespace dArtagnan.Server.Core
             UpdateReloadTimes(deltaTime);
             
             // 위치 브로드캐스트는 1초에 한 번만 실행
-            positionBroadcastCounter++;
-            if (positionBroadcastCounter >= POSITION_BROADCAST_INTERVAL)
-            {
-                BroadcastPlayerPositions();
-                positionBroadcastCounter = 0;
-            }
+            // positionBroadcastCounter++;
+            // if (positionBroadcastCounter >= POSITION_BROADCAST_INTERVAL)
+            // {
+            //     BroadcastPlayerPositions();
+            //     positionBroadcastCounter = 0;
+            // }
         }
 
         /// <summary>
