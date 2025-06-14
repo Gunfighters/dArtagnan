@@ -29,6 +29,7 @@ public class NetworkManager : MonoBehaviour
         _stream = _client.GetStream();
         _ = StartSendingLoop();
         _ = StartListeningLoop();
+        GameManager.Instance.GetPing("127.0.0.1");
     }
 
     void Enqueue(IPacket payload)

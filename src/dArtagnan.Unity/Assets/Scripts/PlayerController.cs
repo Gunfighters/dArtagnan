@@ -1,53 +1,48 @@
 ﻿using System;
+using System.Collections;
 using Assets.HeroEditor4D.Common.Scripts.CharacterScripts;
 using Assets.HeroEditor4D.Common.Scripts.Enums;
 using TMPro;
 using UnityEngine;
 
-/// <summary>
-///     플레이어 한 명을 조종합니다.
-/// </summary>
 [RequireComponent(typeof(Character4D))]
 public class PlayerController : MonoBehaviour
 {
     public int id;
     public float range { get; private set; }
     [SerializeField] private int accuracy;
-    public Vector3 currentDirection;
+    [SerializeField] private Vector3 targetPosition;
+    [SerializeField] private Vector3 currentDirection;
+    [SerializeField] private float RTT;
+    private float timeOfLastServerUpdate;
     private bool dead;
-    private float directionLerpSpeed = 10f;
+    public float lerpSpeed = 0.5f;
     private bool firing;
     [SerializeField] private float speed;
     private bool running => speed > 1;
+    private bool lerping;
     private Character4D SpriteManager;
     public GameObject textGameObject;
-    // private TextMeshPro textMeshPro;
-    // private LineRenderer rangeCircleRenderer;
+
+    private Coroutine correctionRoutine;
+    private bool correcting;
 
     private void Start()
     {
         SpriteManager = GetComponent<Character4D>();
         SpriteManager.SetState(CharacterState.Idle);
-        // textMeshPro = textGameObject.GetComponent<TextMeshPro>();
         range = 5;
-
-        // var rangeCirclePoints = 36;
-        // rangeCircleRenderer = gameObject.GetComponent<LineRenderer>();
-        // rangeCircleRenderer.loop = true;
-        // rangeCircleRenderer.useWorldSpace = false;
-        // rangeCircleRenderer.positionCount = rangeCirclePoints;
-        // var points = new Vector3[rangeCirclePoints];
-        // for (var i = 0; i < rangeCirclePoints; i++)
-        // {
-        //     var angle = 2 * Mathf.PI * i / rangeCirclePoints;
-        //     points[i] = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0) * range;
-        // }
-        // rangeCircleRenderer.SetPositions(points);
     }
 
     private void Update()
     {
-        transform.position += (running ? speed * 4 : speed) * Time.deltaTime * currentDirection;
+        if (!lerping)
+        {
+            float elapsed = Time.time - timeOfLastServerUpdate;
+            Vector3 predictedPosition = targetPosition + currentDirection * speed * elapsed;
+            transform.position = Vector3.Lerp(transform.position, predictedPosition, lerpSpeed * Time.deltaTime);
+        }
+
         if (currentDirection == Vector3.zero)
         {
             SpriteManager.SetState(CharacterState.Idle);
@@ -65,6 +60,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+
     public void SetDirection(Vector3 normalizedDirection)
     {
         currentDirection = normalizedDirection;
@@ -73,6 +69,31 @@ public class PlayerController : MonoBehaviour
     public void ImmediatelyMoveTo(Vector3 position)
     {
         transform.position = position;
+    }
+
+    public void UpdatePosition(Vector3 positionFromServer)
+    {
+        timeOfLastServerUpdate = Time.time;
+        targetPosition = positionFromServer + speed * RTT * currentDirection;
+        StartCoroutine(LerpToTargetPosition(targetPosition));
+    }
+
+    IEnumerator LerpToTargetPosition(Vector3 targetPosition)
+    {
+        lerping = true;
+        var wf = new WaitForEndOfFrame();
+        while (transform.position != targetPosition)
+        {
+            transform.position = Vector3.Lerp(transform.position, targetPosition, lerpSpeed);
+            yield return wf;
+        }
+
+        lerping = false;
+    }
+
+    public void SetPing(Ping p)
+    {
+        RTT = (float) p.time / 1000;
     }
 
     public void Fire()
@@ -88,7 +109,6 @@ public class PlayerController : MonoBehaviour
     public void SetAccuracy(int newAccuracy)
     {
         accuracy = newAccuracy;
-        // textMeshPro.SetText($"{accuracy}%");
     }
 
     public void SetSpeed(float newSpeed)

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using dArtagnan.Shared;
 using UnityEngine;
 
@@ -14,6 +15,7 @@ public class GameManager : MonoBehaviour
     private Vector3 lastDirection = Vector3.zero;
     public static GameManager Instance { get; private set; }
     PlayerController ControlledPlayer => players[controlledPlayerIndex];
+    [SerializeField] private int ping; 
 
     void Awake()
     {
@@ -169,7 +171,34 @@ public class GameManager : MonoBehaviour
     {
         update.positionList.ForEach(p =>
         {
-            players[p.playerId].ImmediatelyMoveTo(new Vector2(p.x, p.y));
+            players[p.playerId].UpdatePosition(new Vector2(p.x, p.y));
         });
+    }
+
+    public void GetPing(string address)
+    {
+        StartCoroutine(StartPing(address));
+    }
+
+    IEnumerator StartPing(string address)
+    {
+        var wait = new WaitForSeconds(0.01f);
+        var p = new Ping(address);
+        while (!p.isDone)
+        {
+            yield return wait;
+        }
+
+        ping = p.time;
+        Debug.Log($"Ping: {ping}");
+        SetPing(p);
+    }
+
+    void SetPing(Ping p)
+    {
+        foreach (var player in players.Values)
+        {
+            player.SetPing(p);
+        }
     }
 }
