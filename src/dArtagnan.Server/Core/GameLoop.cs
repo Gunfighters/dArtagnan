@@ -33,13 +33,7 @@ namespace dArtagnan.Server.Core
             
             isRunning = true;
             Console.WriteLine("게임 루프 시작 (50 FPS - 0.02초 간격)");
-<<<<<<< HEAD
-            
             await Task.Run(UpdateLoop);
-=======
-
-            await Task.WhenAll(UpdateLoop(), BroadcastLoop());
->>>>>>> 6d40150 (이동방향 벡터를 shared에 정의해두고 공유하도록 함)
         }
 
         /// <summary>
