@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Numerics;
 using dArtagnan.Shared;
 
 namespace dArtagnan.Server.Core
@@ -17,20 +18,6 @@ namespace dArtagnan.Server.Core
         // 위치 브로드캐스트 주기 제어 (1초에 한 번)
         private int positionBroadcastCounter = 0;
         private const int POSITION_BROADCAST_INTERVAL = 50; // 50프레임 = 1초
-        
-        // Direction 벡터 정의 (0은 정지, 1~8 위쪽부터 시계방향)
-        private readonly Dictionary<int, (float x, float y)> directionVectors = new()
-        {
-            { 0, (0, 0) },       // 정지
-            { 1, (0, 1) },       // 위
-            { 2, (1, 1) },       // 우상
-            { 3, (1, 0) },       // 우
-            { 4, (1, -1) },      // 우하
-            { 5, (0, -1) },      // 하
-            { 6, (-1, -1) },     // 좌하
-            { 7, (-1, 0) },      // 좌
-            { 8, (-1, 1) }       // 좌상
-        };
 
         public GameLoop(GameServer server)
         {
@@ -46,8 +33,13 @@ namespace dArtagnan.Server.Core
             
             isRunning = true;
             Console.WriteLine("게임 루프 시작 (50 FPS - 0.02초 간격)");
+<<<<<<< HEAD
             
             await Task.Run(UpdateLoop);
+=======
+
+            await Task.WhenAll(UpdateLoop(), BroadcastLoop());
+>>>>>>> 6d40150 (이동방향 벡터를 shared에 정의해두고 공유하도록 함)
         }
 
         /// <summary>
@@ -112,27 +104,18 @@ namespace dArtagnan.Server.Core
             foreach (var client in gameServer.clients.Values)
             {
                 if (!client.IsConnected || !client.IsInGame || !client.Alive) continue;
-
-                // Direction이 유효한 범위인지 확인
-                if (!directionVectors.ContainsKey(client.Direction)) continue;
-
-                var vector = directionVectors[client.Direction];
+                
+                var vector = DirectionHelper.IntToDirection(client.Direction);
                 
                 // 정지 상태가 아닐 때만 이동
-                if (vector.x != 0 || vector.y != 0)
+                if (vector != Vector3.Zero)
                 {
                     // 현재 속도 사용
                     float speed = client.Speed;
                     
-                    // 대각선 이동 시 속도 정규화
-                    if (vector.x != 0 && vector.y != 0)
-                    {
-                        speed /= 1.414f; // sqrt(2)
-                    }
-                    
                     // 고정된 deltaTime(0.02초)을 곱해서 프레임당 이동거리 계산
-                    float moveX = vector.x * speed * deltaTime;
-                    float moveY = vector.y * speed * deltaTime;
+                    float moveX = vector.X * speed * deltaTime;
+                    float moveY = vector.Y * speed * deltaTime;
                     
                     // 위치 업데이트
                     client.UpdatePosition(

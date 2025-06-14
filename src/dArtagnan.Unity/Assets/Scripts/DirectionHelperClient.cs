@@ -1,27 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using dArtagnan.Shared;
 
-public static class DirectionHelper
+public class DirectionHelperClient
 {
-    private static readonly List<Vector3> Directions = new()
-    {
-        Vector3.zero,
-        Vector3.up,
-        (Vector3.up + Vector3.right).normalized,
-        Vector3.right,
-        (Vector3.right + Vector3.down).normalized,
-        Vector3.down,
-        (Vector3.down + Vector3.left).normalized,
-        Vector3.left,
-        (Vector3.left + Vector3.up).normalized,
-    };
+    private static readonly List<Vector3> Directions = DirectionHelper.Directions.Select(d => new Vector3(d.X, d.Y, d.Z)).ToList();
 
-    public static Vector3 IntToDirection(int direction)
+    public static Vector3 IntToDirection(int i)
     {
-        return Directions[direction];
+        return Directions[i];
     }
-
+    
     public static int DirectionToInt(Vector3 direction)
     {
         if (direction == Vector3.zero) return 0;

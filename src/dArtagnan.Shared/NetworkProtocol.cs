@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Numerics;
 using MessagePack;
 
 namespace dArtagnan.Shared
@@ -132,5 +133,25 @@ namespace dArtagnan.Shared
         [Key(0)] public int playerId;
         [Key(1)] public float x;
         [Key(2)] public float y;
+    }
+
+    public class DirectionHelper
+    {
+        public static readonly List<Vector3> Directions = new()
+        {
+            Vector3.Zero,
+            Vector3.UnitY,
+            Vector3.Normalize(Vector3.UnitY + Vector3.UnitX),
+            Vector3.UnitX,
+            Vector3.Normalize(Vector3.UnitX - Vector3.UnitY),
+            -Vector3.UnitY,
+            Vector3.Normalize(-Vector3.UnitY - Vector3.UnitX),
+            -Vector3.UnitX,
+            Vector3.Normalize(-Vector3.UnitX + Vector3.UnitY),
+        };
+        public static Vector3 IntToDirection(int direction)
+        {
+            return Directions[direction];
+        }
     }
 }

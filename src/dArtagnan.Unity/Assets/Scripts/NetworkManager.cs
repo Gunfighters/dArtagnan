@@ -85,7 +85,7 @@ public class NetworkManager : MonoBehaviour
     {
         Enqueue(new PlayerDirectionFromClient
         {
-            direction = DirectionHelper.DirectionToInt(direction),
+            direction = DirectionHelperClient.DirectionToInt(direction),
         });
     }
 

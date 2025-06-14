@@ -109,7 +109,7 @@ public class GameManager : MonoBehaviour
         var created = Instantiate(playerPrefab); // TODO: Object Pooling.
         var player = created.GetComponent<PlayerController>();
         player.SetAccuracy(accuracy);
-        player.SetDirection(DirectionHelper.IntToDirection(direction));
+        player.SetDirection(DirectionHelperClient.IntToDirection(direction));
         player.ImmediatelyMoveTo(position);
         player.id = index;
         players[index] = player;
@@ -141,7 +141,7 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayerDirectionBroadcast(PlayerDirectionBroadcast payload)
     {
-        var direction = DirectionHelper.IntToDirection(payload.direction);
+        var direction = DirectionHelperClient.IntToDirection(payload.direction);
         Debug.Log(direction);
         players[payload.playerId].SetDirection(direction);
     }
