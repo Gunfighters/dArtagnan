@@ -38,11 +38,8 @@ public class PlayerController : MonoBehaviour
     {
         if (!lerping)
         {
-            float elapsed = Time.time - timeOfLastServerUpdate;
-            Vector3 predictedPosition = targetPosition + currentDirection * speed * elapsed;
-            transform.position = Vector3.Lerp(transform.position, predictedPosition, lerpSpeed * Time.deltaTime);
+            transform.position += speed * Time.deltaTime * currentDirection;
         }
-
         if (currentDirection == Vector3.zero)
         {
             SpriteManager.SetState(CharacterState.Idle);
@@ -60,7 +57,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-
     public void SetDirection(Vector3 normalizedDirection)
     {
         currentDirection = normalizedDirection;
@@ -73,7 +69,6 @@ public class PlayerController : MonoBehaviour
 
     public void UpdatePosition(Vector3 positionFromServer)
     {
-        timeOfLastServerUpdate = Time.time;
         targetPosition = positionFromServer + speed * RTT * currentDirection;
         StartCoroutine(LerpToTargetPosition(targetPosition));
     }
