@@ -58,7 +58,7 @@ namespace dArtagnan.Server.Core
             // 새로운 필드들 초기화
             TotalReloadTime = 2.0f; // 기본 재장전 시간 2초
             RemainingReloadTime = 0.0f;
-            Speed = 60.0f; // 기본 속도 (걷기)
+            Speed = 1f; // 기본 속도 (걷기)
             Alive = true;
         }
 
@@ -172,7 +172,7 @@ namespace dArtagnan.Server.Core
         private async Task HandlePlayerRunning(PlayerRunningFromClient running)
         {
             // 달리기 상태에 따라 속도 직접 설정
-            float newSpeed = running.isRunning ? 240.0f : 60.0f;
+            float newSpeed = running.isRunning ? 4f : 1f;
             UpdateSpeed(newSpeed);
             
             // 속도 업데이트 브로드캐스트
