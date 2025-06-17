@@ -33,19 +33,17 @@ public class NetworkManager : MonoBehaviour
         btn.onClick.AddListener(() =>
         {
             var inputField = ServerEndpointInputFieldObject.GetComponent<TMP_InputField>();
-            if (inputField.text != "")
-            {
-                Debug.Log(inputField.text);
-                var split = inputField.text.Split(':');
-                var host = split[0];
-                var port = Parse(split[1]);
-                ConnectToServer(host, port);
-            }
+            var placeholder = inputField.placeholder.GetComponent<TextMeshProUGUI>();
+            var split = inputField.text != "" ? inputField.text.Split(':') : placeholder.text.Split(':');
+            var host = split[0];
+            var port = Parse(split[1]);
+            ConnectToServer(host, port);
         });
     }
 
     async Task ConnectToServer(string host, int port)
     {
+        Debug.Log($"Connecting to: {host}:{port}");
         _client = new TcpClient();
         try
         {
