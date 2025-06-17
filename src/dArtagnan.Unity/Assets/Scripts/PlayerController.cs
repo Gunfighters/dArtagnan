@@ -23,14 +23,17 @@ public class PlayerController : MonoBehaviour
     private bool lerping;
     private Character4D SpriteManager;
     public GameObject textGameObject;
+    private TextMeshProUGUI accuracyText;
 
     private Coroutine correctionRoutine;
     private bool correcting;
 
-    private void Start()
+    void Awake()
     {
         SpriteManager = GetComponent<Character4D>();
         SpriteManager.SetState(CharacterState.Idle);
+        accuracyText = textGameObject.GetComponent<TextMeshProUGUI>();
+        Debug.Log(accuracyText);
         range = 5;
     }
 
@@ -104,6 +107,7 @@ public class PlayerController : MonoBehaviour
     public void SetAccuracy(int newAccuracy)
     {
         accuracy = newAccuracy;
+        accuracyText.text = $"{accuracy}%";
     }
 
     public void SetSpeed(float newSpeed)
