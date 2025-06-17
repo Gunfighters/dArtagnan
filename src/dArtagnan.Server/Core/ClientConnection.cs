@@ -194,10 +194,14 @@ namespace dArtagnan.Server.Core
             if (IsInGame)
             {
                 Direction = moveData.direction;
+                X = moveData.currentX;
+                Y = moveData.currentY;
                 await gameServer.BroadcastToAll(new PlayerDirectionBroadcast
                 {
                     direction = Direction,
-                    playerId = PlayerId
+                    playerId = PlayerId,
+                    currentX = moveData.currentX,
+                    currentY = moveData.currentY,
                 });
             }
         }

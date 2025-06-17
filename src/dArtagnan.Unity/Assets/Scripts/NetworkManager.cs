@@ -3,7 +3,10 @@ using System.Net.Sockets;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using dArtagnan.Shared;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+using static System.Int32;
 
 public class NetworkManager : MonoBehaviour
 {
@@ -11,6 +14,8 @@ public class NetworkManager : MonoBehaviour
     private TcpClient _client;
     private NetworkStream _stream;
     public static NetworkManager Instance { get; private set; }
+    public GameObject ServerEndpointInputFieldObject;
+    public GameObject ServerEndpointConfirmButtonObject;
 
     void Awake()
     {
@@ -22,14 +27,41 @@ public class NetworkManager : MonoBehaviour
         });
     }
 
-    async void Start()
+    void Start()
+    {
+        var btn = ServerEndpointConfirmButtonObject.GetComponent<Button>();
+        btn.onClick.AddListener(() =>
+        {
+            var inputField = ServerEndpointInputFieldObject.GetComponent<TMP_InputField>();
+            if (inputField.text != "")
+            {
+                Debug.Log(inputField.text);
+                var split = inputField.text.Split(':');
+                var host = split[0];
+                var port = Parse(split[1]);
+                ConnectToServer(host, port);
+            }
+        });
+    }
+
+    async Task ConnectToServer(string host, int port)
     {
         _client = new TcpClient();
-        await _client.ConnectAsync("localhost", 7777);
+        try
+        {
+            await _client.ConnectAsync(host, port);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+            return;
+        }
         _stream = _client.GetStream();
         _ = StartSendingLoop();
         _ = StartListeningLoop();
-        GameManager.Instance.GetPing("127.0.0.1");
+        GameManager.Instance.GetPing(host);
+        ServerEndpointConfirmButtonObject.SetActive(false);
+        ServerEndpointInputFieldObject.SetActive(false);
     }
 
     void Enqueue(IPacket payload)
@@ -81,11 +113,13 @@ public class NetworkManager : MonoBehaviour
         Enqueue(new PlayerJoinRequest());
     }
 
-    public void SendPlayerDirection(Vector3 direction)
+    public void SendPlayerDirection(Vector3 position, Vector3 direction)
     {
         Enqueue(new PlayerDirectionFromClient
         {
             direction = DirectionHelperClient.DirectionToInt(direction),
+            currentX = position.x,
+            currentY = position.y
         });
     }
 

@@ -67,6 +67,8 @@ namespace dArtagnan.Shared
     public struct PlayerDirectionFromClient : IPacket
     {
         [Key(0)] public int direction { get; set; }
+        [Key(1)] public float currentX { get; set; }
+        [Key(2)] public float currentY { get; set; }
     }
 
     [MessagePackObject]
@@ -74,6 +76,8 @@ namespace dArtagnan.Shared
     {
         [Key(0)] public int playerId { get; set; }
         [Key(1)] public int direction { get; set; }
+        [Key(2)] public float currentX { get; set; }
+        [Key(3)] public float currentY { get; set; }
     }
 
     [MessagePackObject]

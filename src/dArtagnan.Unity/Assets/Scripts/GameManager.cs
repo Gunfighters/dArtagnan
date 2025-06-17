@@ -56,7 +56,7 @@ public class GameManager : MonoBehaviour
         if (direction != lastDirection)
         {
             lastDirection = direction;
-            NetworkManager.Instance.SendPlayerDirection(direction);
+            NetworkManager.Instance.SendPlayerDirection(ControlledPlayer.gameObject.transform.position, direction);
         }
 
         if (Input.GetKeyDown(KeyCode.Space))
