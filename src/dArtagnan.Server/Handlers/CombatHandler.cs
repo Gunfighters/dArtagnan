@@ -81,26 +81,12 @@ namespace dArtagnan.Server.Handlers
                 alive = false
             });
 
-            // 게임 종료 체크
-            await CheckGameEnd(broadcastToAll);
-        }
-
-        /// <summary>
-        /// 게임 종료 조건을 확인합니다
-        /// </summary>
-        private Task CheckGameEnd(Func<IPacket, Task> broadcastToAll)
-        {
+            // 게임 종료 상태 로그
             int aliveCount = gameSession.GetAlivePlayerCount();
-            
-            if (GameRules.ShouldEndGame(aliveCount))
+            if (gameSession.IsGameOver())
             {
-                Console.WriteLine($"[게임] 게임 종료 - 생존자: {aliveCount}명");
-                
-                // 게임 종료 처리 로직 추가 가능
-                // 예: 승자 발표, 게임 리셋 등
+                Console.WriteLine($"[게임] 게임 종료 조건 달성 - 생존자: {aliveCount}명");
             }
-            
-            return Task.CompletedTask;
         }
 
         /// <summary>

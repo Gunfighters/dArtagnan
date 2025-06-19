@@ -36,9 +36,6 @@ namespace dArtagnan.Server.Handlers
             {
                 playerId = player.PlayerId
             }, client.Id);
-
-            // 게임 종료 조건 확인
-            await CheckGameEnd();
         }
 
         /// <summary>
@@ -64,41 +61,10 @@ namespace dArtagnan.Server.Handlers
                 {
                     playerId = player.PlayerId
                 }, client.Id);
-
-                // 게임 종료 조건 확인
-                await CheckGameEnd();
             }
 
             // 플레이어를 세션에서 완전히 제거
             gameSession.RemovePlayer(client.Id);
-        }
-
-        /// <summary>
-        /// 게임 종료 조건을 확인합니다
-        /// </summary>
-        private Task CheckGameEnd()
-        {
-            int playerCount = gameSession.Players.Count();
-            int aliveCount = gameSession.GetAlivePlayerCount();
-
-            // 플레이어 수가 최소 인원 미만이면 게임 중단
-            if (playerCount < GameRules.MIN_PLAYERS)
-            {
-                Console.WriteLine($"[게임] 인원 부족으로 게임 중단 (현재: {playerCount}명, 최소: {GameRules.MIN_PLAYERS}명)");
-                // 게임 중단 처리 로직 추가 가능
-                return Task.CompletedTask;
-            }
-
-            // 생존자가 1명 이하면 게임 종료
-            if (GameRules.ShouldEndGame(aliveCount))
-            {
-                Console.WriteLine($"[게임] 게임 종료 - 생존자: {aliveCount}명");
-                // 게임 종료 처리 로직 추가 가능
-                return Task.CompletedTask;
-            }
-
-            Console.WriteLine($"[게임] 게임 계속 진행 - 참여자: {playerCount}명, 생존자: {aliveCount}명");
-            return Task.CompletedTask;
         }
     }
 } 
