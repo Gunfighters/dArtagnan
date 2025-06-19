@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
+using dArtagnan.Server.Handlers;
 using dArtagnan.Shared;
 
 namespace dArtagnan.Server.Core
@@ -11,17 +12,21 @@ namespace dArtagnan.Server.Core
     public class GameLoop
     {
         private readonly GameServer gameServer;
+        private readonly MovementHandler movementHandler;
+        private readonly CombatHandler combatHandler;
         private bool isRunning = false;
         private const int TARGET_FPS = 50; // 0.02초 간격 (50 FPS)
         private const double TARGET_FRAME_TIME = 1000.0 / TARGET_FPS; // ms per frame (20ms)
         
-        // 위치 브로드캐스트 주기 제어 (1초에 한 번)
-        private int positionBroadcastCounter = 0;
-        private const int POSITION_BROADCAST_INTERVAL = 50; // 50프레임 = 1초
+        // 위치 브로드캐스트 주기 제어 (1초에 한 번) (비활성화)
+        // private int positionBroadcastCounter = 0;
+        // private const int POSITION_BROADCAST_INTERVAL = 50; // 50프레임 = 1초
 
-        public GameLoop(GameServer server)
+        public GameLoop(GameServer server, MovementHandler movementHandler, CombatHandler combatHandler)
         {
             gameServer = server;
+            this.movementHandler = movementHandler;
+            this.combatHandler = combatHandler;
         }
 
         /// <summary>
@@ -78,10 +83,11 @@ namespace dArtagnan.Server.Core
         /// </summary>
         private void FixedUpdate(float deltaTime)
         {
-            UpdatePlayerPositions(deltaTime);
-            UpdateReloadTimes(deltaTime);
+            // 게임 로직 업데이트 (직접 호출)
+            movementHandler.UpdatePlayerPositions(deltaTime);
+            combatHandler.UpdateReloadTimes(deltaTime);
             
-            // 위치 브로드캐스트는 1초에 한 번만 실행
+            // 위치 브로드캐스트는 1초에 한 번만 실행 (비활성화)
             // positionBroadcastCounter++;
             // if (positionBroadcastCounter >= POSITION_BROADCAST_INTERVAL)
             // {
@@ -91,70 +97,16 @@ namespace dArtagnan.Server.Core
         }
 
         /// <summary>
-        /// 모든 플레이어의 위치를 direction에 따라 업데이트
-        /// </summary>
-        private void UpdatePlayerPositions(float deltaTime)
-        {
-            foreach (var client in gameServer.clients.Values)
-            {
-                if (!client.IsConnected || !client.IsInGame || !client.Alive) continue;
-                
-                var vector = DirectionHelper.IntToDirection(client.Direction);
-                
-                // 정지 상태가 아닐 때만 이동
-                if (vector != Vector3.Zero)
-                {
-                    // 현재 속도 사용
-                    float speed = client.Speed;
-                    
-                    // 고정된 deltaTime(0.02초)을 곱해서 프레임당 이동거리 계산
-                    float moveX = vector.X * speed * deltaTime;
-                    float moveY = vector.Y * speed * deltaTime;
-                    
-                    // 위치 업데이트
-                    client.UpdatePosition(
-                        client.X + moveX,
-                        client.Y + moveY
-                    );
-                }
-            }
-        }
-
-        /// <summary>
-        /// 모든 플레이어의 재장전 시간을 업데이트
-        /// </summary>
-        private void UpdateReloadTimes(float deltaTime)
-        {
-            foreach (var client in gameServer.clients.Values)
-            {
-                if (!client.IsConnected || !client.IsInGame || !client.Alive) continue;
-
-                if (client.RemainingReloadTime > 0)
-                {
-                    float newReloadTime = Math.Max(0, client.RemainingReloadTime - deltaTime);
-                    client.UpdateReloadTime(newReloadTime);
-                }
-            }
-        }
-
-        /// <summary>
         /// 플레이어들의 위치 정보를 모든 클라이언트에게 브로드캐스트
         /// </summary>
         private void BroadcastPlayerPositions()
         {
-            // 게임에 참여 중인 플레이어가 없으면 브로드캐스트하지 않음
-            var playersInGame = gameServer.clients.Values
-                .Where(c => c.IsConnected && c.IsInGame)
-                .ToList();
-                
-            if (playersInGame.Count == 0) return;
-
-            // 위치 정보 브로드캐스트 (비동기로 실행하지만 대기하지 않음)
+            // 비동기로 실행하지만 대기하지 않음
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    await gameServer.BroadcastPlayerPositions();
+                    await movementHandler.BroadcastPlayerPositions(gameServer.BroadcastToAll);
                 }
                 catch (Exception ex)
                 {

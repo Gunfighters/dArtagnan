@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using dArtagnan.Server.Game;
+using dArtagnan.Server.Network;
 
 namespace dArtagnan.Server.Core
 {
@@ -53,6 +55,7 @@ namespace dArtagnan.Server.Core
             // 명령어를 공백으로 분리
             var parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var mainCommand = parts.Length > 0 ? parts[0] : "";
+            var parameters = parts.Skip(1).ToArray();
 
             switch (mainCommand)
             {
@@ -65,7 +68,7 @@ namespace dArtagnan.Server.Core
                     break;
 
                 case "player":
-                    if (parts.Length > 1 && int.TryParse(parts[1], out int playerId))
+                    if (parameters.Length > 0 && int.TryParse(parameters[0], out int playerId))
                     {
                         PrintPlayer(playerId);
                     }
@@ -94,15 +97,17 @@ namespace dArtagnan.Server.Core
         /// </summary>
         private void PrintServerStatus()
         {
+            var gameSession = gameServer.GetGameSession();
+            
             Console.WriteLine($"=== 서버 상태 ===");
-            Console.WriteLine($"접속 중인 클라이언트: {gameServer.clients.Count}명");
+            Console.WriteLine($"접속 중인 클라이언트: {gameServer.GetClientCount()}명");
+            Console.WriteLine($"게임 중인 플레이어: {gameSession.Players.Count()}명");
+            Console.WriteLine($"생존자: {gameSession.GetAlivePlayerCount()}명");
 
-            var gameClients = gameServer.clients.Values.Where(c => c.IsInGame).ToList();
-            Console.WriteLine($"게임 중인 플레이어: {gameClients.Count}명");
-
-            foreach (var client in gameClients)
+            foreach (var player in gameSession.Players)
             {
-                Console.WriteLine($"  플레이어 {client.PlayerId}: {client.Nickname}");
+                string status = player.Alive ? "생존" : "사망";
+                Console.WriteLine($"  플레이어 {player.PlayerId}: {player.Nickname} ({status})");
             }
 
             Console.WriteLine($"================");
@@ -113,21 +118,23 @@ namespace dArtagnan.Server.Core
         /// </summary>
         private void PrintPlayerList()
         {
+            var gameSession = gameServer.GetGameSession();
+            
             Console.WriteLine($"=== 현재 플레이어 목록 ===");
             
-            if (gameServer.clients.Count == 0)
+            if (gameSession.PlayerCount == 0)
             {
                 Console.WriteLine("접속 중인 플레이어가 없습니다.");
                 Console.WriteLine("=======================");
                 return;
             }
 
-            Console.WriteLine($"총 {gameServer.clients.Count}명 접속 중");
+            Console.WriteLine($"총 {gameSession.PlayerCount}명 접속 중");
             Console.WriteLine();
 
-            foreach (var client in gameServer.clients.Values)
+            foreach (var player in gameSession.AllPlayers)
             {
-                PrintPlayers(client, true);
+                PrintPlayerDetails(player, true);
                 Console.WriteLine();
             }
 
@@ -139,50 +146,50 @@ namespace dArtagnan.Server.Core
         /// </summary>
         private void PrintPlayer(int playerId)
         {
-            var client = gameServer.clients.Values.FirstOrDefault(c => c.Id == playerId);
+            var gameSession = gameServer.GetGameSession();
+            var player = gameSession.GetPlayerByPlayerId(playerId);
             
-            if (client == null)
+            if (player == null)
             {
                 Console.WriteLine($"플레이어 ID {playerId}를 찾을 수 없습니다.");
                 Console.WriteLine("현재 접속 중인 플레이어 ID 목록:");
-                foreach (var c in gameServer.clients.Values)
+                foreach (var p in gameSession.AllPlayers)
                 {
-                    Console.WriteLine($"  - {c.Id}");
+                    Console.WriteLine($"  - {p.PlayerId}");
                 }
                 return;
             }
 
             Console.WriteLine($"=== 플레이어 {playerId} 상세 정보 ===");
-            PrintPlayers(client, false);
+            PrintPlayerDetails(player, false);
             Console.WriteLine("================================");
         }
 
         /// <summary>
         /// 플레이어 정보를 출력합니다 (모든 PlayerInformation 필드 포함)
         /// </summary>
-        private void PrintPlayers(ClientConnection client, bool showClientHeader)
+        private void PrintPlayerDetails(Player player, bool showClientHeader)
         {
             if (showClientHeader)
             {
-                Console.WriteLine($"[클라이언트 ID: {client.Id}]");
+                Console.WriteLine($"[클라이언트 ID: {player.Id}]");
             }
             
-            Console.WriteLine($"  연결 상태: {(client.IsConnected ? "연결됨" : "끊김")}");
-            Console.WriteLine($"  게임 상태: {(client.IsInGame ? "게임 중" : "대기 중")}");
+            Console.WriteLine($"  게임 상태: {(player.IsInGame ? "게임 중" : "대기 중")}");
             
-            if (!string.IsNullOrEmpty(client.Nickname))
+            if (!string.IsNullOrEmpty(player.Nickname))
             {
                 Console.WriteLine($"  === PlayerInformation ===");
-                Console.WriteLine($"  플레이어 ID: {client.PlayerId}");
-                Console.WriteLine($"  닉네임: {client.Nickname}");
-                Console.WriteLine($"  방향: {client.Direction}");
-                Console.WriteLine($"  위치 X: {client.X:F2}");
-                Console.WriteLine($"  위치 Y: {client.Y:F2}");
-                Console.WriteLine($"  명중률: {client.Accuracy}%");
-                Console.WriteLine($"  속도: {client.Speed:F2}");
-                Console.WriteLine($"  총 재장전 시간: {client.TotalReloadTime:F2}초");
-                Console.WriteLine($"  남은 재장전 시간: {client.RemainingReloadTime:F2}초");
-                Console.WriteLine($"  생존 상태: {(client.Alive ? "생존" : "사망")}");
+                Console.WriteLine($"  플레이어 ID: {player.PlayerId}");
+                Console.WriteLine($"  닉네임: {player.Nickname}");
+                Console.WriteLine($"  방향: {player.Direction}");
+                Console.WriteLine($"  위치 X: {player.X:F2}");
+                Console.WriteLine($"  위치 Y: {player.Y:F2}");
+                Console.WriteLine($"  명중률: {player.Accuracy}%");
+                Console.WriteLine($"  속도: {player.Speed:F2}");
+                Console.WriteLine($"  총 재장전 시간: {player.TotalReloadTime:F2}초");
+                Console.WriteLine($"  남은 재장전 시간: {player.RemainingReloadTime:F2}초");
+                Console.WriteLine($"  생존 상태: {(player.Alive ? "생존" : "사망")}");
             }
             else
             {

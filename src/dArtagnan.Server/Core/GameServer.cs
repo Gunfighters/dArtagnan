@@ -1,23 +1,46 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
+using dArtagnan.Server.Game;
+using dArtagnan.Server.Handlers;
+using dArtagnan.Server.Network;
 using dArtagnan.Shared;
 
 namespace dArtagnan.Server.Core
 {
+    /// <summary>
+    /// TCP 서버와 클라이언트 연결 관리만 담당하는 클래스
+    /// </summary>
     public class GameServer
     {
-        // 클라이언트 관리- ConcurrentDictionary는 스레드 안전함
-        public readonly ConcurrentDictionary<int, ClientConnection> clients = new();
+        // 클라이언트 관리 - ConcurrentDictionary는 스레드 안전함
+        private readonly ConcurrentDictionary<int, ClientConnection> clients = new();
         private bool isRunning;
-        private int nextPlayerId = 1;
-        private TcpListener tcpListener = null!; // null!는 "나중에 초기화할 것"을 의미
-        private GameLoop gameLoop = null!; // 게임 루프
+        private int nextClientId = 1;
+        private TcpListener tcpListener = null!;
+        private GameLoop gameLoop = null!;
+
+        // 게임 세션과 핸들러들
+        private GameSession gameSession = null!;
+        private JoinHandler joinHandler = null!;
+        private MovementHandler movementHandler = null!;
+        private CombatHandler combatHandler = null!;
+        private LeaveHandler leaveHandler = null!;
 
         public async Task StartAsync(int port)
         {
             try
             {
+                // 게임 세션 초기화
+                gameSession = new GameSession();
+
+                // 핸들러들 초기화
+                joinHandler = new JoinHandler(gameSession);
+                movementHandler = new MovementHandler(gameSession);
+                combatHandler = new CombatHandler(gameSession);
+                leaveHandler = new LeaveHandler(gameSession);
+
+                // TCP 리스너 시작
                 tcpListener = new TcpListener(IPAddress.Any, port);
                 tcpListener.Start();
                 isRunning = true;
@@ -26,7 +49,7 @@ namespace dArtagnan.Server.Core
                 Console.WriteLine("클라이언트 연결을 기다리는 중...");
 
                 // 게임 루프 초기화 및 시작
-                gameLoop = new GameLoop(this);
+                gameLoop = new GameLoop(this, movementHandler, combatHandler);
                 _ = Task.Run(() => gameLoop.StartAsync());
 
                 // 클라이언트 연결 대기 루프
@@ -35,7 +58,17 @@ namespace dArtagnan.Server.Core
                     try
                     {
                         var tcpClient = await tcpListener.AcceptTcpClientAsync();
-                        var client = new ClientConnection(nextPlayerId++, tcpClient, this);
+                        var client = new ClientConnection(
+                            nextClientId++, 
+                            tcpClient,
+                            joinHandler,
+                            movementHandler,
+                            combatHandler,
+                            leaveHandler,
+                            BroadcastToAll,
+                            BroadcastToAllExcept,
+                            OnClientDisconnected
+                        );
                         clients.TryAdd(client.Id, client);
                         Console.WriteLine($"새 클라이언트 연결됨 (ID: {client.Id})");
                     }
@@ -56,130 +89,50 @@ namespace dArtagnan.Server.Core
             }
         }
 
-        // 플레이어 게임 참가 처리
-        public async Task JoinGame(ClientConnection client)
+
+
+        /// <summary>
+        /// 클라이언트 연결 해제 시 호출되는 콜백
+        /// </summary>
+        private async Task OnClientDisconnected(ClientConnection client)
         {
-            Console.WriteLine($"[게임] 플레이어 {client.Id} 참가 (현재 인원: {clients.Count})");
-            client.SetPlayerInfo(client.Id, "sample_nickname");
-            
-            // YouAre 패킷 전송
-            await client.SendPacketAsync(new YouAre
-            {
-                playerId = client.PlayerId
-            });
-
-            // PlayerJoinBroadcast 전송
-            await BroadcastToAll(new PlayerJoinBroadcast
-            {
-                playerId = client.PlayerId,
-                initX = (int)client.X,
-                initY = (int)client.Y,
-                accuracy = client.Accuracy
-            });
-
-            // 현재 모든 플레이어 정보 전송
-            await SendPlayersInformation();
+            await client.HandleDisconnect();
+            RemoveClient(client);
         }
 
-        // 플레이어 피격 처리
-        public async Task HandlePlayerHit(int targetPlayerId)
-        {
-            var targetClient = clients.Values.FirstOrDefault(c => c.PlayerId == targetPlayerId);
-            if (targetClient != null && targetClient.Alive)
-            {
-                Console.WriteLine($"[게임] 플레이어 {targetPlayerId} 피격됨");
-                
-                // 플레이어 사망 처리
-                targetClient.UpdateAlive(false);
-                
-                // 사망 브로드캐스트
-                await BroadcastToAll(new UpdatePlayerAlive
-                {
-                    playerId = targetPlayerId,
-                    alive = false
-                });
-            }
-        }
-
-        // 플레이어 게임 퇴장 처리
-        public async Task HandlePlayerLeave(ClientConnection client)
-        {
-            if (!client.IsInGame) return;
-
-            Console.WriteLine($"[게임] 플레이어 {client.PlayerId}({client.Nickname}) 퇴장 (현재 인원: {clients.Count - 1})");
-
-            // 다른 플레이어들에게 퇴장 알림
-            await BroadcastToAll(new PlayerLeaveBroadcast
-            {
-                playerId = client.PlayerId
-            }, client.Id);
-        }
-
-        // 모든 플레이어 정보 전송
-        public async Task SendPlayersInformation()
-        {
-            var playersInGame = clients.Values
-                .Where(c => c.IsConnected && c.IsInGame)
-                .ToList();
-
-            if (playersInGame.Count == 0) return;
-
-            var playerInfoList = playersInGame.Select(client => new PlayerInformation
-            {
-                playerId = client.PlayerId,
-                nickname = client.Nickname,
-                direction = client.Direction,
-                x = client.X,
-                y = client.Y,
-                accuracy = client.Accuracy,
-                totalReloadTime = client.TotalReloadTime,
-                remainingReloadTime = client.RemainingReloadTime,
-                speed = client.Speed,
-                alive = client.Alive
-            }).ToList();
-
-            var packet = new InformationOfPlayers
-            {
-                info = playerInfoList
-            };
-
-            await BroadcastToAll(packet);
-        }
-
-        // 플레이어 위치 업데이트 브로드캐스트
-        public async Task BroadcastPlayerPositions()
-        {
-            var playersInGame = clients.Values
-                .Where(c => c.IsConnected && c.IsInGame)
-                .ToList();
-
-            if (playersInGame.Count == 0) return;
-
-            var positionList = playersInGame.Select(client => new PlayerPosition
-            {
-                playerId = client.PlayerId,
-                x = client.X,
-                y = client.Y
-            }).ToList();
-
-            var packet = new UpdatePlayerPosition
-            {
-                positionList = positionList
-            };
-
-            await BroadcastToAll(packet);
-        }
-
-        // 모든 플레이어에게 브로드캐스트 (본인 제외)
-        public async Task BroadcastToAll(IPacket data, int excludePlayerId = -1)
+        /// <summary>
+        /// 모든 플레이어에게 브로드캐스트
+        /// </summary>
+        public async Task BroadcastToAll(IPacket packet)
         {
             var tasks = new List<Task>();
 
             foreach (var client in clients.Values)
             {
-                if (client.Id != excludePlayerId && client.IsConnected && client.IsInGame)
+                if (client.IsConnected)
                 {
-                    tasks.Add(client.SendPacketAsync(data));
+                    tasks.Add(client.SendPacketAsync(packet));
+        }
+            }
+
+            if (tasks.Count > 0)
+            {
+                await Task.WhenAll(tasks);
+            }
+        }
+
+        /// <summary>
+        /// 특정 클라이언트를 제외하고 모든 플레이어에게 브로드캐스트
+        /// </summary>
+        public async Task BroadcastToAllExcept(IPacket packet, int excludeClientId)
+        {
+            var tasks = new List<Task>();
+
+            foreach (var client in clients.Values)
+            {
+                if (client.Id != excludeClientId && client.IsConnected)
+                {
+                    tasks.Add(client.SendPacketAsync(packet));
                 }
             }
 
@@ -189,14 +142,18 @@ namespace dArtagnan.Server.Core
             }
         }
 
-        // 클라이언트 제거
-        public void RemoveClient(ClientConnection client)
+        /// <summary>
+        /// 클라이언트 제거
+        /// </summary>
+        private void RemoveClient(ClientConnection client)
         {
             clients.TryRemove(client.Id, out _);
             Console.WriteLine($"클라이언트 {client.Id} 제거됨 (현재 접속자: {clients.Count})");
         }
 
-        // 서버 종료
+        /// <summary>
+        /// 서버 종료
+        /// </summary>
         public async Task StopAsync()
         {
             Console.WriteLine("서버를 종료합니다...");
@@ -211,7 +168,7 @@ namespace dArtagnan.Server.Core
                 var disconnectTasks = clients.Values.Select(client => client.DisconnectAsync());
                 await Task.WhenAll(disconnectTasks);
 
-                tcpListener.Stop();
+                tcpListener?.Stop();
             }
             catch (Exception ex)
             {
@@ -220,5 +177,21 @@ namespace dArtagnan.Server.Core
 
             Console.WriteLine("서버가 종료되었습니다.");
         }
+
+        /// <summary>
+        /// 현재 연결된 클라이언트 수 반환
+        /// </summary>
+        public int GetClientCount() => clients.Count;
+
+        /// <summary>
+        /// 게임 세션 반환 (CommandHandler에서 사용)
+        /// </summary>
+        public GameSession GetGameSession() => gameSession;
+
+        /// <summary>
+        /// 핸들러들 반환 (CommandHandler에서 사용)
+        /// </summary>
+        public MovementHandler GetMovementHandler() => movementHandler;
+        public CombatHandler GetCombatHandler() => combatHandler;
     }
 }
