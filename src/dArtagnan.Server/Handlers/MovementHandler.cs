@@ -17,33 +17,7 @@ namespace dArtagnan.Server.Handlers
             this.gameSession = gameSession;
         }
 
-        /// <summary>
-        /// 방향에 따른 벡터를 반환합니다
-        /// </summary>
-        private static Vector3 GetDirectionVector(int direction)
-        {
-            return DirectionHelper.IntToDirection(direction);
-        }
 
-        /// <summary>
-        /// 플레이어의 새로운 위치를 계산합니다
-        /// </summary>
-        private static (float newX, float newY) CalculateNewPosition(
-            float currentX, float currentY, int direction, float speed, float deltaTime)
-        {
-            var vector = GetDirectionVector(direction);
-            
-            // 정지 상태가 아닐 때만 이동
-            if (vector == Vector3.Zero)
-            {
-                return (currentX, currentY);
-            }
-
-            float moveX = vector.X * speed * deltaTime;
-            float moveY = vector.Y * speed * deltaTime;
-
-            return (currentX + moveX, currentY + moveY);
-        }
 
         /// <summary>
         /// 플레이어 방향 변경을 처리합니다
@@ -91,26 +65,7 @@ namespace dArtagnan.Server.Handlers
             });
         }
 
-        /// <summary>
-        /// 게임 루프에서 호출되는 위치 업데이트 처리
-        /// </summary>
-        public void UpdatePlayerPositions(float deltaTime)
-        {
-            foreach (var player in gameSession.Players)
-            {
-                if (!player.Alive) continue;
-                
-                // 새로운 위치 계산
-                var (newX, newY) = CalculateNewPosition(
-                    player.X, player.Y, player.Direction, player.Speed, deltaTime);
-                
-                // 위치가 변경된 경우에만 업데이트
-                if (Math.Abs(newX - player.X) > 0.001f || Math.Abs(newY - player.Y) > 0.001f)
-                {
-                    player.UpdatePosition(newX, newY);
-                }
-            }
-        }
+
 
         /// <summary>
         /// 플레이어들의 위치 정보를 브로드캐스트합니다 (비활성화)

@@ -49,7 +49,7 @@ namespace dArtagnan.Server.Core
                 Console.WriteLine("클라이언트 연결을 기다리는 중...");
 
                 // 게임 루프 초기화 및 시작
-                gameLoop = new GameLoop(this, movementHandler, combatHandler);
+                gameLoop = new GameLoop(this, gameSession);
                 _ = Task.Run(() => gameLoop.StartAsync());
 
                 // 클라이언트 연결 대기 루프

@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
 using dArtagnan.Server.Handlers;
+using dArtagnan.Server.Game;
 using dArtagnan.Shared;
 
 namespace dArtagnan.Server.Core
@@ -12,8 +13,7 @@ namespace dArtagnan.Server.Core
     public class GameLoop
     {
         private readonly GameServer gameServer;
-        private readonly MovementHandler movementHandler;
-        private readonly CombatHandler combatHandler;
+        private readonly GameSession gameSession;
         private bool isRunning = false;
         private const int TARGET_FPS = 50; // 0.02초 간격 (50 FPS)
         private const double TARGET_FRAME_TIME = 1000.0 / TARGET_FPS; // ms per frame (20ms)
@@ -22,11 +22,10 @@ namespace dArtagnan.Server.Core
         // private int positionBroadcastCounter = 0;
         // private const int POSITION_BROADCAST_INTERVAL = 50; // 50프레임 = 1초
 
-        public GameLoop(GameServer server, MovementHandler movementHandler, CombatHandler combatHandler)
+        public GameLoop(GameServer server, GameSession gameSession)
         {
             gameServer = server;
-            this.movementHandler = movementHandler;
-            this.combatHandler = combatHandler;
+            this.gameSession = gameSession;
         }
 
         /// <summary>
@@ -84,8 +83,8 @@ namespace dArtagnan.Server.Core
         private void FixedUpdate(float deltaTime)
         {
             // 게임 로직 업데이트 (직접 호출)
-            movementHandler.UpdatePlayerPositions(deltaTime);
-            combatHandler.UpdateReloadTimes(deltaTime);
+            UpdatePlayerPositions(deltaTime);
+            UpdateReloadTimes(deltaTime);
             
             // 위치 브로드캐스트는 1초에 한 번만 실행 (비활성화)
             // positionBroadcastCounter++;
@@ -114,5 +113,79 @@ namespace dArtagnan.Server.Core
         //         }
         //     });
         // }
+
+        /// <summary>
+        /// 방향에 따른 벡터를 반환합니다
+        /// </summary>
+        private static Vector3 GetDirectionVector(int direction)
+        {
+            return DirectionHelper.IntToDirection(direction);
+        }
+
+        /// <summary>
+        /// 플레이어의 새로운 위치를 계산합니다
+        /// </summary>
+        private static (float newX, float newY) CalculateNewPosition(
+            float currentX, float currentY, int direction, float speed, float deltaTime)
+        {
+            var vector = GetDirectionVector(direction);
+            
+            // 정지 상태가 아닐 때만 이동
+            if (vector == Vector3.Zero)
+            {
+                return (currentX, currentY);
+            }
+
+            float moveX = vector.X * speed * deltaTime;
+            float moveY = vector.Y * speed * deltaTime;
+
+            return (currentX + moveX, currentY + moveY);
+        }
+
+        /// <summary>
+        /// 게임 루프에서 호출되는 위치 업데이트 처리
+        /// </summary>
+        private void UpdatePlayerPositions(float deltaTime)
+        {
+            foreach (var player in gameSession.Players)
+            {
+                if (!player.Alive) continue;
+                
+                // 새로운 위치 계산
+                var (newX, newY) = CalculateNewPosition(
+                    player.X, player.Y, player.Direction, player.Speed, deltaTime);
+                
+                // 위치가 변경된 경우에만 업데이트
+                if (Math.Abs(newX - player.X) > 0.001f || Math.Abs(newY - player.Y) > 0.001f)
+                {
+                    player.UpdatePosition(newX, newY);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 재장전 시간을 업데이트합니다
+        /// </summary>
+        private static float UpdateReloadTime(float currentReloadTime, float deltaTime)
+        {
+            return Math.Max(0, currentReloadTime - deltaTime);
+        }
+
+        /// <summary>
+        /// 게임 루프에서 호출되는 재장전 시간 업데이트
+        /// </summary>
+        private void UpdateReloadTimes(float deltaTime)
+        {
+            foreach (var player in gameSession.Players)
+            {
+                if (!player.Alive) continue;
+
+                if (player.RemainingReloadTime > 0)
+                {
+                    float newReloadTime = UpdateReloadTime(player.RemainingReloadTime, deltaTime);
+                    player.UpdateReloadTime(newReloadTime);
+                }
+            }
+        }
     }
 } 

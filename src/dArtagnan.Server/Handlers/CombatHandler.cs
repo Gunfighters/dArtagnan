@@ -24,13 +24,7 @@ namespace dArtagnan.Server.Handlers
             return Random.Shared.Next(1, 101) <= accuracy;
         }
 
-        /// <summary>
-        /// 재장전 시간을 업데이트합니다
-        /// </summary>
-        private static float UpdateReloadTime(float currentReloadTime, float deltaTime)
-        {
-            return Math.Max(0, currentReloadTime - deltaTime);
-        }
+
 
         /// <summary>
         /// 플레이어가 사격 가능한지 확인합니다
@@ -113,21 +107,6 @@ namespace dArtagnan.Server.Handlers
             }
         }
 
-        /// <summary>
-        /// 게임 루프에서 호출되는 재장전 시간 업데이트
-        /// </summary>
-        public void UpdateReloadTimes(float deltaTime)
-        {
-            foreach (var player in gameSession.Players)
-            {
-                if (!player.Alive) continue;
 
-                if (player.RemainingReloadTime > 0)
-                {
-                    float newReloadTime = UpdateReloadTime(player.RemainingReloadTime, deltaTime);
-                    player.UpdateReloadTime(newReloadTime);
-                }
-            }
-        }
     }
 } 
