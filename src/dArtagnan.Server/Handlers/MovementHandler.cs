@@ -84,20 +84,20 @@ namespace dArtagnan.Server.Handlers
         }
 
         /// <summary>
-        /// 플레이어들의 위치 정보를 브로드캐스트합니다
+        /// 플레이어들의 위치 정보를 브로드캐스트합니다 (비활성화)
         /// </summary>
-        public async Task BroadcastPlayerPositions(Func<IPacket, Task> broadcastToAll)
-        {
-            var positionList = gameSession.GetPlayersPositions();
+        // public async Task BroadcastPlayerPositions(Func<IPacket, Task> broadcastToAll)
+        // {
+        //     var positionList = gameSession.GetPlayersPositions();
 
-            if (positionList.Count == 0) return;
+        //     if (positionList.Count == 0) return;
 
-            var packet = new UpdatePlayerPosition
-            {
-                positionList = positionList
-            };
+        //     var packet = new UpdatePlayerPosition
+        //     {
+        //         positionList = positionList
+        //     };
 
-            await broadcastToAll(packet);
-        }
+        //     await broadcastToAll(packet);
+        // }
     }
 } 
