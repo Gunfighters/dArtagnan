@@ -17,6 +17,30 @@ namespace dArtagnan.Server.Handlers
         }
 
         /// <summary>
+        /// 명중률을 기반으로 사격 성공 여부를 계산합니다
+        /// </summary>
+        private static bool CalculateHit(int accuracy)
+        {
+            return Random.Shared.Next(1, 101) <= accuracy;
+        }
+
+        /// <summary>
+        /// 재장전 시간을 업데이트합니다
+        /// </summary>
+        private static float UpdateReloadTime(float currentReloadTime, float deltaTime)
+        {
+            return Math.Max(0, currentReloadTime - deltaTime);
+        }
+
+        /// <summary>
+        /// 플레이어가 사격 가능한지 확인합니다
+        /// </summary>
+        private static bool CanShoot(Player player)
+        {
+            return player.Alive && player.IsInGame && player.RemainingReloadTime <= 0;
+        }
+
+        /// <summary>
         /// 플레이어 사격을 처리합니다
         /// </summary>
         public async Task HandlePlayerShooting(PlayerShootingFromClient shootingData, ClientConnection client, Func<IPacket, Task> broadcastToAll)
@@ -25,7 +49,7 @@ namespace dArtagnan.Server.Handlers
             if (shooter == null) return;
 
             // 사격 가능한지 확인
-            if (!GameRules.CanShoot(shooter))
+            if (!CanShoot(shooter))
             {
                 Console.WriteLine($"[전투] 플레이어 {shooter.PlayerId} 사격 불가 (재장전 중 또는 사망)");
                 return;
@@ -40,10 +64,10 @@ namespace dArtagnan.Server.Handlers
             }
 
             // 명중 여부 계산
-            bool hit = GameRules.CalculateHit(shooter.Accuracy);
+            bool hit = CalculateHit(shooter.Accuracy);
             
             // 재장전 시간 설정
-            shooter.UpdateReloadTime(GameRules.DEFAULT_RELOAD_TIME);
+            shooter.UpdateReloadTime(Player.DEFAULT_RELOAD_TIME);
 
             Console.WriteLine($"[전투] 플레이어 {shooter.PlayerId} -> {target.PlayerId} 사격: {(hit ? "명중" : "빗나감")}");
 
@@ -83,7 +107,7 @@ namespace dArtagnan.Server.Handlers
 
             // 게임 종료 상태 로그
             int aliveCount = gameSession.GetAlivePlayerCount();
-            if (gameSession.IsGameOver())
+            if (gameSession.ShouldEndGame())
             {
                 Console.WriteLine($"[게임] 게임 종료 조건 달성 - 생존자: {aliveCount}명");
             }
@@ -100,7 +124,7 @@ namespace dArtagnan.Server.Handlers
 
                 if (player.RemainingReloadTime > 0)
                 {
-                    float newReloadTime = GameRules.UpdateReloadTime(player.RemainingReloadTime, deltaTime);
+                    float newReloadTime = UpdateReloadTime(player.RemainingReloadTime, deltaTime);
                     player.UpdateReloadTime(newReloadTime);
                 }
             }

@@ -7,6 +7,13 @@ namespace dArtagnan.Server.Game
     /// </summary>
     public class Player
     {
+        // 플레이어 관련 상수들
+        public const float DEFAULT_RELOAD_TIME = 2.0f;
+        public const float WALKING_SPEED = 1.0f;
+        public const float RUNNING_SPEED = 4.0f;
+        public const int MIN_ACCURACY = 1;
+        public const int MAX_ACCURACY = 100;
+
         public int Id { get; set; }
         public int PlayerId { get; set; }
         public string Nickname { get; set; } = string.Empty;
@@ -27,15 +34,45 @@ namespace dArtagnan.Server.Game
             Id = id;
             PlayerId = playerId;
             Nickname = nickname;
-            Accuracy = GameRules.GenerateRandomAccuracy();
+            Accuracy = GenerateRandomAccuracy();
             Direction = 0;
             X = 0;
             Y = 0;
-            TotalReloadTime = GameRules.DEFAULT_RELOAD_TIME;
+            TotalReloadTime = DEFAULT_RELOAD_TIME;
             RemainingReloadTime = 0.0f;
-            Speed = GameRules.WALKING_SPEED;
+            Speed = WALKING_SPEED;
             Alive = true;
             IsInGame = false;
+        }
+
+        /// <summary>
+        /// 랜덤 명중률을 생성합니다
+        /// </summary>
+        public static int GenerateRandomAccuracy()
+        {
+            return Random.Shared.Next(MIN_ACCURACY, MAX_ACCURACY + 1);
+        }
+
+        /// <summary>
+        /// 달리기 상태에 따른 속도를 반환합니다
+        /// </summary>
+        public static float GetSpeedByRunning(bool isRunning)
+        {
+            return isRunning ? RUNNING_SPEED : WALKING_SPEED;
+        }
+
+        /// <summary>
+        /// 플레이어의 초기 위치를 설정합니다 (스폰 포인트)
+        /// </summary>
+        public static (float x, float y) GetSpawnPosition(int playerId)
+        {
+            // 간단한 원형 배치로 스폰 위치 결정
+            float angle = (playerId * 45) * (float)(Math.PI / 180); // 45도씩 회전
+            float radius = 5.0f;
+            float x = (float)Math.Cos(angle) * radius;
+            float y = (float)Math.Sin(angle) * radius;
+            
+            return (x, y);
         }
 
         /// <summary>

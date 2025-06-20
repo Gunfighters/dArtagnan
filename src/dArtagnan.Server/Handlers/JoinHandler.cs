@@ -43,7 +43,7 @@ namespace dArtagnan.Server.Handlers
             gameSession.JoinPlayer(client.Id);
 
             // 스폰 위치 설정
-            var (spawnX, spawnY) = GameRules.GetSpawnPosition(player.PlayerId);
+            var (spawnX, spawnY) = Player.GetSpawnPosition(player.PlayerId);
             player.UpdatePosition(spawnX, spawnY);
 
             Console.WriteLine($"[게임] 플레이어 {player.PlayerId} 참가 완료 (현재 인원: {gameSession.PlayerCount})");

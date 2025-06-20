@@ -1,3 +1,4 @@
+using System.Numerics;
 using dArtagnan.Server.Game;
 using dArtagnan.Server.Network;
 using dArtagnan.Shared;
@@ -14,6 +15,34 @@ namespace dArtagnan.Server.Handlers
         public MovementHandler(GameSession gameSession)
         {
             this.gameSession = gameSession;
+        }
+
+        /// <summary>
+        /// 방향에 따른 벡터를 반환합니다
+        /// </summary>
+        private static Vector3 GetDirectionVector(int direction)
+        {
+            return DirectionHelper.IntToDirection(direction);
+        }
+
+        /// <summary>
+        /// 플레이어의 새로운 위치를 계산합니다
+        /// </summary>
+        private static (float newX, float newY) CalculateNewPosition(
+            float currentX, float currentY, int direction, float speed, float deltaTime)
+        {
+            var vector = GetDirectionVector(direction);
+            
+            // 정지 상태가 아닐 때만 이동
+            if (vector == Vector3.Zero)
+            {
+                return (currentX, currentY);
+            }
+
+            float moveX = vector.X * speed * deltaTime;
+            float moveY = vector.Y * speed * deltaTime;
+
+            return (currentX + moveX, currentY + moveY);
         }
 
         /// <summary>
@@ -49,7 +78,7 @@ namespace dArtagnan.Server.Handlers
             if (player == null || !player.IsInGame) return;
 
             // 달리기 상태에 따라 속도 설정
-            float newSpeed = GameRules.GetSpeedByRunning(runningData.isRunning);
+            float newSpeed = Player.GetSpeedByRunning(runningData.isRunning);
             player.UpdateSpeed(newSpeed);
 
             Console.WriteLine($"[이동] 플레이어 {player.PlayerId} 달리기: {runningData.isRunning}, 속도: {player.Speed}");
@@ -71,8 +100,8 @@ namespace dArtagnan.Server.Handlers
             {
                 if (!player.Alive) continue;
                 
-                // GameRules를 사용하여 새로운 위치 계산
-                var (newX, newY) = GameRules.CalculateNewPosition(
+                // 새로운 위치 계산
+                var (newX, newY) = CalculateNewPosition(
                     player.X, player.Y, player.Direction, player.Speed, deltaTime);
                 
                 // 위치가 변경된 경우에만 업데이트

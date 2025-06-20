@@ -131,11 +131,11 @@ namespace dArtagnan.Server.Game
         }
 
         /// <summary>
-        /// 게임이 종료되었는지 확인합니다 (생존자가 1명 이하)
+        /// 게임이 종료되어야 하는지 확인합니다
         /// </summary>
-        public bool IsGameOver()
+        public bool ShouldEndGame()
         {
-            return GetAlivePlayerCount() <= 1;
+            return false;
         }
     }
 } 
