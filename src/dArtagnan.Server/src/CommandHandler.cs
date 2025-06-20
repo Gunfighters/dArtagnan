@@ -9,12 +9,12 @@ namespace dArtagnan.Server
     /// </summary>
     public class CommandHandler
     {
-        private readonly GameServer gameServer;
+        private readonly TcpServer tcpServer;
         private bool isRunning = true;
 
-        public CommandHandler(GameServer gameServer)
+        public CommandHandler(TcpServer tcpServer)
         {
-            this.gameServer = gameServer;
+            this.tcpServer = tcpServer;
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace dArtagnan.Server
                 case "quit":
                 case "exit":
                     isRunning = false;
-                    await gameServer.StopAsync();
+                    await tcpServer.StopAsync();
                     Environment.Exit(0);
                     break;
 
@@ -95,14 +95,14 @@ namespace dArtagnan.Server
         /// </summary>
         private void PrintServerStatus()
         {
-            var gameSession = gameServer.GetGameSession();
+            var gameManager = tcpServer.GetGameManager();
             
             Console.WriteLine($"=== 서버 상태 ===");
-            Console.WriteLine($"접속 중인 클라이언트: {gameServer.GetClientCount()}명");
-            Console.WriteLine($"게임 중인 플레이어: {gameSession.Players.Count()}명");
-            Console.WriteLine($"생존자: {gameSession.GetAlivePlayerCount()}명");
+            Console.WriteLine($"접속 중인 클라이언트: {tcpServer.GetClientCount()}명");
+            Console.WriteLine($"게임 중인 플레이어: {gameManager.Players.Count()}명");
+            Console.WriteLine($"생존자: {gameManager.GetAlivePlayerCount()}명");
 
-            foreach (var player in gameSession.Players)
+            foreach (var player in gameManager.Players)
             {
                 string status = player.Alive ? "생존" : "사망";
                 Console.WriteLine($"  플레이어 {player.PlayerId}: {player.Nickname} ({status})");
@@ -116,21 +116,21 @@ namespace dArtagnan.Server
         /// </summary>
         private void PrintPlayerList()
         {
-            var gameSession = gameServer.GetGameSession();
+            var gameManager = tcpServer.GetGameManager();
             
             Console.WriteLine($"=== 현재 플레이어 목록 ===");
             
-            if (gameSession.PlayerCount == 0)
+            if (gameManager.PlayerCount == 0)
             {
                 Console.WriteLine("접속 중인 플레이어가 없습니다.");
                 Console.WriteLine("=======================");
                 return;
             }
 
-            Console.WriteLine($"총 {gameSession.PlayerCount}명 접속 중");
+            Console.WriteLine($"총 {gameManager.PlayerCount}명 접속 중");
             Console.WriteLine();
 
-            foreach (var player in gameSession.AllPlayers)
+            foreach (var player in gameManager.AllPlayers)
             {
                 PrintPlayerDetails(player, true);
                 Console.WriteLine();
@@ -144,14 +144,14 @@ namespace dArtagnan.Server
         /// </summary>
         private void PrintPlayer(int playerId)
         {
-            var gameSession = gameServer.GetGameSession();
-            var player = gameSession.GetPlayerByPlayerId(playerId);
+            var gameManager = tcpServer.GetGameManager();
+            var player = gameManager.GetPlayerByPlayerId(playerId);
             
             if (player == null)
             {
                 Console.WriteLine($"플레이어 ID {playerId}를 찾을 수 없습니다.");
                 Console.WriteLine("현재 접속 중인 플레이어 ID 목록:");
-                foreach (var p in gameSession.AllPlayers)
+                foreach (var p in gameManager.AllPlayers)
                 {
                     Console.WriteLine($"  - {p.PlayerId}");
                 }

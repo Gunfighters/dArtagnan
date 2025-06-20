@@ -11,45 +11,20 @@ namespace dArtagnan.Server
         private readonly NetworkStream stream;
         private readonly TcpClient tcpClient;
         private bool isConnected;
-
-        // 연결 해제 콜백
-        private readonly Func<ClientConnection, Task> onDisconnected;
-
-        // 핸들러들
-        private readonly JoinHandler joinHandler;
-        private readonly MovementHandler movementHandler;
-        private readonly CombatHandler combatHandler;
-        private readonly LeaveHandler leaveHandler;
-
-        // 브로드캐스트 함수들
-        private readonly Func<IPacket, Task> broadcastToAll;
-        private readonly Func<IPacket, int, Task> broadcastToAllExcept;
+        private readonly GameManager gameManager;
 
         public int Id { get; }
 
-        public ClientConnection(
-            int id, 
-            TcpClient client,
-            JoinHandler joinHandler,
-            MovementHandler movementHandler,
-            CombatHandler combatHandler,
-            LeaveHandler leaveHandler,
-            Func<IPacket, Task> broadcastToAll,
-            Func<IPacket, int, Task> broadcastToAllExcept,
-            Func<ClientConnection, Task> onDisconnected)
+        public ClientConnection(int id, TcpClient client, GameManager gameManager)
         {
             Id = id;
             tcpClient = client;
             stream = client.GetStream();
             isConnected = true;
-            
-            this.joinHandler = joinHandler;
-            this.movementHandler = movementHandler;
-            this.combatHandler = combatHandler;
-            this.leaveHandler = leaveHandler;
-            this.broadcastToAll = broadcastToAll;
-            this.broadcastToAllExcept = broadcastToAllExcept;
-            this.onDisconnected = onDisconnected;
+            this.gameManager = gameManager;
+
+            // GameManager에 클라이언트 등록
+            gameManager.AddClient(this);
 
             // 패킷 수신 루프 시작
             _ = Task.Run(ReceiveLoop);
@@ -84,18 +59,15 @@ namespace dArtagnan.Server
         /// <summary>
         /// 연결을 해제합니다
         /// </summary>
-        public async Task DisconnectAsync()
+        public Task DisconnectAsync()
         {
-            if (!isConnected) return;
+            if (!isConnected) return Task.CompletedTask;
 
             isConnected = false;
             Console.WriteLine($"[클라이언트 {Id}] 연결 해제 중...");
 
             try
             {
-                // 연결 해제 콜백 호출
-                await onDisconnected(this);
-
                 stream?.Close();
                 tcpClient?.Close();
             }
@@ -105,6 +77,7 @@ namespace dArtagnan.Server
             }
 
             Console.WriteLine($"[클라이언트 {Id}] 연결 해제 완료");
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -119,23 +92,23 @@ namespace dArtagnan.Server
                 switch (packet)
                 {
                     case PlayerJoinRequest joinRequest:
-                        await joinHandler.HandlePlayerJoin(joinRequest, this, broadcastToAll);
+                        await PacketHandlers.HandlePlayerJoin(joinRequest, this, gameManager);
                         break;
 
                     case PlayerDirectionFromClient directionData:
-                        await movementHandler.HandlePlayerDirection(directionData, this, broadcastToAll);
+                        await PacketHandlers.HandlePlayerDirection(directionData, this, gameManager);
                         break;
 
                     case PlayerRunningFromClient runningData:
-                        await movementHandler.HandlePlayerRunning(runningData, this, broadcastToAll);
+                        await PacketHandlers.HandlePlayerRunning(runningData, this, gameManager);
                         break;
 
                     case PlayerShootingFromClient shootingData:
-                        await combatHandler.HandlePlayerShooting(shootingData, this, broadcastToAll);
+                        await PacketHandlers.HandlePlayerShooting(shootingData, this, gameManager);
                         break;
 
                     case PlayerLeaveFromClient leaveData:
-                        await leaveHandler.HandlePlayerLeave(leaveData, this, broadcastToAllExcept);
+                        await PacketHandlers.HandlePlayerLeave(leaveData, this, gameManager);
                         break;
 
                     default:
@@ -147,22 +120,6 @@ namespace dArtagnan.Server
             {
                 Console.WriteLine($"[클라이언트 {Id}] 패킷 라우팅 중 오류 발생: {ex.Message}");
                 Console.WriteLine($"[클라이언트 {Id}] 패킷 타입: {packet.GetType().Name}");
-            }
-        }
-
-        /// <summary>
-        /// 클라이언트 연결 해제를 처리합니다
-        /// </summary>
-        public async Task HandleDisconnect()
-        {
-            try
-            {
-                Console.WriteLine($"[클라이언트 {Id}] 연결 해제 처리");
-                await leaveHandler.HandleClientDisconnect(this, broadcastToAllExcept);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[클라이언트 {Id}] 연결 해제 처리 중 오류 발생: {ex.Message}");
             }
         }
 
@@ -190,7 +147,8 @@ namespace dArtagnan.Server
             }
             finally
             {
-                // 연결 해제 처리
+                // 비정상 종료 시 GameManager에서 정리
+                await gameManager.RemoveClient(Id);
                 await DisconnectAsync();
             }
         }

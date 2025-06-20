@@ -4,17 +4,23 @@ using dArtagnan.Shared;
 namespace dArtagnan.Server
 {
     /// <summary>
-    /// 게임 세션을 관리하는 클래스
+    /// 게임 세션, 클라이언트 연결, 브로드캐스팅을 통합 관리하는 클래스
     /// </summary>
-    public class GameSession
+    public class GameManager
     {
         private readonly ConcurrentDictionary<int, Player> players = new();
+        private readonly ConcurrentDictionary<int, ClientConnection> clients = new(); // 클라이언트 연결도 여기서 관리
         private int nextPlayerId = 1;
 
         /// <summary>
         /// 현재 게임에 참여 중인 플레이어 수
         /// </summary>
         public int PlayerCount => players.Count;
+
+        /// <summary>
+        /// 현재 연결된 클라이언트 수
+        /// </summary>
+        public int ClientCount => clients.Count;
 
         /// <summary>
         /// 게임에 참여 중인 모든 플레이어 목록
@@ -27,7 +33,16 @@ namespace dArtagnan.Server
         public IEnumerable<Player> AllPlayers => players.Values;
 
         /// <summary>
-        /// 플레이어를 게임 세션에 추가합니다
+        /// 클라이언트 연결을 추가합니다
+        /// </summary>
+        public void AddClient(ClientConnection client)
+        {
+            clients.TryAdd(client.Id, client);
+            Console.WriteLine($"클라이언트 {client.Id} 추가됨 (현재 접속자: {clients.Count})");
+        }
+
+        /// <summary>
+        /// 플레이어를 게임에 추가합니다
         /// </summary>
         public Player AddPlayer(int clientId, string nickname)
         {
@@ -37,11 +52,31 @@ namespace dArtagnan.Server
         }
 
         /// <summary>
-        /// 플레이어를 게임 세션에서 제거합니다
+        /// 클라이언트 연결과 플레이어를 모두 제거합니다
         /// </summary>
-        public bool RemovePlayer(int clientId)
+        public async Task RemoveClient(int clientId)
         {
-            return players.TryRemove(clientId, out _);
+            var player = GetPlayerByClientId(clientId);
+            
+            // 게임 중인 플레이어면 다른 플레이어들에게 퇴장 알림
+            if (player != null && player.IsInGame)
+            {
+                Console.WriteLine($"[게임] 플레이어 {player.PlayerId}({player.Nickname}) 퇴장 처리");
+                
+                await BroadcastToAllExcept(new PlayerLeaveBroadcast
+                {
+                    playerId = player.PlayerId
+                }, clientId);
+            }
+
+            // 플레이어와 클라이언트 제거
+            players.TryRemove(clientId, out _);
+            clients.TryRemove(clientId, out _);
+            
+            if (player != null)
+            {
+                Console.WriteLine($"[게임] 플레이어 {player.PlayerId} 제거 완료 (현재 인원: {PlayerCount}, 접속자: {ClientCount})");
+            }
         }
 
         /// <summary>
@@ -76,17 +111,33 @@ namespace dArtagnan.Server
         }
 
         /// <summary>
-        /// 플레이어가 게임에서 퇴장합니다
+        /// 모든 클라이언트에게 브로드캐스트
         /// </summary>
-        public bool LeavePlayer(int clientId)
+        public async Task BroadcastToAll(IPacket packet)
         {
-            var player = GetPlayerByClientId(clientId);
-            if (player != null)
+            var tasks = clients.Values
+                .Where(client => client.IsConnected)
+                .Select(client => client.SendPacketAsync(packet));
+
+            if (tasks.Any())
             {
-                player.LeaveGame();
-                return true;
+                await Task.WhenAll(tasks);
             }
-            return false;
+        }
+
+        /// <summary>
+        /// 특정 클라이언트를 제외하고 모든 클라이언트에게 브로드캐스트
+        /// </summary>
+        public async Task BroadcastToAllExcept(IPacket packet, int excludeClientId)
+        {
+            var tasks = clients.Values
+                .Where(client => client.Id != excludeClientId && client.IsConnected)
+                .Select(client => client.SendPacketAsync(packet));
+
+            if (tasks.Any())
+            {
+                await Task.WhenAll(tasks);
+            }
         }
 
         /// <summary>

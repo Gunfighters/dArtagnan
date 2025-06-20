@@ -10,8 +10,8 @@ namespace dArtagnan.Server
     /// </summary>
     public class GameLoop
     {
-        private readonly GameServer gameServer;
-        private readonly GameSession gameSession;
+        private readonly TcpServer tcpServer;
+        private readonly GameManager gameManager;
         private bool isRunning = false;
         private const int TARGET_FPS = 50; // 0.02초 간격 (50 FPS)
         private const double TARGET_FRAME_TIME = 1000.0 / TARGET_FPS; // ms per frame (20ms)
@@ -20,10 +20,10 @@ namespace dArtagnan.Server
         // private int positionBroadcastCounter = 0;
         // private const int POSITION_BROADCAST_INTERVAL = 50; // 50프레임 = 1초
 
-        public GameLoop(GameServer server, GameSession gameSession)
+        public GameLoop(TcpServer server, GameManager gameManager)
         {
-            gameServer = server;
-            this.gameSession = gameSession;
+            tcpServer = server;
+            this.gameManager = gameManager;
         }
 
         /// <summary>
@@ -162,7 +162,7 @@ namespace dArtagnan.Server
         /// </summary>
         private void UpdatePlayerPositions(float deltaTime)
         {
-            foreach (var player in gameSession.Players)
+            foreach (var player in gameManager.Players)
             {
                 if (!player.Alive) continue;
                 
@@ -191,7 +191,7 @@ namespace dArtagnan.Server
         /// </summary>
         private void UpdateReloadTimes(float deltaTime)
         {
-            foreach (var player in gameSession.Players)
+            foreach (var player in gameManager.Players)
             {
                 if (!player.Alive) continue;
 
