@@ -97,7 +97,9 @@ namespace dArtagnan.Server.Core
         private async Task OnClientDisconnected(ClientConnection client)
         {
             await client.HandleDisconnect();
-            RemoveClient(client);
+            // 클라이언트 제거
+            clients.TryRemove(client.Id, out _);
+            Console.WriteLine($"클라이언트 {client.Id} 제거됨 (현재 접속자: {clients.Count})");
         }
 
         /// <summary>
@@ -140,15 +142,6 @@ namespace dArtagnan.Server.Core
             {
                 await Task.WhenAll(tasks);
             }
-        }
-
-        /// <summary>
-        /// 클라이언트 제거
-        /// </summary>
-        private void RemoveClient(ClientConnection client)
-        {
-            clients.TryRemove(client.Id, out _);
-            Console.WriteLine($"클라이언트 {client.Id} 제거됨 (현재 접속자: {clients.Count})");
         }
 
         /// <summary>
