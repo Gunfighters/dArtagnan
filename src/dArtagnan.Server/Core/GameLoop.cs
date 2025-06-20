@@ -97,22 +97,22 @@ namespace dArtagnan.Server.Core
         }
 
         /// <summary>
-        /// 플레이어들의 위치 정보를 모든 클라이언트에게 브로드캐스트
+        /// 플레이어들의 위치 정보를 모든 클라이언트에게 브로드캐스트 (비활성화)
         /// </summary>
-        private void BroadcastPlayerPositions()
-        {
-            // 비동기로 실행하지만 대기하지 않음
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await movementHandler.BroadcastPlayerPositions(gameServer.BroadcastToAll);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"플레이어 위치 브로드캐스트 오류: {ex.Message}");
-                }
-            });
-        }
+        // private void BroadcastPlayerPositions()
+        // {
+        //     // 비동기로 실행하지만 대기하지 않음
+        //     _ = Task.Run(async () =>
+        //     {
+        //         try
+        //         {
+        //             await movementHandler.BroadcastPlayerPositions(gameServer.BroadcastToAll);
+        //         }
+        //         catch (Exception ex)
+        //         {
+        //             Console.WriteLine($"플레이어 위치 브로드캐스트 오류: {ex.Message}");
+        //         }
+        //     });
+        // }
     }
 } 
