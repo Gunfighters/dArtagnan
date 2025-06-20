@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using dArtagnan.Shared;
 
-namespace dArtagnan.Server.Game
+namespace dArtagnan.Server
 {
     /// <summary>
     /// 게임 세션을 관리하는 클래스

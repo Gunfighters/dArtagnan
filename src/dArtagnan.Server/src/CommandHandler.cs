@@ -1,10 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using dArtagnan.Server.Game;
-using dArtagnan.Server.Network;
 
-namespace dArtagnan.Server.Core
+namespace dArtagnan.Server
 {
     /// <summary>
     /// 서버 관리자 명령어를 처리하는 클래스

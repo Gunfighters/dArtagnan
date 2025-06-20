@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace dArtagnan.Server.Game
+namespace dArtagnan.Server
 {
     /// <summary>
     /// 플레이어의 상태와 정보를 관리하는 모델 클래스

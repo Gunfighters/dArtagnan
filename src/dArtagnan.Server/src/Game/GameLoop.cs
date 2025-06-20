@@ -1,11 +1,9 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
-using dArtagnan.Server.Handlers;
-using dArtagnan.Server.Game;
 using dArtagnan.Shared;
 
-namespace dArtagnan.Server.Core
+namespace dArtagnan.Server
 {
     /// <summary>
     /// 게임 시뮬레이션을 위한 50 FPS (0.02초 간격) 업데이트 루프를 담당하는 클래스
@@ -105,13 +103,30 @@ namespace dArtagnan.Server.Core
         //     {
         //         try
         //         {
-        //             await movementHandler.BroadcastPlayerPositions(gameServer.BroadcastToAll);
+        //             await BroadcastPlayerPositionsAsync(gameServer.BroadcastToAll);
         //         }
         //         catch (Exception ex)
         //         {
         //             Console.WriteLine($"플레이어 위치 브로드캐스트 오류: {ex.Message}");
         //         }
         //     });
+        // }
+
+        /// <summary>
+        /// 플레이어들의 위치 정보를 브로드캐스트합니다 (비활성화)
+        /// </summary>
+        // private async Task BroadcastPlayerPositionsAsync(Func<IPacket, Task> broadcastToAll)
+        // {
+        //     var positionList = gameSession.GetPlayersPositions();
+
+        //     if (positionList.Count == 0) return;
+
+        //     var packet = new UpdatePlayerPosition
+        //     {
+        //         positionList = positionList
+        //     };
+
+        //     await broadcastToAll(packet);
         // }
 
         /// <summary>

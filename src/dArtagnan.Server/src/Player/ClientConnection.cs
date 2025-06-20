@@ -1,8 +1,7 @@
 using System.Net.Sockets;
-using dArtagnan.Server.Handlers;
 using dArtagnan.Shared;
 
-namespace dArtagnan.Server.Network
+namespace dArtagnan.Server
 {
     /// <summary>
     /// 클라이언트 네트워크 연결과 패킷 라우팅을 담당하는 클래스

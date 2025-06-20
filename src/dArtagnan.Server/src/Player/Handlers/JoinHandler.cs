@@ -1,8 +1,6 @@
-using dArtagnan.Server.Game;
-using dArtagnan.Server.Network;
 using dArtagnan.Shared;
 
-namespace dArtagnan.Server.Handlers
+namespace dArtagnan.Server
 {
     /// <summary>
     /// 플레이어 게임 참가 처리를 담당하는 핸들러

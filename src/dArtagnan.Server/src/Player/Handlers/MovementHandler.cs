@@ -1,9 +1,7 @@
 using System.Numerics;
-using dArtagnan.Server.Game;
-using dArtagnan.Server.Network;
 using dArtagnan.Shared;
 
-namespace dArtagnan.Server.Handlers
+namespace dArtagnan.Server
 {
     /// <summary>
     /// 플레이어 이동 처리를 담당하는 핸들러
@@ -67,21 +65,6 @@ namespace dArtagnan.Server.Handlers
 
 
 
-        /// <summary>
-        /// 플레이어들의 위치 정보를 브로드캐스트합니다 (비활성화)
-        /// </summary>
-        // public async Task BroadcastPlayerPositions(Func<IPacket, Task> broadcastToAll)
-        // {
-        //     var positionList = gameSession.GetPlayersPositions();
 
-        //     if (positionList.Count == 0) return;
-
-        //     var packet = new UpdatePlayerPosition
-        //     {
-        //         positionList = positionList
-        //     };
-
-        //     await broadcastToAll(packet);
-        // }
     }
 } 

@@ -1,12 +1,9 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
-using dArtagnan.Server.Game;
-using dArtagnan.Server.Handlers;
-using dArtagnan.Server.Network;
 using dArtagnan.Shared;
 
-namespace dArtagnan.Server.Core
+namespace dArtagnan.Server
 {
     /// <summary>
     /// TCP 서버와 클라이언트 연결 관리만 담당하는 클래스

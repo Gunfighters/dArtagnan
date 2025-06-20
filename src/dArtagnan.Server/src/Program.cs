@@ -1,4 +1,4 @@
-using dArtagnan.Server.Core;
+using dArtagnan.Server;
 
 namespace dArtagnan.Server
 {
