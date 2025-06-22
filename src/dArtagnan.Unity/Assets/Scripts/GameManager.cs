@@ -135,7 +135,7 @@ public class GameManager : MonoBehaviour
         AddPlayer(payload.playerId, new Vector2(payload.initX, payload.initY), 0, payload.accuracy);
         if (payload.playerId == controlledPlayerIndex)
         {
-            mainCamera.transform.SetParent(ControlledPlayer.transform);
+            mainCamera.transform.SetParent(ControlledPlayer.transform, false);
         }
     }
 
