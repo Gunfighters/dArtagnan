@@ -15,7 +15,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Vector3 currentDirection;
     [SerializeField] private float RTT;
     private float timeOfLastServerUpdate;
-    private bool dead;
+    public bool dead;
     public float lerpSpeed = 0.5f;
     private bool firing;
     [SerializeField] private float speed;
@@ -39,9 +39,26 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (!lerping)
+        if (this == GameManager.Instance.ControlledPlayer)
         {
             transform.position += speed * Time.deltaTime * currentDirection;
+        }
+        else
+        {
+            if (lerping)
+            {
+                var serverPosition = targetPosition + speed * RTT * currentDirection;
+                var clientPosition = transform.position + speed * Time.deltaTime * currentDirection;
+                transform.position = Vector3.Lerp(transform.position, serverPosition, lerpSpeed * Time.deltaTime);
+                if (transform.position == serverPosition)
+                {
+                    lerping = false;
+                }
+            }
+            else
+            {
+                transform.position += speed * Time.deltaTime * currentDirection;
+            }
         }
         if (currentDirection == Vector3.zero)
         {
@@ -57,6 +74,11 @@ public class PlayerController : MonoBehaviour
         {
             firing = false;
             SpriteManager.Fire();
+        }
+
+        if (dead)
+        {
+            SpriteManager.SetState(CharacterState.Death);
         }
     }
 
@@ -129,5 +151,11 @@ public class PlayerController : MonoBehaviour
             >= 225f and < 315f => Vector3.down,
             _ => Vector3.right
         };
+    }
+
+    public void SetTargetPosition(float x, float y)
+    {
+        targetPosition = new Vector3(x, y, gameObject.transform.position.z);
+        lerping = true;
     }
 }

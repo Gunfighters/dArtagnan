@@ -15,7 +15,7 @@ public class GameManager : MonoBehaviour
     private Vector3 lastDirection = Vector3.zero;
     private float lastDirectionMagnitude = 0;
     public static GameManager Instance { get; private set; }
-    PlayerController ControlledPlayer => players[controlledPlayerIndex];
+    public PlayerController ControlledPlayer => players[controlledPlayerIndex];
     [SerializeField] private int ping; 
     public FixedJoystick joystick;
 
@@ -161,8 +161,8 @@ public class GameManager : MonoBehaviour
     public void OnPlayerDirectionBroadcast(PlayerDirectionBroadcast payload)
     {
         var direction = DirectionHelperClient.IntToDirection(payload.direction);
-        Debug.Log(direction);
         players[payload.playerId].SetDirection(direction);
+        players[payload.playerId].SetTargetPosition(payload.currentX, payload.currentY);
     }
 
     public void OnUpdatePlayerSpeedBroadcast(UpdatePlayerSpeedBroadcast update)
@@ -178,7 +178,7 @@ public class GameManager : MonoBehaviour
 
     public void OnUpdatePlayerAlive(UpdatePlayerAlive updatePlayerAlive)
     {
-        players[updatePlayerAlive.playerId].gameObject.SetActive(updatePlayerAlive.alive);
+        players[updatePlayerAlive.playerId].Die();
     }
 
     public void OnPlayerLeaveBroadcast(PlayerLeaveBroadcast leave)
@@ -209,7 +209,6 @@ public class GameManager : MonoBehaviour
         }
 
         ping = p.time;
-        Debug.Log($"Ping: {ping}");
         SetPing(p);
     }
 
