@@ -18,6 +18,9 @@ namespace dArtagnan.Shared
     [Union(11, typeof(PlayerLeaveFromClient))]
     [Union(12, typeof(PlayerLeaveBroadcast))]
     [Union(13, typeof(UpdatePlayerPosition))]
+    [Union(14, typeof(Ready))]
+    [Union(15, typeof(ReadyBroadcast))]
+    [Union(16, typeof(GameStart))]
     public interface IPacket
     {
     }
@@ -137,6 +140,24 @@ namespace dArtagnan.Shared
         [Key(0)] public int playerId;
         [Key(1)] public float x;
         [Key(2)] public float y;
+    }
+
+    [MessagePackObject]
+    public struct Ready : IPacket
+    {
+        [Key(0)] public bool ready { get; set; }
+    }
+
+    [MessagePackObject]
+    public struct ReadyBroadcast : IPacket
+    {
+        [Key(0)] public int playerId { get; set; }
+        [Key(1)] public bool ready { get; set; }
+    }
+
+    [MessagePackObject]
+    public struct GameStart : IPacket
+    {
     }
 
     public class DirectionHelper
