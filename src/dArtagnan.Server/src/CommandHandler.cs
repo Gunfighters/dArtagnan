@@ -98,14 +98,17 @@ namespace dArtagnan.Server
             var gameManager = tcpServer.GetGameManager();
             
             Console.WriteLine($"=== 서버 상태 ===");
+            Console.WriteLine($"게임 상태: {gameManager.CurrentGameState}");
             Console.WriteLine($"접속 중인 클라이언트: {tcpServer.GetClientCount()}명");
             Console.WriteLine($"게임 중인 플레이어: {gameManager.Players.Count()}명");
+            Console.WriteLine($"Ready 플레이어: {gameManager.GetReadyPlayerCount()}명");
             Console.WriteLine($"생존자: {gameManager.GetAlivePlayerCount()}명");
 
             foreach (var player in gameManager.Players)
             {
                 string status = player.Alive ? "생존" : "사망";
-                Console.WriteLine($"  플레이어 {player.PlayerId}: {player.Nickname} ({status})");
+                string readyStatus = player.IsReady ? "Ready" : "Not Ready";
+                Console.WriteLine($"  플레이어 {player.PlayerId}: {player.Nickname} ({status}, {readyStatus})");
             }
 
             Console.WriteLine($"================");
@@ -180,6 +183,7 @@ namespace dArtagnan.Server
                 Console.WriteLine($"  === PlayerInformation ===");
                 Console.WriteLine($"  플레이어 ID: {player.PlayerId}");
                 Console.WriteLine($"  닉네임: {player.Nickname}");
+                Console.WriteLine($"  Ready 상태: {(player.IsReady ? "준비 완료" : "준비 중")}");
                 Console.WriteLine($"  방향: {player.Direction}");
                 Console.WriteLine($"  위치 X: {player.X:F2}");
                 Console.WriteLine($"  위치 Y: {player.Y:F2}");

@@ -45,6 +45,12 @@ namespace dArtagnan.Server
                 playerId = player.PlayerId
             });
 
+            // InformationOfPlayers 패킷 전송 (본인에게만)
+            await client.SendPacketAsync(new InformationOfPlayers
+            {
+                info = gameManager.GetPlayersInformation()
+            });
+
             // PlayerJoinBroadcast 전송 (모든 플레이어에게)
             await gameManager.BroadcastToAll(new PlayerJoinBroadcast
             {
@@ -52,12 +58,6 @@ namespace dArtagnan.Server
                 initX = (int)player.X,
                 initY = (int)player.Y,
                 accuracy = player.Accuracy
-            });
-
-            // InformationOfPlayers 패킷 전송 (본인에게만)
-            await client.SendPacketAsync(new InformationOfPlayers
-            {
-                info = gameManager.GetPlayersInformation()
             });
         }
 
@@ -163,7 +163,43 @@ namespace dArtagnan.Server
             // 명중 시 타겟 처리
             if (hit)
             {
-                await HandlePlayerHit(target, gameManager);
+                // 게임이 진행 중일 때만 실제 피해 처리
+                if (gameManager.IsGamePlaying())
+                {
+                    await HandlePlayerHit(target, gameManager);
+                }
+                else
+                {
+                    Console.WriteLine($"[전투] 게임이 진행 중이 아니므로 사격 피해 무시 (상태: {gameManager.CurrentGameState})");
+                }
+            }
+        }
+
+        /// <summary>
+        /// 플레이어 Ready 상태 변경을 처리합니다
+        /// </summary>
+        public static async Task HandleReady(Ready readyData, ClientConnection client, GameManager gameManager)
+        {
+            var player = gameManager.GetPlayerByClientId(client.Id);
+            if (player == null || !player.IsInGame) return;
+
+            // 플레이어 Ready 상태 업데이트
+            gameManager.UpdatePlayerReady(client.Id, readyData.ready);
+
+            Console.WriteLine($"[게임] 플레이어 {player.PlayerId} Ready 상태: {readyData.ready} (Ready 플레이어: {gameManager.GetReadyPlayerCount()}/{gameManager.PlayerCount})");
+
+            // Ready 상태 변경을 모든 플레이어에게 브로드캐스트
+            await gameManager.BroadcastToAll(new ReadyBroadcast
+            {
+                playerId = player.PlayerId,
+                ready = readyData.ready
+            });
+
+            // 모든 플레이어가 Ready 상태이고 최소 2명 이상인지 확인
+            if (gameManager.AreAllPlayersReady() && gameManager.PlayerCount >= 2)
+            {
+                Console.WriteLine($"[게임] 모든 플레이어가 Ready! 게임을 시작합니다.");
+                await gameManager.StartGame();
             }
         }
 

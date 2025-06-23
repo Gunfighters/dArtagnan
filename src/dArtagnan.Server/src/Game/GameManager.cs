@@ -4,6 +4,15 @@ using dArtagnan.Shared;
 namespace dArtagnan.Server
 {
     /// <summary>
+    /// 게임 상태를 나타내는 열거형
+    /// </summary>
+    public enum GameState
+    {
+        Waiting,    // 대기 중 (Ready 단계 포함)
+        Playing     // 게임 진행 중
+    }
+
+    /// <summary>
     /// 게임 세션, 클라이언트 연결, 브로드캐스팅을 통합 관리하는 클래스
     /// </summary>
     public class GameManager
@@ -11,6 +20,12 @@ namespace dArtagnan.Server
         private readonly ConcurrentDictionary<int, Player> players = new();
         private readonly ConcurrentDictionary<int, ClientConnection> clients = new(); // 클라이언트 연결도 여기서 관리
         private int nextPlayerId = 1;
+        private GameState currentGameState = GameState.Waiting;
+
+        /// <summary>
+        /// 현재 게임 상태
+        /// </summary>
+        public GameState CurrentGameState => currentGameState;
 
         /// <summary>
         /// 현재 게임에 참여 중인 플레이어 수
@@ -187,6 +202,67 @@ namespace dArtagnan.Server
         public bool ShouldEndGame()
         {
             return false;
+        }
+
+        /// <summary>
+        /// 플레이어의 Ready 상태를 업데이트합니다
+        /// </summary>
+        public void UpdatePlayerReady(int clientId, bool ready)
+        {
+            var player = GetPlayerByClientId(clientId);
+            if (player != null && player.IsInGame)
+            {
+                player.UpdateReady(ready);
+            }
+        }
+
+        /// <summary>
+        /// 모든 플레이어가 Ready 상태인지 확인합니다
+        /// </summary>
+        public bool AreAllPlayersReady()
+        {
+            var inGamePlayers = Players.ToList();
+            return inGamePlayers.Any() && inGamePlayers.All(p => p.IsReady);
+        }
+
+        /// <summary>
+        /// 게임에 참여 중인 플레이어 중 Ready 상태인 플레이어 수를 반환합니다
+        /// </summary>
+        public int GetReadyPlayerCount()
+        {
+            return Players.Count(p => p.IsReady);
+        }
+
+        /// <summary>
+        /// 게임을 시작합니다
+        /// </summary>
+        public async Task StartGame()
+        {
+            Console.WriteLine($"[게임] 게임 시작! (참가자: {PlayerCount}명)");
+            
+            // 게임 상태를 Playing으로 변경
+            currentGameState = GameState.Playing;
+            
+            // 모든 플레이어에게 게임 시작 브로드캐스트
+            await BroadcastToAll(new GameStart());
+        }
+
+        /// <summary>
+        /// 게임 상태를 변경합니다
+        /// </summary>
+        public void SetGameState(GameState newState)
+        {
+            var oldState = currentGameState;
+            currentGameState = newState;
+            Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {newState}");
+        }
+
+        /// <summary>
+        /// 게임이 진행 중인지 확인합니다
+        /// </summary>
+        public bool IsGamePlaying()
+        {
+            return currentGameState == GameState.Playing;
         }
     }
 } 

@@ -28,6 +28,7 @@ namespace dArtagnan.Server
         public float Speed { get; set; }
         public bool Alive { get; set; }
         public bool IsInGame { get; set; }
+        public bool IsReady { get; set; }
 
         public Player(int id, int playerId, string nickname)
         {
@@ -43,6 +44,7 @@ namespace dArtagnan.Server
             Speed = WALKING_SPEED;
             Alive = true;
             IsInGame = false;
+            IsReady = false;
         }
 
         /// <summary>
@@ -122,6 +124,14 @@ namespace dArtagnan.Server
         public void LeaveGame()
         {
             IsInGame = false;
+        }
+
+        /// <summary>
+        /// 플레이어의 Ready 상태를 업데이트합니다
+        /// </summary>
+        public void UpdateReady(bool ready)
+        {
+            IsReady = ready;
         }
     }
 } 
