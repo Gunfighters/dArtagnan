@@ -16,6 +16,7 @@ namespace dArtagnan.ClientTest
             Console.WriteLine("명령어:");
             Console.WriteLine("  connect [host] [port] - 서버 연결 (기본: localhost 7777)");
             Console.WriteLine("  join [nickname] - 게임 참가");
+            Console.WriteLine("  ready [true/false] - Ready 상태 변경");
             Console.WriteLine("  dir [i] - 플레이어 이동 방향 변경");
             Console.WriteLine("  run [true/false] - 달리기 상태 변경");
             Console.WriteLine("  shoot [targetId] - 플레이어 공격");
@@ -57,6 +58,18 @@ namespace dArtagnan.ClientTest
                     case "join":
                         var nickname = parts.Length > 1 ? parts[1] : "TestPlayer";
                         await JoinGame(nickname);
+                        break;
+
+                    case "ready":
+                        if (parts.Length >= 2)
+                        {
+                            var isReady = bool.Parse(parts[1]);
+                            await SendReady(isReady);
+                        }
+                        else
+                        {
+                            Console.WriteLine("사용법: ready [true/false]");
+                        }
                         break;
 
                     case "dir":
@@ -239,6 +252,28 @@ namespace dArtagnan.ClientTest
             }
         }
 
+        static async Task SendReady(bool isReady)
+        {
+            if (!isConnected || stream == null)
+            {
+                Console.WriteLine("먼저 서버에 연결해주세요.");
+                return;
+            }
+
+            try
+            {
+                await NetworkUtils.SendPacketAsync(stream, new Ready
+                {
+                    ready = isReady
+                });
+                Console.WriteLine($"Ready 패킷 전송: {isReady}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ready 패킷 전송 실패: {ex.Message}");
+            }
+        }
+
         static async Task ReceiveLoop()
         {
             while (isRunning)
@@ -316,6 +351,15 @@ namespace dArtagnan.ClientTest
                         {
                             Console.WriteLine($"  플레이어 {pos.playerId}: ({pos.x:F2}, {pos.y:F2})");
                         }
+                        break;
+                        
+                    case ReadyBroadcast readyBroadcast:
+                        var readyStatus = readyBroadcast.ready ? "Ready!" : "Not Ready";
+                        Console.WriteLine($"플레이어 {readyBroadcast.playerId} {readyStatus}");
+                        break;
+                        
+                    case GameStart gameStart:
+                        Console.WriteLine("🎮 게임이 시작되었습니다! 🎮");
                         break;
                         
                     default:

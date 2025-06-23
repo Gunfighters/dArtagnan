@@ -111,6 +111,10 @@ namespace dArtagnan.Server
                         await PacketHandlers.HandlePlayerLeave(leaveData, this, gameManager);
                         break;
 
+                    case Ready readyData:
+                        await PacketHandlers.HandleReady(readyData, this, gameManager);
+                        break;
+
                     default:
                         Console.WriteLine($"[클라이언트 {Id}] 처리되지 않은 패킷 타입: {packet.GetType().Name}");
                         break;
