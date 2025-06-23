@@ -115,7 +115,7 @@ public class PlayerController : MonoBehaviour
         speed = newSpeed;
     }
 
-    private static Vector3 SnapToCardinalDirection(Vector3 dir)
+    public static Vector3 SnapToCardinalDirection(Vector3 dir)
     {
         if (dir == Vector3.zero) return Vector3.zero;
 

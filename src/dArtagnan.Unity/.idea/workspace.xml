@@ -5,15 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f9f1e1e1-48bb-4696-9b5c-39fe4d8158c8" name="변경" comment="">
-      <change beforePath="$PROJECT_DIR$/Assets/HeroEditor4D/Common/Atlases/Common.spriteatlas" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/HeroEditor4D/Common/Atlases/Common.spriteatlas" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/HeroEditor4D/Common/Atlases/Icons.spriteatlas" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/HeroEditor4D/Common/Atlases/Icons.spriteatlas" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/HeroEditor4D/Common/Atlases/Sprites.spriteatlas" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/HeroEditor4D/Common/Atlases/Sprites.spriteatlas" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/HeroEditor4D/MilitaryHeroes/Atlases/Icons.spriteatlas" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/HeroEditor4D/MilitaryHeroes/Atlases/Icons.spriteatlas" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/HeroEditor4D/MilitaryHeroes/Atlases/Sprites.spriteatlas" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/HeroEditor4D/MilitaryHeroes/Atlases/Sprites.spriteatlas" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Prefabs/Cowboy.prefab" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Prefabs/Cowboy.prefab" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Sprites/Village.png.meta" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Sprites/Village.png.meta" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectSettings/EditorBuildSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/EditorBuildSettings.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectSettings/ShaderGraphSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/ShaderGraphSettings.asset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scenes/Main.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/Main.unity" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/GameManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/GameManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scripts/PlayerController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/PlayerController.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,7 +17,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {
@@ -35,6 +31,9 @@
     &quot;accountId&quot;: &quot;7de7f7f4-4ac2-44b1-b3ba-578d7c7598c4&quot;
   }
 }</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/Assets/Scripts/GameManager.cs" root0="SKIP_HIGHLIGHTING" />
+  </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 6
@@ -49,8 +48,9 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "/Users/trulybright/dArtagnan/src/dArtagnan.Unity",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -68,6 +68,9 @@
       <updated>1748591485863</updated>
       <workItem from="1748591490463" duration="36000" />
       <workItem from="1748591532015" duration="937000" />
+      <workItem from="1750658534631" duration="72000" />
+      <workItem from="1750658661700" duration="15000" />
+      <workItem from="1750659260286" duration="48000" />
     </task>
     <servers />
   </component>

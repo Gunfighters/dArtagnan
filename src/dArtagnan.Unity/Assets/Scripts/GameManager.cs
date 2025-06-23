@@ -13,9 +13,11 @@ public class GameManager : MonoBehaviour
     private readonly Dictionary<int, PlayerController> players = new();
     [SerializeField] private int controlledPlayerIndex = -1;
     private Vector3 lastDirection = Vector3.zero;
+    private float lastDirectionMagnitude = 0;
     public static GameManager Instance { get; private set; }
     PlayerController ControlledPlayer => players[controlledPlayerIndex];
     [SerializeField] private int ping; 
+    public FixedJoystick joystick;
 
     void Awake()
     {
@@ -53,6 +55,11 @@ public class GameManager : MonoBehaviour
 
         direction = direction.normalized;
 
+        if (joystick.Direction != Vector2.zero)
+        {
+            direction = DirectionHelperClient.IntToDirection(DirectionHelperClient.DirectionToInt(joystick.Direction));
+        }
+
         if (direction != lastDirection)
         {
             lastDirection = direction;
@@ -67,6 +74,18 @@ public class GameManager : MonoBehaviour
         {
             NetworkManager.Instance.SendPlayerIsRunning(false);
         }
+
+        if (direction.magnitude > 0.5f && lastDirectionMagnitude < 0.5f)
+        {
+            NetworkManager.Instance.SendPlayerIsRunning(true);
+        }
+        else if (direction.magnitude < 0.5f && lastDirectionMagnitude > 0.5f)
+        {
+            NetworkManager.Instance.SendPlayerIsRunning(false);
+        }
+
+		lastDirectionMagnitude = direction.magnitude;
+		Debug.Log(direction.magnitude);
 
         if (Input.GetKeyDown(KeyCode.LeftControl))
         {
