@@ -49,7 +49,6 @@ namespace dArtagnan.Server
 
             try
             {
-                Console.WriteLine($"[클라이언트 {Id}] 패킷 전송: {packet.GetType().Name}");
                 await NetworkUtils.SendPacketAsync(stream, packet);
             }
             catch (Exception ex)

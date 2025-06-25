@@ -91,7 +91,7 @@ namespace dArtagnan.Server
             var currentY = directionData.currentY + player.Speed * directionVector.Y * gameManager.ping[client.Id] / 2;
             player.UpdatePosition(currentX, currentY);
 
-            Console.WriteLine($"[이동] 플레이어 {player.PlayerId} 방향: {directionVector}, 위치: ({player.X:F2}, {player.Y:F2})");
+            Console.WriteLine($"[이동] 플레이어 {player.PlayerId} (핑: {gameManager.ping[client.Id]}) 방향: {directionVector}, 위치: ({player.X:F2}, {player.Y:F2}) 속도: ({player.Speed:F2})");
 
             // 방향 변경을 모든 플레이어에게 브로드캐스트
             await gameManager.BroadcastToAll(new PlayerDirectionBroadcast
