@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Net.Sockets;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -16,6 +17,8 @@ public class NetworkManager : MonoBehaviour
     public static NetworkManager Instance { get; private set; }
     public GameObject ServerEndpointInputFieldObject;
     public GameObject ServerEndpointConfirmButtonObject;
+    private string host;
+    private int port;
 
     void Awake()
     {
@@ -35,13 +38,13 @@ public class NetworkManager : MonoBehaviour
             var inputField = ServerEndpointInputFieldObject.GetComponent<TMP_InputField>();
             var placeholder = inputField.placeholder.GetComponent<TextMeshProUGUI>();
             var split = inputField.text != "" ? inputField.text.Split(':') : placeholder.text.Split(':');
-            var host = split[0];
-            var port = Parse(split[1]);
-            ConnectToServer(host, port);
+            host = split[0];
+            port = Parse(split[1]);
+            ConnectToServer();
         });
     }
 
-    async Task ConnectToServer(string host, int port)
+    async Task ConnectToServer()
     {
         Debug.Log($"Connecting to: {host}:{port}");
         _client = new TcpClient();
@@ -57,9 +60,20 @@ public class NetworkManager : MonoBehaviour
         _stream = _client.GetStream();
         _ = StartSendingLoop();
         _ = StartListeningLoop();
-        GameManager.Instance.GetPing(host);
+        StartCoroutine(StartGetPingLoop());
         ServerEndpointConfirmButtonObject.SetActive(false);
         ServerEndpointInputFieldObject.SetActive(false);
+    }
+
+    IEnumerator StartGetPingLoop()
+    {
+        while (true)
+        {
+            Ping p = new(host);
+            yield return new WaitUntil(() => p.isDone);
+            GameManager.Instance.SetPing(p);
+            yield return new WaitForSeconds(1);
+        }
     }
 
     void Enqueue(IPacket payload)
@@ -111,13 +125,14 @@ public class NetworkManager : MonoBehaviour
         Enqueue(new PlayerJoinRequest());
     }
 
-    public void SendPlayerDirection(Vector3 position, Vector3 direction)
+    public void SendPlayerDirection(Vector3 position, Vector3 direction, bool running)
     {
         Enqueue(new PlayerDirectionFromClient
         {
             direction = DirectionHelperClient.DirectionToInt(direction),
             currentX = position.x,
-            currentY = position.y
+            currentY = position.y,
+            running = running
         });
     }
 
@@ -158,9 +173,6 @@ public class NetworkManager : MonoBehaviour
                 break;
             case PlayerLeaveBroadcast playerLeaveBroadcast:
                 GameManager.Instance.OnPlayerLeaveBroadcast(playerLeaveBroadcast);
-                break;
-            case UpdatePlayerPosition position:
-                GameManager.Instance.OnUpdatePlayerPosition(position);
                 break;
             default:
                 Debug.LogWarning($"Unhandled packet: {packet}");

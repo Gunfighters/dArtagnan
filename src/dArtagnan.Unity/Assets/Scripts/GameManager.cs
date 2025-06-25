@@ -12,11 +12,11 @@ public class GameManager : MonoBehaviour
     public GameObject playerPrefab;
     private readonly Dictionary<int, PlayerController> players = new();
     [SerializeField] private int controlledPlayerIndex = -1;
+    public float Ping;
     private Vector3 lastDirection = Vector3.zero;
     private float lastDirectionMagnitude = 0;
     public static GameManager Instance { get; private set; }
     public PlayerController ControlledPlayer => players[controlledPlayerIndex];
-    [SerializeField] private int ping; 
     public FixedJoystick joystick;
 
     void Awake()
@@ -54,38 +54,40 @@ public class GameManager : MonoBehaviour
         }
 
         direction = direction.normalized;
-
+        
+        ControlledPlayer.SetMovementInformation(direction, ControlledPlayer.transform.position, ControlledPlayer.speed);
+        
         if (joystick.Direction != Vector2.zero)
         {
             direction = DirectionHelperClient.IntToDirection(DirectionHelperClient.DirectionToInt(joystick.Direction));
         }
 
+        bool changed = false;
         if (direction != lastDirection)
         {
             lastDirection = direction;
-            NetworkManager.Instance.SendPlayerDirection(ControlledPlayer.gameObject.transform.position, direction);
+            changed = true;
         }
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            NetworkManager.Instance.SendPlayerIsRunning(true);
+            ControlledPlayer.SetMovementInformation(direction, ControlledPlayer.transform.position, 160f);
+            changed = true;
         }
         else if (Input.GetKeyUp(KeyCode.Space))
         {
-            NetworkManager.Instance.SendPlayerIsRunning(false);
+            ControlledPlayer.SetMovementInformation(direction, ControlledPlayer.transform.position, 40f);
+            changed = true;
         }
 
-        if (direction.magnitude > 0.5f && lastDirectionMagnitude < 0.5f)
+        bool running = Input.GetKey(KeyCode.Space);
+
+        if (changed)
         {
-            NetworkManager.Instance.SendPlayerIsRunning(true);
-        }
-        else if (direction.magnitude < 0.5f && lastDirectionMagnitude > 0.5f)
-        {
-            NetworkManager.Instance.SendPlayerIsRunning(false);
+            NetworkManager.Instance.SendPlayerDirection(ControlledPlayer.transform.position, direction, running);
         }
 
 		lastDirectionMagnitude = direction.magnitude;
-		Debug.Log(direction.magnitude);
 
         if (Input.GetKeyDown(KeyCode.LeftControl))
         {
@@ -116,20 +118,19 @@ public class GameManager : MonoBehaviour
         NetworkManager.Instance.SendPlayerShooting(target.id);
     }
 
-    void AddPlayer(int index, Vector2 position, int direction, int accuracy)
+    void AddPlayer(int index, Vector2 estimatedPosition, Vector3 direction, int accuracy, float speed)
     {
-        Debug.Log($"Add Player #{index} at {position} with accuracy {accuracy}%");
+        Debug.Log($"Add Player #{index} at {estimatedPosition} with accuracy {accuracy}%");
         if (players.ContainsKey(index))
         {
             Debug.LogWarning($"Trying to add player #{index} that already exists");
             return;
         }
-
         var created = Instantiate(playerPrefab); // TODO: Object Pooling.
         var player = created.GetComponent<PlayerController>();
         player.SetAccuracy(accuracy);
-        player.SetDirection(DirectionHelperClient.IntToDirection(direction));
-        player.ImmediatelyMoveTo(position);
+        player.SetMovementInformation(direction, estimatedPosition, speed);
+        player.ImmediatelyMoveTo(estimatedPosition);
         player.id = index;
         players[index] = player;
     }
@@ -141,17 +142,17 @@ public class GameManager : MonoBehaviour
 
     public void OnInformationOfPlayers(InformationOfPlayers informationOfPlayers)
     {
-        Debug.Log(informationOfPlayers.info);
         foreach (var info in informationOfPlayers.info)
         {
-            Debug.Log(info.direction);
-            AddPlayer(info.playerId, new Vector2(info.x, info.y), info.direction, info.accuracy);
+            var directionVec = DirectionHelperClient.IntToDirection(info.direction);
+            var estimated = PlayerController.EstimatePositionByPing(new Vector3(info.x, info.y), directionVec, info.speed);
+            AddPlayer(info.playerId, estimated, directionVec, info.accuracy, info.speed);
         }
     }
 
     public void OnPlayerJoinBroadcast(PlayerJoinBroadcast payload)
     {
-        AddPlayer(payload.playerId, new Vector2(payload.initX, payload.initY), 0, payload.accuracy);
+        AddPlayer(payload.playerId, new Vector2(payload.initX, payload.initY), Vector3.zero, payload.accuracy, 40f);
         if (payload.playerId == controlledPlayerIndex)
         {
             mainCamera.transform.SetParent(ControlledPlayer.transform, false);
@@ -160,14 +161,16 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayerDirectionBroadcast(PlayerDirectionBroadcast payload)
     {
+        if (payload.playerId == controlledPlayerIndex) return;
+        var targetPlayer = players[payload.playerId];
         var direction = DirectionHelperClient.IntToDirection(payload.direction);
-        players[payload.playerId].SetDirection(direction);
-        players[payload.playerId].SetTargetPosition(payload.currentX, payload.currentY);
+        var position = new Vector3(payload.currentX, payload.currentY, targetPlayer.transform.position.z);
+        targetPlayer.SetMovementInformation(direction, position, payload.speed);
     }
 
     public void OnUpdatePlayerSpeedBroadcast(UpdatePlayerSpeedBroadcast update)
     {
-        players[update.playerId].SetSpeed(update.speed);
+        // players[update.playerId].SetSpeed(update.speed, + Ping);
     }
 
     public void OnPlayerShootingBroadcast(PlayerShootingBroadcast shooting)
@@ -186,37 +189,8 @@ public class GameManager : MonoBehaviour
         players[leave.playerId].gameObject.SetActive(false);
     }
 
-    public void OnUpdatePlayerPosition(UpdatePlayerPosition update)
+    public void SetPing(Ping p)
     {
-        update.positionList.ForEach(p =>
-        {
-            players[p.playerId].UpdatePosition(new Vector2(p.x, p.y));
-        });
-    }
-
-    public void GetPing(string address)
-    {
-        StartCoroutine(StartPing(address));
-    }
-
-    IEnumerator StartPing(string address)
-    {
-        var wait = new WaitForSeconds(0.01f);
-        var p = new Ping(address);
-        while (!p.isDone)
-        {
-            yield return wait;
-        }
-
-        ping = p.time;
-        SetPing(p);
-    }
-
-    void SetPing(Ping p)
-    {
-        foreach (var player in players.Values)
-        {
-            player.SetPing(p);
-        }
+        Ping = p.time / 1000f;
     }
 }

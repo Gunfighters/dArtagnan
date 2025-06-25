@@ -11,15 +11,17 @@ public class PlayerController : MonoBehaviour
     public int id;
     public float range { get; private set; }
     [SerializeField] private int accuracy;
-    [SerializeField] private Vector3 targetPosition;
+    [SerializeField] private Vector3 estimatedPosition;
     [SerializeField] private Vector3 currentDirection;
-    [SerializeField] private float RTT;
+    private int LastServerUpdateTimestamp;
+    private bool HasToUseLastServerUpdateTimestamp;
+    public float lerpSpeed = 1.1f;
+    private bool isCorrecting = false;
     private float timeOfLastServerUpdate;
     public bool dead;
-    public float lerpSpeed = 0.5f;
     private bool firing;
-    [SerializeField] private float speed;
-    private bool running => speed > 1;
+    public float speed;
+    private bool running => speed > 40;
     private bool lerping;
     private Character4D SpriteManager;
     public GameObject textGameObject;
@@ -45,14 +47,23 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            if (lerping)
+            if (isCorrecting)
             {
-                var serverPosition = targetPosition + speed * RTT * currentDirection;
-                var clientPosition = transform.position + speed * Time.deltaTime * currentDirection;
-                transform.position = Vector3.Lerp(transform.position, serverPosition, lerpSpeed * Time.deltaTime);
-                if (transform.position == serverPosition)
+                var now = DateTime.Now.Millisecond;
+                if (HasToUseLastServerUpdateTimestamp)
                 {
-                    lerping = false;
+                    estimatedPosition += speed * (now - LastServerUpdateTimestamp) / 1000f * currentDirection;
+                    HasToUseLastServerUpdateTimestamp = false;
+                }
+                else
+                {
+                    estimatedPosition += speed * Time.deltaTime * currentDirection;
+                }
+
+                transform.position = Vector3.MoveTowards(transform.position, estimatedPosition, Time.deltaTime * speed * lerpSpeed);
+                if (Vector3.Distance(transform.position, estimatedPosition) < 0.1f)
+                {
+                    isCorrecting = false;
                 }
             }
             else
@@ -66,7 +77,10 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            SpriteManager.SetDirection(SnapToCardinalDirection(currentDirection));
+            if (currentDirection != Vector3.zero)
+            {
+                SpriteManager.SetDirection(SnapToCardinalDirection(currentDirection));
+            }
             SpriteManager.SetState(running ? CharacterState.Run : CharacterState.Walk);
         }
 
@@ -82,40 +96,26 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void SetDirection(Vector3 normalizedDirection)
+    public static Vector3 EstimatePositionByPing(Vector3 position, Vector3 direction, float speed)
+    {
+        return position + GameManager.Instance.Ping / 2 * direction * speed;
+    }
+
+    public void SetMovementInformation(Vector3 normalizedDirection, Vector3 estimatedPosition, float newSpeed)
     {
         currentDirection = normalizedDirection;
+        speed = newSpeed;
+        this.estimatedPosition = estimatedPosition;
+        isCorrecting = true;
+        LastServerUpdateTimestamp = DateTime.Now.Millisecond;
+        HasToUseLastServerUpdateTimestamp = true;
     }
 
     public void ImmediatelyMoveTo(Vector3 position)
     {
         transform.position = position;
     }
-
-    public void UpdatePosition(Vector3 positionFromServer)
-    {
-        targetPosition = positionFromServer + speed * RTT * currentDirection;
-        StartCoroutine(LerpToTargetPosition(targetPosition));
-    }
-
-    IEnumerator LerpToTargetPosition(Vector3 targetPosition)
-    {
-        lerping = true;
-        var wf = new WaitForEndOfFrame();
-        while (transform.position != targetPosition)
-        {
-            transform.position = Vector3.Lerp(transform.position, targetPosition, lerpSpeed);
-            yield return wf;
-        }
-
-        lerping = false;
-    }
-
-    public void SetPing(Ping p)
-    {
-        RTT = (float) p.time / 1000;
-    }
-
+    
     public void Fire()
     {
         firing = true;
@@ -132,11 +132,6 @@ public class PlayerController : MonoBehaviour
         accuracyText.text = $"{accuracy}%";
     }
 
-    public void SetSpeed(float newSpeed)
-    {
-        speed = newSpeed;
-    }
-
     public static Vector3 SnapToCardinalDirection(Vector3 dir)
     {
         if (dir == Vector3.zero) return Vector3.zero;
@@ -151,11 +146,5 @@ public class PlayerController : MonoBehaviour
             >= 225f and < 315f => Vector3.down,
             _ => Vector3.right
         };
-    }
-
-    public void SetTargetPosition(float x, float y)
-    {
-        targetPosition = new Vector3(x, y, gameObject.transform.position.z);
-        lerping = true;
     }
 }
