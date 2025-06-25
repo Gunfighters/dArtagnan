@@ -9,8 +9,8 @@ namespace dArtagnan.Server
     {
         // 플레이어 관련 상수들
         public const float DEFAULT_RELOAD_TIME = 2.0f;
-        public const float WALKING_SPEED = 1.0f;
-        public const float RUNNING_SPEED = 4.0f;
+        public const float WALKING_SPEED = 40f;
+        public const float RUNNING_SPEED = 160f;
         public const int MIN_ACCURACY = 1;
         public const int MAX_ACCURACY = 100;
 

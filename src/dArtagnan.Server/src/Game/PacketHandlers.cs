@@ -85,9 +85,13 @@ namespace dArtagnan.Server
 
             // 플레이어 상태 업데이트
             player.Direction = directionData.direction;
-            player.UpdatePosition(directionData.currentX, directionData.currentY);
+            var directionVector = DirectionHelper.IntToDirection(directionData.direction);
+            player.UpdateSpeed(Player.GetSpeedByRunning(directionData.running));
+            var currentX = directionData.currentX + player.Speed * directionVector.X * gameManager.ping[client.Id] / 2;
+            var currentY = directionData.currentY + player.Speed * directionVector.Y * gameManager.ping[client.Id] / 2;
+            player.UpdatePosition(currentX, currentY);
 
-            Console.WriteLine($"[이동] 플레이어 {player.PlayerId} 방향: {player.Direction}, 위치: ({player.X:F2}, {player.Y:F2})");
+            Console.WriteLine($"[이동] 플레이어 {player.PlayerId} 방향: {directionVector}, 위치: ({player.X:F2}, {player.Y:F2})");
 
             // 방향 변경을 모든 플레이어에게 브로드캐스트
             await gameManager.BroadcastToAll(new PlayerDirectionBroadcast
@@ -95,7 +99,8 @@ namespace dArtagnan.Server
                 direction = player.Direction,
                 playerId = player.PlayerId,
                 currentX = player.X,
-                currentY = player.Y
+                currentY = player.Y,
+                speed = player.Speed
             });
         }
 
@@ -109,15 +114,19 @@ namespace dArtagnan.Server
 
             // 달리기 상태에 따라 속도 설정
             float newSpeed = Player.GetSpeedByRunning(runningData.isRunning);
+            var RTT = gameManager.ping[client.Id];
+            var currentX = player.X - RTT / 2 * player.Speed * player.Direction + RTT / 2 * newSpeed * player.Direction;
+            var currentY = player.Y - RTT / 2 * player.Speed * player.Direction + RTT / 2 * newSpeed * player.Direction;
             player.UpdateSpeed(newSpeed);
-
+            player.UpdatePosition(currentX, currentY);
+            
             Console.WriteLine($"[이동] 플레이어 {player.PlayerId} 달리기: {runningData.isRunning}, 속도: {player.Speed}");
 
             // 속도 업데이트를 모든 플레이어에게 브로드캐스트
             await gameManager.BroadcastToAll(new UpdatePlayerSpeedBroadcast
             {
                 playerId = player.PlayerId,
-                speed = player.Speed
+                speed = player.Speed,
             });
         }
 

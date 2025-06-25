@@ -21,6 +21,7 @@ namespace dArtagnan.Server
         private readonly ConcurrentDictionary<int, ClientConnection> clients = new(); // 클라이언트 연결도 여기서 관리
         private int nextPlayerId = 1;
         private GameState currentGameState = GameState.Waiting;
+        public readonly ConcurrentDictionary<int, float> ping = new();
 
         /// <summary>
         /// 현재 게임 상태

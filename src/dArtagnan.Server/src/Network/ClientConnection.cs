@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using dArtagnan.Shared;
 
@@ -28,6 +30,7 @@ namespace dArtagnan.Server
 
             // 패킷 수신 루프 시작
             _ = Task.Run(ReceiveLoop);
+            _ = Task.Run(UpdatePingLoop);
         }
 
         public bool IsConnected => isConnected && tcpClient.Connected;
@@ -154,6 +157,29 @@ namespace dArtagnan.Server
                 // 비정상 종료 시 GameManager에서 정리
                 await gameManager.RemoveClient(Id);
                 await DisconnectAsync();
+            }
+        }
+
+        private async Task UpdatePingLoop()
+        {
+            var addr = tcpClient.Client.RemoteEndPoint.ToString().Split(':')[0];
+            using Ping p = new();
+            while (true)
+            {
+                try
+                {
+                    var result = await p.SendPingAsync(addr);
+                    if (result.Status == IPStatus.Success)
+                    {
+                        gameManager.ping[Id] = result.RoundtripTime / 1000f;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[핑] {Id}번 플레이어({addr}) 핑 측정 실패:  {ex.Message}");
+                }
+
+                await Task.Delay(500);
             }
         }
     }
