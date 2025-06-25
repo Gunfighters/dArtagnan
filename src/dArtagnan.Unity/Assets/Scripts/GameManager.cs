@@ -54,13 +54,15 @@ public class GameManager : MonoBehaviour
         }
 
         direction = direction.normalized;
-        
-        ControlledPlayer.SetMovementInformation(direction, ControlledPlayer.transform.position, ControlledPlayer.speed);
-        
-        if (joystick.Direction != Vector2.zero)
+
+        bool usingJoystick = joystick.Direction != Vector2.zero;
+
+        if (usingJoystick)
         {
             direction = DirectionHelperClient.IntToDirection(DirectionHelperClient.DirectionToInt(joystick.Direction));
         }
+
+        ControlledPlayer.SetMovementInformation(direction, ControlledPlayer.transform.position, ControlledPlayer.speed);
 
         bool changed = false;
         if (direction != lastDirection)
@@ -69,18 +71,10 @@ public class GameManager : MonoBehaviour
             changed = true;
         }
 
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            ControlledPlayer.SetMovementInformation(direction, ControlledPlayer.transform.position, 160f);
-            changed = true;
-        }
-        else if (Input.GetKeyUp(KeyCode.Space))
-        {
-            ControlledPlayer.SetMovementInformation(direction, ControlledPlayer.transform.position, 40f);
-            changed = true;
-        }
+        changed |= Input.GetKeyDown(KeyCode.Space) | Input.GetKeyUp(KeyCode.Space);
 
-        bool running = Input.GetKey(KeyCode.Space);
+        bool running = Input.GetKey(KeyCode.Space) || usingJoystick;
+        ControlledPlayer.SetMovementInformation(direction, ControlledPlayer.transform.position, running ? 160f : 40f);
 
         if (changed)
         {
