@@ -11,11 +11,10 @@ public class PlayerController : MonoBehaviour
     public int id;
     public float range { get; private set; }
     [SerializeField] private int accuracy;
-    [SerializeField] private Vector3 estimatedPosition;
+    [SerializeField] private Vector3 serverPosition;
     [SerializeField] private Vector3 currentDirection;
-    private int LastServerUpdateTimestamp;
-    private bool HasToUseLastServerUpdateTimestamp;
-    public float lerpSpeed = 1.1f;
+    private float LastServerUpdateTimestamp;
+    public float lerpSpeed;
     private bool isCorrecting = false;
     private float timeOfLastServerUpdate;
     public bool dead;
@@ -49,19 +48,9 @@ public class PlayerController : MonoBehaviour
         {
             if (isCorrecting)
             {
-                var now = DateTime.Now.Millisecond;
-                if (HasToUseLastServerUpdateTimestamp)
-                {
-                    estimatedPosition += speed * (now - LastServerUpdateTimestamp) / 1000f * currentDirection;
-                    HasToUseLastServerUpdateTimestamp = false;
-                }
-                else
-                {
-                    estimatedPosition += speed * Time.deltaTime * currentDirection;
-                }
-
-                transform.position = Vector3.MoveTowards(transform.position, estimatedPosition, Time.deltaTime * speed * lerpSpeed);
-                if (Vector3.Distance(transform.position, estimatedPosition) < 0.1f)
+                var predictedPosition = serverPosition + speed * (Time.time - LastServerUpdateTimestamp) * currentDirection;
+                transform.position = Vector3.MoveTowards(transform.position, predictedPosition, Time.deltaTime * speed * lerpSpeed);
+                if (Vector3.Distance(transform.position, predictedPosition) < 0.01f)
                 {
                     isCorrecting = false;
                 }
@@ -77,10 +66,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            if (currentDirection != Vector3.zero)
-            {
-                SpriteManager.SetDirection(SnapToCardinalDirection(currentDirection));
-            }
+            SpriteManager.SetDirection(SnapToCardinalDirection(currentDirection));
             SpriteManager.SetState(running ? CharacterState.Run : CharacterState.Walk);
         }
 
@@ -105,10 +91,9 @@ public class PlayerController : MonoBehaviour
     {
         currentDirection = normalizedDirection;
         speed = newSpeed;
-        this.estimatedPosition = estimatedPosition;
+        serverPosition = estimatedPosition;
         isCorrecting = true;
-        LastServerUpdateTimestamp = DateTime.Now.Millisecond;
-        HasToUseLastServerUpdateTimestamp = true;
+        LastServerUpdateTimestamp = Time.time;
     }
 
     public void ImmediatelyMoveTo(Vector3 position)
