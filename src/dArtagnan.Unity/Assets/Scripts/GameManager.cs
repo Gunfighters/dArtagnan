@@ -17,7 +17,7 @@ public class GameManager : MonoBehaviour
     private float lastDirectionMagnitude = 0;
     public static GameManager Instance { get; private set; }
     public PlayerController ControlledPlayer => players[controlledPlayerIndex];
-    public FixedJoystick joystick;
+    public VariableJoystick joystick;
 
     void Awake()
     {
