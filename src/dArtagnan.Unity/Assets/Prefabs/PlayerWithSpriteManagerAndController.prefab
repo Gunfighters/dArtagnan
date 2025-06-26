@@ -8133,7 +8133,6 @@ MonoBehaviour:
   targetPlayer: {fileID: 0}
   TargetCircle: {fileID: 3143826264473793287}
   color: {r: 0, g: 0, b: 0, a: 0}
-  cooldown: 0
   cooldownPie: {fileID: 5310763053821386961}
 --- !u!1 &3775966217331171199
 GameObject:
@@ -9751,8 +9750,9 @@ GameObject:
   - component: {fileID: 3609577527875388017}
   - component: {fileID: 169171212402233090}
   - component: {fileID: 5310763053821386961}
+  - component: {fileID: 2968839429682520020}
   m_Layer: 5
-  m_Name: Cooldown
+  m_Name: CooldownPie
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9815,6 +9815,20 @@ MonoBehaviour:
   m_FillOrigin: 2
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &2968839429682520020
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4660114427413833963}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2d6f9667d7214d14be7389103f103d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 4593289543391921671}
+  cooldownPieImage: {fileID: 5310763053821386961}
 --- !u!1 &4662400409014300023
 GameObject:
   m_ObjectHideFlags: 0

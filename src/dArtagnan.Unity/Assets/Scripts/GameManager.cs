@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Assets.HeroEditor4D.Common.Scripts.Common;
 using dArtagnan.Shared;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -21,6 +22,7 @@ public class GameManager : MonoBehaviour
     public VariableJoystick joystick;
     public Button shootButton;
     public PlayerController targetPlayer;
+    public readonly Dictionary<int, float> cooldown = new();
 
     void Awake()
     {
@@ -37,6 +39,7 @@ public class GameManager : MonoBehaviour
         if (controlledPlayerIndex == -1) return;
         HandleMovementInput();
         UpdateButtonState();
+        UpdateCooldown();
     }
 
     void HandleMovementInput()
@@ -98,6 +101,14 @@ public class GameManager : MonoBehaviour
         shootButton.interactable = targetPlayer is not null;
         ControlledPlayer.SetTarget(targetPlayer);
     }
+
+    void UpdateCooldown()
+    {
+        foreach (var player in players.Values)
+        {
+            cooldown[player.id] = Mathf.Max(0, cooldown[player.id] - Time.deltaTime);
+        }
+    }
     
     PlayerController GetAutoTarget()
     {
@@ -133,6 +144,7 @@ public class GameManager : MonoBehaviour
     public void ShootTarget()
     {
         NetworkManager.Instance.SendPlayerShooting(targetPlayer.id);
+        cooldown[ControlledPlayer.id] = ControlledPlayer.cooldownDuration; // TODO: remove hard coding
     }
 
     void AddPlayer(int index, Vector2 estimatedPosition, Vector3 direction, int accuracy, float speed)
@@ -143,6 +155,8 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning($"Trying to add player #{index} that already exists");
             return;
         }
+
+        cooldown[index] = 15f / 2;
         var created = Instantiate(playerPrefab); // TODO: Object Pooling.
         var player = created.GetComponent<PlayerController>();
         player.SetAccuracy(accuracy);
@@ -155,6 +169,8 @@ public class GameManager : MonoBehaviour
     public void OnYouAre(YouAre payload)
     {
         controlledPlayerIndex = payload.playerId;
+        joystick.SetActive(true);
+        shootButton.SetActive(true);
     }
 
     public void OnInformationOfPlayers(InformationOfPlayers informationOfPlayers)

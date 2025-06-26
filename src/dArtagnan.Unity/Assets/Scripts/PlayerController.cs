@@ -34,8 +34,8 @@ public class PlayerController : MonoBehaviour
 
     private Coroutine correctionRoutine;
     private bool correcting;
-
-    [SerializeField] private float cooldown;
+    public float cooldownDuration = 15f;
+    public float cooldown => GameManager.Instance.cooldown[id];
     public Image cooldownPie;
     
     void Awake()
@@ -86,17 +86,6 @@ public class PlayerController : MonoBehaviour
         {
             firing = false;
             SpriteManager.Fire();
-            cooldown = 15f;
-        }
-
-        if (cooldown > 0)
-        {
-            cooldown -= Time.deltaTime;
-            cooldownPie.fillAmount = 1f - (cooldown / 15f); // TODO: 쿨다운 하드코딩 삭제
-            if (cooldown <= 0)
-            {
-                cooldownPie.fillAmount = 1f;
-            }
         }
 
         if (dead)
