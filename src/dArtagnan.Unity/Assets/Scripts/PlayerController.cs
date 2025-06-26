@@ -5,6 +5,7 @@ using Assets.HeroEditor4D.Common.Scripts.Common;
 using Assets.HeroEditor4D.Common.Scripts.Enums;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(Character4D))]
 public class PlayerController : MonoBehaviour
@@ -33,6 +34,9 @@ public class PlayerController : MonoBehaviour
 
     private Coroutine correctionRoutine;
     private bool correcting;
+
+    [SerializeField] private float cooldown;
+    public Image cooldownPie;
     
     void Awake()
     {
@@ -82,6 +86,17 @@ public class PlayerController : MonoBehaviour
         {
             firing = false;
             SpriteManager.Fire();
+            cooldown = 15f;
+        }
+
+        if (cooldown > 0)
+        {
+            cooldown -= Time.deltaTime;
+            cooldownPie.fillAmount = 1f - (cooldown / 15f); // TODO: 쿨다운 하드코딩 삭제
+            if (cooldown <= 0)
+            {
+                cooldownPie.fillAmount = 1f;
+            }
         }
 
         if (dead)

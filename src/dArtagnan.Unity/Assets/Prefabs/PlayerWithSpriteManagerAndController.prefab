@@ -8106,8 +8106,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Character4D: {fileID: 4577585517783738048}
-  AudioSource: {fileID: 0}
-  FirearmCollection: {fileID: 0}
+  AudioSource: {fileID: 2247325066013394377}
+  FirearmCollection: {fileID: 11400000, guid: 28e732d5a6846604db331fadf9eec50e, type: 2}
 --- !u!114 &4593289543391921671
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8133,6 +8133,8 @@ MonoBehaviour:
   targetPlayer: {fileID: 0}
   TargetCircle: {fileID: 3143826264473793287}
   color: {r: 0, g: 0, b: 0, a: 0}
+  cooldown: 0
+  cooldownPie: {fileID: 5310763053821386961}
 --- !u!1 &3775966217331171199
 GameObject:
   m_ObjectHideFlags: 0
@@ -9738,6 +9740,81 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SpriteName: Limb
   SpriteNameFallback: []
+--- !u!1 &4660114427413833963
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3609577527875388017}
+  - component: {fileID: 169171212402233090}
+  - component: {fileID: 5310763053821386961}
+  m_Layer: 5
+  m_Name: Cooldown
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &3609577527875388017
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4660114427413833963}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 167639617566614357}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -0.815, y: 0.003}
+  m_SizeDelta: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &169171212402233090
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4660114427413833963}
+  m_CullTransparentMesh: 1
+--- !u!114 &5310763053821386961
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4660114427413833963}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: 84487d73ca4b791498332d8f6858417f, type: 3}
+  m_Type: 3
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 2
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &4662400409014300023
 GameObject:
   m_ObjectHideFlags: 0
@@ -19042,9 +19119,21 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 4577585517783738048}
     - target: {fileID: 3789706633779693823, guid: c872e50c8a1106149bb56138bb5ff204, type: 3}
+      propertyPath: m_Volume
+      value: 0.744
+      objectReference: {fileID: 0}
+    - target: {fileID: 3789706633779693823, guid: c872e50c8a1106149bb56138bb5ff204, type: 3}
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3789706633779693823, guid: c872e50c8a1106149bb56138bb5ff204, type: 3}
+      propertyPath: m_Resource
+      value: 
+      objectReference: {fileID: 8300000, guid: a2025d8147840164888ffd817d8c246f, type: 3}
+    - target: {fileID: 3789706633779693823, guid: c872e50c8a1106149bb56138bb5ff204, type: 3}
+      propertyPath: m_audioClip
+      value: 
+      objectReference: {fileID: 8300000, guid: a2025d8147840164888ffd817d8c246f, type: 3}
     - target: {fileID: 6233218793654291147, guid: c872e50c8a1106149bb56138bb5ff204, type: 3}
       propertyPath: m_Name
       value: FirearmsFx
@@ -19094,6 +19183,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c872e50c8a1106149bb56138bb5ff204, type: 3}
+--- !u!82 &2247325066013394377 stripped
+AudioSource:
+  m_CorrespondingSourceObject: {fileID: 3789706633779693823, guid: c872e50c8a1106149bb56138bb5ff204, type: 3}
+  m_PrefabInstance: {fileID: 3145663353560370486}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &4592343108821607730 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1449283451003365380, guid: c872e50c8a1106149bb56138bb5ff204, type: 3}
@@ -19120,11 +19214,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1598790490717071148, guid: e4764cd969d91ba42bf957edff097744, type: 3}
       propertyPath: m_Name
-      value: AccuracyTextCanvas
+      value: Canvas
       objectReference: {fileID: 0}
     - target: {fileID: 3443109079145763804, guid: e4764cd969d91ba42bf957edff097744, type: 3}
       propertyPath: m_text
-      value: p%
+      value: 36%
       objectReference: {fileID: 0}
     - target: {fileID: 3443109079145763804, guid: e4764cd969d91ba42bf957edff097744, type: 3}
       propertyPath: m_fontSize
@@ -19204,11 +19298,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4528209657414258562, guid: e4764cd969d91ba42bf957edff097744, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 0.34
       objectReference: {fileID: 0}
     - target: {fileID: 4528209657414258562, guid: e4764cd969d91ba42bf957edff097744, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 2.5
+      value: 2.47
       objectReference: {fileID: 0}
     - target: {fileID: 4528209657414258562, guid: e4764cd969d91ba42bf957edff097744, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -19224,7 +19318,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 4528209657414258562, guid: e4764cd969d91ba42bf957edff097744, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3609577527875388017}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e4764cd969d91ba42bf957edff097744, type: 3}
 --- !u!224 &167639617566614357 stripped
