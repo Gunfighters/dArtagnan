@@ -208,7 +208,9 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayerShootingBroadcast(PlayerShootingBroadcast shooting)
     {
-        players[shooting.shooterId].Fire();
+        var shooter = players[shooting.shooterId];
+        shooter.Fire();
+        cooldown[shooter.id] = shooter.cooldownDuration;
         // TODO: show hit or miss text
     }
 
