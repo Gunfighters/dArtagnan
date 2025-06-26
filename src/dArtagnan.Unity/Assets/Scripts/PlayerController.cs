@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using Assets.HeroEditor4D.Common.Scripts.CharacterScripts;
+using Assets.HeroEditor4D.Common.Scripts.Common;
 using Assets.HeroEditor4D.Common.Scripts.Enums;
 using TMPro;
 using UnityEngine;
@@ -9,10 +10,11 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     public int id;
-    public float range { get; private set; }
+    public float range;
     [SerializeField] private int accuracy;
     [SerializeField] private Vector3 serverPosition;
     [SerializeField] private Vector3 currentDirection;
+    public Vector2 faceDirection = Vector2.down;
     private float LastServerUpdateTimestamp;
     public float lerpSpeed;
     private bool isCorrecting = false;
@@ -25,21 +27,27 @@ public class PlayerController : MonoBehaviour
     private Character4D SpriteManager;
     public GameObject textGameObject;
     private TextMeshProUGUI accuracyText;
+    [SerializeField] private PlayerController targetPlayer;
+    [SerializeField] private GameObject TargetCircle;
+    [SerializeField] private Color color;
 
     private Coroutine correctionRoutine;
     private bool correcting;
-
+    
     void Awake()
     {
         SpriteManager = GetComponent<Character4D>();
         SpriteManager.SetState(CharacterState.Idle);
         accuracyText = textGameObject.GetComponent<TextMeshProUGUI>();
-        Debug.Log(accuracyText);
-        range = 5;
+        HighlightAsTarget(false);
     }
 
     private void Update()
     {
+        if (currentDirection != Vector3.zero)
+        {
+            faceDirection = currentDirection;
+        }
         if (this == GameManager.Instance.ControlledPlayer)
         {
             transform.position += speed * Time.deltaTime * currentDirection;
@@ -80,6 +88,18 @@ public class PlayerController : MonoBehaviour
         {
             SpriteManager.SetState(CharacterState.Death);
         }
+    }
+
+    public void SetTarget(PlayerController newTarget)
+    {
+        targetPlayer?.HighlightAsTarget(false);
+        targetPlayer = newTarget;
+        targetPlayer?.HighlightAsTarget(true);
+    }
+
+    void HighlightAsTarget(bool show)
+    {
+        TargetCircle.SetActive(show);
     }
 
     public static Vector3 EstimatePositionByPing(Vector3 position, Vector3 direction, float speed)

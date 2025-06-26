@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using dArtagnan.Shared;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 /// <summary>
 ///     게임 내 플레이어 전원을 조종합니다. Input 처리도 겸합니다.
@@ -14,10 +16,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int controlledPlayerIndex = -1;
     public float Ping;
     private Vector3 lastDirection = Vector3.zero;
-    private float lastDirectionMagnitude = 0;
     public static GameManager Instance { get; private set; }
     public PlayerController ControlledPlayer => players[controlledPlayerIndex];
     public VariableJoystick joystick;
+    public Button shootButton;
+    public PlayerController targetPlayer;
 
     void Awake()
     {
@@ -32,7 +35,13 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         if (controlledPlayerIndex == -1) return;
-        Vector3 direction = Vector3.zero;
+        HandleMovementInput();
+        UpdateButtonState();
+    }
+
+    void HandleMovementInput()
+    {
+        var direction = Vector3.zero;
         if (Input.GetKey(KeyCode.W))
         {
             direction += Vector3.up;
@@ -81,35 +90,49 @@ public class GameManager : MonoBehaviour
             NetworkManager.Instance.SendPlayerDirection(ControlledPlayer.transform.position, direction, running);
         }
 
-		lastDirectionMagnitude = direction.magnitude;
-
-        if (Input.GetKeyDown(KeyCode.LeftControl))
-        {
-            float nearestDist = 0x7fffffff;
-            PlayerController nearestPlayer = null;
-            foreach (var other in players.Values)
-            {
-                if (other != ControlledPlayer)
-                {
-                    var dist = Vector3.Distance(other.transform.position, ControlledPlayer.transform.position);
-                    if (dist <= ControlledPlayer.range && nearestDist > dist)
-                    {
-                        nearestDist = dist;
-                        nearestPlayer = other;
-                    }
-                }
-            }
-
-            if (nearestPlayer)
-            {
-                NetworkManager.Instance.SendPlayerShooting(nearestPlayer.id);
-            }
-        }
     }
 
-    public void ShootAt(PlayerController target)
+    void UpdateButtonState()
     {
-        NetworkManager.Instance.SendPlayerShooting(target.id);
+        targetPlayer = GetAutoTarget();
+        shootButton.interactable = targetPlayer is not null;
+        ControlledPlayer.SetTarget(targetPlayer);
+    }
+    
+    PlayerController GetAutoTarget()
+    {
+        var direction = joystick.Direction == Vector2.zero ? ControlledPlayer.faceDirection : joystick.Direction;
+        if (direction == Vector2.zero) return null;
+
+        float maxAngle = 20f;
+        float bestScore = float.MaxValue;
+        PlayerController bestTarget = null;
+
+        foreach (var player in players.Values)
+        {
+            if (player == ControlledPlayer || player.dead) continue;
+
+            Vector2 toTarget = player.transform.position - ControlledPlayer.transform.position;
+            float angle = Vector2.Angle(direction, toTarget);
+            float distance = toTarget.magnitude;
+
+            if (angle <= maxAngle && distance <= ControlledPlayer.range)
+            {
+                float score = angle + distance * 0.1f; // 가까우면서 정면인 적.
+                if (score < bestScore)
+                {
+                    bestScore = score;
+                    bestTarget = player;
+                }
+            }
+        }
+
+        return bestTarget;
+    }
+
+    public void ShootTarget()
+    {
+        NetworkManager.Instance.SendPlayerShooting(targetPlayer.id);
     }
 
     void AddPlayer(int index, Vector2 estimatedPosition, Vector3 direction, int accuracy, float speed)
