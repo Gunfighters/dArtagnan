@@ -162,6 +162,19 @@ namespace dArtagnan.Shared
     {
     }
 
+    [MessagePackObject]
+    public struct PlayerIsTargetingFromClient : IPacket
+    {
+        [Key(0)] public int targetId { get; set; }
+    }
+
+    [MessagePackObject]
+    public struct PlayerIsTargetingBroadcast : IPacket
+    {
+        [Key(0)] public int shooterId { get; set; }
+        [Key(1)] public int targetId { get; set; }
+    }
+
     public class DirectionHelper
     {
         public static readonly List<Vector3> Directions = new()

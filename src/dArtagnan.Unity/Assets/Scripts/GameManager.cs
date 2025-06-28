@@ -211,6 +211,7 @@ public class GameManager : MonoBehaviour
         var shooter = players[shooting.shooterId];
         shooter.Fire();
         cooldown[shooter.id] = shooter.cooldownDuration;
+        shooter.ShowHitOrMiss(shooting.hit);
         // TODO: show hit or miss text
     }
 

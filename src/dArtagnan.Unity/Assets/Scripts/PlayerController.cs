@@ -48,6 +48,22 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        HandleMovementInformation();
+        SetCharacterDirection();
+        if (firing)
+        {
+            firing = false;
+            SpriteManager.Fire();
+        }
+
+        if (dead)
+        {
+            SpriteManager.SetState(CharacterState.Death);
+        }
+    }
+
+    void HandleMovementInformation()
+    {
         if (currentDirection != Vector3.zero)
         {
             faceDirection = currentDirection;
@@ -72,6 +88,11 @@ public class PlayerController : MonoBehaviour
                 transform.position += speed * Time.deltaTime * currentDirection;
             }
         }
+
+    }
+
+    void SetCharacterDirection()
+    {
         if (currentDirection == Vector3.zero)
         {
             SpriteManager.SetState(CharacterState.Idle);
@@ -81,19 +102,12 @@ public class PlayerController : MonoBehaviour
             SpriteManager.SetDirection(SnapToCardinalDirection(currentDirection));
             SpriteManager.SetState(running ? CharacterState.Run : CharacterState.Walk);
         }
-
-        if (firing)
-        {
-            firing = false;
-            SpriteManager.Fire();
-        }
-
-        if (dead)
-        {
-            SpriteManager.SetState(CharacterState.Death);
-        }
     }
 
+    public void ShowHitOrMiss(bool hit)
+    {
+        
+    }
     public void SetTarget(PlayerController newTarget)
     {
         targetPlayer?.HighlightAsTarget(false);
