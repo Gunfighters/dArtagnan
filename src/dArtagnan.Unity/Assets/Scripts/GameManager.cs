@@ -74,7 +74,7 @@ public class GameManager : MonoBehaviour
             direction = DirectionHelperClient.IntToDirection(DirectionHelperClient.DirectionToInt(joystick.Direction));
         }
 
-        ControlledPlayer.SetMovementInformation(direction, ControlledPlayer.transform.position, ControlledPlayer.speed);
+        ControlledPlayer.SetMovementInformation(direction, ControlledPlayer.position, ControlledPlayer.speed);
 
         bool changed = false;
         if (direction != lastDirection)
@@ -86,11 +86,11 @@ public class GameManager : MonoBehaviour
         changed |= Input.GetKeyDown(KeyCode.Space) | Input.GetKeyUp(KeyCode.Space);
 
         bool running = Input.GetKey(KeyCode.Space) || usingJoystick;
-        ControlledPlayer.SetMovementInformation(direction, ControlledPlayer.transform.position, running ? 160f : 40f);
+        ControlledPlayer.SetMovementInformation(direction, ControlledPlayer.position, running ? 160f : 40f);
 
         if (changed)
         {
-            NetworkManager.Instance.SendPlayerDirection(ControlledPlayer.transform.position, direction, running);
+            NetworkManager.Instance.SendPlayerDirection(ControlledPlayer.position, direction, running);
         }
 
     }
@@ -123,7 +123,7 @@ public class GameManager : MonoBehaviour
         {
             if (player == ControlledPlayer || player.dead) continue;
 
-            Vector2 toTarget = player.transform.position - ControlledPlayer.transform.position;
+            Vector2 toTarget = player.position - ControlledPlayer.position;
             float angle = Vector2.Angle(direction, toTarget);
             float distance = toTarget.magnitude;
 
@@ -197,7 +197,7 @@ public class GameManager : MonoBehaviour
         if (payload.playerId == controlledPlayerIndex) return;
         var targetPlayer = players[payload.playerId];
         var direction = DirectionHelperClient.IntToDirection(payload.direction);
-        var position = new Vector3(payload.currentX, payload.currentY, targetPlayer.transform.position.z);
+        var position = new Vector2(payload.currentX, payload.currentY);
         targetPlayer.SetMovementInformation(direction, position, payload.speed);
     }
 

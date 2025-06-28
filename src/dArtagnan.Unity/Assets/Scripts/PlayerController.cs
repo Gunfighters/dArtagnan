@@ -37,6 +37,9 @@ public class PlayerController : MonoBehaviour
     public float cooldownDuration = 15f;
     public float cooldown => GameManager.Instance.cooldown[id];
     public Image cooldownPie;
+    public bool IsControlled => this == GameManager.Instance.ControlledPlayer;
+    public Rigidbody2D rb;
+    public Vector2 position => IsControlled ? rb.position : transform.position;
     
     void Awake()
     {
@@ -44,11 +47,33 @@ public class PlayerController : MonoBehaviour
         SpriteManager.SetState(CharacterState.Idle);
         accuracyText = textGameObject.GetComponent<TextMeshProUGUI>();
         HighlightAsTarget(false);
+        rb = GetComponent<Rigidbody2D>();
+    }
+
+    void Start()
+    {
+        if (!IsControlled)
+        {
+            rb.simulated = false;
+            var collider2d = GetComponent<Collider2D>();
+            collider2d.enabled = false;
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        if (IsControlled)
+        {
+            HandleMovementInformationForControlledPlayer();
+        }
     }
 
     private void Update()
     {
-        HandleMovementInformation();
+        if (!IsControlled)
+        {
+            HandleMovementInformationForOtherPlayer();
+        }
         SetCharacterDirection();
         if (firing)
         {
@@ -62,33 +87,26 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void HandleMovementInformation()
+    void HandleMovementInformationForControlledPlayer()
     {
-        if (currentDirection != Vector3.zero)
+        rb.MovePosition(rb.position + speed * Time.deltaTime * (Vector2) currentDirection);
+    }
+
+    void HandleMovementInformationForOtherPlayer()
+    {
+        if (isCorrecting)
         {
-            faceDirection = currentDirection;
-        }
-        if (this == GameManager.Instance.ControlledPlayer)
-        {
-            transform.position += speed * Time.deltaTime * currentDirection;
+            var predictedPosition = serverPosition + speed * (Time.time - LastServerUpdateTimestamp) * currentDirection;
+            transform.position = Vector3.MoveTowards( transform.position, predictedPosition, speed * Time.deltaTime * lerpSpeed);
+            if (Vector3.Distance(transform.position, predictedPosition) < 0.01f)
+            {
+                isCorrecting = false;
+            }
         }
         else
         {
-            if (isCorrecting)
-            {
-                var predictedPosition = serverPosition + speed * (Time.time - LastServerUpdateTimestamp) * currentDirection;
-                transform.position = Vector3.MoveTowards(transform.position, predictedPosition, Time.deltaTime * speed * lerpSpeed);
-                if (Vector3.Distance(transform.position, predictedPosition) < 0.01f)
-                {
-                    isCorrecting = false;
-                }
-            }
-            else
-            {
-                transform.position += speed * Time.deltaTime * currentDirection;
-            }
+            transform.position += speed * Time.deltaTime * currentDirection;
         }
-
     }
 
     void SetCharacterDirection()
