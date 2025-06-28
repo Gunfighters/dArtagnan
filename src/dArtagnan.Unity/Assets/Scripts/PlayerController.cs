@@ -39,7 +39,7 @@ public class PlayerController : MonoBehaviour
     public Image cooldownPie;
     public bool IsControlled => this == GameManager.Instance.ControlledPlayer;
     public Rigidbody2D rb;
-    public Vector2 position => IsControlled ? rb.position : transform.position;
+    public Vector2 position => rb.position;
     
     void Awake()
     {
@@ -52,28 +52,15 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
-        if (!IsControlled)
-        {
-            rb.simulated = false;
-            var collider2d = GetComponent<Collider2D>();
-            collider2d.enabled = false;
-        }
     }
 
     private void FixedUpdate()
     {
-        if (IsControlled)
-        {
-            HandleMovementInformationForControlledPlayer();
-        }
+        HandleMovementInformation();
     }
 
     private void Update()
     {
-        if (!IsControlled)
-        {
-            HandleMovementInformationForOtherPlayer();
-        }
         SetCharacterDirection();
         if (firing)
         {
@@ -87,25 +74,24 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void HandleMovementInformationForControlledPlayer()
+    void HandleMovementInformation()
     {
-        rb.MovePosition(rb.position + speed * Time.deltaTime * (Vector2) currentDirection);
-    }
-
-    void HandleMovementInformationForOtherPlayer()
-    {
-        if (isCorrecting)
+        if (IsControlled)
+        {
+            rb.MovePosition(rb.position + speed * Time.fixedDeltaTime * (Vector2) currentDirection);
+        }
+        else if (isCorrecting)
         {
             var predictedPosition = serverPosition + speed * (Time.time - LastServerUpdateTimestamp) * currentDirection;
-            transform.position = Vector3.MoveTowards( transform.position, predictedPosition, speed * Time.deltaTime * lerpSpeed);
-            if (Vector3.Distance(transform.position, predictedPosition) < 0.01f)
+            rb.MovePosition(Vector2.MoveTowards( rb.position, predictedPosition, speed * Time.fixedDeltaTime * lerpSpeed));
+            if (Vector2.Distance(rb.position, predictedPosition) < 0.01f)
             {
                 isCorrecting = false;
             }
         }
         else
         {
-            transform.position += speed * Time.deltaTime * currentDirection;
+            rb.MovePosition(rb.position + speed * Time.fixedDeltaTime * (Vector2) currentDirection);
         }
     }
 
@@ -154,7 +140,7 @@ public class PlayerController : MonoBehaviour
 
     public void ImmediatelyMoveTo(Vector3 position)
     {
-        transform.position = position;
+        rb.position = position;
     }
     
     public void Fire()
