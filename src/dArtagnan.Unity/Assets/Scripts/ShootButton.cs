@@ -1,35 +1,58 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class ShootButton : MonoBehaviour
+public class ShootButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    [SerializeField] private Button shootButton;
+    [SerializeField] private FixedJoystick shootingJoystick;
     [SerializeField] private Image cooldownImage;
     [SerializeField] private AudioSource reloadSound;
-    private bool HasToPlayReloadSound = true;
+    [SerializeField] private Image JoystickAxis;
+    [SerializeField] private Image HandleOutline;
+    private Vector2 startPos;
+    private bool dragging = false;
+    private float controlledPlayerCooldown => GameManager.Instance.cooldown[GameManager.Instance.ControlledPlayer.id];
+    private float controlledPlayerCooldownDuration => GameManager.Instance.ControlledPlayer.cooldownDuration;
+    private bool shootable => controlledPlayerCooldown <= 0;
+    private bool reloading = false;
 
-    void Start()
-    {
-        shootButton.onClick.AddListener(OnPressed);
-    }
-    
+    private Color orange = new(1.0f, 0.64f, 0.0f);
+
     void Update()
     {
-        var controlledPlayerCooldown = GameManager.Instance.cooldown[GameManager.Instance.ControlledPlayer.id];
-        var controlledPlayerCooldownDuration = GameManager.Instance.ControlledPlayer.cooldownDuration;
-        shootButton.interactable = controlledPlayerCooldown <= 0;
-        cooldownImage.fillAmount = controlledPlayerCooldown <= 0 ? 1f : 1f - controlledPlayerCooldown / controlledPlayerCooldownDuration;
-        if (controlledPlayerCooldown <= 0 && HasToPlayReloadSound)
+        // shootButton.interactable = controlledPlayerCooldown <= 0;
+        if (shootable)
         {
-            HasToPlayReloadSound = false;
+            HandleOutline.color = Color.red;
+            shootingJoystick.enabled = true;
+        }
+        else
+        {
+            HandleOutline.color = orange;
+        }
+        cooldownImage.fillAmount = controlledPlayerCooldown <= 0 ? 0 : 1f - controlledPlayerCooldown / controlledPlayerCooldownDuration;
+        if (reloading && shootable)
+        {
             reloadSound.Play();
+            reloading = false;
         }
     }
 
-    void OnPressed()
+    public void OnPointerDown(PointerEventData eventData)
     {
-        GameManager.Instance.ShootTarget();
-        HasToPlayReloadSound = true;
+        if (shootable)
+        {
+            JoystickAxis.enabled = true;
+        }
+    }
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        JoystickAxis.enabled = false;
+        if (shootable)
+        {
+            reloading = true;
+            GameManager.Instance.ShootTarget();
+        }
     }
 }

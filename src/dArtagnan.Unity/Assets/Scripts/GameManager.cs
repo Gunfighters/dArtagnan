@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
     public PlayerController ControlledPlayer => players[controlledPlayerIndex];
     public VariableJoystick joystick;
-    public Button shootButton;
+    public FixedJoystick shootJoystick;
     public PlayerController targetPlayer;
     public readonly Dictionary<int, float> cooldown = new();
 
@@ -98,7 +98,6 @@ public class GameManager : MonoBehaviour
     void UpdateButtonState()
     {
         targetPlayer = GetAutoTarget();
-        shootButton.interactable = targetPlayer is not null;
         ControlledPlayer.SetTarget(targetPlayer);
     }
 
@@ -112,33 +111,19 @@ public class GameManager : MonoBehaviour
     
     PlayerController GetAutoTarget()
     {
-        var direction = joystick.Direction == Vector2.zero ? ControlledPlayer.faceDirection : joystick.Direction;
-        if (direction == Vector2.zero) return null;
-
-        float maxAngle = 20f;
-        float bestScore = float.MaxValue;
-        PlayerController bestTarget = null;
-
+        // 가장 가까운 적.
+        float minDistance = float.MaxValue;
+        PlayerController target = null;
         foreach (var player in players.Values)
         {
-            if (player == ControlledPlayer || player.dead) continue;
-
-            Vector2 toTarget = player.position - ControlledPlayer.position;
-            float angle = Vector2.Angle(direction, toTarget);
-            float distance = toTarget.magnitude;
-
-            if (angle <= maxAngle && distance <= ControlledPlayer.range)
+            if (player != ControlledPlayer && Vector2.Distance(player.position, ControlledPlayer.position) < minDistance)
             {
-                float score = angle + distance * 0.1f; // 가까우면서 정면인 적.
-                if (score < bestScore)
-                {
-                    bestScore = score;
-                    bestTarget = player;
-                }
+                minDistance = Vector2.Distance(player.position, ControlledPlayer.position);
+                target = player;
             }
         }
 
-        return bestTarget;
+        return target;
     }
 
     public void ShootTarget()
@@ -170,7 +155,6 @@ public class GameManager : MonoBehaviour
     {
         controlledPlayerIndex = payload.playerId;
         joystick.SetActive(true);
-        shootButton.SetActive(true);
     }
 
     public void OnInformationOfPlayers(InformationOfPlayers informationOfPlayers)

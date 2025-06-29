@@ -50,10 +50,6 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
     }
 
-    void Start()
-    {
-    }
-
     private void FixedUpdate()
     {
         HandleMovementInformation();
@@ -110,7 +106,7 @@ public class PlayerController : MonoBehaviour
 
     public void ShowHitOrMiss(bool hit)
     {
-        
+        // TODO
     }
     public void SetTarget(PlayerController newTarget)
     {
