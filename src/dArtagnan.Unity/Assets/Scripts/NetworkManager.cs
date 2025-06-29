@@ -15,8 +15,8 @@ public class NetworkManager : MonoBehaviour
     private TcpClient _client;
     private NetworkStream _stream;
     public static NetworkManager Instance { get; private set; }
-    public GameObject ServerEndpointInputFieldObject;
-    public GameObject ServerEndpointConfirmButtonObject;
+    public TMP_InputField ServerEndpointInputField;
+    public Button ServerEndpointConfirmButton;
     private string host;
     private int port;
     public TextMeshProUGUI PingText;
@@ -27,21 +27,21 @@ public class NetworkManager : MonoBehaviour
         _channel = Channel.CreateUnbounded<IPacket>(new UnboundedChannelOptions
         {
             SingleReader = true,
-            SingleWriter = false
+            SingleWriter = true
         });
     }
 
     void Start()
     {
-        var btn = ServerEndpointConfirmButtonObject.GetComponent<Button>();
-        btn.onClick.AddListener(() =>
+        ServerEndpointConfirmButton.onClick.AddListener(() =>
         {
-            var inputField = ServerEndpointInputFieldObject.GetComponent<TMP_InputField>();
+            var inputField = ServerEndpointInputField.GetComponent<TMP_InputField>();
             var placeholder = inputField.placeholder.GetComponent<TextMeshProUGUI>();
             var split = inputField.text != "" ? inputField.text.Split(':') : placeholder.text.Split(':');
             host = split[0];
             port = Parse(split[1]);
             ConnectToServer();
+            ServerEndpointConfirmButton.interactable = false;
         });
     }
 
@@ -56,14 +56,15 @@ public class NetworkManager : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError(e);
+            ServerEndpointConfirmButton.interactable = true;
             return;
         }
         _stream = _client.GetStream();
         _ = StartSendingLoop();
         _ = StartListeningLoop();
         StartCoroutine(StartGetPingLoop());
-        ServerEndpointConfirmButtonObject.SetActive(false);
-        ServerEndpointInputFieldObject.SetActive(false);
+        ServerEndpointConfirmButton.gameObject.SetActive(false);
+        ServerEndpointInputField.gameObject.SetActive(false);
     }
 
     IEnumerator StartGetPingLoop()
@@ -148,8 +149,14 @@ public class NetworkManager : MonoBehaviour
         Enqueue(new PlayerShootingFromClient { targetId = target });
     }
 
+    public void SendPlayerNewTarget(int target)
+    {
+        Enqueue(new PlayerIsTargetingFromClient {  targetId = target });
+    }
+
     void HandlePacket(IPacket packet)
     {
+        Debug.Log(packet.GetType());
         switch (packet)
         {
             case YouAre are:

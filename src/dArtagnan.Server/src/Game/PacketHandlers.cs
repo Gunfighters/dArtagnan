@@ -1,4 +1,5 @@
 using dArtagnan.Shared;
+using UnityEngine;
 
 namespace dArtagnan.Server
 {
@@ -7,11 +8,33 @@ namespace dArtagnan.Server
     /// </summary>
     public static class PacketHandlers
     {
+
+        public static async Task HandleStartGame(StartGame startGame, ClientConnection client, GameManager gameManager)
+        {
+            foreach (var p in gameManager.Players)
+            {
+                p.Direction = 0;
+                p.Accuracy = Player.GenerateRandomAccuracy();
+                p.Alive = true;
+                p.RemainingReloadTime = Player.DEFAULT_RELOAD_TIME / 2;
+                p.TotalReloadTime = Player.DEFAULT_RELOAD_TIME;
+                p.IsInGame = true;
+                p.Speed = Player.GetSpeedByRunning(false);
+            }
+
+            await gameManager.StartGame();
+
+        }
         /// <summary>
         /// 플레이어 참가 요청을 처리합니다
         /// </summary>
         public static async Task HandlePlayerJoin(PlayerJoinRequest request, ClientConnection client, GameManager gameManager)
         {
+            if (gameManager.IsGamePlaying())
+            {
+                Console.WriteLine($"[게임] {client.Id}번 플레이어 난입 거부.");
+                return;
+            }
             Console.WriteLine($"[게임] 플레이어 {client.Id} 참가 요청");
 
             // 플레이어가 이미 존재하는지 확인
@@ -173,17 +196,26 @@ namespace dArtagnan.Server
             if (hit)
             {
                 // 게임이 진행 중일 때만 실제 피해 처리
-                if (gameManager.IsGamePlaying())
+                // if (gameManager.IsGamePlaying())
                 {
                     await HandlePlayerHit(target, gameManager);
                 }
-                else
-                {
-                    Console.WriteLine($"[전투] 게임이 진행 중이 아니므로 사격 피해 무시 (상태: {gameManager.CurrentGameState})");
-                }
+                // else
+                // {
+                //     Console.WriteLine($"[전투] 게임이 진행 중이 아니므로 사격 피해 무시 (상태: {gameManager.CurrentGameState})");
+                // }
             }
         }
 
+        public static async Task HandlePlayerIsTargeting(
+            PlayerIsTargetingFromClient isTargetingData,
+            ClientConnection client,
+            GameManager gameManager)
+        {
+            await gameManager.BroadcastToAll(new PlayerIsTargetingBroadcast
+                { shooterId = client.Id, targetId = isTargetingData.targetId });
+        }
+        
         /// <summary>
         /// 플레이어 Ready 상태 변경을 처리합니다
         /// </summary>

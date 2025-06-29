@@ -20,7 +20,10 @@ namespace dArtagnan.Shared
     [Union(13, typeof(UpdatePlayerPosition))]
     [Union(14, typeof(Ready))]
     [Union(15, typeof(ReadyBroadcast))]
-    [Union(16, typeof(GameStart))]
+    [Union(16, typeof(GameStarted))]
+    [Union(17, typeof(PlayerIsTargetingFromClient))]
+    [Union(18, typeof(PlayerIsTargetingBroadcast))]
+    [Union(19, typeof(StartGame))]
     public interface IPacket
     {
     }
@@ -55,6 +58,7 @@ namespace dArtagnan.Shared
         [Key(7)] public float remainingReloadTime;
         [Key(8)] public float speed;
         [Key(9)] public bool alive;
+        [Key(10)] public int targeting; // -1 if targeting none.
     }
 
     [MessagePackObject]
@@ -158,11 +162,6 @@ namespace dArtagnan.Shared
     }
 
     [MessagePackObject]
-    public struct GameStart : IPacket
-    {
-    }
-
-    [MessagePackObject]
     public struct PlayerIsTargetingFromClient : IPacket
     {
         [Key(0)] public int targetId { get; set; }
@@ -173,6 +172,24 @@ namespace dArtagnan.Shared
     {
         [Key(0)] public int shooterId { get; set; }
         [Key(1)] public int targetId { get; set; }
+    }
+
+    [MessagePackObject]
+    public struct StartGame : IPacket
+    {
+        
+    }
+
+    [MessagePackObject]
+    public struct GameStarted : IPacket
+    {
+        [Key(0)] public List<PlayerInformation> players { get; set; }
+    }
+
+    [MessagePackObject]
+    public struct NewHost : IPacket
+    {
+        [Key(0)] public int hostId { get; set; }
     }
 
     public class DirectionHelper

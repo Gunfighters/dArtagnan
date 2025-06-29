@@ -172,7 +172,8 @@ namespace dArtagnan.Server
                 totalReloadTime = player.TotalReloadTime,
                 remainingReloadTime = player.RemainingReloadTime,
                 speed = player.Speed,
-                alive = player.Alive
+                alive = player.Alive,
+                targeting = -1,
             }).ToList();
         }
 
@@ -242,10 +243,10 @@ namespace dArtagnan.Server
             Console.WriteLine($"[게임] 게임 시작! (참가자: {PlayerCount}명)");
             
             // 게임 상태를 Playing으로 변경
-            currentGameState = GameState.Playing;
+            SetGameState(GameState.Playing);
             
             // 모든 플레이어에게 게임 시작 브로드캐스트
-            await BroadcastToAll(new GameStart());
+            await BroadcastToAll(new GameStarted { players = Players.Select(p => p.playerInformation).ToList() });
         }
 
         /// <summary>

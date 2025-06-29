@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 public class CooldownPie : MonoBehaviour
 {
-    [SerializeField] private PlayerController player;
+    [SerializeField] private Player player;
     [SerializeField] private Image cooldownPieImage;
     void Update()
     {

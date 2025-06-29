@@ -1,4 +1,5 @@
 using System.Numerics;
+using dArtagnan.Shared;
 
 namespace dArtagnan.Server
 {
@@ -29,6 +30,22 @@ namespace dArtagnan.Server
         public bool Alive { get; set; }
         public bool IsInGame { get; set; }
         public bool IsReady { get; set; }
+        public int targeting { get; set; }
+
+        public PlayerInformation playerInformation => new PlayerInformation
+        {
+            accuracy = Accuracy,
+            direction = Direction,
+            alive = Alive,
+            nickname = Nickname,
+            playerId = PlayerId,
+            remainingReloadTime = RemainingReloadTime,
+            speed = Speed,
+            totalReloadTime = TotalReloadTime,
+            targeting = targeting,
+            x = X,
+            y = Y
+        };
 
         public Player(int id, int playerId, string nickname)
         {

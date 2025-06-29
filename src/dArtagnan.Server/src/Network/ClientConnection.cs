@@ -112,7 +112,15 @@ namespace dArtagnan.Server
                     case PlayerLeaveFromClient leaveData:
                         await PacketHandlers.HandlePlayerLeave(leaveData, this, gameManager);
                         break;
-
+                    
+                    case PlayerIsTargetingFromClient isTargetingData:
+                        await PacketHandlers.HandlePlayerIsTargeting(isTargetingData, this, gameManager);
+                        break;
+                    
+                    case StartGame start:
+                        await PacketHandlers.HandleStartGame(start, this, gameManager);
+                        break;
+                    
                     case Ready readyData:
                         await PacketHandlers.HandleReady(readyData, this, gameManager);
                         break;

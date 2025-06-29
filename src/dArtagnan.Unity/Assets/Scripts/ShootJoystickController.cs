@@ -1,8 +1,9 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class ShootButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     [SerializeField] private FixedJoystick shootingJoystick;
@@ -10,28 +11,28 @@ public class ShootButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     [SerializeField] private AudioSource reloadSound;
     [SerializeField] private Image JoystickAxis;
     [SerializeField] private Image HandleOutline;
-    private Vector2 startPos;
-    private bool dragging = false;
-    private float controlledPlayerCooldown => GameManager.Instance.cooldown[GameManager.Instance.ControlledPlayer.id];
-    private float controlledPlayerCooldownDuration => GameManager.Instance.ControlledPlayer.cooldownDuration;
-    private bool shootable => controlledPlayerCooldown <= 0;
+    private float cooldown => LocalPlayerController.Instance.cooldown;
+    private float cooldownDuration => LocalPlayerController.Instance.cooldownDuration;
+    private bool shootable => cooldown <= 0;
     private bool reloading = true;
 
     private Color orange = new(1.0f, 0.64f, 0.0f);
+    public Vector2 Direction => shootingJoystick.Direction;
 
     void Update()
     {
         // shootButton.interactable = controlledPlayerCooldown <= 0;
         if (shootable)
         {
-            HandleOutline.color = GameManager.Instance.targetPlayer is null ? orange : Color.red;
+            HandleOutline.color = LocalPlayerController.Instance.TargetPlayer is null ? orange : Color.red;
             shootingJoystick.enabled = true;
         }
         else
         {
             HandleOutline.color = Color.gray;
+            shootingJoystick.enabled = false;
         }
-        cooldownImage.fillAmount = controlledPlayerCooldown <= 0 ? 0 : 1f - controlledPlayerCooldown / controlledPlayerCooldownDuration;
+        cooldownImage.fillAmount = cooldown <= 0 ? 0 : 1f - cooldown / cooldownDuration;
         if (reloading && shootable)
         {
             reloadSound.Play();
@@ -52,7 +53,7 @@ public class ShootButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         if (shootable)
         {
             reloading = true;
-            GameManager.Instance.ShootTarget();
+            LocalPlayerController.Instance.ShootTarget();
         }
     }
 }

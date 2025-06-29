@@ -358,10 +358,6 @@ namespace dArtagnan.ClientTest
                         Console.WriteLine($"플레이어 {readyBroadcast.playerId} {readyStatus}");
                         break;
                         
-                    case GameStart gameStart:
-                        Console.WriteLine("🎮 게임이 시작되었습니다! 🎮");
-                        break;
-                        
                     default:
                         Console.WriteLine($"처리되지 않은 패킷 타입: {packet}");
                         break;
