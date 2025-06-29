@@ -111,25 +111,49 @@ public class GameManager : MonoBehaviour
     
     PlayerController GetAutoTarget()
     {
-        // 가장 가까운 적.
-        float minDistance = float.MaxValue;
         PlayerController target = null;
+        if (shootJoystick.Direction == Vector2.zero) // 사거리 내 가장 가까운 적.
+        {
+            float minDistance = ControlledPlayer.range;
+            foreach (var player in players.Values)
+            {
+                if (player != ControlledPlayer &&
+                    Vector2.Distance(player.position, ControlledPlayer.position) < minDistance)
+                {
+                    minDistance = Vector2.Distance(player.position, ControlledPlayer.position);
+                    target = player;
+                }
+            }
+
+            return target;
+        }
+
+        float minAngle = float.MaxValue;
         foreach (var player in players.Values)
         {
-            if (player != ControlledPlayer && Vector2.Distance(player.position, ControlledPlayer.position) < minDistance)
+            if (player != ControlledPlayer
+                && Vector2.Distance(player.position, ControlledPlayer.position) < ControlledPlayer.range
+                && Vector2.Angle(shootJoystick.Direction, player.position - ControlledPlayer.position) < minAngle
+                )
             {
-                minDistance = Vector2.Distance(player.position, ControlledPlayer.position);
+                minAngle = Vector2.Angle(shootJoystick.Direction, player.position - ControlledPlayer.position);
                 target = player;
             }
         }
-
         return target;
     }
 
     public void ShootTarget()
     {
-        NetworkManager.Instance.SendPlayerShooting(targetPlayer.id);
-        cooldown[ControlledPlayer.id] = ControlledPlayer.cooldownDuration; // TODO: remove hard coding
+        if (targetPlayer is null)
+        {
+            Debug.LogWarning("TargetPlayer is null");
+        }
+        else
+        {
+            NetworkManager.Instance.SendPlayerShooting(targetPlayer.id);
+            cooldown[ControlledPlayer.id] = ControlledPlayer.cooldownDuration;
+        }
     }
 
     void AddPlayer(int index, Vector2 estimatedPosition, Vector3 direction, int accuracy, float speed)

@@ -15,7 +15,7 @@ public class ShootButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     private float controlledPlayerCooldown => GameManager.Instance.cooldown[GameManager.Instance.ControlledPlayer.id];
     private float controlledPlayerCooldownDuration => GameManager.Instance.ControlledPlayer.cooldownDuration;
     private bool shootable => controlledPlayerCooldown <= 0;
-    private bool reloading = false;
+    private bool reloading = true;
 
     private Color orange = new(1.0f, 0.64f, 0.0f);
 
@@ -24,12 +24,12 @@ public class ShootButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         // shootButton.interactable = controlledPlayerCooldown <= 0;
         if (shootable)
         {
-            HandleOutline.color = Color.red;
+            HandleOutline.color = GameManager.Instance.targetPlayer is null ? orange : Color.red;
             shootingJoystick.enabled = true;
         }
         else
         {
-            HandleOutline.color = orange;
+            HandleOutline.color = Color.gray;
         }
         cooldownImage.fillAmount = controlledPlayerCooldown <= 0 ? 0 : 1f - controlledPlayerCooldown / controlledPlayerCooldownDuration;
         if (reloading && shootable)
