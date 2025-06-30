@@ -32,7 +32,7 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
             HandleOutline.color = Color.gray;
             shootingJoystick.enabled = false;
         }
-        cooldownImage.fillAmount = cooldown <= 0 ? 0 : 1f - cooldown / cooldownDuration;
+        cooldownImage.fillAmount = cooldown <= 0 ? 1 : 1f - cooldown / cooldownDuration;
         if (reloading && shootable)
         {
             reloadSound.Play();

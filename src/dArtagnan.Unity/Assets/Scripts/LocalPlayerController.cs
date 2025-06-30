@@ -149,6 +149,5 @@ public class LocalPlayerController : Player
     {
         if (TargetPlayer is null) return;
         NetworkManager.Instance.SendPlayerShooting(TargetPlayer.id);
-        cooldown = cooldownDuration;
     }
 }

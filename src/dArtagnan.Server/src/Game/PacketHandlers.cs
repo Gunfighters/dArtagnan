@@ -180,7 +180,7 @@ namespace dArtagnan.Server
             bool hit = CalculateHit(shooter.Accuracy);
             
             // 재장전 시간 설정
-            shooter.UpdateReloadTime(Player.DEFAULT_RELOAD_TIME);
+            shooter.UpdateReloadTime(Player.DEFAULT_RELOAD_TIME - gameManager.ping[shooter.PlayerId]);
 
             Console.WriteLine($"[전투] 플레이어 {shooter.PlayerId} -> {target.PlayerId} 사격: {(hit ? "명중" : "빗나감")}");
 
@@ -189,7 +189,8 @@ namespace dArtagnan.Server
             {
                 shooterId = shooter.PlayerId,
                 targetId = target.PlayerId,
-                hit = hit
+                hit = hit,
+                shooterRemainingReloadingTime = shooter.RemainingReloadTime
             });
 
             // 명중 시 타겟 처리

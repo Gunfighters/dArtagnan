@@ -114,6 +114,7 @@ namespace dArtagnan.Shared
         [Key(0)] public int shooterId { get; set; }
         [Key(1)] public int targetId { get; set; }
         [Key(2)] public bool hit { get; set; }
+        [Key(3)] public float shooterRemainingReloadingTime { get; set; }
     }
 
     [MessagePackObject]

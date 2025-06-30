@@ -8265,7 +8265,7 @@ MonoBehaviour:
   firing: 0
   cooldown: 0
   cooldownDuration: 0
-  speed: 40
+  speed: 0
   rb: {fileID: -6038186580018660002}
   SpriteManager: {fileID: 4577585517783738048}
   accuracyText: {fileID: 1390658588386230027}

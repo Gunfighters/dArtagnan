@@ -37,7 +37,7 @@ public class GameManager : MonoBehaviour
         localPlayer.cooldown = Mathf.Max(0, localPlayer.cooldown - Time.deltaTime);
     }
 
-    void AddPlayer(int id, Vector2 estimatedPosition, Vector3 direction, int accuracy, float speed)
+    void AddPlayer(int id, Vector2 estimatedPosition, Vector3 direction, int accuracy, float speed, float remainingReloadTime, float totalReloadTime)
     {
         Debug.Log($"Add Player #{id} at {estimatedPosition} with accuracy {accuracy}%");
         if (remotePlayers.ContainsKey(id))
@@ -53,6 +53,9 @@ public class GameManager : MonoBehaviour
             localPlayer = localPlayer.GetComponent<LocalPlayerController>();
             localPlayer.SetAccuracy(accuracy);
             localPlayer.SetActive(true);
+            localPlayer.speed = speed;
+            localPlayer.cooldown = remainingReloadTime;
+            localPlayer.cooldownDuration = totalReloadTime;
         }
         else
         {
@@ -61,6 +64,8 @@ public class GameManager : MonoBehaviour
             player.id = id;
             player.SetAccuracy(accuracy);
             player.SetMovementInformation(direction, estimatedPosition, speed);
+            player.cooldown = remainingReloadTime;
+            player.cooldownDuration = totalReloadTime;
             remotePlayers[id] = player;
         }
     }
@@ -76,7 +81,7 @@ public class GameManager : MonoBehaviour
         {
             var directionVec = DirectionHelperClient.IntToDirection(info.direction);
             var estimated = RemotePlayerController.EstimatePositionByPing(new Vector3(info.x, info.y), directionVec, info.speed);
-            AddPlayer(info.playerId, estimated, directionVec, info.accuracy, info.speed);
+            AddPlayer(info.playerId, estimated, directionVec, info.accuracy, info.speed, info.remainingReloadTime - Ping / 2, info.totalReloadTime);
         }
     }
 
@@ -84,7 +89,8 @@ public class GameManager : MonoBehaviour
     {
         if (payload.playerId != localPlayerId)
         {
-            AddPlayer(payload.playerId, new Vector2(payload.initX, payload.initY), Vector3.zero, payload.accuracy, 40f);
+            AddPlayer(payload.playerId, new Vector2(payload.initX, payload.initY), Vector3.zero, payload.accuracy, 40f,
+                7.5f - Ping / 2, 15);
         }
     }
 
@@ -106,7 +112,7 @@ public class GameManager : MonoBehaviour
     {
         Player shooter = shooting.shooterId == localPlayerId ? localPlayer : remotePlayers[shooting.shooterId];
         shooter.Fire();
-        shooter.cooldown = shooter.cooldownDuration;
+        shooter.cooldown = shooter.cooldownDuration - Ping / 2;
         shooter.ShowHitOrMiss(shooting.hit);
         // TODO: show hit or miss text
     }
