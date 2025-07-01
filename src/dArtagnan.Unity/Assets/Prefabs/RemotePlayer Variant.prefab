@@ -8,6 +8,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1863006141226761352, guid: 9ea806eaf945f4eef9e1a11aedbf304e, type: 3}
+      propertyPath: player
+      value: 
+      objectReference: {fileID: 4223993298784267547}
     - target: {fileID: 5225883545143339161, guid: 9ea806eaf945f4eef9e1a11aedbf304e, type: 3}
       propertyPath: m_Name
       value: RemotePlayer Variant
