@@ -15,8 +15,6 @@ public class NetworkManager : MonoBehaviour
     private TcpClient _client;
     private NetworkStream _stream;
     public static NetworkManager Instance { get; private set; }
-    public TMP_InputField ServerEndpointInputField;
-    public Button ServerEndpointConfirmButton;
     private string host;
     private int port;
     public TextMeshProUGUI PingText;
@@ -33,16 +31,9 @@ public class NetworkManager : MonoBehaviour
 
     void Start()
     {
-        ServerEndpointConfirmButton.onClick.AddListener(() =>
-        {
-            var inputField = ServerEndpointInputField.GetComponent<TMP_InputField>();
-            var placeholder = inputField.placeholder.GetComponent<TextMeshProUGUI>();
-            var split = inputField.text != "" ? inputField.text.Split(':') : placeholder.text.Split(':');
-            host = split[0];
-            port = Parse(split[1]);
-            ConnectToServer();
-            ServerEndpointConfirmButton.interactable = false;
-        });
+        host = "ec2-54-180-85-77.ap-northeast-2.compute.amazonaws.com";
+        port = 7777;
+        ConnectToServer();
     }
 
     async Task ConnectToServer()
@@ -56,15 +47,12 @@ public class NetworkManager : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError(e);
-            ServerEndpointConfirmButton.interactable = true;
             return;
         }
         _stream = _client.GetStream();
         _ = StartSendingLoop();
         _ = StartListeningLoop();
         StartCoroutine(StartGetPingLoop());
-        ServerEndpointConfirmButton.gameObject.SetActive(false);
-        ServerEndpointInputField.gameObject.SetActive(false);
     }
 
     IEnumerator StartGetPingLoop()
