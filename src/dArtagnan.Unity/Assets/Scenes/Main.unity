@@ -599,7 +599,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cbd1f4b5a0af4c34b7bebe285c8fd720, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  host: ec2-54-180-85-77.ap-northeast-2.compute.amazonaws.com
+  host: 54.180.85.77
   port: 7777
   PingText: {fileID: 1711268241}
 --- !u!4 &656021099
@@ -1429,13 +1429,13 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6350948964885270726}
     m_Modifications:
-    - target: {fileID: 2134084128721210812, guid: 7a2d1294eebe5414cbcccd401ccf6c34, type: 3}
-      propertyPath: player
-      value: 
-      objectReference: {fileID: 0}
     - target: {fileID: 5530808911505447341, guid: 7a2d1294eebe5414cbcccd401ccf6c34, type: 3}
       propertyPath: m_Name
       value: LocalPlayer
+      objectReference: {fileID: 0}
+    - target: {fileID: 5530808911505447341, guid: 7a2d1294eebe5414cbcccd401ccf6c34, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6828768238728806181, guid: 7a2d1294eebe5414cbcccd401ccf6c34, type: 3}
       propertyPath: m_LocalPosition.x

@@ -27,10 +27,6 @@ public class NetworkManager : MonoBehaviour
             SingleReader = true,
             SingleWriter = true
         });
-    }
-
-    void Start()
-    {
         ConnectToServer();
     }
 
