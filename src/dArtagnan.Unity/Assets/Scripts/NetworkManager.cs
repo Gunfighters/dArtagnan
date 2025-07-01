@@ -15,8 +15,8 @@ public class NetworkManager : MonoBehaviour
     private TcpClient _client;
     private NetworkStream _stream;
     public static NetworkManager Instance { get; private set; }
-    private string host;
-    private int port;
+    public string host;
+    public int port;
     public TextMeshProUGUI PingText;
 
     void Awake()
@@ -31,8 +31,6 @@ public class NetworkManager : MonoBehaviour
 
     void Start()
     {
-        host = "ec2-54-180-85-77.ap-northeast-2.compute.amazonaws.com";
-        port = 7777;
         ConnectToServer();
     }
 

@@ -28,8 +28,6 @@ public class LocalPlayerController : Player
         HandleMovementInputAndUpdateOnChange();
         SetCharacterMovementAnimation();
         UpdateTarget();
-        PlayFireAnimationIfFiring();
-        DieIfDead();
     }
     
     void HandleMovementInputAndUpdateOnChange()
@@ -87,7 +85,6 @@ public class LocalPlayerController : Player
     void UpdateTarget()
     {
         var newTarget = GetAutoTarget();
-        Debug.Log(newTarget);
         if (TargetPlayer != newTarget)
         {
             SetTarget(newTarget);
@@ -105,7 +102,7 @@ public class LocalPlayerController : Player
             float minDistance = range;
             foreach (var target in GameManager.Instance.remotePlayers.Values)
             {
-                if (Vector2.Distance(target.Position, Position) < minDistance
+                if (!target.dead && Vector2.Distance(target.Position, Position) < minDistance
                     && CanShoot(target))
                 {
                     minDistance = Vector2.Distance(target.Position, Position);
@@ -119,7 +116,7 @@ public class LocalPlayerController : Player
         float minAngle = float.MaxValue;
         foreach (var target in GameManager.Instance.remotePlayers.Values)
         {
-            if (Vector2.Distance(target.Position, Position) < range
+            if (!target.dead && Vector2.Distance(target.Position, Position) < range
                 && Vector2.Angle(shootJoystickController.Direction, target.Position - Position) < minAngle
                 && CanShoot(target)
                )

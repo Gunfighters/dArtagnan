@@ -16,7 +16,6 @@ public class RemotePlayerController : Player
     void Awake()
     {
         SpriteManager = GetComponent<Character4D>();
-        SpriteManager.SetState(CharacterState.Idle);
         HighlightAsTarget(false);
         rb = GetComponent<Rigidbody2D>();
     }
@@ -29,8 +28,6 @@ public class RemotePlayerController : Player
     private void Update()
     {
         SetCharacterMovementAnimation();
-        PlayFireAnimationIfFiring();
-        DieIfDead();
     }
 
     void ReckonMovement()

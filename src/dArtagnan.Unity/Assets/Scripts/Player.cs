@@ -6,8 +6,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(Character4D))]
-[RequireComponent(typeof(Rigidbody2D))]
 public abstract class Player : MonoBehaviour
 {
     public int id;
@@ -17,7 +15,6 @@ public abstract class Player : MonoBehaviour
     public Vector2 currentDirection;
     public Vector2 Position => rb.position;
     public bool dead;
-    public bool firing;
     public float cooldown;
     public float cooldownDuration;
     public float speed;
@@ -61,31 +58,15 @@ public abstract class Player : MonoBehaviour
         }
     }
 
-    protected void PlayFireAnimationIfFiring()
-    {
-        if (firing)
-        {
-            firing = false;
-            SpriteManager.Fire();
-        }
-    }
-
-    protected void DieIfDead()
-    {
-        if (dead)
-        {
-            SpriteManager.SetState(CharacterState.Death);
-        }
-    }
-
     public void Fire()
     {
-        firing = true;
+        SpriteManager.Fire();
     }
 
     public void Die()
     {
         dead = true;
+        SpriteManager.SetState(CharacterState.Death);
     }
     
     public void SetAccuracy(int newAccuracy)
