@@ -15,23 +15,23 @@ namespace dArtagnan.Server
         public const int MIN_ACCURACY = 1;
         public const int MAX_ACCURACY = 100;
 
-        public int Id { get; set; }
-        public int PlayerId { get; set; }
-        public string Nickname { get; set; } = string.Empty;
-        public int Accuracy { get; set; }
-        public int Direction { get; set; }
-        public float X { get; set; }
-        public float Y { get; set; }
-        public float range { get; set; }
+        public int Id;
+        public int PlayerId;
+        public string Nickname;
+        public int Accuracy;
+        public int Direction;
+        public float X;
+        public float Y;
+        public float range;
         
         // 게임 상태
-        public float TotalReloadTime { get; set; }
-        public float RemainingReloadTime { get; set; }
-        public float Speed { get; set; }
-        public bool Alive { get; set; }
-        public bool IsInGame { get; set; }
-        public bool IsReady { get; set; }
-        public int targeting { get; set; }
+        public float TotalReloadTime;
+        public float RemainingReloadTime;
+        public float Speed;
+        public bool Alive;
+        public bool IsInGame;
+        public bool IsReady;
+        public int targeting;
 
         public PlayerInformation playerInformation => new()
         {
