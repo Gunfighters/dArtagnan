@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
     public Canvas WorldCanvas;
     public Button GameStartButton;
+    private int hostId;
 
     void Awake()
     {
@@ -97,11 +98,19 @@ public class GameManager : MonoBehaviour
     public void OnYouAre(YouAre payload)
     {
         localPlayerId = payload.playerId;
+        ToggleGameStartButton(localPlayerId == hostId);
     }
 
     public void OnNewHost(NewHost payload)
     {
-        GameStartButton.gameObject.SetActive(payload.hostId == localPlayerId);
+        hostId = payload.hostId;
+        Debug.Log($"New Host #{hostId}");
+        ToggleGameStartButton(localPlayerId == hostId);
+    }
+
+    void ToggleGameStartButton(bool toggle)
+    {
+        GameStartButton.gameObject.SetActive(toggle);
     }
 
     public void OnInformationOfPlayers(InformationOfPlayers informationOfPlayers)

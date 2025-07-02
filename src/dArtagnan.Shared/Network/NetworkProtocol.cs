@@ -24,6 +24,7 @@ namespace dArtagnan.Shared
     [Union(17, typeof(PlayerIsTargetingFromClient))]
     [Union(18, typeof(PlayerIsTargetingBroadcast))]
     [Union(19, typeof(StartGame))]
+    [Union(20, typeof(NewHost))]
     public interface IPacket
     {
     }
