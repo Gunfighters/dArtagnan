@@ -59,33 +59,24 @@ namespace dArtagnan.Server
             X = 0;
             Y = 0;
             TotalReloadTime = DEFAULT_RELOAD_TIME;
-            RemainingReloadTime = 0.0f;
+            RemainingReloadTime = TotalReloadTime / 2;
             Speed = WALKING_SPEED;
             Alive = true;
             IsInGame = false;
             IsReady = false;
-            range = 200f;
+            range = 800f;
         }
 
-        /// <summary>
-        /// 랜덤 명중률을 생성합니다
-        /// </summary>
         public static int GenerateRandomAccuracy()
         {
             return Random.Shared.Next(MIN_ACCURACY, MAX_ACCURACY + 1);
         }
 
-        /// <summary>
-        /// 달리기 상태에 따른 속도를 반환합니다
-        /// </summary>
         public static float GetSpeedByRunning(bool isRunning)
         {
             return isRunning ? RUNNING_SPEED : WALKING_SPEED;
         }
 
-        /// <summary>
-        /// 플레이어의 초기 위치를 설정합니다 (스폰 포인트)
-        /// </summary>
         public static (float x, float y) GetSpawnPosition(int playerId)
         {
             // 간단한 원형 배치로 스폰 위치 결정
@@ -97,58 +88,37 @@ namespace dArtagnan.Server
             return (x, y);
         }
 
-        /// <summary>
-        /// 플레이어의 위치를 업데이트합니다
-        /// </summary>
         public void UpdatePosition(float newX, float newY)
         {
             X = newX;
             Y = newY;
         }
 
-        /// <summary>
-        /// 플레이어의 속도를 업데이트합니다
-        /// </summary>
         public void UpdateSpeed(float newSpeed)
         {
             Speed = newSpeed;
         }
 
-        /// <summary>
-        /// 플레이어의 생존 상태를 업데이트합니다
-        /// </summary>
         public void UpdateAlive(bool alive)
         {
             Alive = alive;
         }
 
-        /// <summary>
-        /// 재장전 시간을 업데이트합니다
-        /// </summary>
         public void UpdateReloadTime(float remaining)
         {
             RemainingReloadTime = remaining;
         }
 
-        /// <summary>
-        /// 게임 참가 상태를 설정합니다
-        /// </summary>
         public void JoinGame()
         {
             IsInGame = true;
         }
 
-        /// <summary>
-        /// 게임 퇴장 상태를 설정합니다
-        /// </summary>
         public void LeaveGame()
         {
             IsInGame = false;
         }
 
-        /// <summary>
-        /// 플레이어의 Ready 상태를 업데이트합니다
-        /// </summary>
         public void UpdateReady(bool ready)
         {
             IsReady = ready;
