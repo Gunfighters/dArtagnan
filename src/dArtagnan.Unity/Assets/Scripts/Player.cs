@@ -7,6 +7,8 @@ using UnityEngine;
 public abstract class Player : MonoBehaviour
 {
     public int id;
+    public string nickname { get; private set; }
+    public TextMeshProUGUI nicknameText;
     public float range;
     public int accuracy;
     public Vector2 serverPosition;
@@ -26,6 +28,12 @@ public abstract class Player : MonoBehaviour
     public TextMeshProUGUI Misstext;
     private TextMeshProUGUI HitMissShowing;
     private IEnumerator HitMissFader;
+
+    public void SetNickname(string newNickname)
+    {
+        nickname = newNickname;
+        nicknameText.text = nickname;
+    }
     
     protected static Vector3 SnapToCardinalDirection(Vector3 dir)
     {
@@ -80,7 +88,8 @@ public abstract class Player : MonoBehaviour
         accuracy = newAccuracy;
         accuracyText.text = $"{accuracy}%";
     }
-    public void ImmediatelyMoveTo(Vector3 position)
+
+    public virtual void ImmediatelyMoveTo(Vector3 position)
     {
         rb.MovePosition(position);
     }

@@ -1756,6 +1756,17 @@ SpriteRenderer:
   m_CorrespondingSourceObject: {fileID: 7484546077695317218, guid: 9ea806eaf945f4eef9e1a11aedbf304e, type: 3}
   m_PrefabInstance: {fileID: 2337806544082074284}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6090216704150899770 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8427718665256367766, guid: 9ea806eaf945f4eef9e1a11aedbf304e, type: 3}
+  m_PrefabInstance: {fileID: 2337806544082074284}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &6136869611142747876 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8456358016459336776, guid: 9ea806eaf945f4eef9e1a11aedbf304e, type: 3}
@@ -1796,6 +1807,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   id: 0
+  nicknameText: {fileID: 6090216704150899770}
   range: 0
   accuracy: 0
   serverPosition: {x: 0, y: 0}

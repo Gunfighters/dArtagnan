@@ -17,11 +17,12 @@ namespace dArtagnan.Server
     /// </summary>
     public class GameManager
     {
-        private readonly ConcurrentDictionary<int, Player> players = new();
+        public readonly ConcurrentDictionary<int, Player> players = new();
         private readonly ConcurrentDictionary<int, ClientConnection> clients = new(); // 클라이언트 연결도 여기서 관리
         private int nextPlayerId = 1;
         private GameState currentGameState = GameState.Waiting;
         public readonly ConcurrentDictionary<int, float> ping = new();
+        public Player? host;
 
         /// <summary>
         /// 현재 게임 상태
@@ -57,6 +58,16 @@ namespace dArtagnan.Server
             Console.WriteLine($"클라이언트 {client.Id} 추가됨 (현재 접속자: {clients.Count})");
         }
 
+        public async Task SetHost(Player? player)
+        {
+            host = player;
+            Console.WriteLine($"[게임] 새 방장: {host?.Id}");
+            if (host != null)
+            {
+                await BroadcastToAll(new NewHost { hostId = host.Id });
+            }
+        }
+
         /// <summary>
         /// 플레이어를 게임에 추가합니다
         /// </summary>
@@ -64,6 +75,10 @@ namespace dArtagnan.Server
         {
             var player = new Player(clientId, nextPlayerId++, nickname);
             players.TryAdd(clientId, player);
+            if (host == null)
+            {
+                SetHost(player);
+            }
             return player;
         }
 
@@ -92,6 +107,11 @@ namespace dArtagnan.Server
             if (player != null)
             {
                 Console.WriteLine($"[게임] 플레이어 {player.PlayerId} 제거 완료 (현재 인원: {PlayerCount}, 접속자: {ClientCount})");
+            }
+
+            if (player == host)
+            {
+                SetHost(null);
             }
         }
 

@@ -1,19 +1,19 @@
 ﻿using System.Collections.Generic;
-using Assets.HeroEditor4D.Common.Scripts.Common;
-using Assets.HeroEditor4D.Common.Scripts.Enums;
 using dArtagnan.Shared;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
     public Camera mainCamera;
     public LocalPlayerController localPlayer;
     public GameObject playerPrefab;
-    [SerializeField] private int localPlayerId;
+    private int localPlayerId;
     public readonly Dictionary<int, RemotePlayerController> remotePlayers = new();
     public float Ping { get; private set; }
     public static GameManager Instance { get; private set; }
     public Canvas WorldCanvas;
+    public Button GameStartButton;
 
     void Awake()
     {
@@ -22,6 +22,7 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        GameStartButton.onClick.AddListener(StartGame);
         NetworkManager.Instance.SendJoinRequest();
     }
 
@@ -56,7 +57,8 @@ public class GameManager : MonoBehaviour
         if (info.playerId == localPlayerId)
         {
             created = localPlayer.gameObject;
-            localPlayer.rb.MovePosition(estimatedPosition);
+            localPlayer.SetNickname($"#{localPlayerId}");
+            localPlayer.ImmediatelyMoveTo(estimatedPosition);
             mainCamera.transform.SetParent(localPlayer.transform);
             localPlayer = localPlayer.GetComponent<LocalPlayerController>();
             localPlayer.SetAccuracy(info.accuracy);
@@ -75,7 +77,9 @@ public class GameManager : MonoBehaviour
             created = Instantiate(playerPrefab, estimatedPosition, Quaternion.identity, WorldCanvas.transform);
             var player = created.GetComponent<RemotePlayerController>();
             player.id = info.playerId;
+            player.SetNickname($"#{player.id}");
             player.SetAccuracy(info.accuracy);
+            player.ImmediatelyMoveTo(estimatedPosition);
             player.SetMovementInformation(directionVec, estimatedPosition, info.speed);
             player.range = info.range;
             player.cooldown = estimatedRemainingReloadTime;
@@ -93,6 +97,11 @@ public class GameManager : MonoBehaviour
     public void OnYouAre(YouAre payload)
     {
         localPlayerId = payload.playerId;
+    }
+
+    public void OnNewHost(NewHost payload)
+    {
+        GameStartButton.gameObject.SetActive(payload.hostId == localPlayerId);
     }
 
     public void OnInformationOfPlayers(InformationOfPlayers informationOfPlayers)
@@ -152,5 +161,10 @@ public class GameManager : MonoBehaviour
     public void SetPing(Ping p)
     {
         Ping = p.time / 1000f;
+    }
+
+    void StartGame()
+    {
+        NetworkManager.Instance.SendStartGame();
     }
 }

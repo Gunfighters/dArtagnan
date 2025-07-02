@@ -136,6 +136,11 @@ public class NetworkManager : MonoBehaviour
         Enqueue(new PlayerIsTargetingFromClient {  targetId = target });
     }
 
+    public void SendStartGame()
+    {
+        Enqueue(new StartGame());
+    }
+
     void HandlePacket(IPacket packet)
     {
         Debug.Log(packet.GetType());
@@ -164,6 +169,9 @@ public class NetworkManager : MonoBehaviour
                 break;
             case PlayerLeaveBroadcast playerLeaveBroadcast:
                 GameManager.Instance.OnPlayerLeaveBroadcast(playerLeaveBroadcast);
+                break;
+            case NewHost newHost:
+                GameManager.Instance.OnNewHost(newHost);
                 break;
             default:
                 Debug.LogWarning($"Unhandled packet: {packet}");

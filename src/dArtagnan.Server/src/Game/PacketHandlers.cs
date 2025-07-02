@@ -11,6 +11,11 @@ namespace dArtagnan.Server
 
         public static async Task HandleStartGame(StartGame startGame, ClientConnection client, GameManager gameManager)
         {
+            var starter = gameManager.players[client.Id];
+            if (starter != gameManager.host)
+            {
+                Console.WriteLine($"[게임] 경고: 방장이 아닌 플레이어가 게임 시작 시도 (Player #{starter.Id})");
+            }
             foreach (var p in gameManager.Players)
             {
                 p.Direction = 0;

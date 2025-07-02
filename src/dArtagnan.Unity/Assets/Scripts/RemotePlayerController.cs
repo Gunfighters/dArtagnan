@@ -57,4 +57,11 @@ public class RemotePlayerController : Player
         isCorrecting = true;
         LastServerUpdateTimestamp = Time.time;
     }
+
+    public override void ImmediatelyMoveTo(Vector3 position)
+    {
+        rb.MovePosition(position);
+        serverPosition = position;
+        isCorrecting = false;
+    }
 }
