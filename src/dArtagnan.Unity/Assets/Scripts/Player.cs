@@ -1,10 +1,8 @@
 using System.Collections;
-using System.Collections.Generic;
-using Assets.HeroEditor4D.Common.Scripts.CharacterScripts;
 using Assets.HeroEditor4D.Common.Scripts.Enums;
+using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public abstract class Player : MonoBehaviour
 {
@@ -20,16 +18,16 @@ public abstract class Player : MonoBehaviour
     public float speed;
     public bool running => speed > 40;
     public Rigidbody2D rb;
-    public Character4D SpriteManager;
+    public ModelManager modelManager;
     public TextMeshProUGUI accuracyText;
-    public RemotePlayerController TargetPlayer { get; protected set; }
-    public GameObject targetHighlightCircle;
+    [CanBeNull] public RemotePlayerController TargetPlayer { get; protected set; }
+    public SpriteRenderer targetHighlightCircle;
     public TextMeshProUGUI HitText;
     public TextMeshProUGUI Misstext;
     private TextMeshProUGUI HitMissShowing;
     private IEnumerator HitMissFader;
     
-    static Vector3 SnapToCardinalDirection(Vector3 dir)
+    protected static Vector3 SnapToCardinalDirection(Vector3 dir)
     {
         if (dir == Vector3.zero) return Vector3.zero;
 
@@ -45,28 +43,36 @@ public abstract class Player : MonoBehaviour
         };
     }
 
-    protected void SetCharacterMovementAnimation()
+    protected void UpdateModel()
     {
+        if (dead) return;
         if (currentDirection == Vector2.zero)
         {
-            SpriteManager.SetState(CharacterState.Idle);
+            modelManager.Stop();
         }
         else
         {
-            SpriteManager.SetDirection(SnapToCardinalDirection(currentDirection));
-            SpriteManager.SetState(running ? CharacterState.Run : CharacterState.Walk);
+            modelManager.SetDirection(SnapToCardinalDirection(currentDirection));
+            if (running)
+            {
+                modelManager.Run();
+            }
+            else
+            {
+                modelManager.Walk();
+            }
         }
     }
 
     public void Fire()
     {
-        SpriteManager.Fire();
+        modelManager.Fire();
     }
 
     public void Die()
     {
         dead = true;
-        SpriteManager.SetState(CharacterState.Death);
+        modelManager.Die();
     }
     
     public void SetAccuracy(int newAccuracy)
@@ -76,7 +82,7 @@ public abstract class Player : MonoBehaviour
     }
     public void ImmediatelyMoveTo(Vector3 position)
     {
-        rb.position = position;
+        rb.MovePosition(position);
     }
 
     public void ShowHitOrMiss(bool hit)

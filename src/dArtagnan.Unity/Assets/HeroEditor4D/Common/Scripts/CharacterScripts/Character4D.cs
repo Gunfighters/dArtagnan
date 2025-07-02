@@ -33,7 +33,6 @@ namespace Assets.HeroEditor4D.Common.Scripts.CharacterScripts
         [Header("Other")] public LayerManager LayerManager;
 
         public Color BodyColor;
-        public FirearmFxExample FirearmFx;
 
         public SpriteCollection SpriteCollection => Parts[0].SpriteCollection;
         private List<Character> PartsExceptBack => new() { Front, Left, Right };
@@ -173,17 +172,6 @@ namespace Assets.HeroEditor4D.Common.Scripts.CharacterScripts
         public void SetState(CharacterState state)
         {
             AnimationManager.SetState(state);
-        }
-
-        public void Fire()
-        {
-            AnimationManager.Fire();
-            var firearm =
-                Front.SpriteCollection.Firearm1H.SingleOrDefault(i => i.Sprites.Contains(Parts[0].PrimaryWeapon))
-                ?? Front.SpriteCollection.Firearm2H.SingleOrDefault(i =>
-                    i.Sprites.Contains(Parts[0].PrimaryWeapon));
-
-            if (firearm != null) FirearmFx.CreateFireMuzzle(firearm.Name, firearm.Collection);
         }
 
         public void Initialize()

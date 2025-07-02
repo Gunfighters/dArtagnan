@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour
     public readonly Dictionary<int, RemotePlayerController> remotePlayers = new();
     public float Ping { get; private set; }
     public static GameManager Instance { get; private set; }
+    public Canvas WorldCanvas;
 
     void Awake()
     {
@@ -38,27 +39,32 @@ public class GameManager : MonoBehaviour
         localPlayer.cooldown = Mathf.Max(0, localPlayer.cooldown - Time.deltaTime);
     }
 
-    void AddPlayer(int id, Vector2 estimatedPosition, Vector3 direction, int accuracy, float speed, float remainingReloadTime, float totalReloadTime, bool alive)
+    void AddPlayer(PlayerInformation info)
     {
-        Debug.Log($"Add Player #{id} at {estimatedPosition} with accuracy {accuracy}%");
-        if (remotePlayers.ContainsKey(id))
+        var serverPosition = new Vector2(info.x, info.y);
+        var directionVec = (Vector2) DirectionHelperClient.IntToDirection(info.direction);
+        var estimatedPosition = serverPosition + directionVec * Ping / 2;
+        var estimatedRemainingReloadTime = info.remainingReloadTime - Ping / 2;
+        Debug.Log($"Add Player #{info.playerId}");
+        if (remotePlayers.ContainsKey(info.playerId))
         {
-            Debug.LogWarning($"Trying to add player #{id} that already exists");
+            Debug.LogWarning($"Trying to add player #{info.playerId} that already exists");
             return;
         }
 
         GameObject created;
-        if (id == localPlayerId)
+        if (info.playerId == localPlayerId)
         {
             created = localPlayer.gameObject;
             localPlayer.rb.MovePosition(estimatedPosition);
             mainCamera.transform.SetParent(localPlayer.transform);
             localPlayer = localPlayer.GetComponent<LocalPlayerController>();
-            localPlayer.SetAccuracy(accuracy);
-            localPlayer.speed = speed;
-            localPlayer.cooldown = remainingReloadTime;
-            localPlayer.cooldownDuration = totalReloadTime;
-            localPlayer.dead = !alive;
+            localPlayer.SetAccuracy(info.accuracy);
+            localPlayer.range = info.range;
+            localPlayer.speed = info.speed;
+            localPlayer.cooldown = estimatedRemainingReloadTime;
+            localPlayer.cooldownDuration = info.totalReloadTime;
+            localPlayer.dead = !info.alive;
             if (localPlayer.dead)
             {
                 localPlayer.Die();
@@ -66,19 +72,20 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            created = Instantiate(playerPrefab, estimatedPosition, Quaternion.identity);
+            created = Instantiate(playerPrefab, estimatedPosition, Quaternion.identity, WorldCanvas.transform);
             var player = created.GetComponent<RemotePlayerController>();
-            player.id = id;
-            player.SetAccuracy(accuracy);
-            player.SetMovementInformation(direction, estimatedPosition, speed);
-            player.cooldown = remainingReloadTime;
-            player.cooldownDuration = totalReloadTime;
-            player.dead = !alive;
+            player.id = info.playerId;
+            player.SetAccuracy(info.accuracy);
+            player.SetMovementInformation(directionVec, estimatedPosition, info.speed);
+            player.range = info.range;
+            player.cooldown = estimatedRemainingReloadTime;
+            player.cooldownDuration = info.totalReloadTime;
+            player.dead = !info.alive;
             if (player.dead)
             {
                 player.Die();
             }
-            remotePlayers[id] = player;
+            remotePlayers[info.playerId] = player;
         }
         created.SetActive(true);
     }
@@ -92,18 +99,16 @@ public class GameManager : MonoBehaviour
     {
         foreach (var info in informationOfPlayers.info)
         {
-            var directionVec = DirectionHelperClient.IntToDirection(info.direction);
-            var estimated = RemotePlayerController.EstimatePositionByPing(new Vector3(info.x, info.y), directionVec, info.speed);
-            AddPlayer(info.playerId, estimated, directionVec, info.accuracy, info.speed, info.remainingReloadTime - Ping / 2, info.totalReloadTime, info.alive);
+            AddPlayer(info);
         }
     }
 
     public void OnPlayerJoinBroadcast(PlayerJoinBroadcast payload)
     {
-        if (payload.playerId != localPlayerId)
+        var info = payload.playerInfo;
+        if (info.playerId != localPlayerId)
         {
-            AddPlayer(payload.playerId, new Vector2(payload.initX, payload.initY), Vector3.zero, payload.accuracy, 40f,
-                7.5f - Ping / 2, 15, true);
+            AddPlayer(info);
         }
     }
 
@@ -132,7 +137,11 @@ public class GameManager : MonoBehaviour
 
     public void OnUpdatePlayerAlive(UpdatePlayerAlive updatePlayerAlive)
     {
-        remotePlayers[updatePlayerAlive.playerId].Die();
+        Player aliveOrDead = updatePlayerAlive.playerId == localPlayerId ? localPlayer : remotePlayers[updatePlayerAlive.playerId];
+        if (!updatePlayerAlive.alive)
+        {
+            aliveOrDead.Die();
+        }
     }
 
     public void OnPlayerLeaveBroadcast(PlayerLeaveBroadcast leave)

@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections;
-using Assets.HeroEditor4D.Common.Scripts.CharacterScripts;
-using Assets.HeroEditor4D.Common.Scripts.Common;
-using Assets.HeroEditor4D.Common.Scripts.Enums;
-using TMPro;
-using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEngine;
 
 public class RemotePlayerController : Player
 {
@@ -15,7 +8,6 @@ public class RemotePlayerController : Player
     
     void Awake()
     {
-        SpriteManager = GetComponent<Character4D>();
         HighlightAsTarget(false);
         rb = GetComponent<Rigidbody2D>();
     }
@@ -27,7 +19,7 @@ public class RemotePlayerController : Player
 
     private void Update()
     {
-        SetCharacterMovementAnimation();
+        UpdateModel();
     }
 
     void ReckonMovement()
@@ -43,13 +35,13 @@ public class RemotePlayerController : Player
         }
         else
         {
-            rb.MovePosition(rb.position + speed * Time.fixedDeltaTime * (Vector2) currentDirection);
+            rb.MovePosition(rb.position + speed * Time.fixedDeltaTime * currentDirection);
         }
     }
 
     public void HighlightAsTarget(bool show)
     {
-        targetHighlightCircle.SetActive(show);
+        targetHighlightCircle.enabled = show;
     }
 
     public static Vector3 EstimatePositionByPing(Vector3 position, Vector3 direction, float speed)

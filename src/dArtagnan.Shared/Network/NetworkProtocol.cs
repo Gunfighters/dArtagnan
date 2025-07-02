@@ -59,15 +59,13 @@ namespace dArtagnan.Shared
         [Key(8)] public float speed;
         [Key(9)] public bool alive;
         [Key(10)] public int targeting; // -1 if targeting none.
+        [Key(11)] public float range;
     }
 
     [MessagePackObject]
     public struct PlayerJoinBroadcast : IPacket
     {
-        [Key(0)] public int playerId { get; set; }
-        [Key(1)] public int initX { get; set; }
-        [Key(2)] public int initY { get; set; }
-        [Key(3)] public int accuracy { get; set; }
+        [Key(0)] public PlayerInformation playerInfo;
     }
 
     [MessagePackObject]

@@ -25,9 +25,12 @@ public class LocalPlayerController : Player
 
     void Update()
     {
-        HandleMovementInputAndUpdateOnChange();
-        SetCharacterMovementAnimation();
-        UpdateTarget();
+        if (!dead)
+        {
+            HandleMovementInputAndUpdateOnChange();
+            UpdateTarget();
+        }
+        UpdateModel();
     }
     
     void HandleMovementInputAndUpdateOnChange()
@@ -137,8 +140,8 @@ public class LocalPlayerController : Player
 
     bool CanShoot(RemotePlayerController target)
     {
-        var mask = LayerMask.GetMask("LocalPlayer");
-        var hit = Physics2D.Raycast(Position, target.Position - Position, range, ~mask);
+        var mask = LayerMask.GetMask("RemotePlayer", "Obstacle");
+        var hit = Physics2D.Raycast(Position, target.Position - Position, range, mask);
         return hit.transform == target.transform;
     }
 

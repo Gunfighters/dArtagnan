@@ -307,7 +307,7 @@ namespace dArtagnan.ClientTest
                         break;
                         
                     case PlayerJoinBroadcast joinBroadcast:
-                        Console.WriteLine($"플레이어 {joinBroadcast.playerId} 참가! 명중률: {joinBroadcast.accuracy}%");
+                        Console.WriteLine($"플레이어 {joinBroadcast.playerInfo.playerId} 참가!");
                         break;
                         
                     case PlayerDirectionBroadcast playerDirection:

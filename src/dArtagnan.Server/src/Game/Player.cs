@@ -22,6 +22,7 @@ namespace dArtagnan.Server
         public int Direction { get; set; }
         public float X { get; set; }
         public float Y { get; set; }
+        public float range { get; set; }
         
         // 게임 상태
         public float TotalReloadTime { get; set; }
@@ -32,7 +33,7 @@ namespace dArtagnan.Server
         public bool IsReady { get; set; }
         public int targeting { get; set; }
 
-        public PlayerInformation playerInformation => new PlayerInformation
+        public PlayerInformation playerInformation => new()
         {
             accuracy = Accuracy,
             direction = Direction,
@@ -44,7 +45,8 @@ namespace dArtagnan.Server
             totalReloadTime = TotalReloadTime,
             targeting = targeting,
             x = X,
-            y = Y
+            y = Y,
+            range = range
         };
 
         public Player(int id, int playerId, string nickname)
@@ -62,6 +64,7 @@ namespace dArtagnan.Server
             Alive = true;
             IsInGame = false;
             IsReady = false;
+            range = 200f;
         }
 
         /// <summary>

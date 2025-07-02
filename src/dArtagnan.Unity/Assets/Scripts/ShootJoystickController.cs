@@ -11,6 +11,8 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
     [SerializeField] private AudioSource reloadSound;
     [SerializeField] private Image JoystickAxis;
     [SerializeField] private Image HandleOutline;
+
+    private RemotePlayerController target => LocalPlayerController.Instance.TargetPlayer;
     private float cooldown => LocalPlayerController.Instance.cooldown;
     private float cooldownDuration => LocalPlayerController.Instance.cooldownDuration;
     private bool shootable => cooldown <= 0;
@@ -22,16 +24,8 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
     void Update()
     {
         // shootButton.interactable = controlledPlayerCooldown <= 0;
-        if (shootable)
-        {
-            HandleOutline.color = LocalPlayerController.Instance.TargetPlayer is null ? orange : Color.red;
-            shootingJoystick.enabled = true;
-        }
-        else
-        {
-            HandleOutline.color = Color.gray;
-            shootingJoystick.enabled = false;
-        }
+        HandleOutline.color = shootable ? target is null ? orange : Color.red : Color.grey;
+        shootingJoystick.enabled = shootable;
         cooldownImage.fillAmount = cooldown <= 0 ? 1 : 1f - cooldown / cooldownDuration;
         if (reloading && shootable)
         {
@@ -52,7 +46,6 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
         JoystickAxis.enabled = false;
         if (shootable)
         {
-            reloading = true;
             LocalPlayerController.Instance.ShootTarget();
         }
     }

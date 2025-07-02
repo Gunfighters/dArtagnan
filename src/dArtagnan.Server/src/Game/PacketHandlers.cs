@@ -75,13 +75,7 @@ namespace dArtagnan.Server
             });
 
             // PlayerJoinBroadcast 전송 (모든 플레이어에게)
-            await gameManager.BroadcastToAll(new PlayerJoinBroadcast
-            {
-                playerId = player.PlayerId,
-                initX = (int)player.X,
-                initY = (int)player.Y,
-                accuracy = player.Accuracy
-            });
+            await gameManager.BroadcastToAll(new PlayerJoinBroadcast { playerInfo = player.playerInformation });
         }
 
         /// <summary>

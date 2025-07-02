@@ -161,20 +161,7 @@ namespace dArtagnan.Server
         /// </summary>
         public List<PlayerInformation> GetPlayersInformation()
         {
-            return Players.Select(player => new PlayerInformation
-            {
-                playerId = player.PlayerId,
-                nickname = player.Nickname,
-                direction = player.Direction,
-                x = player.X,
-                y = player.Y,
-                accuracy = player.Accuracy,
-                totalReloadTime = player.TotalReloadTime,
-                remainingReloadTime = player.RemainingReloadTime,
-                speed = player.Speed,
-                alive = player.Alive,
-                targeting = -1,
-            }).ToList();
+            return Players.Select(player => player.playerInformation).ToList();
         }
 
         /// <summary>

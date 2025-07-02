@@ -225,6 +225,7 @@ MonoBehaviour:
   localPlayer: {fileID: 5429976551916966957}
   playerPrefab: {fileID: 7563689811073798709, guid: 1a8c4aa55276d4852aacf91e8637b8d0, type: 3}
   localPlayerId: 0
+  WorldCanvas: {fileID: 5954400415907656282}
 --- !u!4 &343319303
 Transform:
   m_ObjectHideFlags: 0
@@ -599,7 +600,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cbd1f4b5a0af4c34b7bebe285c8fd720, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  host: 54.180.85.77
+  host: localhost
   port: 7777
   PingText: {fileID: 1711268241}
 --- !u!4 &656021099
@@ -1429,6 +1430,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6350948964885270726}
     m_Modifications:
+    - target: {fileID: 1093666690589751170, guid: 7a2d1294eebe5414cbcccd401ccf6c34, type: 3}
+      propertyPath: AudioSource
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 5530808911505447341, guid: 7a2d1294eebe5414cbcccd401ccf6c34, type: 3}
       propertyPath: m_Name
       value: LocalPlayer
@@ -1486,7 +1491,8 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1435050868}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 312086528814948222, guid: 7a2d1294eebe5414cbcccd401ccf6c34, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7a2d1294eebe5414cbcccd401ccf6c34, type: 3}
