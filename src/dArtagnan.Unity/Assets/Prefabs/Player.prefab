@@ -576,7 +576,7 @@ MonoBehaviour:
   spriteAlpha: 0.5
   fireSound: {fileID: -7853337695106768655}
   firearmCollection: {fileID: 11400000, guid: 28e732d5a6846604db331fadf9eec50e, type: 2}
-  trajectoryDuration: 0.3
+  trajectoryDuration: 0.1
   trajectoryOpacity: 0.5
 --- !u!82 &-7853337695106768655
 AudioSource:
