@@ -173,23 +173,22 @@ public static class PacketHandlers
 
     private static async Task HandlePlayerHit(Player target, GameManager gameManager)
     {
-        // 플레이어 사망 처리
         target.UpdateAlive(false);
             
         Console.WriteLine($"[전투] 플레이어 {target.Id} 사망");
 
-        // 사망 브로드캐스트
         await gameManager.BroadcastToAll(new UpdatePlayerAlive
         {
             PlayerId = target.Id,
             Alive = target.Alive
         });
 
-        // 게임 종료 상태 로그
-        int aliveCount = gameManager.GetAlivePlayerCount();
         if (gameManager.GameOver())
         {
-            Console.WriteLine($"[게임] 게임 종료 조건 달성 - 생존자: {aliveCount}명");
+            Console.WriteLine($"[게임] 게임 종료! 승자: {gameManager.Winner!.Id}");
+            await gameManager.AnnounceWinner();
+            await Task.Delay(2500); // 2.5초 쉼
+            await gameManager.GoBackToWaiting();
         }
     }
 }

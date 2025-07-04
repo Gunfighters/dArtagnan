@@ -1740,11 +1740,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 8515271081033118621}
   m_SourcePrefab: {fileID: 100100000, guid: 9ea806eaf945f4eef9e1a11aedbf304e, type: 3}
---- !u!120 &20390188176790758 stripped
-LineRenderer:
-  m_CorrespondingSourceObject: {fileID: 292453355771749842, guid: 9ea806eaf945f4eef9e1a11aedbf304e, type: 3}
-  m_PrefabInstance: {fileID: 308338260689236276}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1606876609275763729 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1300332755926592805, guid: 9ea806eaf945f4eef9e1a11aedbf304e, type: 3}
@@ -1754,6 +1749,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2134084128721210812 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1863006141226761352, guid: 9ea806eaf945f4eef9e1a11aedbf304e, type: 3}
+  m_PrefabInstance: {fileID: 308338260689236276}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2d6f9667d7214d14be7389103f103d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &5530808911505447341 stripped
@@ -1785,10 +1791,10 @@ MonoBehaviour:
   rb: {fileID: 6844005977487437092}
   modelManager: {fileID: 6693920558242587912}
   accuracyText: {fileID: 1606876609275763729}
+  cooldownPie: {fileID: 2134084128721210812}
   targetHighlightCircle: {fileID: 7176770792764057046}
   HitText: {fileID: 8150517846290390396}
   Misstext: {fileID: 8271410095453106651}
-  trajectory: {fileID: 20390188176790758}
   movementJoystick: {fileID: 0}
   shootJoystickController: {fileID: 0}
 --- !u!114 &6693920558242587912 stripped

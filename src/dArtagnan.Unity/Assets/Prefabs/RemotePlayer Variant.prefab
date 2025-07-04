@@ -1751,6 +1751,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &4155472928410519076 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1863006141226761352, guid: 9ea806eaf945f4eef9e1a11aedbf304e, type: 3}
+  m_PrefabInstance: {fileID: 2337806544082074284}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2d6f9667d7214d14be7389103f103d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!212 &5165626207953940046 stripped
 SpriteRenderer:
   m_CorrespondingSourceObject: {fileID: 7484546077695317218, guid: 9ea806eaf945f4eef9e1a11aedbf304e, type: 3}
@@ -1810,7 +1821,6 @@ MonoBehaviour:
   nicknameText: {fileID: 6090216704150899770}
   range: 0
   accuracy: 0
-  serverPosition: {x: 0, y: 0}
   currentDirection: {x: 0, y: 0}
   dead: 0
   cooldown: 0
@@ -1819,6 +1829,7 @@ MonoBehaviour:
   rb: {fileID: 8848506214269232828}
   modelManager: {fileID: 8706421122811866768}
   accuracyText: {fileID: 3637284979321821065}
+  cooldownPie: {fileID: 4155472928410519076}
   targetHighlightCircle: {fileID: 5165626207953940046}
   HitText: {fileID: 6136869611142747876}
   Misstext: {fileID: 6268743507047660099}

@@ -4,12 +4,6 @@ using dArtagnan.Shared;
 
 namespace dArtagnan.Server;
 
-public enum GameState
-{
-    Waiting,    // 대기 중 (Ready 단계 포함)
-    Playing     // 게임 진행 중
-}
-
 /// <summary>
 /// 게임 세션, 클라이언트 연결, 브로드캐스팅을 통합 관리하는 클래스
 /// </summary>
@@ -19,6 +13,7 @@ public class GameManager
     public readonly ConcurrentDictionary<int, ClientConnection> clients = new(); // 클라이언트 연결도 여기서 관리
     public Player? Host;
     public GameState CurrentGameState { get; private set; } = GameState.Waiting;
+    public Player? Winner => players.Values.SingleOrDefault(p => p.Alive);
     
     public void AddClient(ClientConnection client)
     {
@@ -125,7 +120,30 @@ public class GameManager
 
     public bool GameOver()
     {
-        return false;
+        return players.Values.Count(p => p.Alive) <= 1;
+    }
+
+    public async Task AnnounceWinner()
+    {
+        await BroadcastToAll(new Winner { PlayerId = Winner!.Id });
+    }
+
+    public async Task GoBackToWaiting()
+    {
+        SetGameState(GameState.Waiting);
+        await ResetRespawnBroadcast();
+    }
+
+    private async Task ResetRespawnBroadcast()
+    {
+        foreach (var player in players.Values)
+        {
+            player.Reset();
+            player.UpdatePosition(Player.GetSpawnPosition(player.Id));
+        }
+
+        await BroadcastToAll(new InformationOfPlayers { Info = players.Values.Select(p => p.PlayerInformation).ToList() });
+
     }
 
     public async Task StartGame()
@@ -133,15 +151,7 @@ public class GameManager
         Console.WriteLine($"[게임] 게임 시작! (참가자: {players.Count}명)");
             
         SetGameState(GameState.Playing);
-
-        Console.WriteLine($"[게임] 플레이어 리셋중...");
-        foreach (var player in players.Values)
-        {
-            player.Reset();
-            player.UpdatePosition(Player.GetSpawnPosition(player.Id));
-        }
-            
-        await BroadcastToAll(new GameStarted { Players = GetPlayersInformation() });
+        await ResetRespawnBroadcast();
     }
 
     public void SetGameState(GameState newState)

@@ -4,6 +4,11 @@ using MessagePack;
 
 namespace dArtagnan.Shared
 {
+    public enum GameState
+    {
+        Waiting,    // 대기 중 (Ready 단계 포함)
+        Playing     // 게임 진행 중
+    }
     [Union(0, typeof(PlayerJoinRequest))]
     [Union(1, typeof(YouAre))]
     [Union(2, typeof(InformationOfPlayers))]
@@ -20,6 +25,8 @@ namespace dArtagnan.Shared
     [Union(13, typeof(PlayerIsTargetingBroadcast))]
     [Union(14, typeof(StartGame))]
     [Union(15, typeof(NewHost))]
+    [Union(16, typeof(NewGameState))]
+    [Union(17, typeof(Winner))]
     public interface IPacket
     {
     }
@@ -144,6 +151,18 @@ namespace dArtagnan.Shared
     public struct NewHost : IPacket
     {
         [Key(0)] public int HostId;
+    }
+
+    [MessagePackObject]
+    public struct NewGameState : IPacket
+    {
+        [Key(0)] public GameState GameState;
+    }
+
+    [MessagePackObject]
+    public struct Winner : IPacket
+    {
+        [Key(0)] public int PlayerId;
     }
 
     public class DirectionHelper

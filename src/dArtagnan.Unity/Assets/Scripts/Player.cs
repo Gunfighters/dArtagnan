@@ -22,12 +22,21 @@ public abstract class Player : MonoBehaviour
     public Rigidbody2D rb;
     public ModelManager modelManager;
     public TextMeshProUGUI accuracyText;
+    public CooldownPie cooldownPie;
     [CanBeNull] public RemotePlayerController TargetPlayer { get; protected set; }
     public SpriteRenderer targetHighlightCircle;
     public TextMeshProUGUI HitText;
     public TextMeshProUGUI Misstext;
     private TextMeshProUGUI HitMissShowing;
     private IEnumerator HitMissFader;
+
+    public void ToggleUIOverHead(bool show)
+    {
+        accuracyText.gameObject.SetActive(show);
+        cooldownPie.gameObject.SetActive(show);
+        HitText.gameObject.SetActive(show);
+        Misstext.gameObject.SetActive(show);
+    }
 
     public void SetNickname(string newNickname)
     {
@@ -88,16 +97,16 @@ public abstract class Player : MonoBehaviour
         if (HitMissShowing)
         {
             StopCoroutine(HitMissFader);
-            HitMissShowing.gameObject.SetActive(false);
+            HitMissShowing.enabled = false;
         }
         if (hit)
         {
-            HitText.gameObject.SetActive(true);
+            HitText.enabled = true;
             HitMissShowing = HitText;
         }
         else
         {
-            Misstext.gameObject.SetActive(true);
+            Misstext.enabled = true;
             HitMissShowing = Misstext;
         }
 
@@ -107,14 +116,8 @@ public abstract class Player : MonoBehaviour
 
     IEnumerator FadeOutHitMissShowing()
     {
-        float remaining = 1f;
-        while (remaining > 0f)
-        {
-            yield return new WaitForEndOfFrame();
-            remaining = Mathf.Max(0, remaining - Time.deltaTime);
-            HitMissShowing.alpha = 255 * remaining;
-        }
-        HitMissShowing.gameObject.SetActive(false);
+        yield return new WaitForSeconds(1);
+        HitMissShowing.enabled = false;
         HitMissShowing = null;
     }
 

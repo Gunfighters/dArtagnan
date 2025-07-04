@@ -1,10 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using dArtagnan.Shared;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
+    public const int RemotePlayerPoolSize = 7;
     public Camera mainCamera;
     public LocalPlayerController localPlayer;
     public GameObject playerPrefab;
@@ -15,10 +19,20 @@ public class GameManager : MonoBehaviour
     public Canvas WorldCanvas;
     public Button GameStartButton;
     private int hostId;
+    public TextMeshProUGUI winnerAnnouncement;
+    public GameState GameState { get; private set; }
+    public List<RemotePlayerController> RemotePlayerObjectPool;
 
     void Awake()
     {
         Instance = this;
+        for (var i = 0; i < RemotePlayerPoolSize; i++)
+        {
+            var created = Instantiate(playerPrefab, WorldCanvas.transform);
+            created.SetActive(false);
+            RemotePlayerObjectPool.Add(created.GetComponent<RemotePlayerController>());
+        }
+        ToggleUIOverHeadEveryone(false);
     }
 
     void Start()
@@ -44,7 +58,7 @@ public class GameManager : MonoBehaviour
     void AddPlayer(PlayerInformation info)
     {
         var serverPosition = new Vector2(info.MovementData.Position.X, info.MovementData.Position.Y);
-        var directionVec = (Vector2) DirectionHelperClient.IntToDirection(info.MovementData.Direction);
+        var directionVec = DirectionHelperClient.IntToDirection(info.MovementData.Direction);
         var estimatedPosition = serverPosition + directionVec * Ping / 2;
         var estimatedRemainingReloadTime = info.RemainingReloadTime - Ping / 2;
         Debug.Log($"Add Player #{info.PlayerId}");
@@ -62,8 +76,13 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            var obj = Instantiate(playerPrefab, estimatedPosition, Quaternion.identity, WorldCanvas.transform);
-            var remotePlayer = obj.GetComponent<RemotePlayerController>();
+            var remotePlayer = RemotePlayerObjectPool.FirstOrDefault(o => !o.gameObject.activeInHierarchy);
+            if (remotePlayer is null)
+            {
+                Debug.Log("No remote player available in the pool. Instantiating...");
+                remotePlayer = Instantiate(playerPrefab, WorldCanvas.transform).GetComponent<RemotePlayerController>();
+                RemotePlayerObjectPool.Add(remotePlayer);
+            }
             remotePlayer.SetMovementData(directionVec, estimatedPosition, info.MovementData.Speed);
             remotePlayers[info.PlayerId] = remotePlayer;
             player = remotePlayer;
@@ -150,6 +169,7 @@ public class GameManager : MonoBehaviour
     public void OnPlayerLeaveBroadcast(PlayerLeaveBroadcast leave)
     {
         remotePlayers[leave.PlayerId].gameObject.SetActive(false);
+        remotePlayers.Remove(leave.PlayerId);
     }
 
     public void OnGameStarted(GameStarted gameStarted)
@@ -170,6 +190,38 @@ public class GameManager : MonoBehaviour
         if (playerIsTargeting.TargetId == -1) return;
         Player target = playerIsTargeting.TargetId == localPlayerId ? localPlayer : remotePlayers[playerIsTargeting.TargetId];
         shooter.modelManager.ShowTrajectory(target.transform.position, true);
+    }
+
+    public void OnWinner(Winner winner)
+    {
+        Player winnerPlayer = winner.PlayerId == localPlayerId ? localPlayer : remotePlayers[winner.PlayerId];
+        winnerAnnouncement.text = $"{winnerPlayer.nickname} HAS WON!";
+        winnerAnnouncement.gameObject.SetActive(true);
+    }
+
+    void ToggleUIOverHeadEveryone(bool toggle)
+    {
+        localPlayer.ToggleUIOverHead(toggle);
+        foreach (var remotePlayerController in RemotePlayerObjectPool)
+        {
+            remotePlayerController.ToggleUIOverHead(toggle);
+        }
+    }
+
+    public void OnNewGameState(NewGameState newGameState)
+    {
+        GameState = newGameState.GameState;
+        switch (GameState)
+        {
+            case GameState.Waiting:
+                ToggleUIOverHeadEveryone(false);
+                break;
+            case GameState.Playing:
+                ToggleUIOverHeadEveryone(true);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
     }
 
     public void SetPing(Ping p)
