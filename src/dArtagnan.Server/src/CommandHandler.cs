@@ -111,14 +111,14 @@ public class CommandHandler(TcpServer tcpServer)
             
         Console.WriteLine($"=== 현재 플레이어 목록 ===");
             
-        if (gameManager.PlayerCount == 0)
+        if (gameManager.players.Count == 0)
         {
             Console.WriteLine("접속 중인 플레이어가 없습니다.");
             Console.WriteLine("=======================");
             return;
         }
 
-        Console.WriteLine($"총 {gameManager.PlayerCount}명 접속 중");
+        Console.WriteLine($"총 {gameManager.players.Count}명 접속 중");
         Console.WriteLine();
 
         foreach (var player in gameManager.players.Values)
@@ -136,7 +136,7 @@ public class CommandHandler(TcpServer tcpServer)
     private void PrintPlayer(int playerId)
     {
         var gameManager = tcpServer.GetGameManager();
-        var player = gameManager.GetPlayerByPlayerId(playerId);
+        var player = gameManager.GetPlayerById(playerId);
             
         if (player == null)
         {

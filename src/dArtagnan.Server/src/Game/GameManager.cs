@@ -19,7 +19,7 @@ public enum GameState
 public class GameManager
 {
     public readonly ConcurrentDictionary<int, Player> players = new();
-    private readonly ConcurrentDictionary<int, ClientConnection> clients = new(); // 클라이언트 연결도 여기서 관리
+    public readonly ConcurrentDictionary<int, ClientConnection> clients = new(); // 클라이언트 연결도 여기서 관리
     public Player? Host;
     public GameState CurrentGameState { get; private set; } = GameState.Waiting;
     

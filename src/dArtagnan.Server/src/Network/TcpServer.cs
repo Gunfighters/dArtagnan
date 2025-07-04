@@ -13,17 +13,14 @@ public class TcpServer
     private TcpListener tcpListener = null!;
     private GameLoop gameLoop = null!;
 
-    // 게임 매니저
     private GameManager gameManager = null!;
 
     public async Task StartAsync(int port)
     {
         try
         {
-            // 게임 매니저 초기화
             gameManager = new GameManager();
 
-            // TCP 리스너 시작
             tcpListener = new TcpListener(IPAddress.Any, port);
             tcpListener.Start();
             isRunning = true;
@@ -61,9 +58,6 @@ public class TcpServer
         }
     }
 
-    /// <summary>
-    /// 서버 종료
-    /// </summary>
     public Task StopAsync()
     {
         Console.WriteLine("TCP 서버를 종료합니다...");
@@ -72,9 +66,9 @@ public class TcpServer
         try
         {
             // 게임 루프 중지
-            gameLoop?.Stop();
+            gameLoop.Stop();
 
-            tcpListener?.Stop();
+            tcpListener.Stop();
         }
         catch (Exception ex)
         {
@@ -85,14 +79,8 @@ public class TcpServer
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// 현재 연결된 클라이언트 수 반환
-    /// </summary>
-    public int GetClientCount() => gameManager.ClientCount;
+    public int GetClientCount() => gameManager.clients.Count;
 
-    /// <summary>
-    /// 게임 매니저 반환 (CommandHandler에서 사용)
-    /// </summary>
     public GameManager GetGameManager() => gameManager;
 
 
