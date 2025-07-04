@@ -76,6 +76,7 @@ public abstract class Player : MonoBehaviour
     {
         modelManager.Fire();
         modelManager.ShowTrajectory(target.transform.position);
+        modelManager.ScheduleHideTrajectory();
     }
 
     public void Die()

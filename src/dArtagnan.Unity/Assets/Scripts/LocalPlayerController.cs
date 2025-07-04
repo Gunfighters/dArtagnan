@@ -130,6 +130,11 @@ public class LocalPlayerController : Player
                 best = target;
             }
         }
+
+        if (best)
+        {
+            modelManager.ShowTrajectory(best.transform.position);
+        }
         return best;
     }
 

@@ -20,17 +20,25 @@ public class ModelManager : MonoBehaviour
     private AudioClip ShotSoundClip;
     private LineRenderer trajectory;
     public float trajectoryDuration;
+    public float trajectoryOpacity;
+    private Color trajectoryColorOriginal;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        trajectory = GetComponent<LineRenderer>();
-        trajectory.enabled = false;
-        trajectory.SetPosition(0, Vector2.zero);
+        InitializeTrajectory();
         SetTransparent();
         SetDirection(direction == Vector2.zero ? Vector2.down : direction);
         SetState(initialState);
         InitializeFirearmMuzzle();
+    }
+
+    void InitializeTrajectory()
+    {
+        trajectory = GetComponent<LineRenderer>();
+        trajectory.enabled = false;
+        trajectory.SetPosition(0, Vector2.zero);
+        trajectoryColorOriginal = trajectory.material.color;
     }
     
     void SetTransparent()
@@ -85,15 +93,29 @@ public class ModelManager : MonoBehaviour
         modelSilhouette.SetState(CharacterState.Death);
     }
 
-    public void ShowTrajectory(Vector2 tip)
+    public void ShowTrajectory(Vector2 tip, bool transparent = false)
     {
         trajectory.SetPosition(0, tip);
         trajectory.SetPosition(1, transform.position);
+        if (transparent)
+        {
+            var color = trajectoryColorOriginal;
+            color.a = trajectoryOpacity;
+            trajectory.material.color = color;
+        }
+        else
+        {
+            trajectory.material.color = trajectoryColorOriginal;
+        }
         trajectory.enabled = true;
-        StartCoroutine(HideTrajectory());
     }
 
-    IEnumerator HideTrajectory()
+    public void ScheduleHideTrajectory()
+    {
+        StartCoroutine(_HideTrajectory());
+    }
+
+    IEnumerator _HideTrajectory()
     {
         yield return new WaitForSeconds(trajectoryDuration);
         trajectory.enabled = false;
