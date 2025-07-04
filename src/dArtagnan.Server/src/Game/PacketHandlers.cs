@@ -25,10 +25,10 @@ public static class PacketHandlers
     {
         if (gameManager.IsGamePlaying())
         {
-            Console.WriteLine($"[게임] {client.Id}번 플레이어 난입 거부.");
+            Console.WriteLine($"[게임] {client.Id}번 클라이언트 난입 거부.");
             return;
         }
-        Console.WriteLine($"[게임] 플레이어 {client.Id} 참가 요청");
+        Console.WriteLine($"[게임] {client.Id}번 클라이언트 참가 요청");
 
         // 플레이어가 이미 존재하는지 확인
         var existingPlayer = gameManager.GetPlayerById(client.Id);
@@ -42,8 +42,7 @@ public static class PacketHandlers
         }
         else
         {
-            player = existingPlayer;
-            Console.WriteLine($"[게임] 기존 플레이어 재참가: {player.Id}");
+            throw new Exception($"제거되지 않은 플레이어: {client.Id}");
         }
 
         // 스폰 위치 설정

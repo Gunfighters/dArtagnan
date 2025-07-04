@@ -43,9 +43,6 @@ public class ClientConnection : IDisposable
         _ = DisconnectAsync();
     }
 
-    /// <summary>
-    /// 패킷을 클라이언트로 전송합니다
-    /// </summary>
     public async Task SendPacketAsync(IPacket packet)
     {
         if (!IsConnected) return;
@@ -61,9 +58,6 @@ public class ClientConnection : IDisposable
         }
     }
 
-    /// <summary>
-    /// 연결을 해제합니다
-    /// </summary>
     public Task DisconnectAsync()
     {
         if (!isConnected) return Task.CompletedTask;
@@ -73,8 +67,8 @@ public class ClientConnection : IDisposable
 
         try
         {
-            stream?.Close();
-            tcpClient?.Close();
+            stream.Close();
+            tcpClient.Close();
         }
         catch (Exception ex)
         {
@@ -85,9 +79,6 @@ public class ClientConnection : IDisposable
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// 패킷을 적절한 핸들러로 라우팅합니다
-    /// </summary>
     private async Task RoutePacket(IPacket packet)
     {
         try
@@ -120,10 +111,6 @@ public class ClientConnection : IDisposable
                     await PacketHandlers.HandleStartGame(start, this, gameManager);
                     break;
                     
-                // case Ready readyData:
-                //     await PacketHandlers.HandleReady(readyData, this, gameManager);
-                //     break;
-
                 default:
                     Console.WriteLine($"[클라이언트 {Id}] 처리되지 않은 패킷 타입: {packet.GetType().Name}");
                     break;
@@ -136,9 +123,6 @@ public class ClientConnection : IDisposable
         }
     }
 
-    /// <summary>
-    /// 패킷 수신 루프
-    /// </summary>
     private async Task ReceiveLoop()
     {
         try

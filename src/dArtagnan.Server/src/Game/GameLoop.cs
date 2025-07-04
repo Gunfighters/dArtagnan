@@ -76,17 +76,17 @@ public class GameLoop(TcpServer server, GameManager gameManager)
     /// <summary>
     /// 플레이어의 새로운 위치를 계산합니다
     /// </summary>
-    private static Vector2 CalculateNewPosition(Vector2 currentPosition, int direction, float speed, float deltaTime)
+    private static Vector2 CalculateNewPosition(MovementData movementData, float deltaTime)
     {
-        var vector = DirectionHelper.IntToDirection(direction);
+        var vector = DirectionHelper.IntToDirection(movementData.Direction);
             
         // 정지 상태가 아닐 때만 이동
         if (vector == Vector2.Zero)
         {
-            return currentPosition;
+            return movementData.Position;
         }
 
-        return currentPosition + vector * speed * deltaTime;
+        return movementData.Position + vector * movementData.Speed * deltaTime;
     }
 
     /// <summary>
@@ -98,7 +98,7 @@ public class GameLoop(TcpServer server, GameManager gameManager)
         {
             if (!player.Alive) continue;
                 
-            var newPosition = CalculateNewPosition(player.MovementData.Position, player.MovementData.Direction, player.MovementData.Speed, deltaTime);
+            var newPosition = CalculateNewPosition(player.MovementData, deltaTime);
                 
             // 위치가 변경된 경우에만 업데이트
             if (Vector2.Distance(newPosition, player.MovementData.Position) > 0.01f)

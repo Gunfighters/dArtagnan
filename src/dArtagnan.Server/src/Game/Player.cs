@@ -13,8 +13,8 @@ public class Player(int id, string nickname, Vector2 position)
     public const float DEFAULT_RANGE = 600f;
     public const float SPAWN_RADIUS = 5.0f;
 
-    public int Id = id;
-    public string Nickname = nickname;
+    public readonly int Id = id;
+    public readonly string Nickname = nickname;
     public int Accuracy = GenerateRandomAccuracy();
     public float Range = DEFAULT_RANGE;
         
@@ -28,6 +28,7 @@ public class Player(int id, string nickname, Vector2 position)
     {
         Alive = true;
         Target = null;
+        Accuracy = GenerateRandomAccuracy();
         MovementData = new MovementData { Direction = 0, Position = Vector2.Zero, Speed = WALKING_SPEED };
         TotalReloadTime = DEFAULT_RELOAD_TIME;
         RemainingReloadTime = TotalReloadTime / 2;
@@ -36,6 +37,7 @@ public class Player(int id, string nickname, Vector2 position)
 
     public PlayerInformation PlayerInformation => new()
     {
+        PlayerId = Id,
         Accuracy = Accuracy,
         Alive = Alive,
         Nickname = Nickname,

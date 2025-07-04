@@ -4,9 +4,6 @@ using dArtagnan.Shared;
 
 namespace dArtagnan.Server;
 
-/// <summary>
-/// 게임 상태를 나타내는 열거형
-/// </summary>
 public enum GameState
 {
     Waiting,    // 대기 중 (Ready 단계 포함)
@@ -42,7 +39,7 @@ public class GameManager
     public async Task<Player> AddPlayer(int clientId, string nickname)
     {
         var player = new Player(clientId, nickname, Vector2.Zero);
-        players.TryAdd(clientId, player);
+        players.TryAdd(player.Id, player);
         if (Host == null)
         {
             await SetHost(player);
