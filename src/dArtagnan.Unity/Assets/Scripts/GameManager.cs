@@ -151,6 +151,16 @@ public class GameManager : MonoBehaviour
         remotePlayers[leave.PlayerId].gameObject.SetActive(false);
     }
 
+    public void OnGameStarted(GameStarted gameStarted)
+    {
+        foreach (var info in gameStarted.Players)
+        {
+            Player player = info.PlayerId == localPlayerId ? localPlayer : remotePlayers[info.PlayerId];
+            player.SetAsInfo(info);
+            player.gameObject.SetActive(true);
+        }
+    }
+
     public void SetPing(Ping p)
     {
         Ping = p.time / 1000f;

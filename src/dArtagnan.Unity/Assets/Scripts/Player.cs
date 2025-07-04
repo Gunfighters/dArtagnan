@@ -1,5 +1,6 @@
 using System.Collections;
 using Assets.HeroEditor4D.Common.Scripts.Enums;
+using dArtagnan.Shared;
 using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
@@ -88,9 +89,11 @@ public abstract class Player : MonoBehaviour
         accuracyText.text = $"{accuracy}%";
     }
 
-    public virtual void ImmediatelyMoveTo(Vector3 position)
+    public void ImmediatelyMoveTo(Vector2 position)
     {
-        rb.MovePosition(position);
+        Debug.Log($"Immediately moving to {position}");
+        transform.position = position;
+        // rb.MovePosition(position);
     }
 
     public void ShowHitOrMiss(bool hit)
@@ -126,5 +129,19 @@ public abstract class Player : MonoBehaviour
         }
         HitMissShowing.gameObject.SetActive(false);
         HitMissShowing = null;
+    }
+
+    public void SetAsInfo(PlayerInformation info)
+    {
+        id = info.PlayerId;
+        nickname = info.Nickname;
+        accuracy = info.Accuracy;
+        cooldownDuration = info.TotalReloadTime;
+        cooldown = info.RemainingReloadTime;
+        dead = !info.Alive;
+        range = info.Range;
+        currentDirection = DirectionHelperClient.IntToDirection(info.MovementData.Direction);
+        ImmediatelyMoveTo(new Vector2(info.MovementData.Position.X, info.MovementData.Position.Y));
+        speed = info.MovementData.Speed;
     }
 }

@@ -76,6 +76,11 @@ public class GameManager
             var nextHost = players.Values.SingleOrDefault(p => p.Alive);
             await SetHost(nextHost);
         }
+
+        if (players.IsEmpty && CurrentGameState == GameState.Playing)
+        {
+            SetGameState(GameState.Waiting);
+        }
     }
 
     public Player? GetPlayerById(int clientId)
@@ -128,8 +133,15 @@ public class GameManager
         Console.WriteLine($"[게임] 게임 시작! (참가자: {players.Count}명)");
             
         SetGameState(GameState.Playing);
+
+        Console.WriteLine($"[게임] 플레이어 리셋중...");
+        foreach (var player in players.Values)
+        {
+            player.Reset();
+            player.UpdatePosition(Player.GetSpawnPosition(player.Id));
+        }
             
-        await BroadcastToAll(new GameStarted { Players = players.Values.Select(p => p.PlayerInformation).ToList() });
+        await BroadcastToAll(new GameStarted { Players = GetPlayersInformation() });
     }
 
     public void SetGameState(GameState newState)

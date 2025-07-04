@@ -13,6 +13,12 @@ public static class PacketHandlers
             Console.WriteLine($"[게임] 경고: 방장이 아닌 플레이어가 게임 시작 시도 (Player #{starter.Id})");
             return;
         }
+
+        if (gameManager.CurrentGameState == GameState.Playing)
+        {
+            Console.WriteLine($"[게임] 경고: 이미 게임이 진행중.");
+            return;
+        }
         foreach (var p in gameManager.players.Values)
         {
             p.Reset();
@@ -44,10 +50,6 @@ public static class PacketHandlers
         {
             throw new Exception($"제거되지 않은 플레이어: {client.Id}");
         }
-
-        // 스폰 위치 설정
-        var spawnPosition = Player.GetSpawnPosition(player.Id);
-        player.UpdatePosition(spawnPosition);
 
         Console.WriteLine($"[게임] 플레이어 {player.Id} 참가 완료 (현재 인원: {gameManager.players.Count})");
 

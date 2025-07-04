@@ -20,7 +20,7 @@ public class NetworkManager : MonoBehaviour
     public int port;
     public TextMeshProUGUI PingText;
 
-    void Awake()
+    async void Awake()
     {
         Instance = this;
         _channel = Channel.CreateUnbounded<IPacket>(new UnboundedChannelOptions
@@ -28,7 +28,14 @@ public class NetworkManager : MonoBehaviour
             SingleReader = true,
             SingleWriter = true
         });
-        ConnectToServer();
+        try
+        {
+            await ConnectToServer();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
     }
 
     async Task ConnectToServer()
@@ -165,6 +172,9 @@ public class NetworkManager : MonoBehaviour
                 break;
             case NewHost newHost:
                 GameManager.Instance.OnNewHost(newHost);
+                break;
+            case GameStarted gameStarted:
+                GameManager.Instance.OnGameStarted(gameStarted);
                 break;
             default:
                 Debug.LogWarning($"Unhandled packet: {packet}");

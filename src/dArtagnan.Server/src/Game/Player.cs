@@ -11,7 +11,7 @@ public class Player(int id, string nickname, Vector2 position)
     public const int MIN_ACCURACY = 1;
     public const int MAX_ACCURACY = 100;
     public const float DEFAULT_RANGE = 600f;
-    public const float SPAWN_RADIUS = 5.0f;
+    public const float SPAWN_RADIUS = 40.0f;
 
     public readonly int Id = id;
     public readonly string Nickname = nickname;
