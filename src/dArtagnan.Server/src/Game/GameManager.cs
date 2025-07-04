@@ -73,7 +73,8 @@ public class GameManager
 
         if (player == Host)
         {
-            await SetHost(null);
+            var nextHost = players.Values.SingleOrDefault(p => p.Alive);
+            await SetHost(nextHost);
         }
     }
 
