@@ -58,6 +58,7 @@ public class GameManager : MonoBehaviour
         if (info.PlayerId == localPlayerId)
         {
             player = localPlayer;
+            mainCamera.transform.SetParent(player.transform);
         }
         else
         {
