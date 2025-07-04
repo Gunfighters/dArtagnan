@@ -72,9 +72,10 @@ public abstract class Player : MonoBehaviour
         }
     }
 
-    public void Fire()
+    public void Fire(Player target)
     {
         modelManager.Fire();
+        modelManager.ShowTrajectory(target.transform.position);
     }
 
     public void Die()

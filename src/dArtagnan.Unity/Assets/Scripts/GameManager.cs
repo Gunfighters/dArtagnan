@@ -131,7 +131,8 @@ public class GameManager : MonoBehaviour
     public void OnPlayerShootingBroadcast(PlayerShootingBroadcast shooting)
     {
         Player shooter = shooting.ShooterId == localPlayerId ? localPlayer : remotePlayers[shooting.ShooterId];
-        shooter.Fire();
+        Player target = shooting.TargetId == localPlayerId ? localPlayer : remotePlayers[shooting.TargetId];
+        shooter.Fire(target);
         shooter.cooldown = shooter.cooldownDuration - Ping / 2;
         shooter.ShowHitOrMiss(shooting.Hit);
         // TODO: show hit or miss text

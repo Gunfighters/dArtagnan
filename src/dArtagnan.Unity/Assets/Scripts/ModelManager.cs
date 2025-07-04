@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Assets.HeroEditor4D.Common.Scripts.CharacterScripts;
@@ -17,10 +18,15 @@ public class ModelManager : MonoBehaviour
     public FirearmCollection firearmCollection;
     private readonly List<ParticleSystem> _instances = new();
     private AudioClip ShotSoundClip;
+    private LineRenderer trajectory;
+    public float trajectoryDuration;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        trajectory = GetComponent<LineRenderer>();
+        trajectory.enabled = false;
+        trajectory.SetPosition(0, Vector2.zero);
         SetTransparent();
         SetDirection(direction == Vector2.zero ? Vector2.down : direction);
         SetState(initialState);
@@ -77,6 +83,20 @@ public class ModelManager : MonoBehaviour
     {
         actualModel.SetState(CharacterState.Death);
         modelSilhouette.SetState(CharacterState.Death);
+    }
+
+    public void ShowTrajectory(Vector2 tip)
+    {
+        trajectory.SetPosition(0, tip);
+        trajectory.SetPosition(1, transform.position);
+        trajectory.enabled = true;
+        StartCoroutine(HideTrajectory());
+    }
+
+    IEnumerator HideTrajectory()
+    {
+        yield return new WaitForSeconds(trajectoryDuration);
+        trajectory.enabled = false;
     }
 
     private FirearmParams GetFirearmParams()

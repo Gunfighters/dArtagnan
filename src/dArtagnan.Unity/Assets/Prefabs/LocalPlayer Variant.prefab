@@ -1740,6 +1740,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 8515271081033118621}
   m_SourcePrefab: {fileID: 100100000, guid: 9ea806eaf945f4eef9e1a11aedbf304e, type: 3}
+--- !u!120 &20390188176790758 stripped
+LineRenderer:
+  m_CorrespondingSourceObject: {fileID: 292453355771749842, guid: 9ea806eaf945f4eef9e1a11aedbf304e, type: 3}
+  m_PrefabInstance: {fileID: 308338260689236276}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1606876609275763729 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1300332755926592805, guid: 9ea806eaf945f4eef9e1a11aedbf304e, type: 3}
@@ -1772,7 +1777,6 @@ MonoBehaviour:
   nicknameText: {fileID: 8120611880206321570}
   range: 0
   accuracy: 0
-  serverPosition: {x: 0, y: 0}
   currentDirection: {x: 0, y: 0}
   dead: 0
   cooldown: 0
@@ -1784,6 +1788,7 @@ MonoBehaviour:
   targetHighlightCircle: {fileID: 7176770792764057046}
   HitText: {fileID: 8150517846290390396}
   Misstext: {fileID: 8271410095453106651}
+  trajectory: {fileID: 20390188176790758}
   movementJoystick: {fileID: 0}
   shootJoystickController: {fileID: 0}
 --- !u!114 &6693920558242587912 stripped
