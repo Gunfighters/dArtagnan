@@ -316,6 +316,10 @@ namespace dArtagnan.ClientTest
                         var statusMsg = aliveUpdate.Alive ? "부활" : "사망";
                         Console.WriteLine($"플레이어 {aliveUpdate.PlayerId} {statusMsg}");
                         break;
+                    
+                    case NewHost newHost:
+                        Console.WriteLine($"새로운 방장: {newHost.HostId}");
+                        break;
                         
                     case PlayerLeaveBroadcast leaveBroadcast:
                         Console.WriteLine($"플레이어 {leaveBroadcast.PlayerId}가 게임을 떠났습니다");
