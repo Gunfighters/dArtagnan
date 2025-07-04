@@ -93,16 +93,21 @@ public class LocalPlayerController : Player
         if (TargetPlayer != newTarget)
         {
             SetTarget(newTarget);
-            if (newTarget is not null)
+            if (newTarget is not null && IsShootJoystickMoving())
             {
                 NetworkManager.Instance.SendPlayerNewTarget(newTarget.id);
             }
         }
     }
+
+    bool IsShootJoystickMoving()
+    {
+        return shootJoystickController.Direction != Vector2.zero;
+    }
     RemotePlayerController GetAutoTarget()
     {
         RemotePlayerController best = null;
-        if (shootJoystickController.Direction == Vector2.zero) // 사거리 내 가장 가까운 적.
+        if (!IsShootJoystickMoving()) // 사거리 내 가장 가까운 적.
         {
             float minDistance = range;
             foreach (var target in GameManager.Instance.remotePlayers.Values)
@@ -133,7 +138,7 @@ public class LocalPlayerController : Player
 
         if (best)
         {
-            modelManager.ShowTrajectory(best.transform.position);
+            modelManager.ShowTrajectory(best.transform.position, true);
         }
         return best;
     }

@@ -176,6 +176,9 @@ public class NetworkManager : MonoBehaviour
             case GameStarted gameStarted:
                 GameManager.Instance.OnGameStarted(gameStarted);
                 break;
+            case PlayerIsTargetingBroadcast playerIsTargetingBroadcast:
+                GameManager.Instance.OnPlayerIsTargeting(playerIsTargetingBroadcast);
+                break;
             default:
                 Debug.LogWarning($"Unhandled packet: {packet}");
                 break;

@@ -162,6 +162,16 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void OnPlayerIsTargeting(PlayerIsTargetingBroadcast playerIsTargeting)
+    {
+        if (playerIsTargeting.ShooterId == localPlayerId) return;
+        var shooter = remotePlayers[playerIsTargeting.ShooterId];
+        shooter.modelManager.HideTrajectory();
+        if (playerIsTargeting.TargetId == -1) return;
+        Player target = playerIsTargeting.TargetId == localPlayerId ? localPlayer : remotePlayers[playerIsTargeting.TargetId];
+        shooter.modelManager.ShowTrajectory(target.transform.position, true);
+    }
+
     public void SetPing(Ping p)
     {
         Ping = p.time / 1000f;

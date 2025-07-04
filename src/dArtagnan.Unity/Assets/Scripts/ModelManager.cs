@@ -38,7 +38,7 @@ public class ModelManager : MonoBehaviour
         trajectory = GetComponent<LineRenderer>();
         trajectory.enabled = false;
         trajectory.SetPosition(0, Vector2.zero);
-        trajectoryColorOriginal = trajectory.material.color;
+        // trajectoryColorOriginal = trajectory.material.color;
     }
     
     void SetTransparent()
@@ -97,28 +97,33 @@ public class ModelManager : MonoBehaviour
     {
         trajectory.SetPosition(0, tip);
         trajectory.SetPosition(1, transform.position);
-        if (transparent)
-        {
-            var color = trajectoryColorOriginal;
-            color.a = trajectoryOpacity;
-            trajectory.material.color = color;
-        }
-        else
-        {
-            trajectory.material.color = trajectoryColorOriginal;
-        }
+        // if (transparent) // TODO: 작동 안 함. 수정 필요
+        // {
+        //     var color = trajectoryColorOriginal;
+        //     color.a = trajectoryOpacity;
+        //     trajectory.material.color = color;
+        // }
+        // else
+        // {
+        //     trajectory.material.color = trajectoryColorOriginal;
+        // }
         trajectory.enabled = true;
+    }
+
+    public void HideTrajectory()
+    {
+        trajectory.enabled = false;
     }
 
     public void ScheduleHideTrajectory()
     {
-        StartCoroutine(_HideTrajectory());
+        StartCoroutine(HideTrajectoryAfterDuration());
     }
 
-    IEnumerator _HideTrajectory()
+    IEnumerator HideTrajectoryAfterDuration()
     {
         yield return new WaitForSeconds(trajectoryDuration);
-        trajectory.enabled = false;
+        HideTrajectory();
     }
 
     private FirearmParams GetFirearmParams()
