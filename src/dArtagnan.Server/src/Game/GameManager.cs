@@ -74,7 +74,7 @@ public class GameManager
 
         if (players.IsEmpty && CurrentGameState == GameState.Playing)
         {
-            SetGameState(GameState.Waiting);
+            await SetGameState(GameState.Waiting);
         }
     }
 
@@ -130,7 +130,7 @@ public class GameManager
 
     public async Task GoBackToWaiting()
     {
-        SetGameState(GameState.Waiting);
+        await SetGameState(GameState.Waiting);
         await ResetRespawnBroadcast();
     }
 
@@ -150,15 +150,16 @@ public class GameManager
     {
         Console.WriteLine($"[게임] 게임 시작! (참가자: {players.Count}명)");
             
-        SetGameState(GameState.Playing);
+        await SetGameState(GameState.Playing);
         await ResetRespawnBroadcast();
     }
 
-    public void SetGameState(GameState newState)
+    async Task SetGameState(GameState newState)
     {
         var oldState = CurrentGameState;
         CurrentGameState = newState;
         Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {newState}");
+        await BroadcastToAll(new NewGameState { GameState = CurrentGameState });
     }
 
     public bool IsGamePlaying()
