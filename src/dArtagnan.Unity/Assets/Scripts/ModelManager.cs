@@ -33,6 +33,11 @@ public class ModelManager : MonoBehaviour
         InitializeFirearmMuzzle();
     }
 
+    void Update()
+    {
+        trajectory.SetPosition(1, transform.position);
+    }
+
     void InitializeTrajectory()
     {
         trajectory = GetComponent<LineRenderer>();
@@ -96,7 +101,6 @@ public class ModelManager : MonoBehaviour
     public void ShowTrajectory(Vector2 tip, bool transparent = false)
     {
         trajectory.SetPosition(0, tip);
-        trajectory.SetPosition(1, transform.position);
         // if (transparent) // TODO: 작동 안 함. 수정 필요
         // {
         //     var color = trajectoryColorOriginal;
