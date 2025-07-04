@@ -8,23 +8,17 @@ public static class PacketHandlers
     public static async Task HandleStartGame(StartGame startGame, ClientConnection client, GameManager gameManager)
     {
         var starter = gameManager.players[client.Id];
-        if (starter != gameManager.host)
+        if (starter != gameManager.Host)
         {
             Console.WriteLine($"[게임] 경고: 방장이 아닌 플레이어가 게임 시작 시도 (Player #{starter.Id})");
+            return;
         }
-        foreach (var p in gameManager.Players)
+        foreach (var p in gameManager.players.Values)
         {
-            p.Direction = 0;
-            p.Accuracy = Player.GenerateRandomAccuracy();
-            p.Alive = true;
-            p.RemainingReloadTime = Player.DEFAULT_RELOAD_TIME / 2;
-            p.TotalReloadTime = Player.DEFAULT_RELOAD_TIME;
-            p.IsInGame = true;
-            p.Speed = Player.GetSpeedByRunning(false);
+            p.Reset();
         }
 
         await gameManager.StartGame();
-
     }
 
     public static async Task HandlePlayerJoin(PlayerJoinRequest request, ClientConnection client, GameManager gameManager)
@@ -37,13 +31,13 @@ public static class PacketHandlers
         Console.WriteLine($"[게임] 플레이어 {client.Id} 참가 요청");
 
         // 플레이어가 이미 존재하는지 확인
-        var existingPlayer = gameManager.GetPlayerByClientId(client.Id);
+        var existingPlayer = gameManager.GetPlayerById(client.Id);
         Player player;
 
         if (existingPlayer == null)
         {
             // 새 플레이어 생성
-            player = gameManager.AddPlayer(client.Id, "sample_nickname");
+            player = await gameManager.AddPlayer(client.Id, "sample_nickname");
             Console.WriteLine($"[게임] 새 플레이어 생성: {player.Id}");
         }
         else
@@ -52,29 +46,26 @@ public static class PacketHandlers
             Console.WriteLine($"[게임] 기존 플레이어 재참가: {player.Id}");
         }
 
-        // 플레이어 게임 참가 처리
-        gameManager.JoinPlayer(client.Id);
-
         // 스폰 위치 설정
-        var (spawnX, spawnY) = Player.GetSpawnPosition(player.Id);
-        player.UpdatePosition(spawnX, spawnY);
+        var spawnPosition = Player.GetSpawnPosition(player.Id);
+        player.UpdatePosition(spawnPosition);
 
-        Console.WriteLine($"[게임] 플레이어 {player.Id} 참가 완료 (현재 인원: {gameManager.PlayerCount})");
+        Console.WriteLine($"[게임] 플레이어 {player.Id} 참가 완료 (현재 인원: {gameManager.players.Count})");
 
         // YouAre 패킷 전송 (본인에게만)
         await client.SendPacketAsync(new YouAre
         {
-            playerId = player.Id
+            PlayerId = player.Id
         });
 
         // InformationOfPlayers 패킷 전송 (본인에게만)
         await client.SendPacketAsync(new InformationOfPlayers
         {
-            info = gameManager.GetPlayersInformation()
+            Info = gameManager.GetPlayersInformation()
         });
 
         // PlayerJoinBroadcast 전송 (모든 플레이어에게)
-        await gameManager.BroadcastToAll(new PlayerJoinBroadcast { playerInfo = player.PlayerInformation });
+        await gameManager.BroadcastToAll(new PlayerJoinBroadcast { PlayerInfo = player.PlayerInformation });
     }
 
     public static async Task HandlePlayerLeave(PlayerLeaveFromClient leaveData, ClientConnection client, GameManager gameManager)
@@ -88,58 +79,28 @@ public static class PacketHandlers
         _ = Task.Run(() => client.DisconnectAsync());
     }
 
-    public static async Task HandlePlayerDirection(PlayerDirectionFromClient directionData, ClientConnection client, GameManager gameManager)
+    public static async Task HandlePlayerMovementInformation(PlayerMovementDataFromClient movementData, ClientConnection client, GameManager gameManager)
     {
-        var player = gameManager.GetPlayerByClientId(client.Id);
-        if (player == null || !player.IsInGame) return;
-
-        // 플레이어 상태 업데이트
-        player.Direction = directionData.direction;
-        var directionVector = DirectionHelper.IntToDirection(directionData.direction);
-        player.UpdateSpeed(Player.GetSpeedByRunning(directionData.running));
-        var currentX = directionData.currentX + player.Speed * directionVector.X * gameManager.ping[client.Id] / 2;
-        var currentY = directionData.currentY + player.Speed * directionVector.Y * gameManager.ping[client.Id] / 2;
-        player.UpdatePosition(currentX, currentY);
-
-        Console.WriteLine($"[이동] 플레이어 {player.Id} (핑: {gameManager.ping[client.Id]}) 방향: {directionVector}, 위치: ({player.X:F2}, {player.Y:F2}) 속도: ({player.Speed:F2})");
+        var player = gameManager.GetPlayerById(client.Id);
+        if (player == null) return;
+        var directionIndex = movementData.Direction;
+        var directionVector = DirectionHelper.IntToDirection(directionIndex);
+        var newSpeed = Player.GetSpeedByRunning(movementData.Running);
+        var newPosition = movementData.Position + newSpeed * client.Ping / 2 * directionVector;
+        player.UpdateMovementData(newPosition, directionIndex, newSpeed);
+        Console.WriteLine($"[이동] 플레이어 {player.Id} (핑: {client.Ping}) 방향: {directionVector}, 위치: ({player.MovementData.Position}) 속도: ({player.MovementData.Speed:F2})");
 
         // 방향 변경을 모든 플레이어에게 브로드캐스트
-        await gameManager.BroadcastToAll(new PlayerDirectionBroadcast
+        await gameManager.BroadcastToAll(new PlayerMovementDataBroadcast
         {
-            direction = player.Direction,
-            playerId = player.Id,
-            currentX = player.X,
-            currentY = player.Y,
-            speed = player.Speed
-        });
-    }
-
-    public static async Task HandlePlayerRunning(PlayerRunningFromClient runningData, ClientConnection client, GameManager gameManager)
-    {
-        var player = gameManager.GetPlayerByClientId(client.Id);
-        if (player == null || !player.IsInGame) return;
-
-        // 달리기 상태에 따라 속도 설정
-        float newSpeed = Player.GetSpeedByRunning(runningData.isRunning);
-        var RTT = gameManager.ping[client.Id];
-        var currentX = player.X - RTT / 2 * player.Speed * player.Direction + RTT / 2 * newSpeed * player.Direction;
-        var currentY = player.Y - RTT / 2 * player.Speed * player.Direction + RTT / 2 * newSpeed * player.Direction;
-        player.UpdateSpeed(newSpeed);
-        player.UpdatePosition(currentX, currentY);
-            
-        Console.WriteLine($"[이동] 플레이어 {player.Id} 달리기: {runningData.isRunning}, 속도: {player.Speed}");
-
-        // 속도 업데이트를 모든 플레이어에게 브로드캐스트
-        await gameManager.BroadcastToAll(new UpdatePlayerSpeedBroadcast
-        {
-            playerId = player.Id,
-            speed = player.Speed,
+            PlayerId = player.Id,
+            MovementData = player.MovementData
         });
     }
 
     public static async Task HandlePlayerShooting(PlayerShootingFromClient shootingData, ClientConnection client, GameManager gameManager)
     {
-        var shooter = gameManager.GetPlayerByClientId(client.Id);
+        var shooter = gameManager.GetPlayerById(client.Id);
         if (shooter == null) return;
 
         // 사격 가능한지 확인
@@ -150,10 +111,10 @@ public static class PacketHandlers
         }
 
         // 타겟 플레이어 확인
-        var target = gameManager.GetPlayerByClientId(shootingData.targetId);
+        var target = gameManager.GetPlayerById(shootingData.TargetId);
         if (target == null || !target.Alive)
         {
-            Console.WriteLine($"[전투] 유효하지 않은 타겟: {shootingData.targetId}");
+            Console.WriteLine($"[전투] 유효하지 않은 타겟: {shootingData.TargetId}");
             return;
         }
 
@@ -161,31 +122,31 @@ public static class PacketHandlers
         bool hit = CalculateHit(shooter.Accuracy);
             
         // 재장전 시간 설정
-        shooter.UpdateReloadTime(Player.DEFAULT_RELOAD_TIME - gameManager.ping[shooter.Id]);
+        shooter.UpdateReloadTime(Player.DEFAULT_RELOAD_TIME - gameManager.GetPingById(shooter.Id));
 
         Console.WriteLine($"[전투] 플레이어 {shooter.Id} -> {target.Id} 사격: {(hit ? "명중" : "빗나감")}");
 
         // 사격 브로드캐스트
         await gameManager.BroadcastToAll(new PlayerShootingBroadcast
         {
-            shooterId = shooter.Id,
-            targetId = target.Id,
-            hit = hit,
-            shooterRemainingReloadingTime = shooter.RemainingReloadTime
+            ShooterId = shooter.Id,
+            TargetId = target.Id,
+            Hit = hit,
+            ShooterRemainingReloadingTime = shooter.RemainingReloadTime
         });
 
         // 명중 시 타겟 처리
         if (hit)
         {
             // 게임이 진행 중일 때만 실제 피해 처리
-            // if (gameManager.IsGamePlaying())
+            if (gameManager.IsGamePlaying())
             {
                 await HandlePlayerHit(target, gameManager);
             }
-            // else
-            // {
-            //     Console.WriteLine($"[전투] 게임이 진행 중이 아니므로 사격 피해 무시 (상태: {gameManager.CurrentGameState})");
-            // }
+            else
+            {
+                Console.WriteLine($"[전투] 게임이 진행 중이 아니므로 사격 피해 무시 (상태: {gameManager.CurrentGameState})");
+            }
         }
     }
 
@@ -195,57 +156,20 @@ public static class PacketHandlers
         GameManager gameManager)
     {
         await gameManager.BroadcastToAll(new PlayerIsTargetingBroadcast
-            { shooterId = client.Id, targetId = isTargetingData.targetId });
-    }
-        
-    /// <summary>
-    /// 플레이어 Ready 상태 변경을 처리합니다
-    /// </summary>
-    public static async Task HandleReady(Ready readyData, ClientConnection client, GameManager gameManager)
-    {
-        var player = gameManager.GetPlayerByClientId(client.Id);
-        if (player == null || !player.IsInGame) return;
-
-        // 플레이어 Ready 상태 업데이트
-        gameManager.UpdatePlayerReady(client.Id, readyData.ready);
-
-        Console.WriteLine($"[게임] 플레이어 {player.Id} Ready 상태: {readyData.ready} (Ready 플레이어: {gameManager.GetReadyPlayerCount()}/{gameManager.PlayerCount})");
-
-        // Ready 상태 변경을 모든 플레이어에게 브로드캐스트
-        await gameManager.BroadcastToAll(new ReadyBroadcast
-        {
-            playerId = player.Id,
-            ready = readyData.ready
-        });
-
-        // 모든 플레이어가 Ready 상태이고 최소 2명 이상인지 확인
-        if (gameManager.AreAllPlayersReady() && gameManager.PlayerCount >= 2)
-        {
-            Console.WriteLine($"[게임] 모든 플레이어가 Ready! 게임을 시작합니다.");
-            await gameManager.StartGame();
-        }
+            { ShooterId = client.Id, TargetId = isTargetingData.TargetId });
     }
 
-    /// <summary>
-    /// 플레이어가 사격 가능한지 확인합니다
-    /// </summary>
     private static bool CanShoot(Player player)
     {
         return player.Alive && player.RemainingReloadTime <= 0;
     }
 
-    /// <summary>
-    /// 명중률에 따라 명중 여부를 계산합니다
-    /// </summary>
     private static bool CalculateHit(float accuracy)
     {
         var random = new Random();
         return random.NextDouble() * 100 < accuracy;
     }
 
-    /// <summary>
-    /// 플레이어 피격 처리
-    /// </summary>
     private static async Task HandlePlayerHit(Player target, GameManager gameManager)
     {
         // 플레이어 사망 처리
@@ -256,13 +180,13 @@ public static class PacketHandlers
         // 사망 브로드캐스트
         await gameManager.BroadcastToAll(new UpdatePlayerAlive
         {
-            playerId = target.Id,
-            alive = false
+            PlayerId = target.Id,
+            Alive = target.Alive
         });
 
         // 게임 종료 상태 로그
         int aliveCount = gameManager.GetAlivePlayerCount();
-        if (gameManager.ShouldEndGame())
+        if (gameManager.GameOver())
         {
             Console.WriteLine($"[게임] 게임 종료 조건 달성 - 생존자: {aliveCount}명");
         }

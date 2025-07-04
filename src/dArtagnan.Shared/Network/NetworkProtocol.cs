@@ -8,23 +8,18 @@ namespace dArtagnan.Shared
     [Union(1, typeof(YouAre))]
     [Union(2, typeof(InformationOfPlayers))]
     [Union(3, typeof(PlayerJoinBroadcast))]
-    [Union(4, typeof(PlayerDirectionFromClient))]
-    [Union(5, typeof(PlayerDirectionBroadcast))]
-    [Union(6, typeof(PlayerRunningFromClient))]
-    [Union(7, typeof(UpdatePlayerSpeedBroadcast))]
-    [Union(8, typeof(PlayerShootingFromClient))]
-    [Union(9, typeof(PlayerShootingBroadcast))]
-    [Union(10, typeof(UpdatePlayerAlive))]
-    [Union(11, typeof(PlayerLeaveFromClient))]
-    [Union(12, typeof(PlayerLeaveBroadcast))]
-    [Union(13, typeof(UpdatePlayerPosition))]
-    [Union(14, typeof(Ready))]
-    [Union(15, typeof(ReadyBroadcast))]
-    [Union(16, typeof(GameStarted))]
-    [Union(17, typeof(PlayerIsTargetingFromClient))]
-    [Union(18, typeof(PlayerIsTargetingBroadcast))]
-    [Union(19, typeof(StartGame))]
-    [Union(20, typeof(NewHost))]
+    [Union(4, typeof(PlayerMovementDataFromClient))]
+    [Union(5, typeof(PlayerMovementDataBroadcast))]
+    [Union(6, typeof(PlayerShootingFromClient))]
+    [Union(7, typeof(PlayerShootingBroadcast))]
+    [Union(8, typeof(UpdatePlayerAlive))]
+    [Union(9, typeof(PlayerLeaveFromClient))]
+    [Union(10, typeof(PlayerLeaveBroadcast))]
+    [Union(11, typeof(GameStarted))]
+    [Union(12, typeof(PlayerIsTargetingFromClient))]
+    [Union(13, typeof(PlayerIsTargetingBroadcast))]
+    [Union(14, typeof(StartGame))]
+    [Union(15, typeof(NewHost))]
     public interface IPacket
     {
     }
@@ -37,90 +32,78 @@ namespace dArtagnan.Shared
     [MessagePackObject]
     public struct YouAre : IPacket
     {
-        [Key(0)] public int playerId { get; set; }
+        [Key(0)] public int PlayerId;
     }
 
     [MessagePackObject]
     public struct InformationOfPlayers : IPacket
     {
-        [Key(0)] public List<PlayerInformation> info { get; set; }
+        [Key(0)] public List<PlayerInformation> Info;
     }
 
     [MessagePackObject]
     public struct PlayerInformation
     {
-        [Key(0)] public int playerId;
-        [Key(1)] public string nickname;
-        [Key(2)] public int direction;
-        [Key(3)] public float x;
-        [Key(4)] public float y;
-        [Key(5)] public int accuracy;
-        [Key(6)] public float totalReloadTime;
-        [Key(7)] public float remainingReloadTime;
-        [Key(8)] public float speed;
-        [Key(9)] public bool alive;
-        [Key(10)] public int targeting; // -1 if targeting none.
-        [Key(11)] public float range;
+        [Key(0)] public int PlayerId;
+        [Key(1)] public string Nickname;
+        [Key(2)] public int Accuracy;
+        [Key(3)] public float TotalReloadTime;
+        [Key(4)] public float RemainingReloadTime;
+        [Key(5)] public bool Alive;
+        [Key(6)] public int Targeting; // -1 if targeting none.
+        [Key(7)] public float Range;
+        [Key(8)] public MovementData MovementData;
+    }
+
+    [MessagePackObject]
+    public struct MovementData
+    {
+        [Key(0)] public int Direction;
+        [Key(1)] public Vector2 Position;
+        [Key(2)] public float Speed;
     }
 
     [MessagePackObject]
     public struct PlayerJoinBroadcast : IPacket
     {
-        [Key(0)] public PlayerInformation playerInfo;
+        [Key(0)] public PlayerInformation PlayerInfo;
     }
 
     [MessagePackObject]
-    public struct PlayerDirectionFromClient : IPacket
+    public struct PlayerMovementDataFromClient : IPacket
     {
-        [Key(0)] public int direction { get; set; }
-        [Key(1)] public float currentX { get; set; }
-        [Key(2)] public float currentY { get; set; }
-        [Key(3)] public bool running { get; set; }
+        [Key(0)] public int Direction;
+        [Key(1)] public Vector2 Position;
+        [Key(2)] public bool Running;
     }
 
     [MessagePackObject]
-    public struct PlayerDirectionBroadcast : IPacket
+    public struct PlayerMovementDataBroadcast : IPacket
     {
-        [Key(0)] public int playerId { get; set; }
-        [Key(1)] public int direction { get; set; }
-        [Key(2)] public float currentX { get; set; }
-        [Key(3)] public float currentY { get; set; }
-        [Key(4)] public float speed { get; set; }
-    }
-
-    [MessagePackObject]
-    public struct PlayerRunningFromClient : IPacket
-    {
-        [Key(0)] public bool isRunning { get; set; }
-    }
-
-    [MessagePackObject]
-    public struct UpdatePlayerSpeedBroadcast : IPacket
-    {
-        [Key(0)] public int playerId { get; set; }
-        [Key(1)] public float speed { get; set; }
+        [Key(0)] public int PlayerId;
+        [Key(1)] public MovementData MovementData;
     }
 
     [MessagePackObject]
     public struct PlayerShootingFromClient : IPacket
     {
-        [Key(0)] public int targetId { get; set; }
+        [Key(0)] public int TargetId;
     }
 
     [MessagePackObject]
     public struct PlayerShootingBroadcast : IPacket
     {
-        [Key(0)] public int shooterId { get; set; }
-        [Key(1)] public int targetId { get; set; }
-        [Key(2)] public bool hit { get; set; }
-        [Key(3)] public float shooterRemainingReloadingTime { get; set; }
+        [Key(0)] public int ShooterId;
+        [Key(1)] public int TargetId;
+        [Key(2)] public bool Hit;
+        [Key(3)] public float ShooterRemainingReloadingTime;
     }
 
     [MessagePackObject]
     public struct UpdatePlayerAlive : IPacket
     {
-        [Key(0)] public int playerId { get; set; }
-        [Key(1)] public bool alive { get; set; }
+        [Key(0)] public int PlayerId;
+        [Key(1)] public bool Alive;
     }
 
     [MessagePackObject]
@@ -131,82 +114,53 @@ namespace dArtagnan.Shared
     [MessagePackObject]
     public struct PlayerLeaveBroadcast : IPacket
     {
-        [Key(0)] public int playerId { get; set; }
-    }
-
-    [MessagePackObject]
-    public struct UpdatePlayerPosition : IPacket
-    {
-        [Key(0)] public List<PlayerPosition> positionList { get; set; }
-    }
-
-    [MessagePackObject]
-    public struct PlayerPosition
-    {
-        [Key(0)] public int playerId;
-        [Key(1)] public float x;
-        [Key(2)] public float y;
-    }
-
-    [MessagePackObject]
-    public struct Ready : IPacket
-    {
-        [Key(0)] public bool ready { get; set; }
-    }
-
-    [MessagePackObject]
-    public struct ReadyBroadcast : IPacket
-    {
-        [Key(0)] public int playerId { get; set; }
-        [Key(1)] public bool ready { get; set; }
+        [Key(0)] public int PlayerId;
     }
 
     [MessagePackObject]
     public struct PlayerIsTargetingFromClient : IPacket
     {
-        [Key(0)] public int targetId { get; set; }
+        [Key(0)] public int TargetId;
     }
 
     [MessagePackObject]
     public struct PlayerIsTargetingBroadcast : IPacket
     {
-        [Key(0)] public int shooterId { get; set; }
-        [Key(1)] public int targetId { get; set; }
+        [Key(0)] public int ShooterId;
+        [Key(1)] public int TargetId;
     }
 
     [MessagePackObject]
     public struct StartGame : IPacket
-    {
-        
-    }
+    {}
 
     [MessagePackObject]
     public struct GameStarted : IPacket
     {
-        [Key(0)] public List<PlayerInformation> players { get; set; }
+        [Key(0)] public List<PlayerInformation> Players;
     }
 
     [MessagePackObject]
     public struct NewHost : IPacket
     {
-        [Key(0)] public int hostId { get; set; }
+        [Key(0)] public int HostId;
     }
 
     public class DirectionHelper
     {
-        public static readonly List<Vector3> Directions = new()
+        public static readonly List<Vector2> Directions = new()
         {
-            Vector3.Zero,
-            Vector3.UnitY,
-            Vector3.Normalize(Vector3.UnitY + Vector3.UnitX),
-            Vector3.UnitX,
-            Vector3.Normalize(Vector3.UnitX - Vector3.UnitY),
-            -Vector3.UnitY,
-            Vector3.Normalize(-Vector3.UnitY - Vector3.UnitX),
-            -Vector3.UnitX,
-            Vector3.Normalize(-Vector3.UnitX + Vector3.UnitY),
+            Vector2.Zero,
+            Vector2.UnitY,
+            Vector2.Normalize(Vector2.UnitY + Vector2.UnitX),
+            Vector2.UnitX,
+            Vector2.Normalize(Vector2.UnitX - Vector2.UnitY),
+            -Vector2.UnitY,
+            Vector2.Normalize(-Vector2.UnitY - Vector2.UnitX),
+            -Vector2.UnitX,
+            Vector2.Normalize(-Vector2.UnitX + Vector2.UnitY),
         };
-        public static Vector3 IntToDirection(int direction)
+        public static Vector2 IntToDirection(int direction)
         {
             return Directions[direction];
         }

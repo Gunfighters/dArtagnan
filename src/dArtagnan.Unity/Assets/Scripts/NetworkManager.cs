@@ -8,6 +8,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using static System.Int32;
+using Vector2 = System.Numerics.Vector2;
 
 public class NetworkManager : MonoBehaviour
 {
@@ -110,30 +111,25 @@ public class NetworkManager : MonoBehaviour
         Enqueue(new PlayerJoinRequest());
     }
 
-    public void SendPlayerDirection(Vector3 position, Vector3 direction, bool running)
+    public void SendPlayerMovementData(Vector3 position, Vector3 direction, bool running)
     {
-        Enqueue(new PlayerDirectionFromClient
+        Enqueue(new PlayerMovementDataFromClient
         {
-            direction = DirectionHelperClient.DirectionToInt(direction),
-            currentX = position.x,
-            currentY = position.y,
-            running = running
+            Direction = DirectionHelperClient.DirectionToInt(direction),
+            Position = new Vector2(position.x, position.y),
+            Running = running
         });
     }
 
-    public void SendPlayerIsRunning(bool isRunning)
-    {
-        Enqueue(new PlayerRunningFromClient() { isRunning = isRunning });
-    }
 
     public void SendPlayerShooting(int target)
     {
-        Enqueue(new PlayerShootingFromClient { targetId = target });
+        Enqueue(new PlayerShootingFromClient { TargetId = target });
     }
 
     public void SendPlayerNewTarget(int target)
     {
-        Enqueue(new PlayerIsTargetingFromClient {  targetId = target });
+        Enqueue(new PlayerIsTargetingFromClient { TargetId = target });
     }
 
     public void SendStartGame()
@@ -143,6 +139,7 @@ public class NetworkManager : MonoBehaviour
 
     void HandlePacket(IPacket packet)
     {
+        Debug.Log(packet.GetType());
         switch (packet)
         {
             case YouAre are:
@@ -154,11 +151,8 @@ public class NetworkManager : MonoBehaviour
             case PlayerJoinBroadcast joinBroadcast:
                 GameManager.Instance.OnPlayerJoinBroadcast(joinBroadcast);
                 break;
-            case PlayerDirectionBroadcast playerDirectionBroadcast:
-                GameManager.Instance.OnPlayerDirectionBroadcast(playerDirectionBroadcast);
-                break;
-            case UpdatePlayerSpeedBroadcast update:
-                GameManager.Instance.OnUpdatePlayerSpeedBroadcast(update);
+            case PlayerMovementDataBroadcast playerMovementDataBroadcast:
+                GameManager.Instance.OnPlayerMovementData(playerMovementDataBroadcast);
                 break;
             case PlayerShootingBroadcast shootingBroadcast:
                 GameManager.Instance.OnPlayerShootingBroadcast(shootingBroadcast);

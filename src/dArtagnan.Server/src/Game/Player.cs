@@ -1,8 +1,9 @@
+using System.Numerics;
 using dArtagnan.Shared;
 
 namespace dArtagnan.Server;
 
-public class Player(int id, string nickname, float x, float y)
+public class Player(int id, string nickname, Vector2 position)
 {
     public const float DEFAULT_RELOAD_TIME = 15.0f;
     public const float WALKING_SPEED = 40f;
@@ -10,36 +11,39 @@ public class Player(int id, string nickname, float x, float y)
     public const int MIN_ACCURACY = 1;
     public const int MAX_ACCURACY = 100;
     public const float DEFAULT_RANGE = 600f;
+    public const float SPAWN_RADIUS = 5.0f;
 
     public int Id = id;
     public string Nickname = nickname;
-    public int Accuracy;
-    public int Direction;
-    public float X = x;
-    public float Y = y;
+    public int Accuracy = GenerateRandomAccuracy();
     public float Range = DEFAULT_RANGE;
         
     public float TotalReloadTime = DEFAULT_RELOAD_TIME;
     public float RemainingReloadTime = DEFAULT_RELOAD_TIME / 2;
-    public float Speed;
-    public bool Alive;
-    public bool IsInGame;
-    public bool IsReady;
-    public int targeting;
+    public bool Alive = true;
+    public Player? Target;
+    public MovementData MovementData = new() { Direction = 0, Position = position, Speed = WALKING_SPEED };
+
+    public void Reset()
+    {
+        Alive = true;
+        Target = null;
+        MovementData = new MovementData { Direction = 0, Position = Vector2.Zero, Speed = WALKING_SPEED };
+        TotalReloadTime = DEFAULT_RELOAD_TIME;
+        RemainingReloadTime = TotalReloadTime / 2;
+        Range = DEFAULT_RANGE;
+    }
 
     public PlayerInformation PlayerInformation => new()
     {
-        accuracy = Accuracy,
-        direction = Direction,
-        alive = Alive,
-        nickname = Nickname,
-        remainingReloadTime = RemainingReloadTime,
-        speed = Speed,
-        totalReloadTime = TotalReloadTime,
-        targeting = targeting,
-        x = X,
-        y = Y,
-        range = Range
+        Accuracy = Accuracy,
+        Alive = Alive,
+        Nickname = Nickname,
+        RemainingReloadTime = RemainingReloadTime,
+        TotalReloadTime = TotalReloadTime,
+        Targeting = Target?.Id ?? -1,
+        Range = Range,
+        MovementData = MovementData
     };
 
     public static int GenerateRandomAccuracy()
@@ -52,26 +56,33 @@ public class Player(int id, string nickname, float x, float y)
         return isRunning ? RUNNING_SPEED : WALKING_SPEED;
     }
 
-    public static (float x, float y) GetSpawnPosition(int playerId)
+    public static Vector2 GetSpawnPosition(int playerId)
     {
         // 간단한 원형 배치로 스폰 위치 결정
-        float angle = (playerId * 45) * (float)(Math.PI / 180); // 45도씩 회전
-        float radius = 5.0f;
-        float x = (float)Math.Cos(angle) * radius;
-        float y = (float)Math.Sin(angle) * radius;
-            
-        return (x, y);
+        var angle = playerId * 45 * (float)(Math.PI / 180); // 45도씩 회전
+        return new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * SPAWN_RADIUS;
     }
 
-    public void UpdatePosition(float newX, float newY)
+    public void UpdateMovementData(Vector2 position, int direction, float speed)
     {
-        X = newX;
-        Y = newY;
+        UpdatePosition(position);
+        UpdateDirection(direction);
+        UpdateSpeed(speed);
+    }
+
+    public void UpdatePosition(Vector2 newPosition)
+    {
+        MovementData.Position = newPosition;
+    }
+
+    public void UpdateDirection(int direction)
+    {
+        MovementData.Direction = direction;
     }
 
     public void UpdateSpeed(float newSpeed)
     {
-        Speed = newSpeed;
+        MovementData.Speed = newSpeed;
     }
 
     public void UpdateAlive(bool alive)
@@ -84,18 +95,13 @@ public class Player(int id, string nickname, float x, float y)
         RemainingReloadTime = remaining;
     }
 
-    public void JoinGame()
+    public void UpdateTarget(Player target)
     {
-        IsInGame = true;
+        Target = target;
     }
 
-    public void LeaveGame()
+    public void UpdateRange(float range)
     {
-        IsInGame = false;
-    }
-
-    public void UpdateReady(bool ready)
-    {
-        IsReady = ready;
+        Range = range;
     }
 }

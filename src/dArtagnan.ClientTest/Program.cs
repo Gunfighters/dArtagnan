@@ -1,4 +1,6 @@
-﻿using System.Net.Sockets;
+﻿using System.Diagnostics;
+using System.Net.Sockets;
+using System.Numerics;
 using dArtagnan.Shared;
 
 namespace dArtagnan.ClientTest
@@ -9,6 +11,30 @@ namespace dArtagnan.ClientTest
         private static NetworkStream? stream;
         private static bool isConnected = false;
         private static bool isRunning = true;
+        private static Vector2 position;
+        private static float speed => isRunning ? 160f : 40f;
+        private static int direction;
+        private static Stopwatch stopwatch = new();
+
+        static void CalculatePositionSoFar()
+        {
+            position += speed * stopwatch.ElapsedMilliseconds / 1000f * DirectionHelper.IntToDirection(direction);
+            stopwatch.Restart();
+        }
+
+        static async Task SendMovementData()
+        {
+            try
+            {
+                var playerDirection = new PlayerMovementDataFromClient { Direction = direction, Position = position, Running = isRunning };
+                await NetworkUtils.SendPacketAsync(stream, playerDirection);
+                Console.WriteLine($"이동 데이터 패킷 전송: 방향 {playerDirection.Direction}, 위치 {playerDirection.Position} 달리기 : {isRunning}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"이동 패킷 전송 실패: {ex.Message}");
+            }
+        }
 
         static async Task Main(string[] args)
         {
@@ -60,18 +86,6 @@ namespace dArtagnan.ClientTest
                         await JoinGame(nickname);
                         break;
 
-                    case "ready":
-                        if (parts.Length >= 2)
-                        {
-                            var isReady = bool.Parse(parts[1]);
-                            await SendReady(isReady);
-                        }
-                        else
-                        {
-                            Console.WriteLine("사용법: ready [true/false]");
-                        }
-                        break;
-
                     case "dir":
                         if (parts.Length >= 2)
                         {
@@ -87,7 +101,7 @@ namespace dArtagnan.ClientTest
                     case "run":
                         if (parts.Length >= 2)
                         {
-                            var isRunning = bool.Parse(parts[1]);
+                            isRunning = bool.Parse(parts[1]);
                             await SendRunning(isRunning);
                         }
                         else
@@ -158,6 +172,8 @@ namespace dArtagnan.ClientTest
                 Console.WriteLine("먼저 서버에 연결해주세요.");
                 return;
             }
+            
+            stopwatch.Start();
 
             try
             {
@@ -171,7 +187,7 @@ namespace dArtagnan.ClientTest
             }
         }
 
-        static async Task SendDirection(int direction)
+        static async Task SendDirection(int dir)
         {
             if (!isConnected || stream == null)
             {
@@ -179,36 +195,22 @@ namespace dArtagnan.ClientTest
                 return;
             }
 
-            try
-            {
-                var playerDirection = new PlayerDirectionFromClient { direction = direction };
-                await NetworkUtils.SendPacketAsync(stream, playerDirection);
-                Console.WriteLine($"이동 패킷 전송: {direction}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"이동 패킷 전송 실패: {ex.Message}");
-            }
+            CalculatePositionSoFar();
+            direction = dir;
+            await SendMovementData();
         }
 
-        static async Task SendRunning(bool isRunning)
+        static async Task SendRunning(bool running)
         {
             if (!isConnected || stream == null)
             {
                 Console.WriteLine("먼저 서버에 연결해주세요.");
                 return;
             }
-
-            try
-            {
-                var runningPacket = new PlayerRunningFromClient { isRunning = isRunning };
-                await NetworkUtils.SendPacketAsync(stream, runningPacket);
-                Console.WriteLine($"달리기 패킷 전송: {isRunning}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"달리기 패킷 전송 실패: {ex.Message}");
-            }
+            
+            isRunning = running;
+            CalculatePositionSoFar();
+            await SendMovementData();
         }
 
         static async Task SendShoot(int targetId)
@@ -223,7 +225,7 @@ namespace dArtagnan.ClientTest
             {
                 await NetworkUtils.SendPacketAsync(stream, new PlayerShootingFromClient
                 {
-                    targetId = targetId
+                    TargetId = targetId
                 });
                 Console.WriteLine($"공격 패킷 전송: 타겟 {targetId}");
             }
@@ -249,28 +251,6 @@ namespace dArtagnan.ClientTest
             catch (Exception ex)
             {
                 Console.WriteLine($"게임 나가기 패킷 전송 실패: {ex.Message}");
-            }
-        }
-
-        static async Task SendReady(bool isReady)
-        {
-            if (!isConnected || stream == null)
-            {
-                Console.WriteLine("먼저 서버에 연결해주세요.");
-                return;
-            }
-
-            try
-            {
-                await NetworkUtils.SendPacketAsync(stream, new Ready
-                {
-                    ready = isReady
-                });
-                Console.WriteLine($"Ready 패킷 전송: {isReady}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ready 패킷 전송 실패: {ex.Message}");
             }
         }
 
@@ -303,59 +283,42 @@ namespace dArtagnan.ClientTest
                 switch (packet)
                 {
                     case YouAre youAre:
-                        Console.WriteLine($"서버에서 플레이어 ID 할당: {youAre.playerId}");
+                        Console.WriteLine($"서버에서 플레이어 ID 할당: {youAre.PlayerId}");
                         break;
                         
                     case PlayerJoinBroadcast joinBroadcast:
-                        Console.WriteLine($"플레이어 {joinBroadcast.playerInfo.playerId} 참가!");
+                        Console.WriteLine($"플레이어 {joinBroadcast.PlayerInfo.PlayerId} 참가!");
                         break;
                         
-                    case PlayerDirectionBroadcast playerDirection:
-                        Console.WriteLine($"{playerDirection.playerId}번 플레이어 방향 변경: {playerDirection.direction}");
-                        break;
-                        
-                    case UpdatePlayerSpeedBroadcast speedUpdate:
-                        Console.WriteLine($"{speedUpdate.playerId}번 플레이어 속도 변경: {speedUpdate.speed}");
+                    case PlayerMovementDataBroadcast movementDataBroadcast:
+                        Console.WriteLine($"{movementDataBroadcast.PlayerId}번 플레이어 이동 데이터 갱신: 방향 {movementDataBroadcast.MovementData.Direction}, 위치 {movementDataBroadcast.MovementData.Position} 속도 {movementDataBroadcast.MovementData.Speed}");
                         break;
                         
                     case InformationOfPlayers infoPlayers:
                         Console.WriteLine($"=== 플레이어 정보 업데이트 ===");
-                        foreach (var info in infoPlayers.info)
+                        foreach (var info in infoPlayers.Info)
                         {
-                            Console.WriteLine($"  플레이어 {info.playerId}: {info.nickname}");
-                            Console.WriteLine($"    위치: ({info.x:F2}, {info.y:F2})");
-                            Console.WriteLine($"    명중률: {info.accuracy}%");
-                            Console.WriteLine($"    속도: {info.speed:F2}");
-                            Console.WriteLine($"    재장전: {info.remainingReloadTime:F2}/{info.totalReloadTime:F2}초");
-                            Console.WriteLine($"    생존: {(info.alive ? "생존" : "사망")}");
+                            Console.WriteLine($"  플레이어 {info.PlayerId}: {info.Nickname}");
+                            Console.WriteLine($"    위치: ({info.MovementData.Position.X:F2}, {info.MovementData.Position.Y:F2})");
+                            Console.WriteLine($"    명중률: {info.Accuracy}%");
+                            Console.WriteLine($"    속도: {info.MovementData.Speed:F2}");
+                            Console.WriteLine($"    재장전: {info.RemainingReloadTime:F2}/{info.TotalReloadTime:F2}초");
+                            Console.WriteLine($"    생존: {(info.Alive ? "생존" : "사망")}");
                         }
                         break;
                         
                     case PlayerShootingBroadcast shooting:
-                        var hitMsg = shooting.hit ? "명중!" : "빗나감";
-                        Console.WriteLine($"플레이어 {shooting.shooterId}가 플레이어 {shooting.targetId}를 공격 - {hitMsg}");
+                        var hitMsg = shooting.Hit ? "명중!" : "빗나감";
+                        Console.WriteLine($"플레이어 {shooting.ShooterId}가 플레이어 {shooting.TargetId}를 공격 - {hitMsg}");
                         break;
                         
                     case UpdatePlayerAlive aliveUpdate:
-                        var statusMsg = aliveUpdate.alive ? "부활" : "사망";
-                        Console.WriteLine($"플레이어 {aliveUpdate.playerId} {statusMsg}");
+                        var statusMsg = aliveUpdate.Alive ? "부활" : "사망";
+                        Console.WriteLine($"플레이어 {aliveUpdate.PlayerId} {statusMsg}");
                         break;
                         
                     case PlayerLeaveBroadcast leaveBroadcast:
-                        Console.WriteLine($"플레이어 {leaveBroadcast.playerId}가 게임을 떠났습니다");
-                        break;
-                        
-                    case UpdatePlayerPosition positionUpdate:
-                        Console.WriteLine($"=== 위치 업데이트 ===");
-                        foreach (var pos in positionUpdate.positionList)
-                        {
-                            Console.WriteLine($"  플레이어 {pos.playerId}: ({pos.x:F2}, {pos.y:F2})");
-                        }
-                        break;
-                        
-                    case ReadyBroadcast readyBroadcast:
-                        var readyStatus = readyBroadcast.ready ? "Ready!" : "Not Ready";
-                        Console.WriteLine($"플레이어 {readyBroadcast.playerId} {readyStatus}");
+                        Console.WriteLine($"플레이어 {leaveBroadcast.PlayerId}가 게임을 떠났습니다");
                         break;
                         
                     default:

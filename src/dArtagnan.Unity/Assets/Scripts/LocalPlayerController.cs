@@ -7,6 +7,8 @@ public class LocalPlayerController : Player
     public ShootJoystickController shootJoystickController;
     private Vector2 lastDirection;
     public static LocalPlayerController Instance { get; private set; }
+    static float WALKING_SPEED = 40f;
+    static float RUNNING_SPEED = 160f; // TODO: remove hard coding
 
     void Awake()
     {
@@ -77,11 +79,11 @@ public class LocalPlayerController : Player
         needToUpdate |= Input.GetKeyDown(KeyCode.Space) | Input.GetKeyUp(KeyCode.Space);
 
         var nowRunning = Input.GetKey(KeyCode.Space) || usingJoystick; // always run if using joystick
-        speed = nowRunning ? 160 : 40; // TODO: remove hard coding
+        speed = nowRunning ? RUNNING_SPEED : WALKING_SPEED;
 
         if (needToUpdate)
         {
-            NetworkManager.Instance.SendPlayerDirection(rb.position, direction, nowRunning);
+            NetworkManager.Instance.SendPlayerMovementData(rb.position, direction, nowRunning);
         }
     }
 

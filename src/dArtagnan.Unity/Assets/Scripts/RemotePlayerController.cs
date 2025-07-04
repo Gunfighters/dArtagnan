@@ -5,6 +5,7 @@ public class RemotePlayerController : Player
     float LastServerUpdateTimestamp;
     public float lerpSpeed;
     private bool isCorrecting;
+    private Vector2 serverPosition;
     
     void Awake()
     {
@@ -49,7 +50,7 @@ public class RemotePlayerController : Player
         return position + GameManager.Instance.Ping / 2 * direction * speed;
     }
 
-    public void SetMovementInformation(Vector3 normalizedDirection, Vector3 estimatedPosition, float newSpeed)
+    public void SetMovementData(Vector3 normalizedDirection, Vector3 estimatedPosition, float newSpeed)
     {
         currentDirection = normalizedDirection;
         speed = newSpeed;

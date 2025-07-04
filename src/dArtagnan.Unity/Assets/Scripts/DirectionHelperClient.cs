@@ -6,22 +6,22 @@ using dArtagnan.Shared;
 
 public class DirectionHelperClient
 {
-    private static readonly List<Vector3> Directions = DirectionHelper.Directions.Select(d => new Vector3(d.X, d.Y, d.Z)).ToList();
+    private static readonly List<Vector2> Directions = DirectionHelper.Directions.Select(d => new Vector2(d.X, d.Y)).ToList();
 
-    public static Vector3 IntToDirection(int i)
+    public static Vector2 IntToDirection(int i)
     {
         return Directions[i];
     }
     
-    public static int DirectionToInt(Vector3 direction)
+    public static int DirectionToInt(Vector2 direction)
     {
-        if (direction == Vector3.zero) return 0;
+        if (direction == Vector2.zero) return 0;
         var minAngle = float.MaxValue;
         var closestIndex = -1;
 
         for (var i = 1; i < Directions.Count; i++)
         {
-            var angle = Vector3.Angle(direction, Directions[i]);
+            var angle = Vector2.Angle(direction, Directions[i]);
             if (angle < minAngle)
             {
                 minAngle = angle;

@@ -43,67 +43,54 @@ public class GameManager : MonoBehaviour
 
     void AddPlayer(PlayerInformation info)
     {
-        var serverPosition = new Vector2(info.x, info.y);
-        var directionVec = (Vector2) DirectionHelperClient.IntToDirection(info.direction);
+        var serverPosition = new Vector2(info.MovementData.Position.X, info.MovementData.Position.Y);
+        var directionVec = (Vector2) DirectionHelperClient.IntToDirection(info.MovementData.Direction);
         var estimatedPosition = serverPosition + directionVec * Ping / 2;
-        var estimatedRemainingReloadTime = info.remainingReloadTime - Ping / 2;
-        Debug.Log($"Add Player #{info.playerId}");
-        if (remotePlayers.ContainsKey(info.playerId))
+        var estimatedRemainingReloadTime = info.RemainingReloadTime - Ping / 2;
+        Debug.Log($"Add Player #{info.PlayerId}");
+        if (remotePlayers.ContainsKey(info.PlayerId))
         {
-            Debug.LogWarning($"Trying to add player #{info.playerId} that already exists");
+            Debug.LogWarning($"Trying to add player #{info.PlayerId} that already exists");
             return;
         }
 
-        GameObject created;
-        if (info.playerId == localPlayerId)
+        Player player;
+        if (info.PlayerId == localPlayerId)
         {
-            created = localPlayer.gameObject;
-            localPlayer.SetNickname($"#{localPlayerId}");
-            localPlayer.ImmediatelyMoveTo(estimatedPosition);
-            mainCamera.transform.SetParent(localPlayer.transform);
-            localPlayer = localPlayer.GetComponent<LocalPlayerController>();
-            localPlayer.SetAccuracy(info.accuracy);
-            localPlayer.range = info.range;
-            localPlayer.speed = info.speed;
-            localPlayer.cooldown = estimatedRemainingReloadTime;
-            localPlayer.cooldownDuration = info.totalReloadTime;
-            localPlayer.dead = !info.alive;
-            if (localPlayer.dead)
-            {
-                localPlayer.Die();
-            }
+            player = localPlayer;
         }
         else
         {
-            created = Instantiate(playerPrefab, estimatedPosition, Quaternion.identity, WorldCanvas.transform);
-            var player = created.GetComponent<RemotePlayerController>();
-            player.id = info.playerId;
-            player.SetNickname($"#{player.id}");
-            player.SetAccuracy(info.accuracy);
-            player.ImmediatelyMoveTo(estimatedPosition);
-            player.SetMovementInformation(directionVec, estimatedPosition, info.speed);
-            player.range = info.range;
-            player.cooldown = estimatedRemainingReloadTime;
-            player.cooldownDuration = info.totalReloadTime;
-            player.dead = !info.alive;
-            if (player.dead)
-            {
-                player.Die();
-            }
-            remotePlayers[info.playerId] = player;
+            var obj = Instantiate(playerPrefab, estimatedPosition, Quaternion.identity, WorldCanvas.transform);
+            var remotePlayer = obj.GetComponent<RemotePlayerController>();
+            remotePlayer.SetMovementData(directionVec, estimatedPosition, info.MovementData.Speed);
+            remotePlayers[info.PlayerId] = remotePlayer;
+            player = remotePlayer;
         }
-        created.SetActive(true);
+        player.id = info.PlayerId;
+        player.SetNickname($"#{player.id}");
+        player.SetAccuracy(info.Accuracy);
+        player.ImmediatelyMoveTo(estimatedPosition);
+        player.range = info.Range;
+        player.cooldown = estimatedRemainingReloadTime;
+        player.cooldownDuration = info.TotalReloadTime;
+        player.dead = !info.Alive;
+        if (player.dead)
+        {
+            player.Die();
+        }
+        player.gameObject.SetActive(true);
     }
 
     public void OnYouAre(YouAre payload)
     {
-        localPlayerId = payload.playerId;
+        localPlayerId = payload.PlayerId;
         ToggleGameStartButton(localPlayerId == hostId);
     }
 
     public void OnNewHost(NewHost payload)
     {
-        hostId = payload.hostId;
+        hostId = payload.HostId;
         Debug.Log($"New Host #{hostId}");
         ToggleGameStartButton(localPlayerId == hostId);
     }
@@ -115,7 +102,7 @@ public class GameManager : MonoBehaviour
 
     public void OnInformationOfPlayers(InformationOfPlayers informationOfPlayers)
     {
-        foreach (var info in informationOfPlayers.info)
+        foreach (var info in informationOfPlayers.Info)
         {
             AddPlayer(info);
         }
@@ -123,40 +110,36 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayerJoinBroadcast(PlayerJoinBroadcast payload)
     {
-        var info = payload.playerInfo;
-        if (info.playerId != localPlayerId)
+        var info = payload.PlayerInfo;
+        if (info.PlayerId != localPlayerId)
         {
             AddPlayer(info);
         }
     }
 
-    public void OnPlayerDirectionBroadcast(PlayerDirectionBroadcast payload)
+    public void OnPlayerMovementData(PlayerMovementDataBroadcast payload)
     {
-        if (payload.playerId == localPlayerId) return;
-        var targetPlayer = remotePlayers[payload.playerId];
-        var direction = DirectionHelperClient.IntToDirection(payload.direction);
-        var position = RemotePlayerController.EstimatePositionByPing(new Vector2(payload.currentX, payload.currentY), direction, payload.speed);
-        targetPlayer.SetMovementInformation(direction, position, payload.speed);
-    }
-
-    public void OnUpdatePlayerSpeedBroadcast(UpdatePlayerSpeedBroadcast update)
-    {
-        // players[update.playerId].SetSpeed(update.speed, + Ping);
+        if (payload.PlayerId == localPlayerId) return;
+        var targetPlayer = remotePlayers[payload.PlayerId];
+        var direction = DirectionHelperClient.IntToDirection(payload.MovementData.Direction);
+        var serverPosition = new Vector2(payload.MovementData.Position.X, payload.MovementData.Position.Y);
+        var position = RemotePlayerController.EstimatePositionByPing(serverPosition, direction, payload.MovementData.Speed);
+        targetPlayer.SetMovementData(direction, position, payload.MovementData.Speed);
     }
 
     public void OnPlayerShootingBroadcast(PlayerShootingBroadcast shooting)
     {
-        Player shooter = shooting.shooterId == localPlayerId ? localPlayer : remotePlayers[shooting.shooterId];
+        Player shooter = shooting.ShooterId == localPlayerId ? localPlayer : remotePlayers[shooting.ShooterId];
         shooter.Fire();
         shooter.cooldown = shooter.cooldownDuration - Ping / 2;
-        shooter.ShowHitOrMiss(shooting.hit);
+        shooter.ShowHitOrMiss(shooting.Hit);
         // TODO: show hit or miss text
     }
 
     public void OnUpdatePlayerAlive(UpdatePlayerAlive updatePlayerAlive)
     {
-        Player aliveOrDead = updatePlayerAlive.playerId == localPlayerId ? localPlayer : remotePlayers[updatePlayerAlive.playerId];
-        if (!updatePlayerAlive.alive)
+        Player aliveOrDead = updatePlayerAlive.PlayerId == localPlayerId ? localPlayer : remotePlayers[updatePlayerAlive.PlayerId];
+        if (!updatePlayerAlive.Alive)
         {
             aliveOrDead.Die();
         }
@@ -164,7 +147,7 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayerLeaveBroadcast(PlayerLeaveBroadcast leave)
     {
-        remotePlayers[leave.playerId].gameObject.SetActive(false);
+        remotePlayers[leave.PlayerId].gameObject.SetActive(false);
     }
 
     public void SetPing(Ping p)

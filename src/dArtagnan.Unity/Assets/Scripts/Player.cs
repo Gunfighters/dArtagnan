@@ -11,7 +11,6 @@ public abstract class Player : MonoBehaviour
     public TextMeshProUGUI nicknameText;
     public float range;
     public int accuracy;
-    public Vector2 serverPosition;
     public Vector2 currentDirection;
     public Vector2 Position => rb.position;
     public bool dead;
