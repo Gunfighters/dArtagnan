@@ -34,22 +34,6 @@ public abstract class Player : MonoBehaviour
         nickname = newNickname;
         nicknameText.text = nickname;
     }
-    
-    protected static Vector3 SnapToCardinalDirection(Vector3 dir)
-    {
-        if (dir == Vector3.zero) return Vector3.zero;
-
-        var angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        if (angle < 0) angle += 360f;
-
-        return angle switch
-        {
-            >= 45f and < 135f => Vector3.up,
-            >= 135f and < 225f => Vector3.left,
-            >= 225f and < 315f => Vector3.down,
-            _ => Vector3.right
-        };
-    }
 
     protected void UpdateModel()
     {
@@ -60,7 +44,7 @@ public abstract class Player : MonoBehaviour
         }
         else
         {
-            modelManager.SetDirection(SnapToCardinalDirection(currentDirection));
+            modelManager.SetDirection(currentDirection);
             if (running)
             {
                 modelManager.Run();
@@ -74,6 +58,7 @@ public abstract class Player : MonoBehaviour
 
     public void Fire(Player target)
     {
+        modelManager.SetDirection((Vector2) target.transform.position - rb.position);
         modelManager.Fire();
         modelManager.ShowTrajectory(target.transform.position);
         modelManager.ScheduleHideTrajectory();

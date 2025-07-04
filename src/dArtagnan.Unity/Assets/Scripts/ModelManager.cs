@@ -60,7 +60,7 @@ public class ModelManager : MonoBehaviour
 
     public void SetDirection(Vector2 newDir)
     {
-        direction = newDir.normalized;
+        direction = SnapToCardinalDirection(newDir);
         actualModel.SetDirection(direction);
         modelSilhouette.SetDirection(direction);
     }
@@ -171,5 +171,20 @@ public class ModelManager : MonoBehaviour
             _instances.Add(muzzle);
         }
         ShotSoundClip = firearmParams.ShotSound;
+    }
+    static Vector3 SnapToCardinalDirection(Vector3 dir)
+    {
+        if (dir == Vector3.zero) return Vector3.zero;
+
+        var angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        if (angle < 0) angle += 360f;
+
+        return angle switch
+        {
+            >= 45f and < 135f => Vector3.up,
+            >= 135f and < 225f => Vector3.left,
+            >= 225f and < 315f => Vector3.down,
+            _ => Vector3.right
+        };
     }
 }
