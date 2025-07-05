@@ -11,7 +11,9 @@ using Button = UnityEngine.UI.Button;
 public class GameManager : MonoBehaviour
 {
     public Camera mainCamera;
-    public AudioSource BGM;
+    public AudioClip BGMInGame;
+    public AudioClip BGMWaiting;
+    public AudioSource BGMPlayer;
     readonly Dictionary<int, Player> players = new();
     private int localPlayerId;
     [CanBeNull] public Player LocalPlayer
@@ -48,7 +50,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         NetworkManager.Instance.SendJoinRequest();
-        BGM.Play();
+        BGMPlayer.PlayOneShot(BGMWaiting);
     }
 
     private void AddPlayer(PlayerInformation info, bool InGame)
@@ -152,6 +154,8 @@ public class GameManager : MonoBehaviour
 
     public void OnGameStarted(GameStarted gameStarted)
     {
+        BGMPlayer.Stop();
+        BGMPlayer.PlayOneShot(BGMInGame);
         foreach (var info in gameStarted.Players)
         {
             var player = players[info.PlayerId];
@@ -195,6 +199,10 @@ public class GameManager : MonoBehaviour
                 {
                     p.gameObject.SetActive(true);
                     p.SetAlive(true);
+                    if (p == LocalPlayer)
+                    {
+                        mainCamera.transform.SetParent(p.transform);
+                    }
                 }
                 break;
             case GameState.Playing:
@@ -215,18 +223,19 @@ public class GameManager : MonoBehaviour
         NetworkManager.Instance.SendStartGame();
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
         HandleMovementInputAndUpdateOnChange();
+        UpdateLocalPlayerTarget();
     }
 
     private void HandleMovementInputAndUpdateOnChange()
     {
         if (!LocalPlayerActive()) return;
         var inputDirection = GetInputVector();
-        var needToUpdate = LocalPlayer!.CurrentDirection != inputDirection || Input.GetKeyDown(KeyCode.Space) || Input.GetKeyUp(KeyCode.Space);
+        var needToUpdate = LocalPlayer!.CurrentDirection != inputDirection;
+        needToUpdate |= Input.GetKeyDown(KeyCode.Space) | Input.GetKeyUp(KeyCode.Space);
         var nowRunning = Input.GetKey(KeyCode.Space) || IsMovementJoystickMoving(); // always run if using joystick
-        needToUpdate |= nowRunning;
         LocalPlayer.SetDirection(inputDirection);
         LocalPlayer.SetSpeed(nowRunning ? Constants.RUNNING_SPEED : Constants.WALKING_SPEED);
 
@@ -269,11 +278,6 @@ public class GameManager : MonoBehaviour
     private bool LocalPlayerActive()
     {
         return LocalPlayer && LocalPlayer.gameObject.activeInHierarchy && LocalPlayer.Alive;
-    }
-
-    private void Update()
-    {
-        UpdateLocalPlayerTarget();
     }
 
     private void UpdateLocalPlayerTarget()
