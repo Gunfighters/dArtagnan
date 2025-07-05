@@ -80,7 +80,7 @@ public class ModelManager : MonoBehaviour
         SetState(CharacterState.Run);
     }
 
-    public void Stop()
+    public void Idle()
     {
         SetState(CharacterState.Idle);
     }

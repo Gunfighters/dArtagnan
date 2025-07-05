@@ -9,11 +9,11 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - RemotePlayer
+  - LocalPlayer
   - Water
   - UI
   - Obstacle
-  - LocalPlayer
+  - RemotePlayer
   - 
   - 
   - 

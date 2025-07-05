@@ -2,103 +2,89 @@
 using System.Collections.Generic;
 using System.Linq;
 using dArtagnan.Shared;
+using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.UIElements;
+using Button = UnityEngine.UI.Button;
 
 public class GameManager : MonoBehaviour
 {
-    public const int RemotePlayerPoolSize = 7;
+    public const int PlayerObjectPoolSize = 8;
     public Camera mainCamera;
-    public LocalPlayerController localPlayer;
-    public GameObject playerPrefab;
+    readonly Dictionary<int, Player> players = new();
     private int localPlayerId;
-    public readonly Dictionary<int, RemotePlayerController> remotePlayers = new();
+    [CanBeNull] public Player LocalPlayer
+    {
+        get
+        {
+            players.TryGetValue(localPlayerId, out var player);
+            return player;
+        }
+    }
+
+    public GameObject playerPrefab;
     public float Ping { get; private set; }
     public static GameManager Instance { get; private set; }
     public Canvas WorldCanvas;
     public Button GameStartButton;
     private int hostId;
+    [CanBeNull] public Player Host => players[hostId];
     public TextMeshProUGUI winnerAnnouncement;
     public GameState GameState { get; private set; }
-    public List<RemotePlayerController> RemotePlayerObjectPool;
+    public List<Player> playerObjectPool;
+    public VariableJoystick movementJoystick;
+    public ShootJoystickController shootJoystickController;
 
-    void Awake()
+    private void Awake()
     {
         Instance = this;
-        for (var i = 0; i < RemotePlayerPoolSize; i++)
+        for (var i = 0; i < PlayerObjectPoolSize; i++)
         {
             var created = Instantiate(playerPrefab, WorldCanvas.transform);
             created.SetActive(false);
-            RemotePlayerObjectPool.Add(created.GetComponent<RemotePlayerController>());
+            playerObjectPool.Add(created.GetComponent<Player>());
         }
         ToggleUIOverHeadEveryone(false);
+        movementJoystick.gameObject.SetActive(false);
+        shootJoystickController.gameObject.SetActive(false);
+        GameStartButton.onClick.AddListener(StartGame);
     }
 
-    void Start()
+    private void Start()
     {
-        GameStartButton.onClick.AddListener(StartGame);
         NetworkManager.Instance.SendJoinRequest();
     }
 
-    void Update()
+    private void AddPlayer(PlayerInformation info)
     {
-        UpdateCooldown();
-    }
-
-    void UpdateCooldown()
-    {
-        foreach (var player in remotePlayers.Values)
-        {
-            player.cooldown = Mathf.Max(0, player.cooldown - Time.deltaTime);
-        }
-        localPlayer.cooldown = Mathf.Max(0, localPlayer.cooldown - Time.deltaTime);
-    }
-
-    void AddPlayer(PlayerInformation info)
-    {
-        var serverPosition = new Vector2(info.MovementData.Position.X, info.MovementData.Position.Y);
-        var directionVec = DirectionHelperClient.IntToDirection(info.MovementData.Direction);
-        var estimatedPosition = serverPosition + directionVec * Ping / 2;
-        var estimatedRemainingReloadTime = info.RemainingReloadTime - Ping / 2;
         Debug.Log($"Add Player #{info.PlayerId}");
-        if (remotePlayers.ContainsKey(info.PlayerId))
+        if (players.ContainsKey(info.PlayerId))
         {
             Debug.LogWarning($"Trying to add player #{info.PlayerId} that already exists");
             return;
         }
-
-        Player player;
-        if (info.PlayerId == localPlayerId)
+        var player = playerObjectPool.FirstOrDefault(p => !p.gameObject.activeInHierarchy);
+        if (player is null)
         {
-            player = localPlayer;
+            Debug.LogWarning("No remote player available in the pool. Instantiating...");
+            player = Instantiate(playerPrefab, WorldCanvas.transform).GetComponent<Player>();
+            playerObjectPool.Add(player);
+        }
+        var directionVec = DirectionHelper.IntToDirection(info.MovementData.Direction);
+        var estimatedPosition = info.MovementData.Position + Ping / 2 * directionVec;
+        var estimatedRemainingReloadTime = info.RemainingReloadTime - Ping / 2;
+        info.MovementData.Position = estimatedPosition;
+        info.RemainingReloadTime = estimatedRemainingReloadTime;
+        player.Initialize(info);
+        players[info.PlayerId] = player;
+        if (player == LocalPlayer)
+        {
             mainCamera.transform.SetParent(player.transform);
+            movementJoystick.gameObject.SetActive(true);
+            shootJoystickController.gameObject.SetActive(true);
         }
-        else
-        {
-            var remotePlayer = RemotePlayerObjectPool.FirstOrDefault(o => !o.gameObject.activeInHierarchy);
-            if (remotePlayer is null)
-            {
-                Debug.Log("No remote player available in the pool. Instantiating...");
-                remotePlayer = Instantiate(playerPrefab, WorldCanvas.transform).GetComponent<RemotePlayerController>();
-                RemotePlayerObjectPool.Add(remotePlayer);
-            }
-            remotePlayer.SetMovementData(directionVec, estimatedPosition, info.MovementData.Speed);
-            remotePlayers[info.PlayerId] = remotePlayer;
-            player = remotePlayer;
-        }
-        player.id = info.PlayerId;
-        player.SetNickname($"#{player.id}");
-        player.SetAccuracy(info.Accuracy);
-        player.ImmediatelyMoveTo(estimatedPosition);
-        player.range = info.Range;
-        player.cooldown = estimatedRemainingReloadTime;
-        player.cooldownDuration = info.TotalReloadTime;
-        player.dead = !info.Alive;
-        if (player.dead)
-        {
-            player.Die();
-        }
+        player.gameObject.layer = LayerMask.NameToLayer(player == LocalPlayer ? "LocalPlayer" : "RemotePlayer");
         player.gameObject.SetActive(true);
     }
 
@@ -139,72 +125,75 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayerMovementData(PlayerMovementDataBroadcast payload)
     {
-        if (payload.PlayerId == localPlayerId) return;
-        var targetPlayer = remotePlayers[payload.PlayerId];
+        var targetPlayer = players[payload.PlayerId];
+        if (targetPlayer == LocalPlayer) return;
         var direction = DirectionHelperClient.IntToDirection(payload.MovementData.Direction);
-        var serverPosition = new Vector2(payload.MovementData.Position.X, payload.MovementData.Position.Y);
-        var position = RemotePlayerController.EstimatePositionByPing(serverPosition, direction, payload.MovementData.Speed);
-        targetPlayer.SetMovementData(direction, position, payload.MovementData.Speed);
+        var serverPosition = VecConverter.ToUnityVec(payload.MovementData.Position);
+        var position = EstimatePositionByPing(serverPosition, direction, payload.MovementData.Speed);
+        targetPlayer.UpdateMovementDataForReckoning(direction, position, payload.MovementData.Speed);
     }
 
     public void OnPlayerShootingBroadcast(PlayerShootingBroadcast shooting)
     {
-        Player shooter = shooting.ShooterId == localPlayerId ? localPlayer : remotePlayers[shooting.ShooterId];
-        Player target = shooting.TargetId == localPlayerId ? localPlayer : remotePlayers[shooting.TargetId];
+        var shooter = players[shooting.ShooterId];
+        var target = players[shooting.TargetId];
         shooter.Fire(target);
-        shooter.cooldown = shooter.cooldownDuration - Ping / 2;
+        shooter.UpdateRemainingReloadTime(shooter.TotalReloadTime - Ping / 2);
         shooter.ShowHitOrMiss(shooting.Hit);
-        // TODO: show hit or miss text
     }
 
     public void OnUpdatePlayerAlive(UpdatePlayerAlive updatePlayerAlive)
     {
-        Player aliveOrDead = updatePlayerAlive.PlayerId == localPlayerId ? localPlayer : remotePlayers[updatePlayerAlive.PlayerId];
+        var p = players[updatePlayerAlive.PlayerId];
         if (!updatePlayerAlive.Alive)
         {
-            aliveOrDead.Die();
+            p.Die();
+            if (p == LocalPlayer)
+            {
+                mainCamera.transform.SetParent(players.Values.FirstOrDefault(p => p.Alive).transform);
+            }
         }
     }
 
     public void OnPlayerLeaveBroadcast(PlayerLeaveBroadcast leave)
     {
-        remotePlayers[leave.PlayerId].gameObject.SetActive(false);
-        remotePlayers.Remove(leave.PlayerId);
+        var leaving = players[leave.PlayerId];
+        leaving.gameObject.SetActive(false);
+        leaving.Reset();
+        players.Remove(leave.PlayerId);
     }
 
     public void OnGameStarted(GameStarted gameStarted)
     {
         foreach (var info in gameStarted.Players)
         {
-            Player player = info.PlayerId == localPlayerId ? localPlayer : remotePlayers[info.PlayerId];
-            player.SetAsInfo(info);
+            var player = players[info.PlayerId];
+            player.Initialize(info);
             player.gameObject.SetActive(true);
         }
     }
 
     public void OnPlayerIsTargeting(PlayerIsTargetingBroadcast playerIsTargeting)
     {
-        if (playerIsTargeting.ShooterId == localPlayerId) return;
-        var shooter = remotePlayers[playerIsTargeting.ShooterId];
-        shooter.modelManager.HideTrajectory();
+        var aiming = players[playerIsTargeting.ShooterId];
+        if (aiming == LocalPlayer) return;
         if (playerIsTargeting.TargetId == -1) return;
-        Player target = playerIsTargeting.TargetId == localPlayerId ? localPlayer : remotePlayers[playerIsTargeting.TargetId];
-        shooter.modelManager.ShowTrajectory(target.transform.position, true);
+        var target = players[playerIsTargeting.TargetId];
+        aiming.Aim(target);
     }
 
     public void OnWinner(Winner winner)
     {
-        Player winnerPlayer = winner.PlayerId == localPlayerId ? localPlayer : remotePlayers[winner.PlayerId];
-        winnerAnnouncement.text = $"{winnerPlayer.nickname} HAS WON!";
+        var winning = players[winner.PlayerId];
+        winnerAnnouncement.text = $"{winning.Nickname} HAS WON!";
         winnerAnnouncement.gameObject.SetActive(true);
     }
 
-    void ToggleUIOverHeadEveryone(bool toggle)
+    private void ToggleUIOverHeadEveryone(bool toggle)
     {
-        localPlayer.ToggleUIOverHead(toggle);
-        foreach (var remotePlayerController in RemotePlayerObjectPool)
+        foreach (var p in playerObjectPool)
         {
-            remotePlayerController.ToggleUIOverHead(toggle);
+            p.ToggleUIOverHead(toggle);
         }
     }
 
@@ -229,8 +218,143 @@ public class GameManager : MonoBehaviour
         Ping = p.time / 1000f;
     }
 
-    void StartGame()
+    private void StartGame()
     {
         NetworkManager.Instance.SendStartGame();
+    }
+
+    private void FixedUpdate()
+    {
+        HandleMovementInputAndUpdateOnChange();
+    }
+
+    private void HandleMovementInputAndUpdateOnChange()
+    {
+        if (!LocalPlayerActive()) return;
+        var inputDirection = GetInputVector();
+        var needToUpdate = LocalPlayer!.CurrentDirection != inputDirection || Input.GetKeyDown(KeyCode.Space) || Input.GetKeyUp(KeyCode.Space);
+        var nowRunning = Input.GetKey(KeyCode.Space) || IsMovementJoystickMoving(); // always run if using joystick
+        needToUpdate |= nowRunning;
+        LocalPlayer.SetDirection(inputDirection);
+        LocalPlayer.SetSpeed(nowRunning ? Constants.RUNNING_SPEED : Constants.WALKING_SPEED);
+
+        if (needToUpdate)
+        {
+            NetworkManager.Instance.SendPlayerMovementData(LocalPlayer.Position, LocalPlayer.CurrentDirection, nowRunning);
+        }
+    }
+
+    private Vector2 GetInputVector()
+    {
+        if (IsMovementJoystickMoving())
+        {
+            return DirectionHelperClient.IntToDirection(DirectionHelperClient.DirectionToInt(movementJoystick.Direction));
+        }
+        var direction = Vector2.zero;
+        if (Input.GetKey(KeyCode.W))
+        {
+            direction += Vector2.up;
+        }
+
+        if (Input.GetKey(KeyCode.S))
+        {
+            direction += Vector2.down;
+        }
+
+        if (Input.GetKey(KeyCode.A))
+        {
+            direction += Vector2.left;
+        }
+
+        if (Input.GetKey(KeyCode.D))
+        {
+            direction += Vector2.right;
+        }
+
+        return direction.normalized;
+    }
+
+    private bool LocalPlayerActive()
+    {
+        return LocalPlayer && LocalPlayer.gameObject.activeInHierarchy && LocalPlayer.Alive;
+    }
+
+    private void Update()
+    {
+        UpdateLocalPlayerTarget();
+    }
+
+    private void UpdateLocalPlayerTarget()
+    {
+        if (!LocalPlayerActive()) return;
+        var newTarget = GetAutoTarget();
+        if (LocalPlayer?.TargetPlayer == newTarget) return;
+        LocalPlayer!.TargetPlayer?.HighlightAsTarget(false);
+        LocalPlayer.TargetPlayer = newTarget;
+        LocalPlayer.TargetPlayer?.HighlightAsTarget(true);
+        Debug.Log(IsShootJoystickMoving());
+        if (newTarget is not null && IsShootJoystickMoving())
+        {
+            LocalPlayer.Aim(newTarget);
+            NetworkManager.Instance.SendPlayerNewTarget(newTarget.ID);
+        }
+    }
+
+    private bool IsMovementJoystickMoving()
+    {
+        return movementJoystick.Direction != Vector2.zero;
+    }
+
+    private bool IsShootJoystickMoving()
+    {
+        return shootJoystickController.Direction != Vector2.zero;
+    }
+    
+    private Player GetAutoTarget()
+    {
+        Player best = null;
+        var targetPool =
+            players.Values.Where(target =>
+                target != LocalPlayer
+                && target.Alive
+                && LocalPlayer!.CanShoot(target));
+        if (!IsShootJoystickMoving()) // 사거리 내 가장 가까운 적.
+        {
+            var minDistance = LocalPlayer.Range;
+            foreach (var target in targetPool)
+            {
+                if (Vector2.Distance(target.Position, LocalPlayer.Position) < minDistance)
+                {
+                    minDistance = Vector2.Distance(target.Position, LocalPlayer.Position);
+                    best = target;
+                }
+            }
+
+            return best;
+        }
+
+        var minAngle = float.MaxValue;
+        foreach (var target in targetPool)
+        {
+            if (Vector2.Angle(shootJoystickController.Direction, target.Position - LocalPlayer.Position) < minAngle
+                && LocalPlayer.CanShoot(target)
+               )
+            {
+                minAngle = Vector2.Angle(shootJoystickController.Direction, target.Position - LocalPlayer.Position);
+                best = target;
+            }
+        }
+        return best;
+    }
+
+    public void ShootTarget()
+    {
+        if (!LocalPlayer?.TargetPlayer) return;
+        NetworkManager.Instance.SendPlayerShooting(LocalPlayer!.TargetPlayer!.ID);
+    }
+    
+    private Vector2 EstimatePositionByPing(Vector2 position, Vector2 direction, float speed)
+    {
+        return position + Ping / 2 * direction * speed;
     }
 }

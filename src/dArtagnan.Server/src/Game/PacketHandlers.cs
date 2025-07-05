@@ -43,7 +43,7 @@ public static class PacketHandlers
         if (existingPlayer == null)
         {
             // 새 플레이어 생성
-            player = await gameManager.AddPlayer(client.Id, "sample_nickname");
+            player = await gameManager.AddPlayer(client.Id, $"Player #{client.Id}");
             Console.WriteLine($"[게임] 새 플레이어 생성: {player.Id}");
         }
         else
@@ -123,7 +123,7 @@ public static class PacketHandlers
         bool hit = CalculateHit(shooter.Accuracy);
             
         // 재장전 시간 설정
-        shooter.UpdateReloadTime(Player.DEFAULT_RELOAD_TIME - gameManager.GetPingById(shooter.Id));
+        shooter.UpdateReloadTime(shooter.TotalReloadTime - gameManager.GetPingById(shooter.Id));
 
         Console.WriteLine($"[전투] 플레이어 {shooter.Id} -> {target.Id} 사격: {(hit ? "명중" : "빗나감")}");
 

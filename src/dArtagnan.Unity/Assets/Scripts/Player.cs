@@ -1,60 +1,80 @@
 using System.Collections;
-using Assets.HeroEditor4D.Common.Scripts.Enums;
 using dArtagnan.Shared;
 using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
 
-public abstract class Player : MonoBehaviour
+public class Player : MonoBehaviour
 {
-    public int id;
-    public string nickname { get; private set; }
+    public int ID { get; private set; }
+    public string Nickname { get; private set; }
     public TextMeshProUGUI nicknameText;
-    public float range;
-    public int accuracy;
-    public Vector2 currentDirection;
-    public Vector2 Position => rb.position;
-    public bool dead;
-    public float cooldown;
-    public float cooldownDuration;
-    public float speed;
-    public bool running => speed > 40;
+    public float Range { get; private set; }
+    public int Accuracy { get; private set; }
+    public Vector2 CurrentDirection { get; private set; }
+    public bool Alive { get; private set; }
+    public float RemainingReloadTime { get; private set; }
+    public float TotalReloadTime { get; private set; }
+    public float Speed { get; private set; }
+    public bool Running => Speed > 40;
     public Rigidbody2D rb;
     public ModelManager modelManager;
     public TextMeshProUGUI accuracyText;
-    public CooldownPie cooldownPie;
-    [CanBeNull] public RemotePlayerController TargetPlayer { get; protected set; }
+    public ReloadingTimePie reloadingTimePie;
+    [CanBeNull] public Player TargetPlayer;
     public SpriteRenderer targetHighlightCircle;
-    public TextMeshProUGUI HitText;
-    public TextMeshProUGUI Misstext;
-    private TextMeshProUGUI HitMissShowing;
-    private IEnumerator HitMissFader;
+    public TextMeshProUGUI HitMissText;
+    [CanBeNull] private IEnumerator HitMissFader;
+    public Color HitTextColor;
+    public Color MissTextColor;
+    public float hitMissShowingDuration;
+    float LastServerUpdateTimestamp;
+    public float lerpSpeed;
+    private bool isCorrecting;
+    private Vector2 lastUpdatedPosition;
+    public float PositionCorrectionThreshold;
+    public Vector2 Position => rb.position;
+
+    private void Awake()
+    {
+        HighlightAsTarget(false);
+    }
+
+    private void Update()
+    {
+        UpdateModel();
+        UpdateRemainingReloadTime(RemainingReloadTime - Time.deltaTime);
+    }
+
+    private void FixedUpdate()
+    {
+        rb.MovePosition(NextPosition());
+    }
 
     public void ToggleUIOverHead(bool show)
     {
         accuracyText.gameObject.SetActive(show);
-        cooldownPie.gameObject.SetActive(show);
-        HitText.gameObject.SetActive(show);
-        Misstext.gameObject.SetActive(show);
+        reloadingTimePie.gameObject.SetActive(show);
+        HitMissText.gameObject.SetActive(show);
     }
 
     public void SetNickname(string newNickname)
     {
-        nickname = newNickname;
-        nicknameText.text = nickname;
+        Nickname = newNickname;
+        nicknameText.text = Nickname;
     }
 
-    protected void UpdateModel()
+    private void UpdateModel()
     {
-        if (dead) return;
-        if (currentDirection == Vector2.zero)
+        if (!Alive) return;
+        if (CurrentDirection == Vector2.zero)
         {
-            modelManager.Stop();
+            modelManager.Idle();
         }
         else
         {
-            modelManager.SetDirection(currentDirection);
-            if (running)
+            modelManager.SetDirection(CurrentDirection);
+            if (Running)
             {
                 modelManager.Run();
             }
@@ -67,71 +87,128 @@ public abstract class Player : MonoBehaviour
 
     public void Fire(Player target)
     {
-        modelManager.SetDirection((Vector2) target.transform.position - rb.position);
+        modelManager.SetDirection(target.Position - rb.position);
         modelManager.Fire();
-        modelManager.ShowTrajectory(target.transform.position);
+        modelManager.ShowTrajectory(target.Position);
         modelManager.ScheduleHideTrajectory();
     }
 
     public void Die()
     {
-        dead = true;
+        Alive = false;
         modelManager.Die();
     }
     
     public void SetAccuracy(int newAccuracy)
     {
-        accuracy = newAccuracy;
-        accuracyText.text = $"{accuracy}%";
+        Accuracy = newAccuracy;
+        accuracyText.text = $"{Accuracy}%";
     }
 
-    public void ImmediatelyMoveTo(Vector2 position)
+    public void UpdateRemainingReloadTime(float newRemainingReloadTime)
     {
-        Debug.Log($"Immediately moving to {position}");
-        transform.position = position;
-        // rb.MovePosition(position);
+        RemainingReloadTime = Mathf.Max(0, newRemainingReloadTime);
     }
 
     public void ShowHitOrMiss(bool hit)
     {
-        if (HitMissShowing)
+        if (HitMissFader != null)
         {
             StopCoroutine(HitMissFader);
-            HitMissShowing.enabled = false;
-        }
-        if (hit)
-        {
-            HitText.enabled = true;
-            HitMissShowing = HitText;
-        }
-        else
-        {
-            Misstext.enabled = true;
-            HitMissShowing = Misstext;
         }
 
+        HitMissText.text = hit ? "HIT!" : "MISS!";
         HitMissFader = FadeOutHitMissShowing();
         StartCoroutine(HitMissFader);
     }
 
-    IEnumerator FadeOutHitMissShowing()
+    private IEnumerator FadeOutHitMissShowing()
     {
-        yield return new WaitForSeconds(1);
-        HitMissShowing.enabled = false;
-        HitMissShowing = null;
+        yield return new WaitForSeconds(hitMissShowingDuration);
+        HitMissText.enabled = false;
     }
 
-    public void SetAsInfo(PlayerInformation info)
+    public void SetDirection(Vector2 direction)
     {
-        id = info.PlayerId;
-        nickname = info.Nickname;
-        accuracy = info.Accuracy;
-        cooldownDuration = info.TotalReloadTime;
-        cooldown = info.RemainingReloadTime;
-        dead = !info.Alive;
-        range = info.Range;
-        currentDirection = DirectionHelperClient.IntToDirection(info.MovementData.Direction);
-        ImmediatelyMoveTo(new Vector2(info.MovementData.Position.X, info.MovementData.Position.Y));
-        speed = info.MovementData.Speed;
+        CurrentDirection = direction;
+    }
+
+    public void SetSpeed(float speed)
+    {
+        Speed = speed;
+    }
+    public void UpdateMovementDataForReckoning(Vector2 direction, Vector2 position, float speed)
+    {
+        CurrentDirection = direction.normalized;
+        Speed = speed;
+        lastUpdatedPosition = position;
+        LastServerUpdateTimestamp = Time.time;
+        isCorrecting = true;
+    }
+
+    private Vector2 NextPosition()
+    {
+        if (!isCorrecting) return rb.position + Speed * Time.fixedDeltaTime * CurrentDirection;
+        var elapsed = Time.time - LastServerUpdateTimestamp;
+        var predictedPosition = lastUpdatedPosition + Speed * elapsed * CurrentDirection;
+        isCorrecting = Vector2.Distance(rb.position, predictedPosition) < 0.01f;
+        return Vector2.MoveTowards(rb.position, predictedPosition, Speed * Time.fixedDeltaTime * lerpSpeed);
+    }
+
+    private void ImmediatelyMoveTo(Vector2 position)
+    {
+        transform.position = position;
+        lastUpdatedPosition = position;
+        LastServerUpdateTimestamp = Time.time;
+        isCorrecting = false;
+    }
+
+    public void HighlightAsTarget(bool show)
+    {
+        targetHighlightCircle.enabled = show;
+    }
+
+    public void Aim(Player target)
+    {
+        TargetPlayer = target;
+        modelManager.ShowTrajectory(target.Position, true);
+    }
+
+    public void Initialize(PlayerInformation info)
+    {
+        ID = info.PlayerId;
+        SetNickname(info.Nickname);
+        Alive = info.Alive;
+        SetAccuracy(info.Accuracy);
+        Speed = info.MovementData.Speed;
+        lastUpdatedPosition = VecConverter.ToUnityVec(info.MovementData.Position); 
+        ImmediatelyMoveTo(lastUpdatedPosition);
+        CurrentDirection = DirectionHelperClient.IntToDirection(info.MovementData.Direction);
+        isCorrecting = false;
+        Range = info.Range;
+        TotalReloadTime = info.TotalReloadTime;
+        RemainingReloadTime = info.RemainingReloadTime;
+
+        if (Alive)
+        {
+            modelManager.Idle();
+        }
+        else
+        {
+            Die();
+        }
+    }
+
+    public void Reset()
+    {
+        modelManager.Idle();
+        ImmediatelyMoveTo(Vector2.zero);
+    }
+
+    public bool CanShoot(Player target)
+    {
+        var mask = LayerMask.GetMask("RemotePlayer", "Obstacle");
+        var hit = Physics2D.Raycast(Position, target.Position - Position, Range, mask);
+        return hit.transform == target.transform;
     }
 }
