@@ -35,6 +35,7 @@ public class GameManager : MonoBehaviour
     public List<Player> playerObjectPool;
     public VariableJoystick movementJoystick;
     public ShootJoystickController shootJoystickController;
+    [CanBeNull] private Player LastSentTarget;
 
     private void Awake()
     {
@@ -177,8 +178,7 @@ public class GameManager : MonoBehaviour
     {
         var aiming = players[playerIsTargeting.ShooterId];
         if (aiming == LocalPlayer) return;
-        if (playerIsTargeting.TargetId == -1) return;
-        var target = players[playerIsTargeting.TargetId];
+        players.TryGetValue(playerIsTargeting.TargetId, out var target);
         aiming.Aim(target);
     }
 
@@ -288,15 +288,22 @@ public class GameManager : MonoBehaviour
     {
         if (!LocalPlayerActive()) return;
         var newTarget = GetAutoTarget();
-        if (LocalPlayer?.TargetPlayer == newTarget) return;
-        LocalPlayer!.TargetPlayer?.HighlightAsTarget(false);
-        LocalPlayer.TargetPlayer = newTarget;
-        LocalPlayer.TargetPlayer?.HighlightAsTarget(true);
-        Debug.Log(IsShootJoystickMoving());
-        if (newTarget is not null && IsShootJoystickMoving())
+        var changed = LocalPlayer?.TargetPlayer != newTarget;
+        if (changed)
+        {
+            LocalPlayer!.TargetPlayer?.HighlightAsTarget(false);
+            LocalPlayer.TargetPlayer = newTarget;
+            LocalPlayer.TargetPlayer?.HighlightAsTarget(true);
+        }
+
+        if (!IsShootJoystickMoving()) return;
+        if ((LastSentTarget is null && newTarget is not null)
+            || (newTarget is null && LastSentTarget is not null)
+            || changed)
         {
             LocalPlayer.Aim(newTarget);
-            NetworkManager.Instance.SendPlayerNewTarget(newTarget.ID);
+            NetworkManager.Instance.SendPlayerNewTarget(newTarget?.ID ?? -1);
+            LastSentTarget = newTarget;
         }
     }
 

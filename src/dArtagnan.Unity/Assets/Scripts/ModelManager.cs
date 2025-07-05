@@ -22,9 +22,10 @@ public class ModelManager : MonoBehaviour
     public float trajectoryDuration;
     public float trajectoryOpacity;
     private Color trajectoryColorOriginal;
+    private Transform trajectoryTarget;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void Start()
     {
         InitializeTrajectory();
         SetTransparent();
@@ -33,8 +34,12 @@ public class ModelManager : MonoBehaviour
         InitializeFirearmMuzzle();
     }
 
-    void Update()
+    private void Update()
     {
+        if (trajectoryTarget)
+        {
+            trajectory.SetPosition(0, trajectoryTarget.position);
+        }
         trajectory.SetPosition(1, transform.position);
     }
 
@@ -98,19 +103,9 @@ public class ModelManager : MonoBehaviour
         modelSilhouette.SetState(CharacterState.Death);
     }
 
-    public void ShowTrajectory(Vector2 tip, bool transparent = false)
+    public void ShowTrajectory(Transform target, bool transparent = false)
     {
-        trajectory.SetPosition(0, tip);
-        // if (transparent) // TODO: 작동 안 함. 수정 필요
-        // {
-        //     var color = trajectoryColorOriginal;
-        //     color.a = trajectoryOpacity;
-        //     trajectory.material.color = color;
-        // }
-        // else
-        // {
-        //     trajectory.material.color = trajectoryColorOriginal;
-        // }
+        trajectoryTarget = target;
         trajectory.enabled = true;
     }
 

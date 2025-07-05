@@ -89,7 +89,7 @@ public class Player : MonoBehaviour
     {
         modelManager.SetDirection(target.Position - rb.position);
         modelManager.Fire();
-        modelManager.ShowTrajectory(target.Position);
+        modelManager.ShowTrajectory(target.transform);
         modelManager.ScheduleHideTrajectory();
     }
 
@@ -118,6 +118,8 @@ public class Player : MonoBehaviour
         }
 
         HitMissText.text = hit ? "HIT!" : "MISS!";
+        HitMissText.color = hit ? HitTextColor : MissTextColor;
+        HitMissText.enabled = true;
         HitMissFader = FadeOutHitMissShowing();
         StartCoroutine(HitMissFader);
     }
@@ -168,10 +170,13 @@ public class Player : MonoBehaviour
         targetHighlightCircle.enabled = show;
     }
 
-    public void Aim(Player target)
+    public void Aim([CanBeNull] Player target)
     {
         TargetPlayer = target;
-        modelManager.ShowTrajectory(target.Position, true);
+        if (target is null)
+            modelManager.HideTrajectory();
+        else
+            modelManager.ShowTrajectory(target.transform, true);
     }
 
     public void Initialize(PlayerInformation info)
