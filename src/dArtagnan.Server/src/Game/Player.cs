@@ -37,7 +37,7 @@ public class Player(int id, string nickname, Vector2 position)
         TotalReloadTime = TotalReloadTime,
         Targeting = Target?.Id ?? -1,
         Range = Range,
-        MovementData = MovementData
+        MovementData = MovementData,
     };
 
     public static int GenerateRandomAccuracy()

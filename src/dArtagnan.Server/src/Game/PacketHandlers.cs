@@ -186,9 +186,7 @@ public static class PacketHandlers
         if (gameManager.GameOver())
         {
             Console.WriteLine($"[게임] 게임 종료! 승자: {gameManager.Winner!.Id}");
-            await gameManager.AnnounceWinner();
-            await Task.Delay(2500); // 2.5초 쉼
-            await gameManager.GoBackToWaiting();
+            await gameManager.OnGameOver();
         }
     }
 }

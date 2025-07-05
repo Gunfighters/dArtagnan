@@ -64,6 +64,31 @@ public class Player : MonoBehaviour
         nicknameText.text = Nickname;
     }
 
+    public void SetAlive(bool alive)
+    {
+        Alive = alive;
+        if (alive)
+        {
+            modelManager.Idle();
+        }
+        else
+        {
+            modelManager.Die();
+            ScheduleDeactivation();
+        }
+    }
+    
+    private void ScheduleDeactivation()
+    {
+        StartCoroutine(Deactivate(1.5f));
+    }
+
+    IEnumerator Deactivate(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        gameObject.SetActive(false);
+    }
+
     private void UpdateModel()
     {
         if (!Alive) return;
@@ -91,12 +116,6 @@ public class Player : MonoBehaviour
         modelManager.Fire();
         modelManager.ShowTrajectory(target.transform);
         modelManager.ScheduleHideTrajectory();
-    }
-
-    public void Die()
-    {
-        Alive = false;
-        modelManager.Die();
     }
     
     public void SetAccuracy(int newAccuracy)
@@ -183,7 +202,7 @@ public class Player : MonoBehaviour
     {
         ID = info.PlayerId;
         SetNickname(info.Nickname);
-        Alive = info.Alive;
+        SetAlive(info.Alive);
         SetAccuracy(info.Accuracy);
         Speed = info.MovementData.Speed;
         lastUpdatedPosition = VecConverter.ToUnityVec(info.MovementData.Position); 
@@ -193,15 +212,6 @@ public class Player : MonoBehaviour
         Range = info.Range;
         TotalReloadTime = info.TotalReloadTime;
         RemainingReloadTime = info.RemainingReloadTime;
-
-        if (Alive)
-        {
-            modelManager.Idle();
-        }
-        else
-        {
-            Die();
-        }
     }
 
     public void Reset()

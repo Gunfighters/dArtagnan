@@ -45,7 +45,8 @@ namespace dArtagnan.Shared
     [MessagePackObject]
     public struct InformationOfPlayers : IPacket
     {
-        [Key(0)] public List<PlayerInformation> Info;
+        [Key(0)] public bool InGame;
+        [Key(1)] public List<PlayerInformation> Info;
     }
 
     [MessagePackObject]

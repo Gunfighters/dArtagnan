@@ -123,17 +123,6 @@ public class GameManager
         return players.Values.Count(p => p.Alive) <= 1;
     }
 
-    public async Task AnnounceWinner()
-    {
-        await BroadcastToAll(new Winner { PlayerId = Winner!.Id });
-    }
-
-    public async Task GoBackToWaiting()
-    {
-        await SetGameState(GameState.Waiting);
-        await ResetRespawnBroadcast();
-    }
-
     private async Task ResetRespawnBroadcast()
     {
         foreach (var player in players.Values)
@@ -142,8 +131,7 @@ public class GameManager
             player.UpdatePosition(Player.GetSpawnPosition(player.Id));
         }
 
-        await BroadcastToAll(new InformationOfPlayers { Info = players.Values.Select(p => p.PlayerInformation).ToList() });
-
+        await BroadcastToAll(new InformationOfPlayers { Info = GetPlayersInformation(), InGame = CurrentGameState == GameState.Playing });
     }
 
     public async Task StartGame()
@@ -170,5 +158,13 @@ public class GameManager
     public float GetPingById(int id)
     {
         return clients[id].Ping;
+    }
+
+    public async Task OnGameOver()
+    {
+        await BroadcastToAll(new Winner { PlayerId = Winner!.Id });
+        await Task.Delay(2500); // 2.5초 쉼
+        await SetGameState(GameState.Waiting);
+        await ResetRespawnBroadcast();
     }
 }

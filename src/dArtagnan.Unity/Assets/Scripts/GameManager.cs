@@ -1,17 +1,17 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using dArtagnan.Shared;
 using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UIElements;
 using Button = UnityEngine.UI.Button;
 
 public class GameManager : MonoBehaviour
 {
-    public const int PlayerObjectPoolSize = 8;
     public Camera mainCamera;
+    public AudioSource BGM;
     readonly Dictionary<int, Player> players = new();
     private int localPlayerId;
     [CanBeNull] public Player LocalPlayer
@@ -32,7 +32,6 @@ public class GameManager : MonoBehaviour
     [CanBeNull] public Player Host => players[hostId];
     public TextMeshProUGUI winnerAnnouncement;
     public GameState GameState { get; private set; }
-    public List<Player> playerObjectPool;
     public VariableJoystick movementJoystick;
     public ShootJoystickController shootJoystickController;
     [CanBeNull] private Player LastSentTarget;
@@ -40,12 +39,6 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        for (var i = 0; i < PlayerObjectPoolSize; i++)
-        {
-            var created = Instantiate(playerPrefab, WorldCanvas.transform);
-            created.SetActive(false);
-            playerObjectPool.Add(created.GetComponent<Player>());
-        }
         ToggleUIOverHeadEveryone(false);
         movementJoystick.gameObject.SetActive(false);
         shootJoystickController.gameObject.SetActive(false);
@@ -55,9 +48,10 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         NetworkManager.Instance.SendJoinRequest();
+        BGM.Play();
     }
 
-    private void AddPlayer(PlayerInformation info)
+    private void AddPlayer(PlayerInformation info, bool InGame)
     {
         Debug.Log($"Add Player #{info.PlayerId}");
         if (players.ContainsKey(info.PlayerId))
@@ -65,13 +59,7 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning($"Trying to add player #{info.PlayerId} that already exists");
             return;
         }
-        var player = playerObjectPool.FirstOrDefault(p => !p.gameObject.activeInHierarchy);
-        if (player is null)
-        {
-            Debug.LogWarning("No remote player available in the pool. Instantiating...");
-            player = Instantiate(playerPrefab, WorldCanvas.transform).GetComponent<Player>();
-            playerObjectPool.Add(player);
-        }
+        var player = Instantiate(playerPrefab, WorldCanvas.transform).GetComponent<Player>();
         var directionVec = DirectionHelper.IntToDirection(info.MovementData.Direction);
         var estimatedPosition = info.MovementData.Position + Ping / 2 * directionVec;
         var estimatedRemainingReloadTime = info.RemainingReloadTime - Ping / 2;
@@ -85,6 +73,7 @@ public class GameManager : MonoBehaviour
             movementJoystick.gameObject.SetActive(true);
             shootJoystickController.gameObject.SetActive(true);
         }
+        player.ToggleUIOverHead(InGame);
         player.gameObject.layer = LayerMask.NameToLayer(player == LocalPlayer ? "LocalPlayer" : "RemotePlayer");
         player.gameObject.SetActive(true);
     }
@@ -111,7 +100,7 @@ public class GameManager : MonoBehaviour
     {
         foreach (var info in informationOfPlayers.Info)
         {
-            AddPlayer(info);
+            AddPlayer(info, informationOfPlayers.InGame);
         }
     }
 
@@ -120,7 +109,7 @@ public class GameManager : MonoBehaviour
         var info = payload.PlayerInfo;
         if (info.PlayerId != localPlayerId)
         {
-            AddPlayer(info);
+            AddPlayer(info, false);
         }
     }
 
@@ -145,14 +134,11 @@ public class GameManager : MonoBehaviour
 
     public void OnUpdatePlayerAlive(UpdatePlayerAlive updatePlayerAlive)
     {
-        var p = players[updatePlayerAlive.PlayerId];
-        if (!updatePlayerAlive.Alive)
+        var player = players[updatePlayerAlive.PlayerId];
+        player.SetAlive(updatePlayerAlive.Alive);
+        if (!player.Alive && player == LocalPlayer)
         {
-            p.Die();
-            if (p == LocalPlayer)
-            {
-                mainCamera.transform.SetParent(players.Values.FirstOrDefault(p => p.Alive).transform);
-            }
+            mainCamera.transform.SetParent(players.Values.FirstOrDefault(p => p.Alive).transform);
         }
     }
 
@@ -191,7 +177,7 @@ public class GameManager : MonoBehaviour
 
     private void ToggleUIOverHeadEveryone(bool toggle)
     {
-        foreach (var p in playerObjectPool)
+        foreach (var p in players.Values)
         {
             p.ToggleUIOverHead(toggle);
         }
@@ -203,7 +189,13 @@ public class GameManager : MonoBehaviour
         switch (GameState)
         {
             case GameState.Waiting:
+                winnerAnnouncement.gameObject.SetActive(false);
                 ToggleUIOverHeadEveryone(false);
+                foreach (var p in players.Values)
+                {
+                    p.gameObject.SetActive(true);
+                    p.SetAlive(true);
+                }
                 break;
             case GameState.Playing:
                 ToggleUIOverHeadEveryone(true);
