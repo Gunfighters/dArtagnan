@@ -98,7 +98,6 @@ public class Player : MonoBehaviour
         }
         else
         {
-            modelManager.SetDirection(CurrentDirection);
             if (Running)
             {
                 modelManager.Run();
@@ -152,6 +151,7 @@ public class Player : MonoBehaviour
     public void SetDirection(Vector2 direction)
     {
         CurrentDirection = direction;
+        modelManager.SetDirection(direction);
     }
 
     public void SetSpeed(float speed)
@@ -160,7 +160,7 @@ public class Player : MonoBehaviour
     }
     public void UpdateMovementDataForReckoning(Vector2 direction, Vector2 position, float speed)
     {
-        CurrentDirection = direction.normalized;
+        SetDirection(direction.normalized);
         Speed = speed;
         lastUpdatedPosition = position;
         LastServerUpdateTimestamp = Time.time;
@@ -207,7 +207,7 @@ public class Player : MonoBehaviour
         Speed = info.MovementData.Speed;
         lastUpdatedPosition = VecConverter.ToUnityVec(info.MovementData.Position); 
         ImmediatelyMoveTo(lastUpdatedPosition);
-        CurrentDirection = DirectionHelperClient.IntToDirection(info.MovementData.Direction);
+        SetDirection(DirectionHelperClient.IntToDirection(info.MovementData.Direction));
         isCorrecting = false;
         Range = info.Range;
         TotalReloadTime = info.TotalReloadTime;

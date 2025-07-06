@@ -41,7 +41,7 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        ToggleUIOverHeadEveryone(false);
+        // ToggleUIOverHeadEveryone(false);
         movementJoystick.gameObject.SetActive(false);
         shootJoystickController.gameObject.SetActive(false);
         GameStartButton.onClick.AddListener(StartGame);
@@ -75,7 +75,7 @@ public class GameManager : MonoBehaviour
             movementJoystick.gameObject.SetActive(true);
             shootJoystickController.gameObject.SetActive(true);
         }
-        player.ToggleUIOverHead(InGame);
+        player.ToggleUIOverHead(true);
         player.gameObject.layer = LayerMask.NameToLayer(player == LocalPlayer ? "LocalPlayer" : "RemotePlayer");
         player.gameObject.SetActive(true);
     }
@@ -156,12 +156,16 @@ public class GameManager : MonoBehaviour
     {
         BGMPlayer.Stop();
         BGMPlayer.PlayOneShot(BGMInGame);
+        foreach (var player in players.Values)
+        {
+            Destroy(player.gameObject);
+        }
+        players.Clear();
         foreach (var info in gameStarted.Players)
         {
-            var player = players[info.PlayerId];
-            player.Initialize(info);
-            player.gameObject.SetActive(true);
+            AddPlayer(info, true);
         }
+        ToggleUIOverHeadEveryone(true);
     }
 
     public void OnPlayerIsTargeting(PlayerIsTargetingBroadcast playerIsTargeting)
@@ -194,19 +198,14 @@ public class GameManager : MonoBehaviour
         {
             case GameState.Waiting:
                 winnerAnnouncement.gameObject.SetActive(false);
-                ToggleUIOverHeadEveryone(false);
+                mainCamera.transform.SetParent(null);
                 foreach (var p in players.Values)
                 {
-                    p.gameObject.SetActive(true);
-                    p.SetAlive(true);
-                    if (p == LocalPlayer)
-                    {
-                        mainCamera.transform.SetParent(p.transform);
-                    }
+                    Destroy(p.gameObject);
                 }
+                players.Clear();
                 break;
             case GameState.Playing:
-                ToggleUIOverHeadEveryone(true);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();

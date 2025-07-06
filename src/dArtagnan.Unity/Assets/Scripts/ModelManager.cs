@@ -23,6 +23,7 @@ public class ModelManager : MonoBehaviour
     public float trajectoryOpacity;
     private Color trajectoryColorOriginal;
     private Transform trajectoryTarget;
+    private CharacterState currentState;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Start()
@@ -70,6 +71,7 @@ public class ModelManager : MonoBehaviour
 
     public void SetDirection(Vector2 newDir)
     {
+        if (newDir == Vector2.zero) return;
         direction = SnapToCardinalDirection(newDir);
         actualModel.SetDirection(direction);
         modelSilhouette.SetDirection(direction);
