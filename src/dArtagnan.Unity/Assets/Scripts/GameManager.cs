@@ -12,12 +12,9 @@ public class GameManager : MonoBehaviour
 {
     public int playerObjectPoolSize;
     private Camera mainCamera;
-    public AudioClip BGMInGame;
-    public AudioClip BGMWaiting;
-    public AudioSource BGMPlayer;
-    private readonly Dictionary<int, Player> players = new();
+    public readonly Dictionary<int, Player> players = new();
     private int localPlayerId;
-    [CanBeNull] private Player LocalPlayer
+    [CanBeNull] public Player LocalPlayer
     {
         get
         {
@@ -32,9 +29,9 @@ public class GameManager : MonoBehaviour
     public GameObject Ground;
     private int hostId;
     [CanBeNull] public Player Host => players[hostId];
-    public GameState GameState { get; private set; }
-    [CanBeNull] private Player LastSentTarget;
+    public GameState GameState { get; private set; } = GameState.Waiting;
     public List<GameObject> playerObjectPool = new();
+    public AudioManager AudioManager;
 
     private void Awake()
     {
@@ -47,13 +44,12 @@ public class GameManager : MonoBehaviour
             obj.SetActive(false);
             playerObjectPool.Add(obj);
         }
-        BGMPlayer.clip = BGMWaiting;
     }
 
     private void Start()
     {
         NetworkManager.Instance.SendJoinRequest();
-        BGMPlayer.Play();
+        AudioManager.PlayForState(GameState);
     }
 
     private void AddPlayer(PlayerInformation info, bool InGame)
@@ -158,8 +154,6 @@ public class GameManager : MonoBehaviour
 
     public void OnGameStarted(GameStarted gameStarted)
     {
-        BGMPlayer.Stop();
-        BGMPlayer.PlayOneShot(BGMInGame);
         foreach (var player in players.Values)
         {
             Destroy(player.gameObject);
@@ -197,15 +191,15 @@ public class GameManager : MonoBehaviour
     {
         GameState = newGameState.GameState;
         UIManager.Instance.SetupForGameState(GameState);
+        AudioManager.PlayForState(GameState);
         switch (GameState)
         {
             case GameState.Waiting:
-                mainCamera.transform.SetParent(null);
-                foreach (var p in players.Values)
+                mainCamera.transform.SetParent(Ground.transform);
+                foreach (var player in players.Values)
                 {
-                    Destroy(p.gameObject);
+                    player.Reset();
                 }
-                players.Clear();
                 break;
             case GameState.Playing:
                 break;
@@ -224,83 +218,11 @@ public class GameManager : MonoBehaviour
         NetworkManager.Instance.SendStartGame();
     }
 
-    private void Update()
-    {
-        UpdateLocalPlayerTarget();
-    }
-
     public void UpdateVelocity(Vector2 newDirection, bool running)
     {
         LocalPlayer.SetDirection(newDirection);
         LocalPlayer.SetRunning(running);
         NetworkManager.Instance.SendPlayerMovementData(LocalPlayer.Position, LocalPlayer.CurrentDirection, running);
-    }
-
-    private bool LocalPlayerActive()
-    {
-        return LocalPlayer && LocalPlayer.gameObject.activeInHierarchy && LocalPlayer.Alive;
-    }
-
-    private void UpdateLocalPlayerTarget()
-    {
-        if (!LocalPlayerActive()) return;
-        var newTarget = GetAutoTarget();
-        var changed = LocalPlayer?.TargetPlayer != newTarget;
-        if (changed)
-        {
-            LocalPlayer!.TargetPlayer?.HighlightAsTarget(false);
-            LocalPlayer.TargetPlayer = newTarget;
-            LocalPlayer.TargetPlayer?.HighlightAsTarget(true);
-        }
-
-        if (UIManager.Instance.ShootJoystickVector() == Vector2.zero) return;
-        if ((LastSentTarget is null && newTarget is not null)
-            || (newTarget is null && LastSentTarget is not null)
-            || changed)
-        {
-            LocalPlayer.Aim(newTarget);
-            NetworkManager.Instance.SendPlayerNewTarget(newTarget?.ID ?? -1);
-            LastSentTarget = newTarget;
-        }
-    }
-
-    private Player GetAutoTarget()
-    {
-        Player best = null;
-        var targetPool =
-            players.Values.Where(target =>
-                target != LocalPlayer
-                && target.Alive
-                && LocalPlayer!.CanShoot(target));
-        if (UIManager.Instance.ShootJoystickVector() == Vector2.zero) // 사거리 내 가장 가까운 적.
-        {
-            var minDistance = LocalPlayer.Range;
-            foreach (var target in targetPool)
-            {
-                if (Vector2.Distance(target.Position, LocalPlayer.Position) < minDistance)
-                {
-                    minDistance = Vector2.Distance(target.Position, LocalPlayer.Position);
-                    best = target;
-                }
-            }
-
-            return best;
-        }
-
-        var minAngle = float.MaxValue;
-        foreach (var target in targetPool)
-        {
-            var aim = UIManager.Instance.ShootJoystickVector();
-            var direction = target.Position - LocalPlayer.Position;
-            if (Vector2.Angle(aim, direction) < minAngle
-                && LocalPlayer.CanShoot(target)
-               )
-            {
-                minAngle = Vector2.Angle(aim, direction);
-                best = target;
-            }
-        }
-        return best;
     }
 
     public void ShootTarget()
