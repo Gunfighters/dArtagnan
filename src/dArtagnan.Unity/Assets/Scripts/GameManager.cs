@@ -10,6 +10,7 @@ using Button = UnityEngine.UI.Button;
 
 public class GameManager : MonoBehaviour
 {
+    public int playerObjectPoolSize;
     public Camera mainCamera;
     public Camera minimapCamera;
     public AudioClip BGMInGame;
@@ -38,6 +39,7 @@ public class GameManager : MonoBehaviour
     public VariableJoystick movementJoystick;
     public ShootJoystickController shootJoystickController;
     [CanBeNull] private Player LastSentTarget;
+    public List<GameObject> playerObjectPool = new();
 
     private void Awake()
     {
@@ -46,12 +48,19 @@ public class GameManager : MonoBehaviour
         movementJoystick.gameObject.SetActive(false);
         shootJoystickController.gameObject.SetActive(false);
         GameStartButton.onClick.AddListener(StartGame);
+        for (var i = 0; i < playerObjectPoolSize; i++)
+        {
+            var obj = Instantiate(playerPrefab, WorldCanvas.transform);
+            obj.SetActive(false);
+            playerObjectPool.Add(obj);
+        }
+        BGMPlayer.clip = BGMWaiting;
     }
 
     private void Start()
     {
         NetworkManager.Instance.SendJoinRequest();
-        BGMPlayer.PlayOneShot(BGMWaiting);
+        BGMPlayer.Play();
     }
 
     private void AddPlayer(PlayerInformation info, bool InGame)
@@ -59,10 +68,15 @@ public class GameManager : MonoBehaviour
         Debug.Log($"Add Player #{info.PlayerId}");
         if (players.ContainsKey(info.PlayerId))
         {
-            Debug.LogWarning($"Trying to add player #{info.PlayerId} that already exists");
-            return;
+            throw new Exception($"Trying to add player #{info.PlayerId} that already exists");
         }
-        var player = Instantiate(playerPrefab, WorldCanvas.transform).GetComponent<Player>();
+        var obj = playerObjectPool.FirstOrDefault();
+        if (obj is null)
+        {
+            throw new Exception($"No more playerObject in pool!");
+        }
+        playerObjectPool.Remove(obj);
+        var player = obj.GetComponent<Player>();
         var directionVec = DirectionHelper.IntToDirection(info.MovementData.Direction);
         var estimatedPosition = info.MovementData.Position + Ping / 2 * directionVec;
         var estimatedRemainingReloadTime = info.RemainingReloadTime - Ping / 2;
