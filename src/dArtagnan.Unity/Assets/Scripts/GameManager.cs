@@ -11,6 +11,7 @@ using Button = UnityEngine.UI.Button;
 public class GameManager : MonoBehaviour
 {
     public Camera mainCamera;
+    public Camera minimapCamera;
     public AudioClip BGMInGame;
     public AudioClip BGMWaiting;
     public AudioSource BGMPlayer;
