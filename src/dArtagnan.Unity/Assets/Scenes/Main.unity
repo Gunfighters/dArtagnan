@@ -350,6 +350,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 2311439678568529283, guid: ff5ee8e8e4740458c8feec81b9218c2d, type: 3}
+      propertyPath: host
+      value: 54.180.85.77
+      objectReference: {fileID: 0}
+    - target: {fileID: 2311439678568529283, guid: ff5ee8e8e4740458c8feec81b9218c2d, type: 3}
       propertyPath: PingText
       value: 
       objectReference: {fileID: 7581585111518447956}

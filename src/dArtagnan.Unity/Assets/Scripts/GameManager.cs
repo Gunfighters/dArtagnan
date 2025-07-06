@@ -40,7 +40,7 @@ public class GameManager : MonoBehaviour
         NetworkManager.Instance.SendJoinRequest();
     }
 
-    private Player AddPlayer(PlayerInformation info)
+    private void AddPlayer(PlayerInformation info, bool inGame)
     {
         Debug.Log($"Add Player #{info.PlayerId}");
         if (players.ContainsKey(info.PlayerId))
@@ -69,10 +69,9 @@ public class GameManager : MonoBehaviour
             SetCameraFollow(LocalPlayer);
             UIManager.Instance.OnLocalPlayerActivation(player);
         }
-        player.ToggleUIOverHead(true);
+        player.ToggleUIOverHead(inGame);
         player.gameObject.layer = LayerMask.NameToLayer(player == LocalPlayer ? "LocalPlayer" : "RemotePlayer");
         player.gameObject.SetActive(true);
-        return player;
     }
 
     public void OnYouAre(YouAre payload)
@@ -93,7 +92,7 @@ public class GameManager : MonoBehaviour
         var info = payload.PlayerInfo;
         if (info.PlayerId != localPlayerId)
         {
-            AddPlayer(info);
+            AddPlayer(info, false);
         }
     }
 
@@ -132,9 +131,14 @@ public class GameManager : MonoBehaviour
     public void OnPlayerLeaveBroadcast(PlayerLeaveBroadcast leave)
     {
         var leaving = players[leave.PlayerId];
-        leaving.gameObject.SetActive(false);
-        leaving.Reset();
+        ReleasePlayerObject(leaving.gameObject);
         players.Remove(leave.PlayerId);
+    }
+
+    private void ReleasePlayerObject(GameObject obj)
+    {
+        obj.SetActive(false);
+        playerObjectPool.Add(obj);
     }
 
     public void OnGamePlaying(GamePlaying gamePlaying)
@@ -153,10 +157,10 @@ public class GameManager : MonoBehaviour
     public void OnGameWaiting(GameWaiting gameWaiting)
     {
         gameState = GameState.Waiting;
-        ClearPlayersAndInitPool();
-        foreach (var p in gameWaiting.PlayersInfo.Select(AddPlayer))
+        RemovePlayerAll();
+        foreach (var info in gameWaiting.PlayersInfo)
         {
-            p.ToggleUIOverHead(false);
+            AddPlayer(info, false);
         }
         UIManager.Instance.SetupForGameState(GameState.Waiting);
         AudioManager.PlayForState(GameState.Waiting);
@@ -205,16 +209,15 @@ public class GameManager : MonoBehaviour
 
     private void SetCameraFollow(Player p)
     {
-        mainCamera.transform.SetParent(p.transform, false);
+        mainCamera.transform.SetParent(p.transform);
+        mainCamera.transform.localPosition = new Vector3(0, 0, mainCamera.transform.localPosition.z);
     }
 
-    private void ClearPlayersAndInitPool()
+    private void RemovePlayerAll()
     {
         foreach (var p in players.Values)
         {
-            p.Reset();
-            p.gameObject.SetActive(false);
-            playerObjectPool.Add(p.gameObject);
+            ReleasePlayerObject(p.gameObject);
         }
         players.Clear();
     }

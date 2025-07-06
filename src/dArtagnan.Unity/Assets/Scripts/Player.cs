@@ -154,9 +154,9 @@ public class Player : MonoBehaviour
         modelManager.SetDirection(direction);
     }
 
-    public void SetRunning(bool speed)
+    public void SetRunning(bool running)
     {
-        Speed = speed ? Constants.RUNNING_SPEED : Constants.WALKING_SPEED;
+        Speed = running ? Constants.RUNNING_SPEED : Constants.WALKING_SPEED;
     }
     public void UpdateMovementDataForReckoning(Vector2 direction, Vector2 position, float speed)
     {
@@ -172,7 +172,9 @@ public class Player : MonoBehaviour
         if (!isCorrecting) return rb.position + Speed * Time.fixedDeltaTime * CurrentDirection;
         var elapsed = Time.time - LastServerUpdateTimestamp;
         var predictedPosition = lastUpdatedPosition + Speed * elapsed * CurrentDirection;
-        isCorrecting = Vector2.Distance(rb.position, predictedPosition) < 0.01f;
+        var diff = Vector2.Distance(rb.position, predictedPosition);
+        if (diff > PositionCorrectionThreshold) return predictedPosition;
+        isCorrecting = diff < 0.01f;
         return Vector2.MoveTowards(rb.position, predictedPosition, Speed * Time.fixedDeltaTime * lerpSpeed);
     }
 
@@ -200,7 +202,6 @@ public class Player : MonoBehaviour
 
     public void Initialize(PlayerInformation info)
     {
-        Reset();
         ID = info.PlayerId;
         SetNickname(info.Nickname);
         SetAlive(info.Alive);
@@ -213,11 +214,6 @@ public class Player : MonoBehaviour
         Range = info.Range;
         TotalReloadTime = info.TotalReloadTime;
         RemainingReloadTime = info.RemainingReloadTime;
-    }
-
-    public void Reset()
-    {
-        modelManager.ResetModel();
     }
 
     public bool CanShoot(Player target)
