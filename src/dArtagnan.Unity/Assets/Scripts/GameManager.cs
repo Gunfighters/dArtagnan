@@ -11,14 +11,13 @@ using Button = UnityEngine.UI.Button;
 public class GameManager : MonoBehaviour
 {
     public int playerObjectPoolSize;
-    public Camera mainCamera;
-    public Camera minimapCamera;
+    private Camera mainCamera;
     public AudioClip BGMInGame;
     public AudioClip BGMWaiting;
     public AudioSource BGMPlayer;
-    readonly Dictionary<int, Player> players = new();
+    private readonly Dictionary<int, Player> players = new();
     private int localPlayerId;
-    [CanBeNull] public Player LocalPlayer
+    [CanBeNull] private Player LocalPlayer
     {
         get
         {
@@ -30,27 +29,21 @@ public class GameManager : MonoBehaviour
     public GameObject playerPrefab;
     public float Ping { get; private set; }
     public static GameManager Instance { get; private set; }
-    public Canvas WorldCanvas;
-    public Button GameStartButton;
+    public GameObject Ground;
     private int hostId;
     [CanBeNull] public Player Host => players[hostId];
-    public TextMeshProUGUI winnerAnnouncement;
     public GameState GameState { get; private set; }
-    public VariableJoystick movementJoystick;
-    public ShootJoystickController shootJoystickController;
     [CanBeNull] private Player LastSentTarget;
     public List<GameObject> playerObjectPool = new();
 
     private void Awake()
     {
         Instance = this;
+        mainCamera = Camera.main;
         // ToggleUIOverHeadEveryone(false);
-        movementJoystick.gameObject.SetActive(false);
-        shootJoystickController.gameObject.SetActive(false);
-        GameStartButton.onClick.AddListener(StartGame);
         for (var i = 0; i < playerObjectPoolSize; i++)
         {
-            var obj = Instantiate(playerPrefab, WorldCanvas.transform);
+            var obj = Instantiate(playerPrefab, Ground.transform);
             obj.SetActive(false);
             playerObjectPool.Add(obj);
         }
@@ -70,10 +63,12 @@ public class GameManager : MonoBehaviour
         {
             throw new Exception($"Trying to add player #{info.PlayerId} that already exists");
         }
+
         var obj = playerObjectPool.FirstOrDefault();
         if (obj is null)
         {
-            throw new Exception($"No more playerObject in pool!");
+            Debug.LogWarning($"No more object in the pool. Instantiating...");
+            obj = Instantiate(playerPrefab, Ground.transform);
         }
         playerObjectPool.Remove(obj);
         var player = obj.GetComponent<Player>();
@@ -84,11 +79,11 @@ public class GameManager : MonoBehaviour
         info.RemainingReloadTime = estimatedRemainingReloadTime;
         player.Initialize(info);
         players[info.PlayerId] = player;
+        
         if (player == LocalPlayer)
         {
-            mainCamera.transform.SetParent(player.transform);
-            movementJoystick.gameObject.SetActive(true);
-            shootJoystickController.gameObject.SetActive(true);
+            mainCamera.transform.SetParent(player.transform, false);
+            UIManager.Instance.OnLocalPlayerActivation(player);
         }
         player.ToggleUIOverHead(true);
         player.gameObject.layer = LayerMask.NameToLayer(player == LocalPlayer ? "LocalPlayer" : "RemotePlayer");
@@ -98,19 +93,13 @@ public class GameManager : MonoBehaviour
     public void OnYouAre(YouAre payload)
     {
         localPlayerId = payload.PlayerId;
-        ToggleGameStartButton(localPlayerId == hostId);
+        UIManager.Instance.OnNewHost(localPlayerId == hostId);
     }
 
     public void OnNewHost(NewHost payload)
     {
         hostId = payload.HostId;
-        Debug.Log($"New Host #{hostId}");
-        ToggleGameStartButton(localPlayerId == hostId);
-    }
-
-    void ToggleGameStartButton(bool toggle)
-    {
-        GameStartButton.gameObject.SetActive(toggle);
+        UIManager.Instance.OnNewHost(localPlayerId == hostId);
     }
 
     public void OnInformationOfPlayers(InformationOfPlayers informationOfPlayers)
@@ -193,9 +182,7 @@ public class GameManager : MonoBehaviour
 
     public void OnWinner(Winner winner)
     {
-        var winning = players[winner.PlayerId];
-        winnerAnnouncement.text = $"{winning.Nickname} HAS WON!";
-        winnerAnnouncement.gameObject.SetActive(true);
+        UIManager.Instance.AnnounceWinner(players[winner.PlayerId]);
     }
 
     private void ToggleUIOverHeadEveryone(bool toggle)
@@ -209,10 +196,10 @@ public class GameManager : MonoBehaviour
     public void OnNewGameState(NewGameState newGameState)
     {
         GameState = newGameState.GameState;
+        UIManager.Instance.SetupForGameState(GameState);
         switch (GameState)
         {
             case GameState.Waiting:
-                winnerAnnouncement.gameObject.SetActive(false);
                 mainCamera.transform.SetParent(null);
                 foreach (var p in players.Values)
                 {
@@ -232,61 +219,21 @@ public class GameManager : MonoBehaviour
         Ping = p.time / 1000f;
     }
 
-    private void StartGame()
+    public void StartGame()
     {
         NetworkManager.Instance.SendStartGame();
     }
 
     private void Update()
     {
-        HandleMovementInputAndUpdateOnChange();
         UpdateLocalPlayerTarget();
     }
 
-    private void HandleMovementInputAndUpdateOnChange()
+    public void UpdateVelocity(Vector2 newDirection, bool running)
     {
-        if (!LocalPlayerActive()) return;
-        var inputDirection = GetInputVector();
-        var needToUpdate = LocalPlayer!.CurrentDirection != inputDirection;
-        needToUpdate |= Input.GetKeyDown(KeyCode.Space) | Input.GetKeyUp(KeyCode.Space);
-        var nowRunning = Input.GetKey(KeyCode.Space) || IsMovementJoystickMoving(); // always run if using joystick
-        LocalPlayer.SetDirection(inputDirection);
-        LocalPlayer.SetSpeed(nowRunning ? Constants.RUNNING_SPEED : Constants.WALKING_SPEED);
-
-        if (needToUpdate)
-        {
-            NetworkManager.Instance.SendPlayerMovementData(LocalPlayer.Position, LocalPlayer.CurrentDirection, nowRunning);
-        }
-    }
-
-    private Vector2 GetInputVector()
-    {
-        if (IsMovementJoystickMoving())
-        {
-            return DirectionHelperClient.IntToDirection(DirectionHelperClient.DirectionToInt(movementJoystick.Direction));
-        }
-        var direction = Vector2.zero;
-        if (Input.GetKey(KeyCode.W))
-        {
-            direction += Vector2.up;
-        }
-
-        if (Input.GetKey(KeyCode.S))
-        {
-            direction += Vector2.down;
-        }
-
-        if (Input.GetKey(KeyCode.A))
-        {
-            direction += Vector2.left;
-        }
-
-        if (Input.GetKey(KeyCode.D))
-        {
-            direction += Vector2.right;
-        }
-
-        return direction.normalized;
+        LocalPlayer.SetDirection(newDirection);
+        LocalPlayer.SetRunning(running);
+        NetworkManager.Instance.SendPlayerMovementData(LocalPlayer.Position, LocalPlayer.CurrentDirection, running);
     }
 
     private bool LocalPlayerActive()
@@ -306,7 +253,7 @@ public class GameManager : MonoBehaviour
             LocalPlayer.TargetPlayer?.HighlightAsTarget(true);
         }
 
-        if (!IsShootJoystickMoving()) return;
+        if (UIManager.Instance.ShootJoystickVector() == Vector2.zero) return;
         if ((LastSentTarget is null && newTarget is not null)
             || (newTarget is null && LastSentTarget is not null)
             || changed)
@@ -317,16 +264,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private bool IsMovementJoystickMoving()
-    {
-        return movementJoystick.Direction != Vector2.zero;
-    }
-
-    private bool IsShootJoystickMoving()
-    {
-        return shootJoystickController.Direction != Vector2.zero;
-    }
-    
     private Player GetAutoTarget()
     {
         Player best = null;
@@ -335,7 +272,7 @@ public class GameManager : MonoBehaviour
                 target != LocalPlayer
                 && target.Alive
                 && LocalPlayer!.CanShoot(target));
-        if (!IsShootJoystickMoving()) // 사거리 내 가장 가까운 적.
+        if (UIManager.Instance.ShootJoystickVector() == Vector2.zero) // 사거리 내 가장 가까운 적.
         {
             var minDistance = LocalPlayer.Range;
             foreach (var target in targetPool)
@@ -353,11 +290,13 @@ public class GameManager : MonoBehaviour
         var minAngle = float.MaxValue;
         foreach (var target in targetPool)
         {
-            if (Vector2.Angle(shootJoystickController.Direction, target.Position - LocalPlayer.Position) < minAngle
+            var aim = UIManager.Instance.ShootJoystickVector();
+            var direction = target.Position - LocalPlayer.Position;
+            if (Vector2.Angle(aim, direction) < minAngle
                 && LocalPlayer.CanShoot(target)
                )
             {
-                minAngle = Vector2.Angle(shootJoystickController.Direction, target.Position - LocalPlayer.Position);
+                minAngle = Vector2.Angle(aim, direction);
                 best = target;
             }
         }

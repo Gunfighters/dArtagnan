@@ -11,6 +11,7 @@ public class ModelManager : MonoBehaviour
 {
     public Character4D actualModel;
     public Character4D modelSilhouette;
+    public GameObject modelPrefab;
     public CharacterState initialState;
     public Vector2 direction;
     public float spriteAlpha;
@@ -42,6 +43,18 @@ public class ModelManager : MonoBehaviour
             trajectory.SetPosition(0, trajectoryTarget.position);
         }
         trajectory.SetPosition(1, transform.position);
+    }
+
+    public void ResetModel()
+    {
+        Destroy(actualModel.gameObject);
+        Destroy(modelSilhouette.gameObject);
+        actualModel = Instantiate(modelPrefab, transform).GetComponent<Character4D>();
+        modelSilhouette = Instantiate(modelPrefab, transform).GetComponent<Character4D>();
+        SetTransparent();
+        SetDirection(direction == Vector2.zero ? Vector2.down : direction);
+        SetState(initialState);
+        InitializeFirearmMuzzle();
     }
 
     void InitializeTrajectory()

@@ -154,9 +154,9 @@ public class Player : MonoBehaviour
         modelManager.SetDirection(direction);
     }
 
-    public void SetSpeed(float speed)
+    public void SetRunning(bool speed)
     {
-        Speed = speed;
+        Speed = speed ? Constants.RUNNING_SPEED : Constants.WALKING_SPEED;
     }
     public void UpdateMovementDataForReckoning(Vector2 direction, Vector2 position, float speed)
     {
@@ -216,8 +216,7 @@ public class Player : MonoBehaviour
 
     public void Reset()
     {
-        modelManager.Idle();
-        ImmediatelyMoveTo(Vector2.zero);
+        modelManager.ResetModel();
     }
 
     public bool CanShoot(Player target)
