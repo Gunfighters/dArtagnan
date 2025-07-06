@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 using dArtagnan.Shared;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using static System.Int32;
 using Vector2 = System.Numerics.Vector2;
 
 public class NetworkManager : MonoBehaviour
@@ -151,9 +149,6 @@ public class NetworkManager : MonoBehaviour
             case YouAre are:
                 GameManager.Instance.OnYouAre(are);
                 break;
-            case InformationOfPlayers info:
-                GameManager.Instance.OnInformationOfPlayers(info);
-                break;
             case PlayerJoinBroadcast joinBroadcast:
                 GameManager.Instance.OnPlayerJoinBroadcast(joinBroadcast);
                 break;
@@ -172,17 +167,17 @@ public class NetworkManager : MonoBehaviour
             case NewHost newHost:
                 GameManager.Instance.OnNewHost(newHost);
                 break;
-            case GameStarted gameStarted:
-                GameManager.Instance.OnGameStarted(gameStarted);
-                break;
             case PlayerIsTargetingBroadcast playerIsTargetingBroadcast:
                 GameManager.Instance.OnPlayerIsTargeting(playerIsTargetingBroadcast);
                 break;
             case Winner winner:
                 GameManager.Instance.OnWinner(winner);
                 break;
-            case NewGameState newGameState:
-                GameManager.Instance.OnNewGameState(newGameState);
+            case GameWaiting gameWaiting:
+                GameManager.Instance.OnGameWaiting(gameWaiting);
+                break;
+            case GamePlaying gamePlaying:
+                GameManager.Instance.OnGamePlaying(gamePlaying);
                 break;
             default:
                 Debug.LogWarning($"Unhandled packet: {packet}");

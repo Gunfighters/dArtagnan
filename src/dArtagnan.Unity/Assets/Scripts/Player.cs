@@ -200,6 +200,7 @@ public class Player : MonoBehaviour
 
     public void Initialize(PlayerInformation info)
     {
+        Reset();
         ID = info.PlayerId;
         SetNickname(info.Nickname);
         SetAlive(info.Alive);

@@ -100,7 +100,11 @@ public class UIManager : MonoBehaviour
         switch (gameState)
         {
             case GameState.Waiting:
+                gameStartButton.gameObject.SetActive(GameManager.Instance.LocalPlayer == GameManager.Instance.Host);
                 winnerAnnouncement.gameObject.SetActive(false);
+                break;
+            case GameState.Playing:
+                gameStartButton.gameObject.SetActive(false);
                 break;
         }
     }

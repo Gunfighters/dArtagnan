@@ -3,14 +3,8 @@ using JetBrains.Annotations;
 using UnityEngine;
 public class TargetManager : MonoBehaviour
 {
-    public static TargetManager Instance;
     [CanBeNull] private Player LocalPlayer => GameManager.Instance.LocalPlayer;
     [CanBeNull] private Player LastSentTarget;
-
-    private void Awake()
-    {
-        Instance = this;
-    }
 
     private void Update()
     {
@@ -40,9 +34,8 @@ public class TargetManager : MonoBehaviour
     {
         Player best = null;
         var targetPool =
-            GameManager.Instance.players.Values.Where(target =>
+            GameManager.Instance.Survivors.Where(target =>
                 target != LocalPlayer
-                && target.Alive
                 && LocalPlayer!.CanShoot(target));
         if (UIManager.Instance.ShootJoystickVector() == Vector2.zero) // 사거리 내 가장 가까운 적.
         {

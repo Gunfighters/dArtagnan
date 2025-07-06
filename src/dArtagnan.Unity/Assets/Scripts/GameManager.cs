@@ -1,43 +1,32 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using dArtagnan.Shared;
 using JetBrains.Annotations;
-using TMPro;
 using UnityEngine;
-using Button = UnityEngine.UI.Button;
 
 public class GameManager : MonoBehaviour
 {
-    public int playerObjectPoolSize;
-    private Camera mainCamera;
-    public readonly Dictionary<int, Player> players = new();
-    private int localPlayerId;
-    [CanBeNull] public Player LocalPlayer
-    {
-        get
-        {
-            players.TryGetValue(localPlayerId, out var player);
-            return player;
-        }
-    }
-
-    public GameObject playerPrefab;
-    public float Ping { get; private set; }
     public static GameManager Instance { get; private set; }
-    public GameObject Ground;
-    private int hostId;
-    [CanBeNull] public Player Host => players[hostId];
-    public GameState GameState { get; private set; } = GameState.Waiting;
+    public int playerObjectPoolSize;
     public List<GameObject> playerObjectPool = new();
+    public GameObject playerPrefab;
+    private readonly Dictionary<int, Player> players = new();
+    public List<Player> Survivors => players.Values.Where(p => p.Alive).ToList();
+    public float Ping { get; private set; }
+    private int localPlayerId;
+    [CanBeNull] public Player LocalPlayer => players.GetValueOrDefault(localPlayerId, null);
+    private Camera mainCamera;
+    public GameObject Ground;
     public AudioManager AudioManager;
+    private int hostId;
+    [CanBeNull] public Player Host => players.GetValueOrDefault(hostId, null);
+    private GameState gameState;
 
     private void Awake()
     {
         Instance = this;
         mainCamera = Camera.main;
-        // ToggleUIOverHeadEveryone(false);
         for (var i = 0; i < playerObjectPoolSize; i++)
         {
             var obj = Instantiate(playerPrefab, Ground.transform);
@@ -49,10 +38,9 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         NetworkManager.Instance.SendJoinRequest();
-        AudioManager.PlayForState(GameState);
     }
 
-    private void AddPlayer(PlayerInformation info, bool InGame)
+    private Player AddPlayer(PlayerInformation info)
     {
         Debug.Log($"Add Player #{info.PlayerId}");
         if (players.ContainsKey(info.PlayerId))
@@ -78,12 +66,13 @@ public class GameManager : MonoBehaviour
         
         if (player == LocalPlayer)
         {
-            mainCamera.transform.SetParent(player.transform, false);
+            SetCameraFollow(LocalPlayer);
             UIManager.Instance.OnLocalPlayerActivation(player);
         }
         player.ToggleUIOverHead(true);
         player.gameObject.layer = LayerMask.NameToLayer(player == LocalPlayer ? "LocalPlayer" : "RemotePlayer");
         player.gameObject.SetActive(true);
+        return player;
     }
 
     public void OnYouAre(YouAre payload)
@@ -98,20 +87,13 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.OnNewHost(localPlayerId == hostId);
     }
 
-    public void OnInformationOfPlayers(InformationOfPlayers informationOfPlayers)
-    {
-        foreach (var info in informationOfPlayers.Info)
-        {
-            AddPlayer(info, informationOfPlayers.InGame);
-        }
-    }
 
     public void OnPlayerJoinBroadcast(PlayerJoinBroadcast payload)
     {
         var info = payload.PlayerInfo;
         if (info.PlayerId != localPlayerId)
         {
-            AddPlayer(info, false);
+            AddPlayer(info);
         }
     }
 
@@ -131,7 +113,10 @@ public class GameManager : MonoBehaviour
         var target = players[shooting.TargetId];
         shooter.Fire(target);
         shooter.UpdateRemainingReloadTime(shooter.TotalReloadTime - Ping / 2);
-        shooter.ShowHitOrMiss(shooting.Hit);
+        if (gameState == GameState.Playing)
+        {
+            shooter.ShowHitOrMiss(shooting.Hit);
+        }
     }
 
     public void OnUpdatePlayerAlive(UpdatePlayerAlive updatePlayerAlive)
@@ -152,18 +137,29 @@ public class GameManager : MonoBehaviour
         players.Remove(leave.PlayerId);
     }
 
-    public void OnGameStarted(GameStarted gameStarted)
+    public void OnGamePlaying(GamePlaying gamePlaying)
     {
-        foreach (var player in players.Values)
+        gameState = GameState.Playing;
+        UIManager.Instance.SetupForGameState(GameState.Playing);
+        AudioManager.PlayForState(GameState.Playing);
+        foreach (var info in gamePlaying.PlayersInfo)
         {
-            Destroy(player.gameObject);
+            var p = players[info.PlayerId];
+            p.Initialize(info);
+            p.ToggleUIOverHead(true);
         }
-        players.Clear();
-        foreach (var info in gameStarted.Players)
+    }
+
+    public void OnGameWaiting(GameWaiting gameWaiting)
+    {
+        gameState = GameState.Waiting;
+        ClearPlayersAndInitPool();
+        foreach (var p in gameWaiting.PlayersInfo.Select(AddPlayer))
         {
-            AddPlayer(info, true);
+            p.ToggleUIOverHead(false);
         }
-        ToggleUIOverHeadEveryone(true);
+        UIManager.Instance.SetupForGameState(GameState.Waiting);
+        AudioManager.PlayForState(GameState.Waiting);
     }
 
     public void OnPlayerIsTargeting(PlayerIsTargetingBroadcast playerIsTargeting)
@@ -177,35 +173,6 @@ public class GameManager : MonoBehaviour
     public void OnWinner(Winner winner)
     {
         UIManager.Instance.AnnounceWinner(players[winner.PlayerId]);
-    }
-
-    private void ToggleUIOverHeadEveryone(bool toggle)
-    {
-        foreach (var p in players.Values)
-        {
-            p.ToggleUIOverHead(toggle);
-        }
-    }
-
-    public void OnNewGameState(NewGameState newGameState)
-    {
-        GameState = newGameState.GameState;
-        UIManager.Instance.SetupForGameState(GameState);
-        AudioManager.PlayForState(GameState);
-        switch (GameState)
-        {
-            case GameState.Waiting:
-                mainCamera.transform.SetParent(Ground.transform);
-                foreach (var player in players.Values)
-                {
-                    player.Reset();
-                }
-                break;
-            case GameState.Playing:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
     }
 
     public void SetPing(Ping p)
@@ -234,5 +201,21 @@ public class GameManager : MonoBehaviour
     private Vector2 EstimatePositionByPing(Vector2 position, Vector2 direction, float speed)
     {
         return position + Ping / 2 * direction * speed;
+    }
+
+    private void SetCameraFollow(Player p)
+    {
+        mainCamera.transform.SetParent(p.transform, false);
+    }
+
+    private void ClearPlayersAndInitPool()
+    {
+        foreach (var p in players.Values)
+        {
+            p.Reset();
+            p.gameObject.SetActive(false);
+            playerObjectPool.Add(p.gameObject);
+        }
+        players.Clear();
     }
 }

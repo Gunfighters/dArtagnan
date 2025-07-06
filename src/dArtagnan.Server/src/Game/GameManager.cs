@@ -68,7 +68,7 @@ public class GameManager
 
         if (player == Host)
         {
-            var nextHost = players.Values.SingleOrDefault(p => p.Alive);
+            var nextHost = players.Values.FirstOrDefault(p => p.Alive);
             await SetHost(nextHost);
         }
 
@@ -108,7 +108,7 @@ public class GameManager
         }
     }
 
-    public List<PlayerInformation> GetPlayersInformation()
+    public List<PlayerInformation> PlayersInRoom()
     {
         return players.Values.Select(player => player.PlayerInformation).ToList();
     }
@@ -123,31 +123,36 @@ public class GameManager
         return players.Values.Count(p => p.Alive) <= 1;
     }
 
-    private async Task ResetRespawnBroadcast()
+    private void ResetRespawn()
     {
         foreach (var player in players.Values)
         {
             player.Reset();
             player.UpdatePosition(Player.GetSpawnPosition(player.Id));
         }
-
-        await BroadcastToAll(new InformationOfPlayers { Info = GetPlayersInformation(), InGame = CurrentGameState == GameState.Playing });
     }
 
     public async Task StartGame()
     {
         Console.WriteLine($"[게임] 게임 시작! (참가자: {players.Count}명)");
-            
+        ResetRespawn();
         await SetGameState(GameState.Playing);
-        await ResetRespawnBroadcast();
     }
 
-    async Task SetGameState(GameState newState)
+    private async Task SetGameState(GameState newState)
     {
         var oldState = CurrentGameState;
         CurrentGameState = newState;
         Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {newState}");
-        await BroadcastToAll(new NewGameState { GameState = CurrentGameState });
+        switch (newState)
+        {
+            case GameState.Waiting:
+                await BroadcastToAll(new GameWaiting { PlayersInfo = PlayersInRoom() });
+                break;
+            case GameState.Playing:
+                await BroadcastToAll(new GamePlaying { PlayersInfo = PlayersInRoom() });
+                break;
+        }
     }
 
     public bool IsGamePlaying()
@@ -164,7 +169,7 @@ public class GameManager
     {
         await BroadcastToAll(new Winner { PlayerId = Winner!.Id });
         await Task.Delay(2500); // 2.5초 쉼
+        ResetRespawn();
         await SetGameState(GameState.Waiting);
-        await ResetRespawnBroadcast();
     }
 }

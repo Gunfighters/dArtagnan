@@ -92,7 +92,7 @@ public class ClientConnection : IDisposable
                     break;
 
                 case PlayerMovementDataFromClient movementData:
-                    await PacketHandlers.HandlePlayerMovementInformation(movementData, this, gameManager);
+                    await PacketHandlers.HandlePlayerMovementData(movementData, this, gameManager);
                     break;
 
                 case PlayerShootingFromClient shootingData:

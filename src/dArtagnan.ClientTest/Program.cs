@@ -298,9 +298,9 @@ internal class Program
                     Console.WriteLine($"{movementDataBroadcast.PlayerId}번 플레이어 이동 데이터 갱신: 방향 {movementDataBroadcast.MovementData.Direction}, 위치 {movementDataBroadcast.MovementData.Position} 속도 {movementDataBroadcast.MovementData.Speed}");
                     break;
                         
-                case InformationOfPlayers infoPlayers:
-                    Console.WriteLine($"=== 플레이어 정보 업데이트 ===");
-                    foreach (var info in infoPlayers.Info)
+                case GameWaiting gameWaiting:
+                    Console.WriteLine($"=== 현재 방 상태 ===");
+                    foreach (var info in gameWaiting.PlayersInfo)
                     {
                         Console.WriteLine($"  플레이어 {info.PlayerId}: {info.Nickname}");
                         Console.WriteLine($"    위치: ({info.MovementData.Position.X:F2}, {info.MovementData.Position.Y:F2})");

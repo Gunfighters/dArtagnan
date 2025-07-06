@@ -11,22 +11,22 @@ namespace dArtagnan.Shared
     }
     [Union(0, typeof(PlayerJoinRequest))]
     [Union(1, typeof(YouAre))]
-    [Union(2, typeof(InformationOfPlayers))]
-    [Union(3, typeof(PlayerJoinBroadcast))]
-    [Union(4, typeof(PlayerMovementDataFromClient))]
-    [Union(5, typeof(PlayerMovementDataBroadcast))]
-    [Union(6, typeof(PlayerShootingFromClient))]
-    [Union(7, typeof(PlayerShootingBroadcast))]
-    [Union(8, typeof(UpdatePlayerAlive))]
-    [Union(9, typeof(PlayerLeaveFromClient))]
-    [Union(10, typeof(PlayerLeaveBroadcast))]
-    [Union(11, typeof(GameStarted))]
-    [Union(12, typeof(PlayerIsTargetingFromClient))]
-    [Union(13, typeof(PlayerIsTargetingBroadcast))]
-    [Union(14, typeof(StartGame))]
-    [Union(15, typeof(NewHost))]
-    [Union(16, typeof(NewGameState))]
-    [Union(17, typeof(Winner))]
+    [Union(2, typeof(PlayerJoinBroadcast))]
+    [Union(3, typeof(PlayerMovementDataFromClient))]
+    [Union(4, typeof(PlayerMovementDataBroadcast))]
+    [Union(5, typeof(PlayerShootingFromClient))]
+    [Union(6, typeof(PlayerShootingBroadcast))]
+    [Union(7, typeof(UpdatePlayerAlive))]
+    [Union(8, typeof(PlayerLeaveFromClient))]
+    [Union(9, typeof(PlayerLeaveBroadcast))]
+    [Union(10, typeof(GamePlaying))]
+    [Union(11, typeof(PlayerIsTargetingFromClient))]
+    [Union(12, typeof(PlayerIsTargetingBroadcast))]
+    [Union(13, typeof(StartGame))]
+    [Union(14, typeof(NewHost))]
+    [Union(15, typeof(Winner))]
+    // [Union(16, typeof(GamePlaying))]
+    [Union(17, typeof(GameWaiting))]
     public interface IPacket
     {
     }
@@ -40,13 +40,6 @@ namespace dArtagnan.Shared
     public struct YouAre : IPacket
     {
         [Key(0)] public int PlayerId;
-    }
-
-    [MessagePackObject]
-    public struct InformationOfPlayers : IPacket
-    {
-        [Key(0)] public bool InGame;
-        [Key(1)] public List<PlayerInformation> Info;
     }
 
     [MessagePackObject]
@@ -143,21 +136,24 @@ namespace dArtagnan.Shared
     {}
 
     [MessagePackObject]
-    public struct GameStarted : IPacket
+    public struct GameWaiting : IPacket
     {
-        [Key(0)] public List<PlayerInformation> Players;
+        [Key(0)] public List<PlayerInformation> PlayersInfo;
+    }
+
+    [MessagePackObject]
+    public struct GamePlaying : IPacket
+    {
+        [Key(0)] public List<PlayerInformation> PlayersInfo;
+        [Key(1)] public int Round;
+        [Key(2)] public float TotalTime;
+        [Key(3)] public float RemainingTime;
     }
 
     [MessagePackObject]
     public struct NewHost : IPacket
     {
         [Key(0)] public int HostId;
-    }
-
-    [MessagePackObject]
-    public struct NewGameState : IPacket
-    {
-        [Key(0)] public GameState GameState;
     }
 
     [MessagePackObject]

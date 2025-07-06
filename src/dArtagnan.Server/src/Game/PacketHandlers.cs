@@ -53,19 +53,16 @@ public static class PacketHandlers
 
         Console.WriteLine($"[게임] 플레이어 {player.Id} 참가 완료 (현재 인원: {gameManager.players.Count})");
 
-        // YouAre 패킷 전송 (본인에게만)
         await client.SendPacketAsync(new YouAre
         {
             PlayerId = player.Id
         });
 
-        // InformationOfPlayers 패킷 전송 (본인에게만)
-        await client.SendPacketAsync(new InformationOfPlayers
+        await client.SendPacketAsync(new GameWaiting
         {
-            Info = gameManager.GetPlayersInformation()
+            PlayersInfo = gameManager.PlayersInRoom()
         });
 
-        // PlayerJoinBroadcast 전송 (모든 플레이어에게)
         await gameManager.BroadcastToAll(new PlayerJoinBroadcast { PlayerInfo = player.PlayerInformation });
     }
 
@@ -80,7 +77,7 @@ public static class PacketHandlers
         _ = Task.Run(() => client.DisconnectAsync());
     }
 
-    public static async Task HandlePlayerMovementInformation(PlayerMovementDataFromClient movementData, ClientConnection client, GameManager gameManager)
+    public static async Task HandlePlayerMovementData(PlayerMovementDataFromClient movementData, ClientConnection client, GameManager gameManager)
     {
         var player = gameManager.GetPlayerById(client.Id);
         if (player == null) return;
