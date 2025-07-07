@@ -40,7 +40,7 @@ internal class Program
     {
         Console.WriteLine("=== D'Artagnan 테스트 클라이언트 ===");
         Console.WriteLine("명령어:");
-        Console.WriteLine("  connect [host] [port] - 서버 연결 (기본: localhost 7777)");
+        Console.WriteLine("  connect [host] [port] - 서버 연결 (기본: 54.180.85.77)");
         Console.WriteLine("  join [nickname] - 게임 참가");
         Console.WriteLine("  start - 게임 시작");
         Console.WriteLine("  dir [i] - 플레이어 이동 방향 변경");
@@ -76,7 +76,7 @@ internal class Program
             switch (command)
             {
                 case "connect":
-                    var host = parts.Length > 1 ? parts[1] : "localhost";
+                    var host = parts.Length > 1 ? parts[1] : "54.180.85.77";
                     var port = parts.Length > 2 ? int.Parse(parts[2]) : 7777;
                     await ConnectToServer(host, port);
                     break;
