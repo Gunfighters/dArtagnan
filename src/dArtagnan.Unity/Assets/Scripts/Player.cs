@@ -169,12 +169,12 @@ public class Player : MonoBehaviour
 
     private Vector2 NextPosition()
     {
-        if (!isCorrecting) return rb.position + Speed * Time.fixedDeltaTime * CurrentDirection;
+        if (!isCorrecting && CurrentDirection != Vector2.zero) return rb.position + Speed * Time.fixedDeltaTime * CurrentDirection;
         var elapsed = Time.time - LastServerUpdateTimestamp;
         var predictedPosition = lastUpdatedPosition + Speed * elapsed * CurrentDirection;
         var diff = Vector2.Distance(rb.position, predictedPosition);
-        if (diff > PositionCorrectionThreshold) return predictedPosition;
         isCorrecting = diff < 0.01f;
+        if (diff > PositionCorrectionThreshold) return predictedPosition;
         return Vector2.MoveTowards(rb.position, predictedPosition, Speed * Time.fixedDeltaTime * lerpSpeed);
     }
 
@@ -183,7 +183,7 @@ public class Player : MonoBehaviour
         rb.position = position;
         lastUpdatedPosition = position;
         LastServerUpdateTimestamp = Time.time;
-        isCorrecting = false;
+        isCorrecting = true;
     }
 
     public void HighlightAsTarget(bool show)
@@ -210,7 +210,6 @@ public class Player : MonoBehaviour
         lastUpdatedPosition = VecConverter.ToUnityVec(info.MovementData.Position); 
         ImmediatelyMoveTo(lastUpdatedPosition);
         SetDirection(DirectionHelperClient.IntToDirection(info.MovementData.Direction));
-        isCorrecting = false;
         Range = info.Range;
         TotalReloadTime = info.TotalReloadTime;
         RemainingReloadTime = info.RemainingReloadTime;
