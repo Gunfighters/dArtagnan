@@ -25,7 +25,7 @@ namespace dArtagnan.Shared
     [Union(13, typeof(StartGame))]
     [Union(14, typeof(NewHost))]
     [Union(15, typeof(Winner))]
-    [Union(16, typeof(GamePlaying))]
+    //[Union(16, typeof(GamePlaying))]
     [Union(17, typeof(GameWaiting))]
     [Union(18, typeof(NewRound))]
     public interface IPacket
