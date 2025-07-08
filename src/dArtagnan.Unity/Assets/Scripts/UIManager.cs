@@ -13,8 +13,9 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI gameStartSplash;
     public TextMeshProUGUI roundBoard;
     public TextMeshProUGUI roundSplash;
-    private MovementJoystick _movementJoystick;
-    private ShootJoystickController _shootJoystickController;
+    public TextMeshProUGUI spectatingText;
+    public MovementJoystick movementJoystick;
+    public ShootJoystickController ShootJoystickController;
     private Vector2 _lastDirection;
     private bool _lastRunning;
     public float gameStartSplashDuration;
@@ -23,15 +24,6 @@ public class UIManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        _movementJoystick = GetComponentInChildren<MovementJoystick>();
-        _shootJoystickController = GetComponentInChildren<ShootJoystickController>();
-        _movementJoystick.gameObject.SetActive(false);
-        _shootJoystickController.gameObject.SetActive(false);
-        gameStartButton.gameObject.SetActive(false);
-        winnerAnnouncement.gameObject.SetActive(false);
-        gameStartSplash.gameObject.SetActive(false);
-        roundSplash.gameObject.SetActive(false);
-        roundBoard.gameObject.SetActive(false);
     }
 
     private void Start()
@@ -51,13 +43,13 @@ public class UIManager : MonoBehaviour
     
     private Vector2 GetInputDirection()
     {
-        var dir = _movementJoystick.IsMoving ? _movementJoystick.InputVectorSnapped : GetKeyboardVector();
+        var dir = movementJoystick.IsMoving ? movementJoystick.InputVectorSnapped : GetKeyboardVector();
         return dir;
     }
 
     private bool GetInputRunning()
     {
-        return _movementJoystick.IsMoving || Input.GetKey(KeyCode.Space);
+        return movementJoystick.IsMoving || Input.GetKey(KeyCode.Space);
     }
 
     private Vector2 GetKeyboardVector()
@@ -88,9 +80,9 @@ public class UIManager : MonoBehaviour
 
     public void OnLocalPlayerActivation(Player localPlayer)
     {
-        _movementJoystick.gameObject.SetActive(true);
-        _shootJoystickController.LocalPlayer = localPlayer;
-        _shootJoystickController.gameObject.SetActive(true);
+        movementJoystick.gameObject.SetActive(true);
+        ShootJoystickController.LocalPlayer = localPlayer;
+        ShootJoystickController.gameObject.SetActive(true);
     }
     
     public void OnNewHost(bool youAreHost)
@@ -131,7 +123,7 @@ public class UIManager : MonoBehaviour
 
     public Vector2 ShootJoystickVector()
     {
-        return _shootJoystickController.Direction;
+        return ShootJoystickController.Direction;
     }
 
     private void ScheduleDisappear(GameObject obj, float delay)
@@ -143,5 +135,10 @@ public class UIManager : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
         obj.SetActive(false);
+    }
+
+    public void ToggleSpectate(bool toggle)
+    {
+        spectatingText.gameObject.SetActive(toggle);
     }
 }

@@ -129,3 +129,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c63fb792844743a3a30618183fd7e164, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  variableJoystick: {fileID: 5493465037669074043}
+--- !u!114 &5493465037669074043 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3881087803549984439, guid: ec536a7718376554185e4a856d5ae230, type: 3}
+  m_PrefabInstance: {fileID: 8782249706907083468}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5493465037669074041}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42844a4fccbd54746b90cade4ff70f73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

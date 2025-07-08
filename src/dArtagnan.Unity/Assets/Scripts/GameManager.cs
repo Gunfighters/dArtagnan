@@ -23,6 +23,7 @@ public class GameManager : MonoBehaviour
     private int hostId;
     [CanBeNull] public Player Host => players.GetValueOrDefault(hostId, null);
     private GameState gameState;
+    private Player cameraSetPlayer;
 
     private void Awake()
     {
@@ -128,12 +129,11 @@ public class GameManager : MonoBehaviour
         if (!player.Alive)
         {
             ScheduleDeactivation(player);
-            player.gameObject.SetActive(false);
-        }
-        if (!player.Alive && player == LocalPlayer)
-        {
-            var anotherPlayer = players.Values.FirstOrDefault(p => p.Alive);
-            SetCameraFollow(anotherPlayer);
+            if (player == cameraSetPlayer)
+            {
+                var anotherPlayer = players.Values.FirstOrDefault(p => p.Alive);
+                SetCameraFollow(anotherPlayer);
+            }
         }
     }
 
@@ -235,8 +235,10 @@ public class GameManager : MonoBehaviour
 
     private void SetCameraFollow(Player p)
     {
+        cameraSetPlayer = p;
         mainCamera.transform.SetParent(p.transform);
         mainCamera.transform.localPosition = new Vector3(0, 0, mainCamera.transform.localPosition.z);
+        UIManager.Instance.ToggleSpectate(p != LocalPlayer);
     }
 
     private void RemovePlayerAll()
