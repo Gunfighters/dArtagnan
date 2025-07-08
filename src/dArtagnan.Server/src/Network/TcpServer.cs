@@ -9,7 +9,6 @@ namespace dArtagnan.Server;
 public class TcpServer
 {
     private bool isRunning;
-    private int nextClientId = 1;
     private TcpListener tcpListener = null!;
     private GameLoop gameLoop = null!;
 
@@ -38,7 +37,8 @@ public class TcpServer
                 try
                 {
                     var tcpClient = await tcpListener.AcceptTcpClientAsync();
-                    var client = new ClientConnection(nextClientId++, tcpClient, gameManager);
+                    int clientId = GetAvailableClientId();
+                    var client = new ClientConnection(clientId, tcpClient, gameManager);
                     Console.WriteLine($"새 클라이언트 연결됨 (ID: {client.Id})");
                 }
                 catch (ObjectDisposedException)
@@ -56,6 +56,20 @@ public class TcpServer
         {
             Console.WriteLine($"서버 시작 오류: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// 사용 가능한 클라이언트 ID를 찾아 반환합니다.
+    /// 1부터 시작해서 빈 번호를 찾습니다.
+    /// </summary>
+    private int GetAvailableClientId()
+    {
+        int id = 1;
+        while (gameManager.clients.ContainsKey(id))
+        {
+            id++;
+        }
+        return id;
     }
 
     public Task StopAsync()
@@ -82,6 +96,4 @@ public class TcpServer
     public int GetClientCount() => gameManager.clients.Count;
 
     public GameManager GetGameManager() => gameManager;
-
-
 }
