@@ -4,12 +4,14 @@ public class CircleForMinimap : MonoBehaviour
 {
     private SpriteRenderer spriteRenderer;
     private Player player;
+    private Vector3 originalScale;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         player = GetComponentInParent<Player>();
+        originalScale = transform.localScale;
     }
 
     // Update is called once per frame
@@ -17,10 +19,14 @@ public class CircleForMinimap : MonoBehaviour
     {
         if (player != null && spriteRenderer != null)
         {
-            // accuracy를 0~1로 정규화 (예: 0~100 기준)
+            // 플레이어 색깔 적용
+            spriteRenderer.color = player.MyColor;
+            
+            // accuracy에 비례해서 원의 크기 조절 (50%~150% 범위)
             float t = Mathf.Clamp01(player.Accuracy / 100f);
-            // accuracy가 높을수록 검정색에 가까워짐
-            spriteRenderer.color = Color.Lerp(Color.white, Color.black, t);
+            float scaleMultiplier = Mathf.Lerp(0.5f, 1.5f, t);
+            transform.localScale = originalScale * scaleMultiplier;
         }
     }
 }
+

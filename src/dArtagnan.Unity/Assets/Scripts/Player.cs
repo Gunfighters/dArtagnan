@@ -37,6 +37,21 @@ public class Player : MonoBehaviour
     private bool initializing;
     private Vector2 initialPosition;
 
+    // ID에 따른 플레이어 색깔
+    private static readonly Color[] PlayerColors = new Color[]
+    {
+        Color.red,              // ID 1
+        Color.blue,             // ID 2  
+        Color.green,            // ID 3
+        Color.yellow,           // ID 4
+        Color.magenta,          // ID 5
+        Color.cyan,             // ID 6
+        new Color(1f, 0.5f, 0f), // 주황색 - ID 7
+        new Color(0.5f, 0f, 1f)  // 보라색 - ID 8
+    };
+
+    public Color MyColor => ID >= 1 && ID <= 8 ? PlayerColors[ID - 1] : Color.white;
+
     private void Awake()
     {
         HighlightAsTarget(false);
@@ -69,6 +84,9 @@ public class Player : MonoBehaviour
     {
         Nickname = newNickname;
         nicknameText.text = Nickname;
+        
+        // ID에 따른 색깔 설정
+        nicknameText.color = MyColor;
     }
 
     public void SetAlive(bool alive)

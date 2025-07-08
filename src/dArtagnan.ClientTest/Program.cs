@@ -76,7 +76,7 @@ internal class Program
             switch (command)
             {
                 case "connect":
-                    var host = parts.Length > 1 ? parts[1] : "54.180.85.77";
+                    var host = parts.Length > 1 ? parts[1] : "localhost";
                     var port = parts.Length > 2 ? int.Parse(parts[2]) : 7777;
                     await ConnectToServer(host, port);
                     break;
