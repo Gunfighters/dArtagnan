@@ -30,10 +30,12 @@ public class Player : MonoBehaviour
     public float hitMissShowingDuration;
     float LastServerUpdateTimestamp;
     public float lerpSpeed;
-    private bool isCorrecting;
+    private bool needToCorrect;
     private Vector2 lastUpdatedPosition;
     public float PositionCorrectionThreshold;
     public Vector2 Position => rb.position;
+    private bool initializing;
+    private Vector2 initialPosition;
 
     private void Awake()
     {
@@ -48,7 +50,12 @@ public class Player : MonoBehaviour
 
     private void FixedUpdate()
     {
-        rb.MovePosition(NextPosition());
+        if (initializing)
+        {
+            rb.position = initialPosition;
+            initializing = false;
+        }
+        else rb.MovePosition(NextPosition());
     }
 
     public void ToggleUIOverHead(bool show)
@@ -164,26 +171,18 @@ public class Player : MonoBehaviour
         Speed = speed;
         lastUpdatedPosition = position;
         LastServerUpdateTimestamp = Time.time;
-        isCorrecting = true;
+        needToCorrect = true;
     }
 
     private Vector2 NextPosition()
     {
-        if (!isCorrecting && CurrentDirection != Vector2.zero) return rb.position + Speed * Time.fixedDeltaTime * CurrentDirection;
+        if (!needToCorrect) return rb.position + Speed * Time.fixedDeltaTime * CurrentDirection;
         var elapsed = Time.time - LastServerUpdateTimestamp;
         var predictedPosition = lastUpdatedPosition + Speed * elapsed * CurrentDirection;
         var diff = Vector2.Distance(rb.position, predictedPosition);
-        isCorrecting = diff < 0.01f;
+        needToCorrect = diff > 0.01f;
         if (diff > PositionCorrectionThreshold) return predictedPosition;
         return Vector2.MoveTowards(rb.position, predictedPosition, Speed * Time.fixedDeltaTime * lerpSpeed);
-    }
-
-    private void ImmediatelyMoveTo(Vector2 position)
-    {
-        rb.position = position;
-        lastUpdatedPosition = position;
-        LastServerUpdateTimestamp = Time.time;
-        isCorrecting = true;
     }
 
     public void HighlightAsTarget(bool show)
@@ -202,13 +201,14 @@ public class Player : MonoBehaviour
 
     public void Initialize(PlayerInformation info)
     {
+        modelManager.ResetModel();
         ID = info.PlayerId;
         SetNickname(info.Nickname);
         SetAlive(info.Alive);
         SetAccuracy(info.Accuracy);
         Speed = info.MovementData.Speed;
-        lastUpdatedPosition = VecConverter.ToUnityVec(info.MovementData.Position); 
-        ImmediatelyMoveTo(lastUpdatedPosition);
+        initializing = true;
+        initialPosition = VecConverter.ToUnityVec(info.MovementData.Position);
         SetDirection(DirectionHelperClient.IntToDirection(info.MovementData.Direction));
         Range = info.Range;
         TotalReloadTime = info.TotalReloadTime;

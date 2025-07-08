@@ -13,7 +13,9 @@ public class GameManager
     public readonly ConcurrentDictionary<int, ClientConnection> clients = new(); // 클라이언트 연결도 여기서 관리
     public Player? Host;
     public GameState CurrentGameState { get; private set; } = GameState.Waiting;
-    public Player? Winner => players.Values.SingleOrDefault(p => p.Alive);
+    public Player? LastManStanding => players.Values.SingleOrDefault(p => p.Alive);
+    public int Round = 0;
+    public const int MAX_ROUND = 4;
     
     public void AddClient(ClientConnection client)
     {
@@ -118,9 +120,14 @@ public class GameManager
         return players.Values.Count(p => p.Alive);
     }
 
-    public bool GameOver()
+    public bool RoundOver()
     {
         return players.Values.Count(p => p.Alive) <= 1;
+    }
+
+    public bool GameOver()
+    {
+        return RoundOver() && Round >= MAX_ROUND;
     }
 
     private void ResetRespawn()
@@ -135,8 +142,7 @@ public class GameManager
     public async Task StartGame()
     {
         Console.WriteLine($"[게임] 게임 시작! (참가자: {players.Count}명)");
-        ResetRespawn();
-        await SetGameState(GameState.Playing);
+        await StartRound(1);
     }
 
     private async Task SetGameState(GameState newState)
@@ -150,7 +156,7 @@ public class GameManager
                 await BroadcastToAll(new GameWaiting { PlayersInfo = PlayersInRoom() });
                 break;
             case GameState.Playing:
-                await BroadcastToAll(new GamePlaying { PlayersInfo = PlayersInRoom() });
+                await BroadcastToAll(new GamePlaying { PlayersInfo = PlayersInRoom(), Round = Round });
                 break;
         }
     }
@@ -165,11 +171,19 @@ public class GameManager
         return clients[id].Ping;
     }
 
+    public async Task StartRound(int newRound)
+    {
+        Round = newRound;
+        ResetRespawn();
+        await SetGameState(GameState.Playing);
+    }
+
     public async Task OnGameOver()
     {
-        await BroadcastToAll(new Winner { PlayerId = Winner!.Id });
+        await BroadcastToAll(new Winner { PlayerId = LastManStanding!.Id });
         await Task.Delay(2500); // 2.5초 쉼
         ResetRespawn();
+        Round = 0;
         await SetGameState(GameState.Waiting);
     }
 }

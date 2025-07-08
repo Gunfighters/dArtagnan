@@ -10,12 +10,14 @@ public class UIManager : MonoBehaviour
     public IMinimapManager MinimapManager;
     public Button gameStartButton;
     public TextMeshProUGUI winnerAnnouncement;
-    public TextMeshProUGUI gameStartAnnouncemet;
+    public TextMeshProUGUI gameStartSplash;
+    public TextMeshProUGUI roundBoard;
+    public TextMeshProUGUI roundSplash;
     private MovementJoystick _movementJoystick;
     private ShootJoystickController _shootJoystickController;
     private Vector2 _lastDirection;
     private bool _lastRunning;
-    public float gameStartAnnouncementDuration;
+    public float gameStartSplashDuration;
     public float winnerAnnouncementDuration;
 
     private void Awake()
@@ -27,12 +29,14 @@ public class UIManager : MonoBehaviour
         _shootJoystickController.gameObject.SetActive(false);
         gameStartButton.gameObject.SetActive(false);
         winnerAnnouncement.gameObject.SetActive(false);
-        gameStartAnnouncemet.gameObject.SetActive(false);
+        gameStartSplash.gameObject.SetActive(false);
+        roundSplash.gameObject.SetActive(false);
+        roundBoard.gameObject.SetActive(false);
     }
 
     private void Start()
     {
-        SetupForGameState(GameState.Waiting);
+        SetupForGameState(new GameWaiting());
     }
 
     private void Update()
@@ -101,18 +105,27 @@ public class UIManager : MonoBehaviour
         ScheduleDisappear(winnerAnnouncement.gameObject, winnerAnnouncementDuration);
     }
 
-    public void SetupForGameState(GameState gameState)
+    public void SetupForGameState(GameWaiting waiting)
     {
-        switch (gameState)
+        gameStartButton.gameObject.SetActive(GameManager.Instance.LocalPlayer == GameManager.Instance.Host);
+        roundBoard.gameObject.SetActive(false);
+        roundSplash.gameObject.SetActive(false);
+    }
+
+    public void SetupForGameState(GamePlaying playing)
+    {
+        gameStartButton.gameObject.SetActive(false);
+        roundBoard.text = $"Round {playing.Round} / 4";
+        if (playing.Round == 1)
         {
-            case GameState.Waiting:
-                gameStartButton.gameObject.SetActive(GameManager.Instance.LocalPlayer == GameManager.Instance.Host);
-                break;
-            case GameState.Playing:
-                gameStartButton.gameObject.SetActive(false);
-                gameStartAnnouncemet.gameObject.SetActive(true);
-                ScheduleDisappear(gameStartAnnouncemet.gameObject, gameStartAnnouncementDuration);
-                break;
+            gameStartSplash.gameObject.SetActive(true);
+            ScheduleDisappear(gameStartSplash.gameObject, gameStartSplashDuration);
+        }
+        else
+        {
+            roundSplash.text = $"Round #{playing.Round}";
+            roundSplash.gameObject.SetActive(true);
+            ScheduleDisappear(roundSplash.gameObject, 1.5f);
         }
     }
 

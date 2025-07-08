@@ -58,10 +58,13 @@ public static class PacketHandlers
             PlayerId = player.Id
         });
 
-        await client.SendPacketAsync(new GameWaiting
+        GameWaiting waiting = new() { PlayersInfo = gameManager.PlayersInRoom() };
+        foreach (var p in waiting.PlayersInfo)
         {
-            PlayersInfo = gameManager.PlayersInRoom()
-        });
+            Console.WriteLine($"{p.PlayerId}: {p.MovementData.Position}");
+        }
+
+        await client.SendPacketAsync(waiting);
 
         await gameManager.BroadcastToAll(new PlayerJoinBroadcast { PlayerInfo = player.PlayerInformation });
     }
@@ -180,10 +183,18 @@ public static class PacketHandlers
             Alive = target.Alive
         });
 
-        if (gameManager.GameOver())
+        if (gameManager.RoundOver())
         {
-            Console.WriteLine($"[게임] 게임 종료! 승자: {gameManager.Winner!.Id}");
-            await gameManager.OnGameOver();
+            Console.WriteLine($"[게임] 라운드 종료! 승자: {gameManager.LastManStanding?.Id} ");
+            if (gameManager.GameOver())
+            {
+                Console.WriteLine($"[게임] 게임 종료! 승자: {gameManager.LastManStanding?.Id}");
+                await gameManager.OnGameOver();
+            }
+            else
+            {
+                await gameManager.StartRound(gameManager.Round + 1);
+            }
         }
     }
 }

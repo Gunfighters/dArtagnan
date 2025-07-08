@@ -29,7 +29,7 @@ public class GameManager : MonoBehaviour
         mainCamera = Camera.main;
         for (var i = 0; i < playerObjectPoolSize; i++)
         {
-            var obj = Instantiate(playerPrefab, Field.transform);
+            var obj = Instantiate(playerPrefab);
             obj.SetActive(false);
             playerObjectPool.Add(obj);
         }
@@ -42,7 +42,7 @@ public class GameManager : MonoBehaviour
 
     private void AddPlayer(PlayerInformation info, bool inGame)
     {
-        Debug.Log($"Add Player #{info.PlayerId}");
+        Debug.Log($"Add Player #{info.PlayerId} at {info.MovementData.Position} with direction {info.MovementData.Direction} and speed {info.MovementData.Speed}");
         if (players.ContainsKey(info.PlayerId))
         {
             throw new Exception($"Trying to add player #{info.PlayerId} that already exists");
@@ -59,14 +59,16 @@ public class GameManager : MonoBehaviour
         var directionVec = DirectionHelper.IntToDirection(info.MovementData.Direction);
         var estimatedPosition = info.MovementData.Position + Ping / 2 * directionVec;
         var estimatedRemainingReloadTime = info.RemainingReloadTime - Ping / 2;
+        Debug.Log($"Estimated Position: {estimatedPosition}");
         info.MovementData.Position = estimatedPosition;
         info.RemainingReloadTime = estimatedRemainingReloadTime;
         player.Initialize(info);
         players[info.PlayerId] = player;
+        Debug.Log($"Player #{info.PlayerId} added at {player.Position}");
         
         if (player == LocalPlayer)
         {
-            SetCameraFollow(LocalPlayer);
+            SetCameraFollow(player);
             UIManager.Instance.OnLocalPlayerActivation(player);
         }
         player.ToggleUIOverHead(inGame);
@@ -124,7 +126,8 @@ public class GameManager : MonoBehaviour
         player.SetAlive(updatePlayerAlive.Alive);
         if (!player.Alive && player == LocalPlayer)
         {
-            mainCamera.transform.SetParent(players.Values.FirstOrDefault(p => p.Alive).transform);
+            var anotherPlayer = players.Values.FirstOrDefault(p => p.Alive);
+            SetCameraFollow(anotherPlayer);
         }
     }
 
@@ -144,12 +147,13 @@ public class GameManager : MonoBehaviour
     public void OnGamePlaying(GamePlaying gamePlaying)
     {
         gameState = GameState.Playing;
-        UIManager.Instance.SetupForGameState(GameState.Playing);
+        UIManager.Instance.SetupForGameState(gamePlaying);
         AudioManager.PlayForState(GameState.Playing);
         foreach (var info in gamePlaying.PlayersInfo)
         {
             var p = players[info.PlayerId];
             p.Initialize(info);
+            p.gameObject.SetActive(true);
             p.ToggleUIOverHead(true);
         }
     }
@@ -162,7 +166,7 @@ public class GameManager : MonoBehaviour
         {
             AddPlayer(info, false);
         }
-        UIManager.Instance.SetupForGameState(GameState.Waiting);
+        UIManager.Instance.SetupForGameState(gameWaiting);
         AudioManager.PlayForState(GameState.Waiting);
     }
 
@@ -191,6 +195,7 @@ public class GameManager : MonoBehaviour
 
     public void UpdateVelocity(Vector2 newDirection, bool running)
     {
+        if (!LocalPlayer.Alive) return;
         LocalPlayer.SetDirection(newDirection);
         LocalPlayer.SetRunning(running);
         NetworkManager.Instance.SendPlayerMovementData(LocalPlayer.Position, LocalPlayer.CurrentDirection, running);
