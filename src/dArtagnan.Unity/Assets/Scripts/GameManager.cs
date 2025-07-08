@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using dArtagnan.Shared;
@@ -124,6 +125,11 @@ public class GameManager : MonoBehaviour
     {
         var player = players[updatePlayerAlive.PlayerId];
         player.SetAlive(updatePlayerAlive.Alive);
+        if (!player.Alive)
+        {
+            ScheduleDeactivation(player);
+            player.gameObject.SetActive(false);
+        }
         if (!player.Alive && player == LocalPlayer)
         {
             var anotherPlayer = players.Values.FirstOrDefault(p => p.Alive);
@@ -131,21 +137,34 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void ScheduleDeactivation(Player p)
+    {
+        StartCoroutine(DelayedDeactivate(p));
+    }
+
+    private IEnumerator DelayedDeactivate(Player p)
+    {
+        yield return new WaitForSeconds(1.5f);
+        p.gameObject.SetActive(false);
+    }
+
     public void OnPlayerLeaveBroadcast(PlayerLeaveBroadcast leave)
     {
         var leaving = players[leave.PlayerId];
-        ReleasePlayerObject(leaving.gameObject);
+        ReleasePlayerObject(leaving);
         players.Remove(leave.PlayerId);
     }
 
-    private void ReleasePlayerObject(GameObject obj)
+    private void ReleasePlayerObject(Player p)
     {
-        obj.SetActive(false);
-        playerObjectPool.Add(obj);
+        Debug.Log($"Releasing: {p.ID}");
+        p.gameObject.SetActive(false);
+        playerObjectPool.Add(p.gameObject);
     }
 
     public void OnGamePlaying(GamePlaying gamePlaying)
     {
+        StopAllCoroutines();
         gameState = GameState.Playing;
         UIManager.Instance.SetupForGameState(gamePlaying);
         AudioManager.PlayForState(GameState.Playing);
@@ -156,10 +175,12 @@ public class GameManager : MonoBehaviour
             p.gameObject.SetActive(true);
             p.ToggleUIOverHead(true);
         }
+        SetCameraFollow(LocalPlayer);
     }
 
     public void OnGameWaiting(GameWaiting gameWaiting)
     {
+        StopAllCoroutines();
         gameState = GameState.Waiting;
         RemovePlayerAll();
         foreach (var info in gameWaiting.PlayersInfo)
@@ -222,7 +243,7 @@ public class GameManager : MonoBehaviour
     {
         foreach (var p in players.Values)
         {
-            ReleasePlayerObject(p.gameObject);
+            ReleasePlayerObject(p);
         }
         players.Clear();
     }

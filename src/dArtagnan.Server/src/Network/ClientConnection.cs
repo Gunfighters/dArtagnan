@@ -83,8 +83,6 @@ public class ClientConnection : IDisposable
     {
         try
         {
-            Console.WriteLine($"[클라이언트 {Id}] 패킷 라우팅: {packet.GetType().Name}");
-
             switch (packet)
             {
                 case PlayerJoinRequest joinRequest:
@@ -132,7 +130,6 @@ public class ClientConnection : IDisposable
             while (IsConnected)
             {
                 var packet = await NetworkUtils.ReceivePacketAsync(stream);
-                Console.WriteLine($"[클라이언트 {Id}] 패킷 수신: {packet.GetType().Name}");
                     
                 // 패킷 라우팅 처리
                 await RoutePacket(packet);

@@ -81,21 +81,9 @@ public class Player : MonoBehaviour
         else
         {
             modelManager.Die();
-            ScheduleDeactivation();
         }
     }
     
-    private void ScheduleDeactivation()
-    {
-        StartCoroutine(Deactivate(1.5f));
-    }
-
-    IEnumerator Deactivate(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        gameObject.SetActive(false);
-    }
-
     private void UpdateModel()
     {
         if (!Alive) return;
