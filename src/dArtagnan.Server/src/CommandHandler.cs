@@ -16,6 +16,7 @@ public class CommandHandler(TcpServer tcpServer)
         Console.WriteLine("  status     - 서버 상태 출력");
         Console.WriteLine("  players    - 현재 플레이어 목록 출력 (모든 정보)");
         Console.WriteLine("  player [ID] - 특정 플레이어 정보 출력 (예: player 1)");
+        Console.WriteLine("  kill [ID]  - 특정 플레이어를 죽입니다 (예: kill 1)");
         Console.WriteLine("  quit       - 서버 종료");
         Console.WriteLine();
 
@@ -66,6 +67,17 @@ public class CommandHandler(TcpServer tcpServer)
                 }
                 break;
 
+            case "kill":
+                if (parameters.Length > 0 && int.TryParse(parameters[0], out int targetId))
+                {
+                    await KillPlayer(targetId);
+                }
+                else
+                {
+                    Console.WriteLine("사용법: kill [플레이어ID] (예: kill 1)");
+                }
+                break;
+
             case "quit":
             case "exit":
                 isRunning = false;
@@ -75,9 +87,40 @@ public class CommandHandler(TcpServer tcpServer)
 
             default:
                 Console.WriteLine("알 수 없는 명령어입니다.");
-                Console.WriteLine("사용 가능한 명령어: status, players, player [ID], quit");
+                Console.WriteLine("사용 가능한 명령어: status, players, player [ID], kill [ID], quit");
                 break;
         }
+    }
+
+    /// <summary>
+    /// 특정 플레이어를 죽입니다
+    /// </summary>
+    private async Task KillPlayer(int playerId)
+    {
+        var gameManager = tcpServer.GetGameManager();
+        var player = gameManager.GetPlayerById(playerId);
+
+        if (player == null)
+        {
+            Console.WriteLine($"플레이어 ID {playerId}를 찾을 수 없습니다.");
+            Console.WriteLine("현재 접속 중인 플레이어 ID 목록:");
+            foreach (var p in gameManager.players.Values)
+            {
+                Console.WriteLine($"  - {p.Id}");
+            }
+            return;
+        }
+
+        if (!player.Alive)
+        {
+            Console.WriteLine($"플레이어 {playerId}({player.Nickname})는 이미 사망한 상태입니다.");
+            return;
+        }
+
+        Console.WriteLine($"[관리자] 플레이어 {playerId}({player.Nickname})를 죽입니다...");
+        
+        // PacketHandlers의 HandlePlayerHit 메서드를 직접 사용하여 일관된 로직 적용
+        await PacketHandlers.HandlePlayerHit(player, gameManager);
     }
 
     /// <summary>
