@@ -1,3 +1,4 @@
+using System.Collections;
 using dArtagnan.Shared;
 using TMPro;
 using UnityEngine;
@@ -9,10 +10,13 @@ public class UIManager : MonoBehaviour
     public IMinimapManager MinimapManager;
     public Button gameStartButton;
     public TextMeshProUGUI winnerAnnouncement;
+    public TextMeshProUGUI gameStartAnnouncemet;
     private MovementJoystick _movementJoystick;
     private ShootJoystickController _shootJoystickController;
     private Vector2 _lastDirection;
     private bool _lastRunning;
+    public float gameStartAnnouncementDuration;
+    public float winnerAnnouncementDuration;
 
     private void Awake()
     {
@@ -23,6 +27,7 @@ public class UIManager : MonoBehaviour
         _shootJoystickController.gameObject.SetActive(false);
         gameStartButton.gameObject.SetActive(false);
         winnerAnnouncement.gameObject.SetActive(false);
+        gameStartAnnouncemet.gameObject.SetActive(false);
     }
 
     private void Start()
@@ -93,6 +98,7 @@ public class UIManager : MonoBehaviour
     {
         winnerAnnouncement.text = $"{winner.Nickname} HAS WON!";
         winnerAnnouncement.gameObject.SetActive(true);
+        ScheduleDisappear(winnerAnnouncement.gameObject, winnerAnnouncementDuration);
     }
 
     public void SetupForGameState(GameState gameState)
@@ -101,10 +107,11 @@ public class UIManager : MonoBehaviour
         {
             case GameState.Waiting:
                 gameStartButton.gameObject.SetActive(GameManager.Instance.LocalPlayer == GameManager.Instance.Host);
-                winnerAnnouncement.gameObject.SetActive(false);
                 break;
             case GameState.Playing:
                 gameStartButton.gameObject.SetActive(false);
+                gameStartAnnouncemet.gameObject.SetActive(true);
+                ScheduleDisappear(gameStartAnnouncemet.gameObject, gameStartAnnouncementDuration);
                 break;
         }
     }
@@ -112,5 +119,16 @@ public class UIManager : MonoBehaviour
     public Vector2 ShootJoystickVector()
     {
         return _shootJoystickController.Direction;
+    }
+
+    private void ScheduleDisappear(GameObject obj, float delay)
+    {
+        StartCoroutine(Delay(obj, delay));
+    }
+
+    IEnumerator Delay(GameObject obj, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        obj.SetActive(false);
     }
 }
