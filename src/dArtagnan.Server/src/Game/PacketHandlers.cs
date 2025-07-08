@@ -168,7 +168,7 @@ public static class PacketHandlers
         return random.NextDouble() * 100 < accuracy;
     }
 
-    private static async Task HandlePlayerHit(Player target, GameManager gameManager)
+    public static async Task HandlePlayerHit(Player target, GameManager gameManager)
     {
         target.UpdateAlive(false);
             
