@@ -119,6 +119,11 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &2756231 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8013321572193116889, guid: 1f553443fae34470e81011865b543b41, type: 3}
+  m_PrefabInstance: {fileID: 8702237260324315412}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &610994524
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -269,6 +274,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1396769493189902549, guid: fca824542389e4c888883be68552e932, type: 3}
+      propertyPath: Field
+      value: 
+      objectReference: {fileID: 2756231}
+    - target: {fileID: 1396769493189902549, guid: fca824542389e4c888883be68552e932, type: 3}
       propertyPath: Ground
       value: 
       objectReference: {fileID: 4317787248618578897}
@@ -351,7 +360,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2311439678568529283, guid: ff5ee8e8e4740458c8feec81b9218c2d, type: 3}
       propertyPath: host
-      value: 54.180.85.77
+      value: localhost
       objectReference: {fileID: 0}
     - target: {fileID: 2311439678568529283, guid: ff5ee8e8e4740458c8feec81b9218c2d, type: 3}
       propertyPath: PingText

@@ -17,7 +17,7 @@ public class GameManager : MonoBehaviour
     private int localPlayerId;
     [CanBeNull] public Player LocalPlayer => players.GetValueOrDefault(localPlayerId, null);
     private Camera mainCamera;
-    public GameObject Ground;
+    public GameObject Field;
     public AudioManager AudioManager;
     private int hostId;
     [CanBeNull] public Player Host => players.GetValueOrDefault(hostId, null);
@@ -29,7 +29,7 @@ public class GameManager : MonoBehaviour
         mainCamera = Camera.main;
         for (var i = 0; i < playerObjectPoolSize; i++)
         {
-            var obj = Instantiate(playerPrefab, Ground.transform);
+            var obj = Instantiate(playerPrefab, Field.transform);
             obj.SetActive(false);
             playerObjectPool.Add(obj);
         }
@@ -52,7 +52,7 @@ public class GameManager : MonoBehaviour
         if (obj is null)
         {
             Debug.LogWarning($"No more object in the pool. Instantiating...");
-            obj = Instantiate(playerPrefab, Ground.transform);
+            obj = Instantiate(playerPrefab, Field.transform);
         }
         playerObjectPool.Remove(obj);
         var player = obj.GetComponent<Player>();

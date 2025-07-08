@@ -180,7 +180,7 @@ public class Player : MonoBehaviour
 
     private void ImmediatelyMoveTo(Vector2 position)
     {
-        transform.position = position;
+        rb.position = position;
         lastUpdatedPosition = position;
         LastServerUpdateTimestamp = Time.time;
         isCorrecting = false;
