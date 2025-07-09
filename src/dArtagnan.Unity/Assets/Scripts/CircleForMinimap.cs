@@ -5,6 +5,7 @@ public class CircleForMinimap : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Player player;
     private Vector3 originalScale;
+    public Sprite triangleSprite;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -12,6 +13,12 @@ public class CircleForMinimap : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         player = GetComponentInParent<Player>();
         originalScale = transform.localScale;
+
+        int localPlayerLayer = LayerMask.NameToLayer("LocalPlayer");
+        if (player.gameObject.layer == localPlayerLayer)
+        {
+            spriteRenderer.sprite = triangleSprite;
+        }
     }
 
     // Update is called once per frame
