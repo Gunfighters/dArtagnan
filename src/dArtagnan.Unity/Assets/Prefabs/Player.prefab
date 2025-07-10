@@ -936,6 +936,7 @@ MonoBehaviour:
   TargetPlayer: {fileID: 0}
   targetHighlightCircle: {fileID: 7484546077695317218}
   HitMissText: {fileID: 8542910316852592879}
+  BalanceText: {fileID: 7726846922617288446}
   HitTextColor: {r: 1, g: 0.39741528, b: 0, a: 1}
   MissTextColor: {r: 0.69467115, g: 0, b: 1, a: 1}
   hitMissShowingDuration: 0.3
