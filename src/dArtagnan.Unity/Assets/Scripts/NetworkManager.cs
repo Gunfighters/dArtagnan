@@ -16,7 +16,6 @@ public class NetworkManager : MonoBehaviour
     public static NetworkManager Instance { get; private set; }
     public string host;
     public int port;
-    public TextMeshProUGUI PingText;
 
     async void Awake()
     {
@@ -62,7 +61,6 @@ public class NetworkManager : MonoBehaviour
             Ping p = new(host);
             yield return new WaitUntil(() => p.isDone);
             GameManager.Instance.SetPing(p);
-            PingText.text = $"Ping: {p.time}ms";
             yield return new WaitForSeconds(0.5f);
         }
     }

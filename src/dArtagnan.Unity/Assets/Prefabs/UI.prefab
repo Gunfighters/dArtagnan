@@ -52,6 +52,7 @@ MonoBehaviour:
   roundBoard: {fileID: 7258472189014667869}
   roundSplash: {fileID: 3172237077731080073}
   spectatingText: {fileID: 9063030759444493303}
+  pingText: {fileID: 1612104829759874685}
   movementJoystick: {fileID: 2134283804817094579}
   ShootJoystickController: {fileID: 3782624832977995585}
   gameStartSplashDuration: 1.5

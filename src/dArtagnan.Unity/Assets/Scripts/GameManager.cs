@@ -207,6 +207,7 @@ public class GameManager : MonoBehaviour
     public void SetPing(Ping p)
     {
         Ping = p.time / 1000f;
+        UIManager.Instance.SetPing(Ping);
     }
 
     public void StartGame()

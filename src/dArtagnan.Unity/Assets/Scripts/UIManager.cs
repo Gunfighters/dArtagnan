@@ -14,6 +14,7 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI roundBoard;
     public TextMeshProUGUI roundSplash;
     public TextMeshProUGUI spectatingText;
+    public TextMeshProUGUI pingText;
     public MovementJoystick movementJoystick;
     public ShootJoystickController ShootJoystickController;
     private Vector2 _lastDirection;
@@ -140,5 +141,10 @@ public class UIManager : MonoBehaviour
     public void ToggleSpectate(bool toggle)
     {
         spectatingText.gameObject.SetActive(toggle);
+    }
+
+    public void SetPing(float p)
+    {
+        pingText.text = $"{p * 1000}ms";
     }
 }
