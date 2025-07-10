@@ -109,6 +109,10 @@ public class ClientConnection : IDisposable
                 case StartGame start:
                     await PacketHandlers.HandleStartGame(start, this, gameManager);
                     break;
+                
+                case PingPacket ping:
+                    await PacketHandlers.HandlePing(ping, this, gameManager);
+                    break;
                     
                 default:
                     Console.WriteLine($"[클라이언트 {Id}] 처리되지 않은 패킷 타입: {packet.GetType().Name}");

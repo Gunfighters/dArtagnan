@@ -28,6 +28,8 @@ namespace dArtagnan.Shared
     //[Union(16, typeof(GamePlaying))]
     [Union(17, typeof(GameWaiting))]
     [Union(19, typeof(PlayerBalanceUpdate))]
+    [Union(20, typeof(PingPacket))]
+    [Union(21, typeof(PongPacket))]
     public interface IPacket
     {
     }
@@ -286,5 +288,16 @@ namespace dArtagnan.Shared
         public const int MAX_ACCURACY = 100;
         public const float DEFAULT_RANGE = 600f;
         public const float SPAWN_RADIUS = 100.0f;
+    }
+
+    [MessagePackObject]
+    public struct PingPacket : IPacket
+    {
+    }
+
+    [MessagePackObject]
+    public struct PongPacket : IPacket
+    {
+        
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Channels;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using dArtagnan.Shared;
 using TMPro;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 using Vector2 = System.Numerics.Vector2;
 
 public class NetworkManager : MonoBehaviour
@@ -20,6 +22,8 @@ public class NetworkManager : MonoBehaviour
     public int port;
     private List<float> PingPool = new();
     private float PingAvg => PingPool.Average();
+    private Stopwatch pingStopwatch = new();
+    private float lastPingUpdate;
 
     async void Awake()
     {
@@ -39,6 +43,17 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
+    private async void Update()
+    {
+        lastPingUpdate += Time.deltaTime;
+        if (lastPingUpdate >= 5f)
+        {
+            await SendPacket(new PingPacket());
+            pingStopwatch.Restart();
+            lastPingUpdate = 0;
+        }
+    }
+
     async Task ConnectToServer()
     {
         Debug.Log($"Connecting to: {host}:{port}");
@@ -55,19 +70,6 @@ public class NetworkManager : MonoBehaviour
         _stream = _client.GetStream();
         _ = StartSendingLoop();
         _ = StartListeningLoop();
-        StartCoroutine(StartGetPingLoop());
-    }
-
-    IEnumerator StartGetPingLoop()
-    {
-        while (true)
-        {
-            Ping p = new(host);
-            yield return new WaitUntil(() => p.isDone);
-            PingPool.Add(p.time);
-            if (PingPool.Count >= 20) PingPool.RemoveAt(0);
-            GameManager.Instance.SetPing(PingAvg / 1000f);
-        }
     }
 
     void Enqueue(IPacket payload)
@@ -149,6 +151,10 @@ public class NetworkManager : MonoBehaviour
     {
         switch (packet)
         {
+            case PongPacket pong:
+                var elapsed = pingStopwatch.ElapsedMilliseconds / 1000f;
+                GameManager.Instance.SetPing(elapsed);
+                break;
             case YouAre are:
                 GameManager.Instance.OnYouAre(are);
                 break;

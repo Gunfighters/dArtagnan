@@ -5,6 +5,11 @@ namespace dArtagnan.Server;
 public static class PacketHandlers
 {
 
+    public static async Task HandlePing(PingPacket ping, ClientConnection client, GameManager gameManager)
+    {
+        await client.SendPacketAsync(new PongPacket());
+    }
+
     public static async Task HandleStartGame(StartGame startGame, ClientConnection client, GameManager gameManager)
     {
         var starter = gameManager.Players[client.Id];
