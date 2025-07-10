@@ -39,17 +39,17 @@ public class Player : MonoBehaviour
     private bool initializing;
     private Vector2 initialPosition;
 
-    // ID에 따른 플레이어 색깔
+    // ID에 따른 플레이어 색깔 (어두운 배경에서 잘 보이도록 조정)
     private static readonly Color[] PlayerColors = new Color[]
     {
-        Color.red,              // ID 1
-        Color.blue,             // ID 2  
-        Color.green,            // ID 3
-        Color.yellow,           // ID 4
-        Color.magenta,          // ID 5
-        Color.cyan,             // ID 6
-        new Color(1f, 0.5f, 0f), // 주황색 - ID 7
-        new Color(0.5f, 0f, 1f)  // 보라색 - ID 8
+        new Color(1f, 0.3f, 0.3f),   // 밝은 빨강 - ID 1
+        new Color(0.4f, 0.7f, 1f),   // 밝은 파랑 - ID 2  
+        new Color(0.4f, 1f, 0.4f),   // 밝은 초록 - ID 3
+        new Color(1f, 0.8f, 0.2f),   // 밝은 주황 - ID 4 (노란색 대체)
+        new Color(1f, 0.4f, 1f),     // 밝은 자홍 - ID 5
+        new Color(0.4f, 1f, 1f),     // 밝은 시안 - ID 6
+        new Color(1f, 0.6f, 0.2f),   // 따뜻한 주황 - ID 7
+        new Color(0.8f, 0.4f, 1f)    // 밝은 보라 - ID 8
     };
 
     public Color MyColor => ID >= 1 && ID <= 8 ? PlayerColors[ID - 1] : Color.white;

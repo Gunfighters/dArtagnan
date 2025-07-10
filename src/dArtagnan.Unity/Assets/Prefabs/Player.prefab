@@ -1018,7 +1018,7 @@ Transform:
   m_GameObject: {fileID: 6731340162117100921}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1091,6 +1091,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19f9cfc705d1ae8449f8534de469c5d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  triangleSprite: {fileID: -44843326717208288, guid: b23e7bd2faaff3749bdd6b4aefa264d3, type: 3}
 --- !u!1 &7003883383978397209
 GameObject:
   m_ObjectHideFlags: 0
