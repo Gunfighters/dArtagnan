@@ -107,7 +107,7 @@ public class GameManager : MonoBehaviour
         var direction = DirectionHelperClient.IntToDirection(payload.MovementData.Direction);
         var serverPosition = VecConverter.ToUnityVec(payload.MovementData.Position);
         var position = EstimatePositionByPing(serverPosition, direction, payload.MovementData.Speed);
-        targetPlayer.UpdateMovementDataForReckoning(direction, position, payload.MovementData.Speed, payload.RunningMotion);
+        targetPlayer.UpdateMovementDataForReckoning(direction, position, payload.MovementData.Speed);
     }
 
     public void OnPlayerShootingBroadcast(PlayerShootingBroadcast shooting)
@@ -220,12 +220,12 @@ public class GameManager : MonoBehaviour
         updated.SetBalance(playerBalanceUpdate.Balance);
     }
 
-    public void UpdateVelocity(Vector2 newDirection, bool running, bool colliding)
+    public void UpdateVelocity(Vector2 newDirection, bool running)
     {
         if (!LocalPlayer.Alive) return;
         LocalPlayer.SetDirection(newDirection);
-        LocalPlayer.SetSpeed(running ? Constants.RUNNING_SPEED : Constants.WALKING_SPEED);
-        NetworkManager.Instance.SendPlayerMovementData(LocalPlayer.Position, LocalPlayer.CurrentDirection, running, colliding);
+        LocalPlayer.SetRunning(running);
+        NetworkManager.Instance.SendPlayerMovementData(LocalPlayer.Position, LocalPlayer.CurrentDirection, running);
     }
 
     public void ShootTarget()

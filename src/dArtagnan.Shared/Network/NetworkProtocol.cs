@@ -79,7 +79,6 @@ namespace dArtagnan.Shared
         [Key(0)] public int Direction;
         [Key(1)] public Vector2 Position;
         [Key(2)] public bool Running;
-        [Key(3)] public bool Colliding;
     }
 
     [MessagePackObject]
@@ -87,7 +86,6 @@ namespace dArtagnan.Shared
     {
         [Key(0)] public int PlayerId;
         [Key(1)] public MovementData MovementData;
-        [Key(2)] public bool RunningMotion;
     }
 
     [MessagePackObject]

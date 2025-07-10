@@ -38,7 +38,7 @@ public class UIManager : MonoBehaviour
         if (_lastDirection == newDirection && _lastRunning == newRunning) return;
         _lastDirection = newDirection;
         _lastRunning = newRunning;
-        GameManager.Instance.UpdateVelocity(newDirection, newRunning, false);
+        GameManager.Instance.UpdateVelocity(newDirection, newRunning);
     }
     
     private Vector2 GetInputDirection()
