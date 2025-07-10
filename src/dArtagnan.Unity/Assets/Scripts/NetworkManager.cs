@@ -179,6 +179,9 @@ public class NetworkManager : MonoBehaviour
             case GamePlaying gamePlaying:
                 GameManager.Instance.OnGamePlaying(gamePlaying);
                 break;
+            case PlayerBalanceUpdate playerBalanceUpdate:
+                GameManager.Instance.OnPlayerBalanceUpdate(playerBalanceUpdate);
+                break;
             default:
                 Debug.LogWarning($"Unhandled packet: {packet}");
                 break;

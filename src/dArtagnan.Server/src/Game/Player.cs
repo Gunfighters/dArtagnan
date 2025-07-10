@@ -15,16 +15,23 @@ public class Player(int id, string nickname, Vector2 position)
     public bool Alive = true;
     public Player? Target;
     public MovementData MovementData = new() { Direction = 0, Position = position, Speed = Constants.WALKING_SPEED };
+    public int Balance = 200;
+    public bool Bankrupt => Balance <= 0;
 
-    public void Reset()
+    public void ResetForInitialGame()
+    {
+        TotalReloadTime = Constants.DEFAULT_RELOAD_TIME;
+        Range = Constants.DEFAULT_RANGE;
+        Balance = 200;
+    }
+
+    public void ResetForNextRound()
     {
         Alive = true;
         Target = null;
         Accuracy = GenerateRandomAccuracy();
         MovementData = new MovementData { Direction = 0, Position = Vector2.Zero, Speed = Constants.WALKING_SPEED };
-        TotalReloadTime = Constants.DEFAULT_RELOAD_TIME;
         RemainingReloadTime = TotalReloadTime / 2;
-        Range = Constants.DEFAULT_RANGE;;
     }
 
     public PlayerInformation PlayerInformation => new()
@@ -38,6 +45,7 @@ public class Player(int id, string nickname, Vector2 position)
         Targeting = Target?.Id ?? -1,
         Range = Range,
         MovementData = MovementData,
+        Balance = Balance,
     };
 
     public static int GenerateRandomAccuracy()
@@ -50,10 +58,13 @@ public class Player(int id, string nickname, Vector2 position)
         return isRunning ? Constants.RUNNING_SPEED : Constants.WALKING_SPEED;
     }
 
-    public static Vector2 GetSpawnPosition(int playerId)
+    /// <summary>
+    /// index에 따른 원형 배치 위치.
+    /// </summary>
+    public static Vector2 GetSpawnPosition(int index)
     {
-        // 간단한 원형 배치로 스폰 위치 결정
-        var angle = playerId * 45 * (float)(Math.PI / 180); // 45도씩 회전
+        const int magicNumber = 53; // 소수여야 함
+        var angle = index * magicNumber * (float)(Math.PI / 180);
         return new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * Constants.SPAWN_RADIUS;
     }
 
@@ -97,5 +108,12 @@ public class Player(int id, string nickname, Vector2 position)
     public void UpdateRange(float range)
     {
         Range = range;
+    }
+
+    public int Withdraw(int amount)
+    {
+        var actual = Math.Min(amount, Balance);
+        Balance -= actual;
+        return actual;
     }
 }

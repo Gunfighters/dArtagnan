@@ -65,7 +65,7 @@ public class TcpServer
     private int GetAvailableClientId()
     {
         int id = 1;
-        while (gameManager.clients.ContainsKey(id))
+        while (gameManager.Clients.ContainsKey(id))
         {
             id++;
         }
@@ -93,7 +93,7 @@ public class TcpServer
         return Task.CompletedTask;
     }
 
-    public int GetClientCount() => gameManager.clients.Count;
+    public int GetClientCount() => gameManager.Clients.Count;
 
     public GameManager GetGameManager() => gameManager;
 }

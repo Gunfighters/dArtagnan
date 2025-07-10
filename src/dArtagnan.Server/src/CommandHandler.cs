@@ -104,7 +104,7 @@ public class CommandHandler(TcpServer tcpServer)
         {
             Console.WriteLine($"플레이어 ID {playerId}를 찾을 수 없습니다.");
             Console.WriteLine("현재 접속 중인 플레이어 ID 목록:");
-            foreach (var p in gameManager.players.Values)
+            foreach (var p in gameManager.Players.Values)
             {
                 Console.WriteLine($"  - {p.Id}");
             }
@@ -120,7 +120,7 @@ public class CommandHandler(TcpServer tcpServer)
         Console.WriteLine($"[관리자] 플레이어 {playerId}({player.Nickname})를 죽입니다...");
         
         // PacketHandlers의 HandlePlayerHit 메서드를 직접 사용하여 일관된 로직 적용
-        await PacketHandlers.HandlePlayerHit(player, gameManager);
+        await PacketHandlers.KillPlayer(player, gameManager);
     }
 
     /// <summary>
@@ -133,10 +133,10 @@ public class CommandHandler(TcpServer tcpServer)
         Console.WriteLine($"=== 서버 상태 ===");
         Console.WriteLine($"게임 상태: {gameManager.CurrentGameState}");
         Console.WriteLine($"접속 중인 클라이언트: {tcpServer.GetClientCount()}명");
-        Console.WriteLine($"게임 중인 플레이어: {gameManager.players.Count}명");
+        Console.WriteLine($"게임 중인 플레이어: {gameManager.Players.Count}명");
         Console.WriteLine($"생존자: {gameManager.GetAlivePlayerCount()}명");
 
-        foreach (var player in gameManager.players.Values)
+        foreach (var player in gameManager.Players.Values)
         {
             string status = player.Alive ? "생존" : "사망";
             Console.WriteLine($"  플레이어 {player.Id}: {player.Nickname} ({status})");
@@ -154,17 +154,17 @@ public class CommandHandler(TcpServer tcpServer)
             
         Console.WriteLine($"=== 현재 플레이어 목록 ===");
             
-        if (gameManager.players.Count == 0)
+        if (gameManager.Players.Count == 0)
         {
             Console.WriteLine("접속 중인 플레이어가 없습니다.");
             Console.WriteLine("=======================");
             return;
         }
 
-        Console.WriteLine($"총 {gameManager.players.Count}명 접속 중");
+        Console.WriteLine($"총 {gameManager.Players.Count}명 접속 중");
         Console.WriteLine();
 
-        foreach (var player in gameManager.players.Values)
+        foreach (var player in gameManager.Players.Values)
         {
             PrintPlayerDetails(player, true);
             Console.WriteLine();
@@ -185,7 +185,7 @@ public class CommandHandler(TcpServer tcpServer)
         {
             Console.WriteLine($"플레이어 ID {playerId}를 찾을 수 없습니다.");
             Console.WriteLine("현재 접속 중인 플레이어 ID 목록:");
-            foreach (var p in gameManager.players.Values)
+            foreach (var p in gameManager.Players.Values)
             {
                 Console.WriteLine($"  - {p.Id}");
             }

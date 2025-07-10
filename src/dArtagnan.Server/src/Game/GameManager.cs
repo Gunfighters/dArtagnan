@@ -9,18 +9,19 @@ namespace dArtagnan.Server;
 /// </summary>
 public class GameManager
 {
-    public readonly ConcurrentDictionary<int, Player> players = new();
-    public readonly ConcurrentDictionary<int, ClientConnection> clients = new(); // 클라이언트 연결도 여기서 관리
+    public readonly ConcurrentDictionary<int, Player> Players = new();
+    public readonly ConcurrentDictionary<int, ClientConnection> Clients = new(); // 클라이언트 연결도 여기서 관리
     public Player? Host;
     public GameState CurrentGameState { get; private set; } = GameState.Waiting;
-    public Player? LastManStanding => players.Values.SingleOrDefault(p => p.Alive);
+    public Player? LastManStanding => Players.Values.SingleOrDefault(p => p.Alive);
     public int Round = 0;
-    public const int MAX_ROUND = 4;
+    public List<Player> Survivors => Players.Values.Where(p => p.Alive).ToList();
+    public int MANDATORY_BET = 30;
     
     public void AddClient(ClientConnection client)
     {
-        clients.TryAdd(client.Id, client);
-        Console.WriteLine($"클라이언트 {client.Id} 추가됨 (현재 접속자: {clients.Count})");
+        Clients.TryAdd(client.Id, client);
+        Console.WriteLine($"클라이언트 {client.Id} 추가됨 (현재 접속자: {Clients.Count})");
     }
 
     private async Task SetHost(Player? player)
@@ -36,7 +37,7 @@ public class GameManager
     public async Task<Player> AddPlayer(int clientId, string nickname)
     {
         var player = new Player(clientId, nickname, Vector2.Zero);
-        players.TryAdd(player.Id, player);
+        Players.TryAdd(player.Id, player);
         if (Host == null)
         {
             await SetHost(player);
@@ -60,21 +61,21 @@ public class GameManager
         }
 
         // 플레이어와 클라이언트 제거
-        players.TryRemove(clientId, out _);
-        clients.TryRemove(clientId, out _);
+        Players.TryRemove(clientId, out _);
+        Clients.TryRemove(clientId, out _);
             
         if (player != null)
         {
-            Console.WriteLine($"[게임] 플레이어 {player.Id} 제거 완료 (현재 인원: {players.Count}, 접속자: {clients.Count})");
+            Console.WriteLine($"[게임] 플레이어 {player.Id} 제거 완료 (현재 인원: {Players.Count}, 접속자: {Clients.Count})");
         }
 
         if (player == Host)
         {
-            var nextHost = players.Values.FirstOrDefault(p => p.Alive);
+            var nextHost = Players.Values.FirstOrDefault(p => p.Alive);
             await SetHost(nextHost);
         }
 
-        if (players.IsEmpty && CurrentGameState == GameState.Playing)
+        if (Players.IsEmpty && CurrentGameState == GameState.Playing)
         {
             await SetGameState(GameState.Waiting);
         }
@@ -82,13 +83,13 @@ public class GameManager
 
     public Player? GetPlayerById(int clientId)
     {
-        players.TryGetValue(clientId, out var player);
+        Players.TryGetValue(clientId, out var player);
         return player;
     }
 
     public async Task BroadcastToAll(IPacket packet)
     {
-        var tasks = clients.Values
+        var tasks = Clients.Values
             .Where(client => client.IsConnected)
             .Select(client => client.SendPacketAsync(packet)).ToList();
 
@@ -100,7 +101,7 @@ public class GameManager
 
     public async Task BroadcastToAllExcept(IPacket packet, int excludeClientId)
     {
-        var tasks = clients.Values
+        var tasks = Clients.Values
             .Where(client => client.Id != excludeClientId && client.IsConnected)
             .Select(client => client.SendPacketAsync(packet));
 
@@ -112,36 +113,44 @@ public class GameManager
 
     public List<PlayerInformation> PlayersInRoom()
     {
-        return players.Values.Select(player => player.PlayerInformation).ToList();
+        return Players.Values.Select(player => player.PlayerInformation).ToList();
     }
 
     public int GetAlivePlayerCount()
     {
-        return players.Values.Count(p => p.Alive);
+        return Players.Values.Count(p => p.Alive);
     }
 
     public bool RoundOver()
     {
-        return players.Values.Count(p => p.Alive) <= 1;
+        return Players.Values.Count(p => p.Alive) <= 1;
     }
 
     public bool GameOver()
     {
-        return RoundOver() && Round >= MAX_ROUND;
+        return RoundOver() && Players.Values.Count(p => !p.Bankrupt) <= 1;
     }
 
-    private void ResetRespawn()
+    public void ResetRespawnAll(bool includeBankrupts)
     {
-        foreach (var player in players.Values)
+        var pool = includeBankrupts ? Players.Values : Players.Values.Where(p => !p.Bankrupt).ToList();
+        var size = pool.Count;
+        for (var index = 0; index < size; index++)
         {
-            player.Reset();
-            player.UpdatePosition(Player.GetSpawnPosition(player.Id));
+            var player = pool.ElementAt(index);
+            player.ResetForNextRound();
+            player.UpdatePosition(Player.GetSpawnPosition(index));
         }
     }
 
     public async Task StartGame()
     {
-        Console.WriteLine($"[게임] 게임 시작! (참가자: {players.Count}명)");
+        Console.WriteLine($"[게임] 게임 시작! (참가자: {Players.Count}명)");
+        foreach (var p in Players.Values)
+        {
+            p.ResetForInitialGame();
+        }
+        ResetRespawnAll(true);
         await StartRound(1);
     }
 
@@ -161,6 +170,30 @@ public class GameManager
         }
     }
 
+    public async Task ProcessRoundOver()
+    {
+        await AnnounceWinner();
+        await Task.Delay(2500);
+        TakeMandatoryBetAll();
+        ResetRespawnAll(false);
+        if (GameOver())
+        {
+            await BackToWaiting();
+        }
+        else
+        {
+            await StartRound(Round + 1);
+        }
+    }
+
+    private void TakeMandatoryBetAll()
+    {
+        foreach (var p in Players.Values)
+        {
+            p.Withdraw(MANDATORY_BET);
+        }
+    }
+
     public bool IsGamePlaying()
     {
         return CurrentGameState == GameState.Playing;
@@ -168,22 +201,23 @@ public class GameManager
 
     public float GetPingById(int id)
     {
-        return clients[id].Ping;
+        return Clients[id].Ping;
     }
 
-    public async Task StartRound(int newRound)
+    private async Task StartRound(int newRound)
     {
         Round = newRound;
-        ResetRespawn();
         await SetGameState(GameState.Playing);
     }
 
-    public async Task OnGameOver()
+    private async Task BackToWaiting()
     {
-        await BroadcastToAll(new Winner { PlayerId = LastManStanding!.Id });
-        await Task.Delay(2500); // 2.5초 쉼
-        ResetRespawn();
         Round = 0;
         await SetGameState(GameState.Waiting);
+    }
+
+    private async Task AnnounceWinner()
+    {
+        await BroadcastToAll(new Winner { PlayerId = LastManStanding?.Id ?? -1 });
     }
 }

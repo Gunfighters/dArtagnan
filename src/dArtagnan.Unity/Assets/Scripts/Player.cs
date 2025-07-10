@@ -11,6 +11,7 @@ public class Player : MonoBehaviour
     public TextMeshProUGUI nicknameText;
     public float Range { get; private set; }
     public int Accuracy { get; private set; }
+    public int Balance { get; private set; }
     public Vector2 CurrentDirection { get; private set; }
     public bool Alive { get; private set; }
     public float RemainingReloadTime { get; private set; }
@@ -24,6 +25,7 @@ public class Player : MonoBehaviour
     [CanBeNull] public Player TargetPlayer;
     public SpriteRenderer targetHighlightCircle;
     public TextMeshProUGUI HitMissText;
+    public TextMeshProUGUI BalanceText;
     [CanBeNull] private IEnumerator HitMissFader;
     public Color HitTextColor;
     public Color MissTextColor;
@@ -136,6 +138,13 @@ public class Player : MonoBehaviour
         accuracyText.text = $"{Accuracy}%";
     }
 
+    public void SetBalance(int newBalance)
+    {
+        var gain = newBalance > Balance;
+        Balance = newBalance;
+        BalanceText.text = $"${Balance}";
+    }
+
     public void UpdateRemainingReloadTime(float newRemainingReloadTime)
     {
         RemainingReloadTime = Mathf.Max(0, newRemainingReloadTime);
@@ -210,6 +219,7 @@ public class Player : MonoBehaviour
         modelManager.ResetModel();
         ID = info.PlayerId;
         SetNickname(info.Nickname);
+        SetBalance(info.Balance);
         SetAlive(info.Alive);
         SetAccuracy(info.Accuracy);
         Speed = info.MovementData.Speed;

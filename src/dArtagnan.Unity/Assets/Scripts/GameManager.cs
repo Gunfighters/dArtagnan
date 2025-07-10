@@ -214,6 +214,12 @@ public class GameManager : MonoBehaviour
         NetworkManager.Instance.SendStartGame();
     }
 
+    public void OnPlayerBalanceUpdate(PlayerBalanceUpdate playerBalanceUpdate)
+    {
+        var updated = players[playerBalanceUpdate.PlayerId];
+        updated.SetBalance(playerBalanceUpdate.Balance);
+    }
+
     public void UpdateVelocity(Vector2 newDirection, bool running)
     {
         if (!LocalPlayer.Alive) return;

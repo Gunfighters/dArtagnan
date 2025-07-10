@@ -28,6 +28,7 @@ namespace dArtagnan.Shared
     //[Union(16, typeof(GamePlaying))]
     [Union(17, typeof(GameWaiting))]
     [Union(18, typeof(NewRound))]
+    [Union(19, typeof(PlayerBalanceUpdate))]
     public interface IPacket
     {
     }
@@ -55,6 +56,7 @@ namespace dArtagnan.Shared
         [Key(6)] public int Targeting; // -1 if targeting none.
         [Key(7)] public float Range;
         [Key(8)] public MovementData MovementData;
+        [Key(9)] public int Balance;
     }
 
     [MessagePackObject]
@@ -160,13 +162,20 @@ namespace dArtagnan.Shared
     [MessagePackObject]
     public struct Winner : IPacket
     {
-        [Key(0)] public int PlayerId;
+        [Key(0)] public int PlayerId; // 승자가 없으면 -1.
     }
 
     [MessagePackObject]
     public struct NewRound : IPacket
     {
         [Key(0)] public int Round;
+    }
+
+    [MessagePackObject]
+    public struct PlayerBalanceUpdate : IPacket
+    {
+        [Key(0)] public int PlayerId;
+        [Key(1)] public int Balance;
     }
 
     public class DirectionHelper
@@ -197,6 +206,6 @@ namespace dArtagnan.Shared
         public const int MIN_ACCURACY = 1;
         public const int MAX_ACCURACY = 100;
         public const float DEFAULT_RANGE = 600f;
-        public const float SPAWN_RADIUS = 40.0f;
+        public const float SPAWN_RADIUS = 100.0f;
     }
 }

@@ -94,7 +94,7 @@ public class GameLoop(TcpServer server, GameManager gameManager)
     /// </summary>
     private void UpdatePlayerPositions(float deltaTime)
     {
-        foreach (var player in gameManager.players.Values)
+        foreach (var player in gameManager.Players.Values)
         {
             if (!player.Alive) continue;
                 
@@ -121,7 +121,7 @@ public class GameLoop(TcpServer server, GameManager gameManager)
     /// </summary>
     private void UpdateReloadTimes(float deltaTime)
     {
-        foreach (var player in gameManager.players.Values)
+        foreach (var player in gameManager.Players.Values)
         {
             if (!player.Alive) continue;
 

@@ -7,7 +7,7 @@ public static class PacketHandlers
 
     public static async Task HandleStartGame(StartGame startGame, ClientConnection client, GameManager gameManager)
     {
-        var starter = gameManager.players[client.Id];
+        var starter = gameManager.Players[client.Id];
         if (starter != gameManager.Host)
         {
             Console.WriteLine($"[게임] 경고: 방장이 아닌 플레이어가 게임 시작 시도 (Player #{starter.Id})");
@@ -19,9 +19,9 @@ public static class PacketHandlers
             Console.WriteLine($"[게임] 경고: 이미 게임이 진행중.");
             return;
         }
-        foreach (var p in gameManager.players.Values)
+        foreach (var p in gameManager.Players.Values)
         {
-            p.Reset();
+            p.ResetForNextRound();
         }
 
         await gameManager.StartGame();
@@ -51,7 +51,7 @@ public static class PacketHandlers
             throw new Exception($"제거되지 않은 플레이어: {client.Id}");
         }
 
-        Console.WriteLine($"[게임] 플레이어 {player.Id} 참가 완료 (현재 인원: {gameManager.players.Count})");
+        Console.WriteLine($"[게임] 플레이어 {player.Id} 참가 완료 (현재 인원: {gameManager.Players.Count})");
 
         await client.SendPacketAsync(new YouAre
         {
@@ -142,7 +142,12 @@ public static class PacketHandlers
             // 게임이 진행 중일 때만 실제 피해 처리
             if (gameManager.IsGamePlaying())
             {
-                await HandlePlayerHit(target, gameManager);
+                shooter.Balance += target.Withdraw(Math.Max(target.Balance / 10, 50));
+                await gameManager.BroadcastToAll(new PlayerBalanceUpdate
+                    { Balance = shooter.Balance, PlayerId = shooter.Id });
+                await gameManager.BroadcastToAll(new PlayerBalanceUpdate
+                    { Balance = target.Balance, PlayerId = shooter.Id });
+                await KillPlayer(target, gameManager);
             }
             else
             {
@@ -171,30 +176,18 @@ public static class PacketHandlers
         return random.NextDouble() * 100 < accuracy;
     }
 
-    public static async Task HandlePlayerHit(Player target, GameManager gameManager)
+    public static async Task KillPlayer(Player player, GameManager gameManager)
     {
-        target.UpdateAlive(false);
-            
-        Console.WriteLine($"[전투] 플레이어 {target.Id} 사망");
-
+        Console.WriteLine($"[전투] 플레이어 {player.Id} 사망");
+        player.UpdateAlive(false);
         await gameManager.BroadcastToAll(new UpdatePlayerAlive
         {
-            PlayerId = target.Id,
-            Alive = target.Alive
+            PlayerId = player.Id,
+            Alive = player.Alive
         });
-
         if (gameManager.RoundOver())
         {
-            Console.WriteLine($"[게임] 라운드 종료! 승자: {gameManager.LastManStanding?.Id} ");
-            if (gameManager.GameOver())
-            {
-                Console.WriteLine($"[게임] 게임 종료! 승자: {gameManager.LastManStanding?.Id}");
-                await gameManager.OnGameOver();
-            }
-            else
-            {
-                await gameManager.StartRound(gameManager.Round + 1);
-            }
+            await gameManager.ProcessRoundOver();
         }
     }
 }
