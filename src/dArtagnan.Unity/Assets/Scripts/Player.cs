@@ -40,16 +40,15 @@ public class Player : MonoBehaviour
     private Vector2 initialPosition;
 
     // ID에 따른 플레이어 색깔 (어두운 배경에서 잘 보이도록 조정)
-    private static readonly Color[] PlayerColors = new Color[]
-    {
-        new Color(1f, 0.3f, 0.3f),   // 밝은 빨강 - ID 1
-        new Color(0.4f, 0.7f, 1f),   // 밝은 파랑 - ID 2  
-        new Color(0.4f, 1f, 0.4f),   // 밝은 초록 - ID 3
-        new Color(1f, 0.8f, 0.2f),   // 밝은 주황 - ID 4 (노란색 대체)
-        new Color(1f, 0.4f, 1f),     // 밝은 자홍 - ID 5
-        new Color(0.4f, 1f, 1f),     // 밝은 시안 - ID 6
-        new Color(1f, 0.6f, 0.2f),   // 따뜻한 주황 - ID 7
-        new Color(0.8f, 0.4f, 1f)    // 밝은 보라 - ID 8
+    private static readonly Color[] PlayerColors = {
+        new(1f, 0.3f, 0.3f),   // 밝은 빨강 - ID 1
+        new(0.4f, 0.7f, 1f),   // 밝은 파랑 - ID 2  
+        new(0.4f, 1f, 0.4f),   // 밝은 초록 - ID 3
+        new(1f, 0.8f, 0.2f),   // 밝은 주황 - ID 4 (노란색 대체)
+        new(1f, 0.4f, 1f),     // 밝은 자홍 - ID 5
+        new(0.4f, 1f, 1f),     // 밝은 시안 - ID 6
+        new(1f, 0.6f, 0.2f),   // 따뜻한 주황 - ID 7
+        new(0.8f, 0.4f, 1f)    // 밝은 보라 - ID 8
     };
 
     public Color MyColor => ID >= 1 && ID <= 8 ? PlayerColors[ID - 1] : Color.white;
@@ -75,11 +74,12 @@ public class Player : MonoBehaviour
         else rb.MovePosition(NextPosition());
     }
 
-    public void ToggleUIOverHead(bool show)
+    public void ToggleUIInGame(bool show)
     {
         accuracyText.gameObject.SetActive(show);
         reloadingTimePie.gameObject.SetActive(show);
         HitMissText.gameObject.SetActive(show);
+        BalanceText.gameObject.SetActive(show);
     }
 
     public void SetNickname(string newNickname)

@@ -73,7 +73,7 @@ public class GameManager : MonoBehaviour
             SetCameraFollow(player);
             UIManager.Instance.OnLocalPlayerActivation(player);
         }
-        player.ToggleUIOverHead(inGame);
+        player.ToggleUIInGame(inGame);
         player.gameObject.layer = LayerMask.NameToLayer(player == LocalPlayer ? "LocalPlayer" : "RemotePlayer");
         player.gameObject.SetActive(true);
     }
@@ -173,7 +173,7 @@ public class GameManager : MonoBehaviour
             var p = players[info.PlayerId];
             p.Initialize(info);
             p.gameObject.SetActive(true);
-            p.ToggleUIOverHead(true);
+            p.ToggleUIInGame(true);
         }
         SetCameraFollow(LocalPlayer);
     }
