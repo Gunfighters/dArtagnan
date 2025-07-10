@@ -46,6 +46,9 @@ public class NetworkManager : MonoBehaviour
         try
         {
             await _client.ConnectAsync(host, port);
+            
+            // TCP NoDelay 설정 (Nagle's algorithm 비활성화)
+            _client.NoDelay = true;
         }
         catch (Exception e)
         {

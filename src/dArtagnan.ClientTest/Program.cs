@@ -158,6 +158,10 @@ internal class Program
 
             client = new TcpClient();
             await client.ConnectAsync(host, port);
+            
+            // TCP NoDelay 설정 (Nagle's algorithm 비활성화)
+            client.NoDelay = true;
+            
             stream = client.GetStream();
             isConnected = true;
 

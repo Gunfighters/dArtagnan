@@ -24,6 +24,10 @@ public class ClientConnection : IDisposable
     {
         Id = id;
         tcpClient = client;
+        
+        // TCP NoDelay 설정 (Nagle's algorithm 비활성화)
+        tcpClient.NoDelay = true;
+        
         IpAddress = client.Client.RemoteEndPoint!.ToString()!.Split(":")[0];
         stream = client.GetStream();
         isConnected = true;
