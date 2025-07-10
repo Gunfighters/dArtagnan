@@ -128,7 +128,7 @@ public class GameManager
 
     public bool GameOver()
     {
-        return RoundOver() && Players.Values.Count(p => !p.Bankrupt) <= 1;
+        return Players.Values.Count(p => !p.Bankrupt) <= 1;
     }
 
     public void ResetRespawnAll(bool includeBankrupts)
@@ -172,12 +172,11 @@ public class GameManager
 
     public async Task ProcessRoundOver()
     {
-        await AnnounceWinner();
         await Task.Delay(2500);
         TakeMandatoryBetAll();
-        ResetRespawnAll(false);
         if (GameOver())
         {
+            await AnnounceWinner();
             await BackToWaiting();
         }
         else
@@ -206,12 +205,18 @@ public class GameManager
 
     private async Task StartRound(int newRound)
     {
+        ResetRespawnAll(false);
         Round = newRound;
         await SetGameState(GameState.Playing);
     }
 
     private async Task BackToWaiting()
     {
+        foreach (var p in Players.Values)
+        {
+            p.ResetForInitialGame();
+        }
+        ResetRespawnAll(true);
         Round = 0;
         await SetGameState(GameState.Waiting);
     }
