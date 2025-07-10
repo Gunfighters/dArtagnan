@@ -8,13 +8,13 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    public NetworkManager networkManager;
     public static GameManager Instance { get; private set; }
     public int playerObjectPoolSize;
     public List<GameObject> playerObjectPool = new();
     public GameObject playerPrefab;
     private readonly Dictionary<int, Player> players = new();
     public List<Player> Survivors => players.Values.Where(p => p.Alive).ToList();
-    public float Ping { get; private set; }
     private int localPlayerId;
     [CanBeNull] public Player LocalPlayer => players.GetValueOrDefault(localPlayerId, null);
     private Camera mainCamera;
@@ -59,8 +59,8 @@ public class GameManager : MonoBehaviour
         playerObjectPool.Remove(obj);
         var player = obj.GetComponent<Player>();
         var directionVec = DirectionHelper.IntToDirection(info.MovementData.Direction);
-        var estimatedPosition = info.MovementData.Position + Ping / 2 * directionVec;
-        var estimatedRemainingReloadTime = info.RemainingReloadTime - Ping / 2;
+        var estimatedPosition = directionVec;
+        var estimatedRemainingReloadTime = info.RemainingReloadTime;
         Debug.Log($"Estimated Position: {estimatedPosition}");
         info.MovementData.Position = estimatedPosition;
         info.RemainingReloadTime = estimatedRemainingReloadTime;
@@ -106,8 +106,7 @@ public class GameManager : MonoBehaviour
         if (targetPlayer == LocalPlayer) return;
         var direction = DirectionHelperClient.IntToDirection(payload.MovementData.Direction);
         var serverPosition = VecConverter.ToUnityVec(payload.MovementData.Position);
-        var position = EstimatePositionByPing(serverPosition, direction, payload.MovementData.Speed);
-        targetPlayer.UpdateMovementDataForReckoning(direction, position, payload.MovementData.Speed);
+        targetPlayer.UpdateMovementDataForReckoning(direction, serverPosition, payload.MovementData.Speed);
     }
 
     public void OnPlayerShootingBroadcast(PlayerShootingBroadcast shooting)
@@ -115,7 +114,7 @@ public class GameManager : MonoBehaviour
         var shooter = players[shooting.ShooterId];
         var target = players[shooting.TargetId];
         shooter.Fire(target);
-        shooter.UpdateRemainingReloadTime(shooter.TotalReloadTime - Ping / 2);
+        shooter.UpdateRemainingReloadTime(shooter.TotalReloadTime);
         if (gameState == GameState.Playing)
         {
             shooter.ShowHitOrMiss(shooting.Hit);
@@ -204,12 +203,6 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.AnnounceWinner(players[winner.PlayerId]);
     }
 
-    public void SetPing(float p)
-    {
-        Ping = p;
-        UIManager.Instance.SetPing(p);
-    }
-
     public void StartGame()
     {
         NetworkManager.Instance.SendStartGame();
@@ -233,11 +226,6 @@ public class GameManager : MonoBehaviour
     {
         if (!LocalPlayer?.TargetPlayer) return;
         NetworkManager.Instance.SendPlayerShooting(LocalPlayer!.TargetPlayer!.ID);
-    }
-    
-    private Vector2 EstimatePositionByPing(Vector2 position, Vector2 direction, float speed)
-    {
-        return position + Ping / 2 * direction * speed;
     }
 
     private void SetCameraFollow(Player p)

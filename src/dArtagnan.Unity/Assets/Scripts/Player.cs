@@ -71,7 +71,7 @@ public class Player : MonoBehaviour
             rb.position = initialPosition;
             initializing = false;
         }
-        else if (!Alive)
+        else if (Alive)
         {
             var nextPosition = NextPosition();
             rb.MovePosition(nextPosition);

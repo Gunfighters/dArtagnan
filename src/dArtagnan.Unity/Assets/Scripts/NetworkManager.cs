@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using dArtagnan.Shared;
-using TMPro;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
-using Vector2 = System.Numerics.Vector2;
 
 public class NetworkManager : MonoBehaviour
 {
@@ -18,12 +11,10 @@ public class NetworkManager : MonoBehaviour
     private TcpClient _client;
     private NetworkStream _stream;
     public static NetworkManager Instance { get; private set; }
-    public string host;
+    public string awsHost;
+    public string customHost;
+    public bool useCustomHost;
     public int port;
-    private List<float> PingPool = new();
-    private float PingAvg => PingPool.Average();
-    private Stopwatch pingStopwatch = new();
-    private float lastPingUpdate;
 
     async void Awake()
     {
@@ -43,19 +34,10 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
-    private async void Update()
-    {
-        lastPingUpdate += Time.deltaTime;
-        if (lastPingUpdate >= 5f)
-        {
-            await SendPacket(new PingPacket());
-            pingStopwatch.Restart();
-            lastPingUpdate = 0;
-        }
-    }
 
     async Task ConnectToServer()
     {
+        var host = useCustomHost ? customHost : awsHost;
         Debug.Log($"Connecting to: {host}:{port}");
         _client = new TcpClient();
         try
@@ -129,7 +111,7 @@ public class NetworkManager : MonoBehaviour
         Enqueue(new PlayerMovementDataFromClient
         {
             Direction = DirectionHelperClient.DirectionToInt(direction),
-            Position = new Vector2(position.x, position.y),
+            Position = new (position.x, position.y),
             Running = running
         });
     }
@@ -154,10 +136,6 @@ public class NetworkManager : MonoBehaviour
     {
         switch (packet)
         {
-            case PongPacket pong:
-                var elapsed = pingStopwatch.ElapsedMilliseconds / 1000f;
-                GameManager.Instance.SetPing(elapsed);
-                break;
             case YouAre are:
                 GameManager.Instance.OnYouAre(are);
                 break;

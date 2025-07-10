@@ -17,8 +17,6 @@ public class ClientConnection : IDisposable
 
     public int Id { get; }
     public string IpAddress { get; }
-    public List<float> PingPool = new();
-    public float PingAvg => PingPool.Average();
 
     public ClientConnection(int id, TcpClient client, GameManager gameManager)
     {
@@ -38,7 +36,6 @@ public class ClientConnection : IDisposable
 
         // 패킷 수신 루프 시작
         _ = Task.Run(ReceiveLoop);
-        _ = Task.Run(UpdatePingLoop);
     }
 
     public bool IsConnected => isConnected && tcpClient.Connected;
@@ -113,10 +110,6 @@ public class ClientConnection : IDisposable
                 case StartGame start:
                     await PacketHandlers.HandleStartGame(start, this, gameManager);
                     break;
-                
-                case PingPacket ping:
-                    await PacketHandlers.HandlePing(ping, this, gameManager);
-                    break;
                     
                 default:
                     Console.WriteLine($"[클라이언트 {Id}] 처리되지 않은 패킷 타입: {packet.GetType().Name}");
@@ -153,27 +146,6 @@ public class ClientConnection : IDisposable
             // 비정상 종료 시 GameManager에서 정리
             await gameManager.RemoveClient(Id);
             await DisconnectAsync();
-        }
-    }
-
-    private async Task UpdatePingLoop()
-    {
-        using Ping p = new();
-        while (true)
-        {
-            try
-            {
-                var result = await p.SendPingAsync(IpAddress);
-                if (result.Status == IPStatus.Success)
-                {
-                    PingPool.Add(result.RoundtripTime / 1000f);
-                    if (PingPool.Count >= 20) PingPool.RemoveAt(0);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[핑] {Id}번 플레이어({IpAddress}) 핑 측정 실패:  {ex.Message}");
-            }
         }
     }
 }

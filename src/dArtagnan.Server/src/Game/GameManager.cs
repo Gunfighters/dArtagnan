@@ -198,11 +198,6 @@ public class GameManager
         return CurrentGameState == GameState.Playing;
     }
 
-    public float GetPingById(int id)
-    {
-        return Clients[id].PingAvg;
-    }
-
     private async Task StartRound(int newRound)
     {
         ResetRespawnAll(false);
