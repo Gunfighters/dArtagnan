@@ -146,7 +146,7 @@ public static class PacketHandlers
                 await gameManager.BroadcastToAll(new PlayerBalanceUpdate
                     { Balance = shooter.Balance, PlayerId = shooter.Id });
                 await gameManager.BroadcastToAll(new PlayerBalanceUpdate
-                    { Balance = target.Balance, PlayerId = shooter.Id });
+                    { Balance = target.Balance, PlayerId = target.Id });
                 await KillPlayer(target, gameManager);
             }
             else
