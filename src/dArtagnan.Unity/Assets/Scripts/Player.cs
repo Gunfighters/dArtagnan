@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using dArtagnan.Shared;
 using JetBrains.Annotations;
@@ -17,7 +18,7 @@ public class Player : MonoBehaviour
     public float RemainingReloadTime { get; private set; }
     public float TotalReloadTime { get; private set; }
     public float Speed { get; private set; }
-    public bool Running => Speed > 40;
+    public bool Running;
     public Rigidbody2D rb;
     public ModelManager modelManager;
     public TextMeshProUGUI accuracyText;
@@ -38,6 +39,7 @@ public class Player : MonoBehaviour
     public Vector2 Position => rb.position;
     private bool initializing;
     private Vector2 initialPosition;
+    private float CollisionUpdateInterval;
 
     // ID에 따른 플레이어 색깔 (어두운 배경에서 잘 보이도록 조정)
     private static readonly Color[] PlayerColors = {
@@ -107,7 +109,29 @@ public class Player : MonoBehaviour
             modelManager.Die();
         }
     }
-    
+
+    private void OnCollisionEnter2D(Collision2D other)
+    {
+        if (GameManager.Instance.LocalPlayer != this) return;
+        GameManager.Instance.UpdateVelocity(CurrentDirection, Running, true);
+    }
+
+    private void OnCollisionStay2D(Collision2D other)
+    {
+        if (GameManager.Instance.LocalPlayer != this) return;
+        CollisionUpdateInterval += Time.deltaTime;
+        if (CollisionUpdateInterval >= 0.1f)
+        {
+            GameManager.Instance.UpdateVelocity(CurrentDirection, Running, true);
+        }
+    }
+
+    private void OnCollisionExit2D(Collision2D other)
+    {
+        if (GameManager.Instance.LocalPlayer != this) return;
+        GameManager.Instance.UpdateVelocity(CurrentDirection, Running, false);
+    }
+
     private void UpdateModel()
     {
         if (!Alive) return;
@@ -188,17 +212,18 @@ public class Player : MonoBehaviour
         modelManager.SetDirection(direction);
     }
 
-    public void SetRunning(bool running)
+    public void SetSpeed(float speed)
     {
-        Speed = running ? Constants.RUNNING_SPEED : Constants.WALKING_SPEED;
+        Speed = speed;
     }
-    public void UpdateMovementDataForReckoning(Vector2 direction, Vector2 position, float speed)
+    public void UpdateMovementDataForReckoning(Vector2 direction, Vector2 position, float speed, bool runningMotion)
     {
         SetDirection(direction.normalized);
         Speed = speed;
         lastUpdatedPosition = position;
         LastServerUpdateTimestamp = Time.time;
         needToCorrect = true;
+        Running = runningMotion;
     }
 
     private Vector2 NextPosition()

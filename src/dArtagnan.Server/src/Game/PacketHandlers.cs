@@ -86,7 +86,7 @@ public static class PacketHandlers
         if (player == null) return;
         var directionIndex = movementData.Direction;
         var directionVector = DirectionHelper.IntToDirection(directionIndex);
-        var newSpeed = Player.GetSpeedByRunning(movementData.Running);
+        var newSpeed = movementData.Colliding ? 0 : Player.GetSpeedByRunning(movementData.Running);
         var newPosition = movementData.Position + newSpeed * client.Ping / 2 * directionVector;
         player.UpdateMovementData(newPosition, directionIndex, newSpeed);
         Console.WriteLine($"[이동] 플레이어 {player.Id} (핑: {client.Ping}) 방향: {directionVector}, 위치: ({player.MovementData.Position}) 속도: ({player.MovementData.Speed:F2})");
@@ -95,7 +95,8 @@ public static class PacketHandlers
         await gameManager.BroadcastToAll(new PlayerMovementDataBroadcast
         {
             PlayerId = player.Id,
-            MovementData = player.MovementData
+            MovementData = player.MovementData,
+            RunningMotion = movementData.Running
         });
     }
 

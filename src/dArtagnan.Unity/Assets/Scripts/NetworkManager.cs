@@ -116,13 +116,14 @@ public class NetworkManager : MonoBehaviour
         Enqueue(new PlayerJoinRequest());
     }
 
-    public void SendPlayerMovementData(Vector3 position, Vector3 direction, bool running)
+    public void SendPlayerMovementData(Vector3 position, Vector3 direction, bool running, bool colliding)
     {
         Enqueue(new PlayerMovementDataFromClient
         {
             Direction = DirectionHelperClient.DirectionToInt(direction),
             Position = new Vector2(position.x, position.y),
-            Running = running
+            Running = running,
+            Colliding = colliding
         });
     }
 
