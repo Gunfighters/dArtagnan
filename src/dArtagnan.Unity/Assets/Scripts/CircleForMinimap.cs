@@ -29,10 +29,10 @@ public class CircleForMinimap : MonoBehaviour
             // 플레이어 색깔 적용
             spriteRenderer.color = player.MyColor;
             
-            // accuracy에 비례해서 원의 크기 조절 (50%~150% 범위)
+            // accuracy에 비례해서 원의 크기 조절
             float t = Mathf.Clamp01(player.Accuracy / 100f);
             float scaleMultiplier = Mathf.Lerp(0.5f, 1.5f, t);
-            transform.localScale = originalScale * scaleMultiplier;
+            transform.localScale = originalScale * scaleMultiplier * 1.5f;
         }
     }
 }
