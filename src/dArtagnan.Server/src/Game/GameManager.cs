@@ -200,7 +200,7 @@ public class GameManager
 
     public float GetPingById(int id)
     {
-        return Clients[id].Ping;
+        return Clients[id].PingAvg;
     }
 
     private async Task StartRound(int newRound)

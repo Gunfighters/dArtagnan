@@ -87,9 +87,9 @@ public static class PacketHandlers
         var directionIndex = movementData.Direction;
         var directionVector = DirectionHelper.IntToDirection(directionIndex);
         var newSpeed = Player.GetSpeedByRunning(movementData.Running);
-        var newPosition = movementData.Position + newSpeed * client.Ping / 2 * directionVector;
+        var newPosition = movementData.Position + newSpeed * client.PingAvg / 2 * directionVector;
         player.UpdateMovementData(newPosition, directionIndex, newSpeed);
-        Console.WriteLine($"[이동] 플레이어 {player.Id} (핑: {client.Ping}) 방향: {directionVector}, 위치: ({player.MovementData.Position}) 속도: ({player.MovementData.Speed:F2})");
+        Console.WriteLine($"[이동] 플레이어 {player.Id} (핑: {client.PingAvg}) 방향: {directionVector}, 위치: ({player.MovementData.Position}) 속도: ({player.MovementData.Speed:F2})");
 
         // 방향 변경을 모든 플레이어에게 브로드캐스트
         await gameManager.BroadcastToAll(new PlayerMovementDataBroadcast

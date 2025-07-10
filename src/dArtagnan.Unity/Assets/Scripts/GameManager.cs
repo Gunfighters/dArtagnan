@@ -204,10 +204,10 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.AnnounceWinner(players[winner.PlayerId]);
     }
 
-    public void SetPing(Ping p)
+    public void SetPing(float p)
     {
-        Ping = p.time / 1000f;
-        UIManager.Instance.SetPing(Ping);
+        Ping = p;
+        UIManager.Instance.SetPing(p);
     }
 
     public void StartGame()

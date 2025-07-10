@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -16,6 +18,8 @@ public class NetworkManager : MonoBehaviour
     public static NetworkManager Instance { get; private set; }
     public string host;
     public int port;
+    private List<float> PingPool = new();
+    private float PingAvg => PingPool.Average();
 
     async void Awake()
     {
@@ -60,8 +64,9 @@ public class NetworkManager : MonoBehaviour
         {
             Ping p = new(host);
             yield return new WaitUntil(() => p.isDone);
-            GameManager.Instance.SetPing(p);
-            yield return new WaitForSeconds(0.5f);
+            PingPool.Add(p.time);
+            if (PingPool.Count >= 20) PingPool.RemoveAt(0);
+            GameManager.Instance.SetPing(PingAvg / 1000f);
         }
     }
 

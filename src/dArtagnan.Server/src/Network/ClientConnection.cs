@@ -17,7 +17,8 @@ public class ClientConnection : IDisposable
 
     public int Id { get; }
     public string IpAddress { get; }
-    public float Ping { get; private set; }
+    public List<float> PingPool = new();
+    public float PingAvg => PingPool.Average();
 
     public ClientConnection(int id, TcpClient client, GameManager gameManager)
     {
@@ -157,15 +158,14 @@ public class ClientConnection : IDisposable
                 var result = await p.SendPingAsync(IpAddress);
                 if (result.Status == IPStatus.Success)
                 {
-                    Ping = result.RoundtripTime / 1000f;
+                    PingPool.Add(result.RoundtripTime / 1000f);
+                    if (PingPool.Count >= 20) PingPool.RemoveAt(0);
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[핑] {Id}번 플레이어({IpAddress}) 핑 측정 실패:  {ex.Message}");
             }
-
-            await Task.Delay(500);
         }
     }
 }
