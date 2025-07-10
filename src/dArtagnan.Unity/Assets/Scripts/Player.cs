@@ -71,7 +71,11 @@ public class Player : MonoBehaviour
             rb.position = initialPosition;
             initializing = false;
         }
-        else rb.MovePosition(NextPosition());
+        else
+        {
+            var nextPosition = NextPosition();
+            rb.MovePosition(nextPosition);
+        }
     }
 
     public void ToggleUIInGame(bool show)
@@ -204,8 +208,8 @@ public class Player : MonoBehaviour
         var predictedPosition = lastUpdatedPosition + Speed * elapsed * CurrentDirection;
         var diff = Vector2.Distance(rb.position, predictedPosition);
         needToCorrect = diff > 0.01f;
-        if (diff > PositionCorrectionThreshold) return predictedPosition;
-        return Vector2.MoveTowards(rb.position, predictedPosition, Speed * Time.fixedDeltaTime * lerpSpeed);
+        // if (diff > PositionCorrectionThreshold) return predictedPosition;
+        return Vector2.MoveTowards(rb.position, predictedPosition, Mathf.Max(Speed, Constants.RUNNING_SPEED) * Time.fixedDeltaTime * lerpSpeed);
     }
 
     public void HighlightAsTarget(bool show)
