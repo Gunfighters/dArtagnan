@@ -143,6 +143,14 @@ public class Player : MonoBehaviour
         var gain = newBalance > Balance;
         Balance = newBalance;
         BalanceText.text = $"${Balance}";
+        BalanceText.color = gain ? Color.green : Color.red;
+        StartCoroutine(ResetBalanceTextColor());
+    }
+
+    private IEnumerator ResetBalanceTextColor()
+    {
+        yield return new WaitForSeconds(0.3f);
+        BalanceText.color = Color.white;
     }
 
     public void UpdateRemainingReloadTime(float newRemainingReloadTime)
