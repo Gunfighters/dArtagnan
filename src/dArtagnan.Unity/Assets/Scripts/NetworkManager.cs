@@ -1,7 +1,5 @@
-﻿using System;
-using System.Net.Sockets;
-using System.Threading.Channels;
-using System.Threading.Tasks;
+﻿using System.Net.Sockets;
+using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using UnityEngine;
 
@@ -16,99 +14,62 @@ public class NetworkManager : MonoBehaviour
     public bool useCustomHost;
     public int port;
 
-    async void Awake()
+    private async UniTaskVoid Awake()
     {
         Instance = this;
-        _channel = Channel.CreateUnbounded<IPacket>(new UnboundedChannelOptions
+        _channel = Channel.CreateSingleConsumerUnbounded<IPacket>();
+    }
+
+    private async UniTaskVoid Start()
+    {
+        await ConnectToServer();
+        StartListeningLoop().Forget();
+        SendJoinRequest();
+    }
+
+    private void Update()
+    {
+        if (_channel.Reader.TryRead(out var packet))
         {
-            SingleReader = true,
-            SingleWriter = true
-        });
-        try
-        {
-            await ConnectToServer();
-        }
-        catch (Exception e)
-        {
-            Debug.LogError(e);
+            HandlePacket(packet);
         }
     }
 
-
-    async Task ConnectToServer()
+    private async UniTask ConnectToServer()
     {
         var host = useCustomHost ? customHost : awsHost;
         Debug.Log($"Connecting to: {host}:{port}");
         _client = new TcpClient();
-        try
-        {
-            await _client.ConnectAsync(host, port);
-            
-            // TCP NoDelay 설정 (Nagle's algorithm 비활성화)
-            _client.NoDelay = true;
-        }
-        catch (Exception e)
-        {
-            Debug.LogError(e);
-            return;
-        }
+        await _client.ConnectAsync(host, port).AsUniTask();
+
+        // TCP NoDelay 설정 (Nagle's algorithm 비활성화)
+        _client.NoDelay = true;
+        Debug.Log($"Connected to: {host}:{port}");
         _stream = _client.GetStream();
-        _ = StartSendingLoop();
-        _ = StartListeningLoop();
     }
 
-    void Enqueue(IPacket payload)
+    private void Send(IPacket payload)
     {
-        _channel.Writer.TryWrite(payload);
+        NetworkUtils.SendPacketSync(_stream, payload);
     }
 
-    async Task StartSendingLoop()
-    {
-        while (await _channel.Reader.WaitToReadAsync())
-        {
-            while (_channel.Reader.TryRead(out var packet))
-            {
-                try
-                {
-                    await SendPacket(packet);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                }
-            }
-        }
-    }
-
-    async Task StartListeningLoop()
+    private async UniTask StartListeningLoop()
     {
         while (true)
         {
-            try
-            {
-                var received = await NetworkUtils.ReceivePacketAsync(_stream);
-                HandlePacket(received);
-            }
-            catch (Exception e)
-            {
-                Debug.LogError(e);
-            }
+            var received = await NetworkUtils.ReceivePacketAsync(_stream);
+            _channel.Writer.TryWrite(received);
         }
-    }
-
-    async Task SendPacket(IPacket packet)
-    {
-        await NetworkUtils.SendPacketAsync(_stream, packet);
     }
 
     public void SendJoinRequest()
     {
-        Enqueue(new PlayerJoinRequest());
+        Send(new PlayerJoinRequest());
     }
 
     public void SendPlayerMovementData(Vector3 position, Vector3 direction, bool running)
     {
-        Enqueue(new PlayerMovementDataFromClient
+        Send(new PlayerMovementDataFromClient
         {
             Direction = DirectionHelperClient.DirectionToInt(direction),
             Position = new (position.x, position.y),
@@ -116,25 +77,23 @@ public class NetworkManager : MonoBehaviour
         });
     }
 
-
     public void SendPlayerShooting(int target)
     {
-        Enqueue(new PlayerShootingFromClient { TargetId = target });
+        Send(new PlayerShootingFromClient { TargetId = target });
     }
 
     public void SendPlayerNewTarget(int target)
     {
-        Enqueue(new PlayerIsTargetingFromClient { TargetId = target });
+        Send(new PlayerIsTargetingFromClient { TargetId = target });
     }
 
     public void SendStartGame()
     {
-        Enqueue(new StartGame());
+        Send(new StartGame());
     }
 
-    void HandlePacket(IPacket packet)
+    private void HandlePacket(IPacket packet)
     {
-        Debug.Log($"Received packet: {packet.GetType()}");
         switch (packet)
         {
             case YouAre are:

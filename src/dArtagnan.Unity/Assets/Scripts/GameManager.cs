@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using dArtagnan.Shared;
 using JetBrains.Annotations;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    public NetworkManager networkManager;
     public static GameManager Instance { get; private set; }
     public int playerObjectPoolSize;
     public List<GameObject> playerObjectPool = new();
@@ -35,11 +35,6 @@ public class GameManager : MonoBehaviour
             obj.SetActive(false);
             playerObjectPool.Add(obj);
         }
-    }
-
-    private void Start()
-    {
-        NetworkManager.Instance.SendJoinRequest();
     }
 
     private void AddPlayer(PlayerInformation info, bool inGame)

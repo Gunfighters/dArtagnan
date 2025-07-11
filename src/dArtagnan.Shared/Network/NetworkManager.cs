@@ -18,6 +18,16 @@ namespace dArtagnan.Shared
             await stream.FlushAsync();
         }
 
+        public static void SendPacketSync(NetworkStream stream, IPacket packet)
+        {
+            var data = MessagePackSerializer.Serialize(packet);
+            var size = BitConverter.GetBytes(data.Length);
+
+            stream.Write(size, 0, 4);
+            stream.Write(data, 0, data.Length);
+            stream.Flush();
+        }
+
         // 패킷 수신
         public static async Task<IPacket> ReceivePacketAsync(NetworkStream stream)
         {
