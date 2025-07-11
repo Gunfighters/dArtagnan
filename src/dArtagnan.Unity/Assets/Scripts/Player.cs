@@ -214,7 +214,7 @@ public class Player : MonoBehaviour
         needToCorrect = diff > 0.01f;
         if (diff > PositionCorrectionThreshold) return predictedPosition;
         var correctionSpeed = Mathf.Max(Speed, Constants.RUNNING_SPEED) * lerpSpeed;
-        if (diff > correctionSpeed)
+        if (diff > correctionSpeed / 2)
         {
             SetFaceDirection(predictedPosition - rb.position);
             SetRunning(true);

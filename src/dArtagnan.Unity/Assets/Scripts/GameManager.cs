@@ -24,6 +24,7 @@ public class GameManager : MonoBehaviour
     [CanBeNull] public Player Host => players.GetValueOrDefault(hostId, null);
     private GameState gameState;
     private Player cameraSetPlayer;
+    private float lastMovementDataUpdateTimestmap;
 
     private void Awake()
     {
@@ -34,6 +35,15 @@ public class GameManager : MonoBehaviour
             var obj = Instantiate(playerPrefab);
             obj.SetActive(false);
             playerObjectPool.Add(obj);
+        }
+    }
+
+    private void Update()
+    {
+        if (Time.time - lastMovementDataUpdateTimestmap >= 1f && LocalPlayer?.Alive is true)
+        {
+            NetworkManager.Instance.SendPlayerMovementData(LocalPlayer.Position, LocalPlayer.CurrentDirection, LocalPlayer.Running);
+            lastMovementDataUpdateTimestmap = Time.time;
         }
     }
 
@@ -223,6 +233,7 @@ public class GameManager : MonoBehaviour
         LocalPlayer.SetDirection(newDirection);
         LocalPlayer.SetRunning(running);
         NetworkManager.Instance.SendPlayerMovementData(LocalPlayer.Position, LocalPlayer.CurrentDirection, running);
+        lastMovementDataUpdateTimestmap = Time.time;
     }
 
     public void ShootTarget()
