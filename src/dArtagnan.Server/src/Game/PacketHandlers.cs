@@ -100,7 +100,8 @@ public static class PacketHandlers
         await gameManager.BroadcastToAll(new PlayerMovementDataBroadcast
         {
             PlayerId = player.Id,
-            MovementData = player.MovementData
+            MovementData = player.MovementData,
+            Running = movementData.Running,
         });
     }
 

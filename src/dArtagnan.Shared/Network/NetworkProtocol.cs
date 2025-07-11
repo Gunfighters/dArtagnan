@@ -114,6 +114,7 @@ namespace dArtagnan.Shared
     {
         [Key(0)] public int PlayerId;
         [Key(1)] public MovementData MovementData;
+        [Key(2)] public bool Running;
     }
 
     /// <summary>

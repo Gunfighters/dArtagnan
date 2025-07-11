@@ -17,7 +17,7 @@ public class Player : MonoBehaviour
     public float RemainingReloadTime { get; private set; }
     public float TotalReloadTime { get; private set; }
     public float Speed { get; private set; }
-    public bool Running => Speed > 40;
+    public bool Running;
     public Rigidbody2D rb;
     public ModelManager modelManager;
     public TextMeshProUGUI accuracyText;
@@ -38,6 +38,8 @@ public class Player : MonoBehaviour
     public Vector2 Position => rb.position;
     private bool initializing;
     private Vector2 initialPosition;
+    private Vector2 faceDirection;
+    private bool moving;
 
     // ID에 따른 플레이어 색깔 (어두운 배경에서 잘 보이도록 조정)
     private static readonly Color[] PlayerColors = {
@@ -74,6 +76,7 @@ public class Player : MonoBehaviour
         else if (Alive)
         {
             var nextPosition = NextPosition();
+            moving = nextPosition != rb.position;
             rb.MovePosition(nextPosition);
         }
     }
@@ -111,7 +114,8 @@ public class Player : MonoBehaviour
     private void UpdateModel()
     {
         if (!Alive) return;
-        if (CurrentDirection == Vector2.zero)
+        SetFaceDirection(faceDirection);
+        if (!moving)
         {
             modelManager.Idle();
         }
@@ -185,11 +189,17 @@ public class Player : MonoBehaviour
     public void SetDirection(Vector2 direction)
     {
         CurrentDirection = direction;
+        SetFaceDirection(direction);
+    }
+
+    public void SetFaceDirection(Vector2 direction)
+    {
         modelManager.SetDirection(direction);
     }
 
     public void SetRunning(bool running)
     {
+        Running = running;
         Speed = running ? Constants.RUNNING_SPEED : Constants.WALKING_SPEED;
     }
     public void UpdateMovementDataForReckoning(Vector2 direction, Vector2 position, float speed)
@@ -208,8 +218,14 @@ public class Player : MonoBehaviour
         var predictedPosition = lastUpdatedPosition + Speed * elapsed * CurrentDirection;
         var diff = Vector2.Distance(rb.position, predictedPosition);
         needToCorrect = diff > 0.01f;
-        // if (diff > PositionCorrectionThreshold) return predictedPosition;
-        return Vector2.MoveTowards(rb.position, predictedPosition, Mathf.Max(Speed, Constants.RUNNING_SPEED) * Time.fixedDeltaTime * lerpSpeed);
+        if (diff > PositionCorrectionThreshold) return predictedPosition;
+        var correctionSpeed = Mathf.Max(Speed, Constants.RUNNING_SPEED) * lerpSpeed;
+        if (diff > correctionSpeed)
+        {
+            SetFaceDirection(predictedPosition - rb.position);
+            Running = true;
+        }
+        return Vector2.MoveTowards(rb.position, predictedPosition, correctionSpeed * Time.fixedDeltaTime);
     }
 
     public void HighlightAsTarget(bool show)

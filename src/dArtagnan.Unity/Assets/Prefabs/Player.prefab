@@ -940,7 +940,7 @@ MonoBehaviour:
   HitTextColor: {r: 1, g: 0.39741528, b: 0, a: 1}
   MissTextColor: {r: 0.69467115, g: 0, b: 1, a: 1}
   hitMissShowingDuration: 0.3
-  lerpSpeed: 1.3
+  lerpSpeed: 1.2
   PositionCorrectionThreshold: 150
 --- !u!1 &5383444114266678679
 GameObject:

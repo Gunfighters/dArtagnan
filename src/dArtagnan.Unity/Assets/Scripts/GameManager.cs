@@ -107,6 +107,7 @@ public class GameManager : MonoBehaviour
         var direction = DirectionHelperClient.IntToDirection(payload.MovementData.Direction);
         var serverPosition = VecConverter.ToUnityVec(payload.MovementData.Position);
         targetPlayer.UpdateMovementDataForReckoning(direction, serverPosition, payload.MovementData.Speed);
+        targetPlayer.SetRunning(payload.Running);
     }
 
     public void OnPlayerShootingBroadcast(PlayerShootingBroadcast shooting)
