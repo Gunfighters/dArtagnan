@@ -13,8 +13,8 @@ namespace dArtagnan.Shared
             var data = MessagePackSerializer.Serialize(packet);
             var size = BitConverter.GetBytes(data.Length);
 
-            await stream.WriteAsync(size, 0, 4);
-            await stream.WriteAsync(data, 0, data.Length);
+            await stream.WriteAsync(size.AsMemory(0, 4));
+            await stream.WriteAsync(data);
             await stream.FlushAsync();
         }
 
@@ -22,29 +22,28 @@ namespace dArtagnan.Shared
         public static async Task<IPacket> ReceivePacketAsync(NetworkStream stream)
         {
             // 1. 패킷 크기(4바이트) 완전히 읽기
-            byte[] lengthBuffer = new byte[4];
-            int totalBytesRead = 0;
+            var lengthBuffer = new byte[4];
+            var totalBytesRead = 0;
 
             // 4바이트가 모두 올 때까지 반복
             while (totalBytesRead < 4)
             {
-                int bytesRead = await stream.ReadAsync(lengthBuffer, totalBytesRead, 4 - totalBytesRead);
+                var bytesRead = await stream.ReadAsync(lengthBuffer.AsMemory(totalBytesRead, 4 - totalBytesRead));
                 if (bytesRead == 0) throw new Exception("connection closed");
                 totalBytesRead += bytesRead;
             }
 
-            int packetLength = BitConverter.ToInt32(lengthBuffer, 0);
+            var packetLength = BitConverter.ToInt32(lengthBuffer, 0);
             if (packetLength <= 0 || packetLength > 1024 * 1024)
                 throw new Exception($"invalid packet length: {packetLength}");
 
             // 2. 패킷 데이터도 완전히 읽기
-            byte[] packetBuffer = new byte[packetLength];
+            var packetBuffer = new byte[packetLength];
             totalBytesRead = 0;
 
             while (totalBytesRead < packetLength)
             {
-                int bytesRead = await stream.ReadAsync(packetBuffer, totalBytesRead,
-                    packetLength - totalBytesRead);
+                var bytesRead = await stream.ReadAsync(packetBuffer.AsMemory(totalBytesRead, packetLength - totalBytesRead));
                 if (bytesRead == 0) throw new Exception("part of packet didn't arrive.");
                 totalBytesRead += bytesRead;
             }
