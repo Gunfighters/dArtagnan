@@ -89,7 +89,7 @@ public class NetworkManager : MonoBehaviour
 
     public void SendStartGame()
     {
-        Send(new StartGame());
+        Send(new StartGameFromClient());
     }
 
     private void HandlePacket(IPacket packet)
@@ -114,22 +114,22 @@ public class NetworkManager : MonoBehaviour
             case PlayerLeaveBroadcast playerLeaveBroadcast:
                 GameManager.Instance.OnPlayerLeaveBroadcast(playerLeaveBroadcast);
                 break;
-            case NewHost newHost:
+            case NewHostBroadcast newHost:
                 GameManager.Instance.OnNewHost(newHost);
                 break;
             case PlayerIsTargetingBroadcast playerIsTargetingBroadcast:
                 GameManager.Instance.OnPlayerIsTargeting(playerIsTargetingBroadcast);
                 break;
-            case Winner winner:
+            case WinnerBroadcast winner:
                 GameManager.Instance.OnWinner(winner);
                 break;
-            case GameWaiting gameWaiting:
+            case GameInWaitingFromServer gameWaiting:
                 GameManager.Instance.OnGameWaiting(gameWaiting);
                 break;
-            case GamePlaying gamePlaying:
+            case GameInPlayingFromServer gamePlaying:
                 GameManager.Instance.OnGamePlaying(gamePlaying);
                 break;
-            case PlayerBalanceUpdate playerBalanceUpdate:
+            case PlayerBalanceUpdateBroadcast playerBalanceUpdate:
                 GameManager.Instance.OnPlayerBalanceUpdate(playerBalanceUpdate);
                 break;
             default:

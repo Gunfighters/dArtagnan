@@ -302,7 +302,7 @@ internal class Program
                     Console.WriteLine($"{movementDataBroadcast.PlayerId}번 플레이어 이동 데이터 갱신: 방향 {movementDataBroadcast.MovementData.Direction}, 위치 {movementDataBroadcast.MovementData.Position} 속도 {movementDataBroadcast.MovementData.Speed}");
                     break;
                         
-                case GameWaiting gameWaiting:
+                case GameInWaitingFromServer gameWaiting:
                     Console.WriteLine($"=== 현재 방 상태 ===");
                     foreach (var info in gameWaiting.PlayersInfo)
                     {
@@ -325,7 +325,7 @@ internal class Program
                     Console.WriteLine($"플레이어 {aliveUpdate.PlayerId} {statusMsg}");
                     break;
                     
-                case NewHost newHost:
+                case NewHostBroadcast newHost:
                     Console.WriteLine($"새로운 방장: {newHost.HostId}");
                     break;
                         
@@ -365,6 +365,6 @@ internal class Program
 
     static async Task StartGame()
     {
-        await NetworkUtils.SendPacketAsync(stream, new StartGame());
+        await NetworkUtils.SendPacketAsync(stream, new StartGameFromClient());
     }
 }

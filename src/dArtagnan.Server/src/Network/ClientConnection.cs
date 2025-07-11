@@ -107,7 +107,7 @@ public class ClientConnection : IDisposable
                     await PacketHandlers.HandlePlayerIsTargeting(isTargetingData, this, gameManager);
                     break;
                     
-                case StartGame start:
+                case StartGameFromClient start:
                     await PacketHandlers.HandleStartGame(start, this, gameManager);
                     break;
                     

@@ -19,17 +19,16 @@ namespace dArtagnan.Shared
     [Union(7, typeof(UpdatePlayerAlive))]
     [Union(8, typeof(PlayerLeaveFromClient))]
     [Union(9, typeof(PlayerLeaveBroadcast))]
-    [Union(10, typeof(GamePlaying))]
+    [Union(10, typeof(GameInPlayingFromServer))]
     [Union(11, typeof(PlayerIsTargetingFromClient))]
     [Union(12, typeof(PlayerIsTargetingBroadcast))]
-    [Union(13, typeof(StartGame))]
-    [Union(14, typeof(NewHost))]
-    [Union(15, typeof(Winner))]
-    //[Union(16, typeof(GamePlaying))]
-    [Union(17, typeof(GameWaiting))]
-    [Union(19, typeof(PlayerBalanceUpdate))]
-    [Union(20, typeof(PingPacket))]
-    [Union(21, typeof(PongPacket))]
+    [Union(13, typeof(StartGameFromClient))]
+    [Union(14, typeof(NewHostBroadcast))]
+    [Union(15, typeof(WinnerBroadcast))]
+    [Union(16, typeof(GameInWaitingFromServer))]
+    [Union(17, typeof(PlayerBalanceUpdateBroadcast))]
+    [Union(18, typeof(PingPacket))]
+    [Union(19, typeof(PongPacket))]
     public interface IPacket
     {
     }
@@ -196,7 +195,7 @@ namespace dArtagnan.Shared
     /// 게임을 시작하겠다는 패킷. 방장만 전송 가능.
     /// </summary>
     [MessagePackObject]
-    public struct StartGame : IPacket
+    public struct StartGameFromClient : IPacket
     {}
 
     /// <summary>
@@ -204,7 +203,7 @@ namespace dArtagnan.Shared
     /// 게임이 현재 '대기' 상태에 있으며 플레이어들의 상태는 PlayersInfo와 같다.
     /// </summary>
     [MessagePackObject]
-    public struct GameWaiting : IPacket
+    public struct GameInWaitingFromServer : IPacket
     {
         [Key(0)] public List<PlayerInformation> PlayersInfo;
     }
@@ -215,7 +214,7 @@ namespace dArtagnan.Shared
     /// 남은 시간은 RemainingTime, 총 시간은 TotalTime이다.
     /// </summary>
     [MessagePackObject]
-    public struct GamePlaying : IPacket
+    public struct GameInPlayingFromServer : IPacket
     {
         [Key(0)] public List<PlayerInformation> PlayersInfo;
         [Key(1)] public int Round;
@@ -228,7 +227,7 @@ namespace dArtagnan.Shared
     /// HostId번 플레이어가 새로 방장이 되었다.
     /// </summary>
     [MessagePackObject]
-    public struct NewHost : IPacket
+    public struct NewHostBroadcast : IPacket
     {
         [Key(0)] public int HostId;
     }
@@ -238,7 +237,7 @@ namespace dArtagnan.Shared
     /// PlayerId번 플레이어가 승리했다.
     /// </summary>
     [MessagePackObject]
-    public struct Winner : IPacket
+    public struct WinnerBroadcast : IPacket
     {
         [Key(0)] public int PlayerId; // 승자가 없으면 -1.
     }
@@ -248,7 +247,7 @@ namespace dArtagnan.Shared
     /// PlayerId번 플레이어의 소지금이 Balance로 바뀌었다.
     /// </summary>
     [MessagePackObject]
-    public struct PlayerBalanceUpdate : IPacket
+    public struct PlayerBalanceUpdateBroadcast : IPacket
     {
         [Key(0)] public int PlayerId;
         [Key(1)] public int Balance;
@@ -298,7 +297,6 @@ namespace dArtagnan.Shared
 
     [MessagePackObject]
     public struct PongPacket : IPacket
-    {
-        
+    {  
     }
 }

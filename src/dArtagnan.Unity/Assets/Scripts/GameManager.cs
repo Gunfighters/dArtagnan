@@ -89,7 +89,7 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.OnNewHost(localPlayerId == hostId);
     }
 
-    public void OnNewHost(NewHost payload)
+    public void OnNewHost(NewHostBroadcast payload)
     {
         hostId = payload.HostId;
         UIManager.Instance.OnNewHost(localPlayerId == hostId);
@@ -174,7 +174,7 @@ public class GameManager : MonoBehaviour
         playerObjectPool.Add(p.gameObject);
     }
 
-    public void OnGamePlaying(GamePlaying gamePlaying)
+    public void OnGamePlaying(GameInPlayingFromServer gamePlaying)
     {
         StopAllCoroutines();
         gameState = GameState.Playing;
@@ -190,7 +190,7 @@ public class GameManager : MonoBehaviour
         SetCameraFollow(LocalPlayer);
     }
 
-    public void OnGameWaiting(GameWaiting gameWaiting)
+    public void OnGameWaiting(GameInWaitingFromServer gameWaiting)
     {
         StopAllCoroutines();
         gameState = GameState.Waiting;
@@ -211,7 +211,7 @@ public class GameManager : MonoBehaviour
         aiming.Aim(target);
     }
 
-    public void OnWinner(Winner winner)
+    public void OnWinner(WinnerBroadcast winner)
     {
         UIManager.Instance.AnnounceWinner(players[winner.PlayerId]);
     }
@@ -221,7 +221,7 @@ public class GameManager : MonoBehaviour
         NetworkManager.Instance.SendStartGame();
     }
 
-    public void OnPlayerBalanceUpdate(PlayerBalanceUpdate playerBalanceUpdate)
+    public void OnPlayerBalanceUpdate(PlayerBalanceUpdateBroadcast playerBalanceUpdate)
     {
         var updated = players[playerBalanceUpdate.PlayerId];
         updated.SetBalance(playerBalanceUpdate.Balance);

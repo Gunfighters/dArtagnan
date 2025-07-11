@@ -10,7 +10,7 @@ public static class PacketHandlers
         await client.SendPacketAsync(new PongPacket());
     }
 
-    public static async Task HandleStartGame(StartGame startGame, ClientConnection client, GameManager gameManager)
+    public static async Task HandleStartGame(StartGameFromClient startGame, ClientConnection client, GameManager gameManager)
     {
         var starter = gameManager.Players[client.Id];
         if (starter != gameManager.Host)
@@ -63,7 +63,7 @@ public static class PacketHandlers
             PlayerId = player.Id
         });
 
-        GameWaiting waiting = new() { PlayersInfo = gameManager.PlayersInRoom() };
+        GameInWaitingFromServer waiting = new() { PlayersInfo = gameManager.PlayersInRoom() };
         foreach (var p in waiting.PlayersInfo)
         {
             Console.WriteLine($"{p.PlayerId}: {p.MovementData.Position}");
@@ -149,9 +149,9 @@ public static class PacketHandlers
             if (gameManager.IsGamePlaying())
             {
                 shooter.Balance += target.Withdraw(Math.Max(target.Balance / 10, 50));
-                await gameManager.BroadcastToAll(new PlayerBalanceUpdate
+                await gameManager.BroadcastToAll(new PlayerBalanceUpdateBroadcast
                     { Balance = shooter.Balance, PlayerId = shooter.Id });
-                await gameManager.BroadcastToAll(new PlayerBalanceUpdate
+                await gameManager.BroadcastToAll(new PlayerBalanceUpdateBroadcast
                     { Balance = target.Balance, PlayerId = target.Id });
                 await KillPlayer(target, gameManager);
             }

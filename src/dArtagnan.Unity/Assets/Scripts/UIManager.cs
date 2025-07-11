@@ -28,7 +28,7 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        SetupForGameState(new GameWaiting());
+        SetupForGameState(new GameInWaitingFromServer());
     }
 
     private void Update()
@@ -97,14 +97,14 @@ public class UIManager : MonoBehaviour
         ScheduleDisappear(winnerAnnouncement.gameObject, winnerAnnouncementDuration);
     }
 
-    public void SetupForGameState(GameWaiting waiting)
+    public void SetupForGameState(GameInWaitingFromServer waiting)
     {
         gameStartButton.gameObject.SetActive(GameManager.Instance.LocalPlayer == GameManager.Instance.Host);
         roundBoard.gameObject.SetActive(false);
         roundSplash.gameObject.SetActive(false);
     }
 
-    public void SetupForGameState(GamePlaying playing)
+    public void SetupForGameState(GameInPlayingFromServer playing)
     {
         gameStartButton.gameObject.SetActive(false);
         roundBoard.text = $"Round {playing.Round} / 4";

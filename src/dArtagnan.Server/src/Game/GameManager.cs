@@ -30,7 +30,7 @@ public class GameManager
         Console.WriteLine($"[게임] 새 방장: {Host?.Id}");
         if (Host != null)
         {
-            await BroadcastToAll(new NewHost { HostId = Host.Id });
+            await BroadcastToAll(new NewHostBroadcast { HostId = Host.Id });
         }
     }
 
@@ -162,10 +162,10 @@ public class GameManager
         switch (newState)
         {
             case GameState.Waiting:
-                await BroadcastToAll(new GameWaiting { PlayersInfo = PlayersInRoom() });
+                await BroadcastToAll(new GameInWaitingFromServer { PlayersInfo = PlayersInRoom() });
                 break;
             case GameState.Playing:
-                await BroadcastToAll(new GamePlaying { PlayersInfo = PlayersInRoom(), Round = Round });
+                await BroadcastToAll(new GameInPlayingFromServer { PlayersInfo = PlayersInRoom(), Round = Round });
                 break;
         }
     }
@@ -218,6 +218,6 @@ public class GameManager
 
     private async Task AnnounceWinner()
     {
-        await BroadcastToAll(new Winner { PlayerId = LastManStanding?.Id ?? -1 });
+        await BroadcastToAll(new WinnerBroadcast { PlayerId = LastManStanding?.Id ?? -1 });
     }
 }
