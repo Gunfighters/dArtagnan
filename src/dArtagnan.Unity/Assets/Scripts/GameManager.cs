@@ -59,14 +59,14 @@ public class GameManager : MonoBehaviour
         playerObjectPool.Remove(obj);
         var player = obj.GetComponent<Player>();
         var directionVec = DirectionHelper.IntToDirection(info.MovementData.Direction);
-        var estimatedPosition = directionVec;
+        var estimatedPosition = info.MovementData.Position;
         var estimatedRemainingReloadTime = info.RemainingReloadTime;
         Debug.Log($"Estimated Position: {estimatedPosition}");
         info.MovementData.Position = estimatedPosition;
         info.RemainingReloadTime = estimatedRemainingReloadTime;
         player.Initialize(info);
         players[info.PlayerId] = player;
-        Debug.Log($"Player #{info.PlayerId} added at {player.Position}");
+        Debug.Log($"Player #{info.PlayerId} added at {player.Position} (Object: {players[info.PlayerId]})");
         
         if (player == LocalPlayer)
         {
@@ -150,9 +150,16 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayerLeaveBroadcast(PlayerLeaveBroadcast leave)
     {
-        var leaving = players[leave.PlayerId];
-        ReleasePlayerObject(leaving);
-        players.Remove(leave.PlayerId);
+        if (players.TryGetValue(leave.PlayerId, out var leavingPlayer))
+        {
+            ReleasePlayerObject(leavingPlayer);
+            players.Remove(leave.PlayerId);
+            Debug.Log($"Player #{leave.PlayerId} was successfully removed.");
+        }
+        else
+        {
+            Debug.LogWarning($"Tried to remove player #{leave.PlayerId}, but they were not found in the dictionary. They might have been cleared already.");
+        }
     }
 
     private void ReleasePlayerObject(Player p)

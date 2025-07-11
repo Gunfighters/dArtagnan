@@ -1,4 +1,5 @@
 using System.Collections;
+using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using JetBrains.Annotations;
 using TMPro;
@@ -36,8 +37,6 @@ public class Player : MonoBehaviour
     private Vector2 lastUpdatedPosition;
     public float PositionCorrectionThreshold;
     public Vector2 Position => rb.position;
-    private bool initializing;
-    private Vector2 initialPosition;
     private Vector2 faceDirection;
     private bool moving;
 
@@ -68,12 +67,7 @@ public class Player : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (initializing)
-        {
-            rb.position = initialPosition;
-            initializing = false;
-        }
-        else if (Alive)
+        if (Alive)
         {
             var nextPosition = NextPosition();
             moving = nextPosition != rb.position;
@@ -152,12 +146,12 @@ public class Player : MonoBehaviour
         Balance = newBalance;
         BalanceText.text = $"${Balance}";
         BalanceText.color = gain ? Color.green : Color.red;
-        StartCoroutine(ResetBalanceTextColor());
+        ResetBalanceTextColor().Forget();
     }
 
-    private IEnumerator ResetBalanceTextColor()
+    private async UniTaskVoid ResetBalanceTextColor()
     {
-        yield return new WaitForSeconds(0.3f);
+        await UniTask.WaitForSeconds(0.5f);
         BalanceText.color = Color.white;
     }
 
@@ -223,7 +217,7 @@ public class Player : MonoBehaviour
         if (diff > correctionSpeed)
         {
             SetFaceDirection(predictedPosition - rb.position);
-            Running = true;
+            SetRunning(true);
         }
         return Vector2.MoveTowards(rb.position, predictedPosition, correctionSpeed * Time.fixedDeltaTime);
     }
@@ -251,8 +245,7 @@ public class Player : MonoBehaviour
         SetAlive(info.Alive);
         SetAccuracy(info.Accuracy);
         Speed = info.MovementData.Speed;
-        initializing = true;
-        initialPosition = VecConverter.ToUnityVec(info.MovementData.Position);
+        transform.position = VecConverter.ToUnityVec(info.MovementData.Position);
         SetDirection(DirectionHelperClient.IntToDirection(info.MovementData.Direction));
         Range = info.Range;
         TotalReloadTime = info.TotalReloadTime;

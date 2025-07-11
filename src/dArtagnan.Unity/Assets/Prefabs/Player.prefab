@@ -929,6 +929,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   nicknameText: {fileID: 8427718665256367766}
+  Running: 0
   rb: {fileID: 6538588046089182224}
   modelManager: {fileID: 6386919334395040828}
   accuracyText: {fileID: 1300332755926592805}
@@ -940,7 +941,7 @@ MonoBehaviour:
   HitTextColor: {r: 1, g: 0.39741528, b: 0, a: 1}
   MissTextColor: {r: 0.69467115, g: 0, b: 1, a: 1}
   hitMissShowingDuration: 0.3
-  lerpSpeed: 1.2
+  lerpSpeed: 1.15
   PositionCorrectionThreshold: 150
 --- !u!1 &5383444114266678679
 GameObject:

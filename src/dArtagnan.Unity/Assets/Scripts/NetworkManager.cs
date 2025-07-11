@@ -134,6 +134,7 @@ public class NetworkManager : MonoBehaviour
 
     void HandlePacket(IPacket packet)
     {
+        Debug.Log($"Received packet: {packet.GetType()}");
         switch (packet)
         {
             case YouAre are:

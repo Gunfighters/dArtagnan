@@ -52,7 +52,6 @@ MonoBehaviour:
   roundBoard: {fileID: 7258472189014667869}
   roundSplash: {fileID: 3172237077731080073}
   spectatingText: {fileID: 9063030759444493303}
-  pingText: {fileID: 0}
   movementJoystick: {fileID: 2134283804817094579}
   ShootJoystickController: {fileID: 3782624832977995585}
   gameStartSplashDuration: 1.5
@@ -1231,7 +1230,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7787210251918212480, guid: 1bc6d0977975d41b7a2a691fdfe6d464, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7787210251918212481, guid: 1bc6d0977975d41b7a2a691fdfe6d464, type: 3}
       propertyPath: m_Pivot.x
