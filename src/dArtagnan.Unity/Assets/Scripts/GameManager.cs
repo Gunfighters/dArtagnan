@@ -17,19 +17,17 @@ public class GameManager : MonoBehaviour
     public List<Player> Survivors => players.Values.Where(p => p.Alive).ToList();
     private int localPlayerId;
     [CanBeNull] public Player LocalPlayer => players.GetValueOrDefault(localPlayerId, null);
-    private Camera mainCamera;
+    public CameraController mainCamera;
     public GameObject Field;
     public AudioManager AudioManager;
     private int hostId;
     [CanBeNull] public Player Host => players.GetValueOrDefault(hostId, null);
     private GameState gameState;
-    private Player cameraSetPlayer;
     private float lastMovementDataUpdateTimestmap;
 
     private void Awake()
     {
         Instance = this;
-        mainCamera = Camera.main;
         for (var i = 0; i < playerObjectPoolSize; i++)
         {
             var obj = Instantiate(playerPrefab);
@@ -134,7 +132,7 @@ public class GameManager : MonoBehaviour
         if (!player.Alive)
         {
             ScheduleDeactivation(player);
-            if (player == cameraSetPlayer)
+            if (player == mainCamera.player)
             {
                 var anotherPlayer = players.Values.FirstOrDefault(p => p.Alive);
                 SetCameraFollow(anotherPlayer);
@@ -244,9 +242,7 @@ public class GameManager : MonoBehaviour
 
     private void SetCameraFollow(Player p)
     {
-        cameraSetPlayer = p;
-        mainCamera.transform.SetParent(p.transform);
-        mainCamera.transform.localPosition = new Vector3(0, 0, mainCamera.transform.localPosition.z);
+        mainCamera.player = p;
         UIManager.Instance.ToggleSpectate(p != LocalPlayer);
     }
 
