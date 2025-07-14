@@ -4,10 +4,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UIManager : MonoBehaviour
+public class HUDManager : MonoBehaviour
 {
-    public static UIManager Instance;
-    public IMinimapManager MinimapManager;
+    public static HUDManager Instance;
     public Button gameStartButton;
     public TextMeshProUGUI winnerAnnouncement;
     public TextMeshProUGUI gameStartSplash;
@@ -28,6 +27,7 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
+        CanvasManager.Instance.Show(GameScreen.HUD);
         SetupForGameState(new GameInWaitingFromServer());
     }
 

@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &8197438430620439755
+--- !u!1 &503926436461423554
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,11 +8,11 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 5122572363697714102}
-  - component: {fileID: 8329699938466789084}
-  - component: {fileID: 7180957777233695122}
-  - component: {fileID: 7571007090995612576}
-  - component: {fileID: 3186295158488594842}
+  - component: {fileID: 1613390408487684334}
+  - component: {fileID: 3537545694715885258}
+  - component: {fileID: 574867386820515838}
+  - component: {fileID: 4532210604443218552}
+  - component: {fileID: 6917835666668447291}
   m_Layer: 0
   m_Name: MainCamera
   m_TagString: MainCamera
@@ -20,32 +20,32 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &5122572363697714102
+--- !u!4 &1613390408487684334
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8197438430620439755}
+  m_GameObject: {fileID: 503926436461423554}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!20 &8329699938466789084
+--- !u!20 &3537545694715885258
 Camera:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8197438430620439755}
+  m_GameObject: {fileID: 503926436461423554}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -62,19 +62,19 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.48128656
+    x: 0
     y: 0
-    width: 0.0374269
+    width: 1
     height: 1
-  near clip plane: -1000
+  near clip plane: 0.3
   far clip plane: 1000
-  field of view: 160
+  field of view: 60
   orthographic: 1
   orthographic size: 3
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 767
+    m_Bits: 4294967295
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -86,21 +86,21 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!81 &7180957777233695122
+--- !u!81 &574867386820515838
 AudioListener:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8197438430620439755}
+  m_GameObject: {fileID: 503926436461423554}
   m_Enabled: 1
---- !u!114 &7571007090995612576
+--- !u!114 &4532210604443218552
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8197438430620439755}
+  m_GameObject: {fileID: 503926436461423554}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
@@ -138,21 +138,24 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
---- !u!114 &3186295158488594842
+--- !u!114 &6917835666668447291
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8197438430620439755}
+  m_GameObject: {fileID: 503926436461423554}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6bbef79979c7443baad80f7621059c70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 0}
-  smoothSpeed: 5
-  followOffset: {x: 0, y: 0}
-  margin: {x: 0.5, y: 0.5}
-  groundBounds: {fileID: 0}
-  clampToBounds: 1
+  groundRenderer: {fileID: 0}
+  offset: {x: 0, y: 0, z: -10}
+  cam: {fileID: 0}
+  cameraMoveSpeed: 4.5
+  height: 0
+  width: 0
+  mapSize: {x: 0, y: 0}
+  center: {x: 0, y: 0}

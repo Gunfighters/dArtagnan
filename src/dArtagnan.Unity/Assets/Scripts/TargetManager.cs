@@ -18,7 +18,7 @@ public class TargetManager : MonoBehaviour
             LocalPlayer.TargetPlayer?.HighlightAsTarget(true);
         }
 
-        if (UIManager.Instance.ShootJoystickVector() == Vector2.zero) return;
+        if (HUDManager.Instance.ShootJoystickVector() == Vector2.zero) return;
         if ((LastSentTarget is null && newTarget is not null)
             || (newTarget is null && LastSentTarget is not null)
             || changed)
@@ -37,7 +37,7 @@ public class TargetManager : MonoBehaviour
             GameManager.Instance.Survivors.Where(target =>
                 target != LocalPlayer
                 && LocalPlayer!.CanShoot(target));
-        if (UIManager.Instance.ShootJoystickVector() == Vector2.zero) // 사거리 내 가장 가까운 적.
+        if (HUDManager.Instance.ShootJoystickVector() == Vector2.zero) // 사거리 내 가장 가까운 적.
         {
             var minDistance = LocalPlayer.Range;
             foreach (var target in targetPool)
@@ -55,7 +55,7 @@ public class TargetManager : MonoBehaviour
         var minAngle = float.MaxValue;
         foreach (var target in targetPool)
         {
-            var aim = UIManager.Instance.ShootJoystickVector();
+            var aim = HUDManager.Instance.ShootJoystickVector();
             var direction = target.Position - LocalPlayer.Position;
             if (Vector2.Angle(aim, direction) < minAngle
                 && LocalPlayer.CanShoot(target)

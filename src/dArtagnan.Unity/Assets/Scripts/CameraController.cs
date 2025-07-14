@@ -28,7 +28,10 @@ public class CameraController : MonoBehaviour
 
     private void Update()
     {
-        LimitCameraArea();
+        if (target)
+        {
+            LimitCameraArea();
+        }
     }
 
     private void LimitCameraArea()

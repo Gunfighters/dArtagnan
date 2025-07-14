@@ -73,8 +73,9 @@ public class GameManager : MonoBehaviour
         
         if (player == LocalPlayer)
         {
+            CanvasManager.Instance.Show(GameScreen.HUD);
             SetCameraFollow(player);
-            UIManager.Instance.OnLocalPlayerActivation(player);
+            HUDManager.Instance.OnLocalPlayerActivation(player);
         }
         player.ToggleUIInGame(inGame);
         player.gameObject.layer = LayerMask.NameToLayer(player == LocalPlayer ? "LocalPlayer" : "RemotePlayer");
@@ -84,13 +85,13 @@ public class GameManager : MonoBehaviour
     public void OnYouAre(YouAre payload)
     {
         localPlayerId = payload.PlayerId;
-        UIManager.Instance.OnNewHost(localPlayerId == hostId);
+        HUDManager.Instance.OnNewHost(localPlayerId == hostId);
     }
 
     public void OnNewHost(NewHostBroadcast payload)
     {
         hostId = payload.HostId;
-        UIManager.Instance.OnNewHost(localPlayerId == hostId);
+        HUDManager.Instance.OnNewHost(localPlayerId == hostId);
     }
 
 
@@ -176,7 +177,7 @@ public class GameManager : MonoBehaviour
     {
         StopAllCoroutines();
         gameState = GameState.Playing;
-        UIManager.Instance.SetupForGameState(gamePlaying);
+        HUDManager.Instance.SetupForGameState(gamePlaying);
         AudioManager.PlayForState(GameState.Playing);
         foreach (var info in gamePlaying.PlayersInfo)
         {
@@ -197,7 +198,7 @@ public class GameManager : MonoBehaviour
         {
             AddPlayer(info, false);
         }
-        UIManager.Instance.SetupForGameState(gameWaiting);
+        HUDManager.Instance.SetupForGameState(gameWaiting);
         AudioManager.PlayForState(GameState.Waiting);
     }
 
@@ -211,7 +212,7 @@ public class GameManager : MonoBehaviour
 
     public void OnWinner(WinnerBroadcast winner)
     {
-        UIManager.Instance.AnnounceWinner(players[winner.PlayerId]);
+        HUDManager.Instance.AnnounceWinner(players[winner.PlayerId]);
     }
 
     public void StartGame()
@@ -253,7 +254,7 @@ public class GameManager : MonoBehaviour
     private void SetCameraFollow(Player p)
     {
         mainCamera.Follow(p.transform);
-        UIManager.Instance.ToggleSpectate(p != LocalPlayer);
+        HUDManager.Instance.ToggleSpectate(p != LocalPlayer);
     }
 
     private void RemovePlayerAll()
