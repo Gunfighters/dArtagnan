@@ -39,8 +39,10 @@ public class Player : MonoBehaviour
     public Vector2 Position => rb.position;
     private Vector2 faceDirection;
     private bool moving;
+    public int AccuracyState = 0;     // 정확도 상태: -1(감소), 0(유지), 1(증가)
+    private float accuracyTimer = 0f;    // 정확도 업데이트를 위한 타이머
+    private const float ACCURACY_UPDATE_INTERVAL = 1.0f; // 정확도 업데이트 간격 (1초)
 
-    // ID에 따른 플레이어 색깔 (어두운 배경에서 잘 보이도록 조정)
     private static readonly Color[] PlayerColors = {
         new(1f, 0.3f, 0.3f),   // 밝은 빨강 - ID 1
         new(0.4f, 0.7f, 1f),   // 밝은 파랑 - ID 2  
@@ -63,6 +65,7 @@ public class Player : MonoBehaviour
     {
         UpdateModel();
         UpdateRemainingReloadTime(RemainingReloadTime - Time.deltaTime);
+        UpdateClientAccuracy(Time.deltaTime);
     }
 
     private void FixedUpdate()
@@ -138,6 +141,38 @@ public class Player : MonoBehaviour
     {
         Accuracy = newAccuracy;
         accuracyText.text = $"{Accuracy}%";
+    }
+    
+    public void SetAccuracyState(int newAccuracyState)
+    {
+        AccuracyState = newAccuracyState;
+    }
+    
+    /// <summary>
+    /// 클라이언트에서 정확도를 업데이트합니다. 매 프레임 호출됩니다.
+    /// </summary>
+    /// <param name="deltaTime">프레임 시간</param>
+    private void UpdateClientAccuracy(float deltaTime)
+    {
+        if (AccuracyState == 0) return; // 유지 상태면 처리하지 않음
+        
+        accuracyTimer += deltaTime;
+        
+        // 1초마다 정확도 업데이트
+        if (accuracyTimer >= ACCURACY_UPDATE_INTERVAL)
+        {
+            accuracyTimer = 0f;
+            
+            int newAccuracy = Accuracy + AccuracyState;
+            
+            // 정확도 범위 제한
+            newAccuracy = Mathf.Max(1, Mathf.Min(100, newAccuracy));
+            
+            if (newAccuracy != Accuracy)
+            {
+                SetAccuracy(newAccuracy);
+            }
+        }
     }
 
     public void SetBalance(int newBalance)
@@ -244,12 +279,14 @@ public class Player : MonoBehaviour
         SetBalance(info.Balance);
         SetAlive(info.Alive);
         SetAccuracy(info.Accuracy);
+        SetAccuracyState(info.AccuracyState);
         Speed = info.MovementData.Speed;
         transform.position = VecConverter.ToUnityVec(info.MovementData.Position);
         SetDirection(DirectionHelperClient.IntToDirection(info.MovementData.Direction));
         Range = info.Range;
         TotalReloadTime = info.TotalReloadTime;
         RemainingReloadTime = info.RemainingReloadTime;
+        accuracyTimer = 0f;
     }
 
     public bool CanShoot(Player target)

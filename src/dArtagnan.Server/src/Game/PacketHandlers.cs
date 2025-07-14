@@ -28,6 +28,13 @@ public static class PacketHandlers
 
         // 플레이어의 정확도 상태 설정
         player.SetAccuracyState(accuracyStatePacket.AccuracyState);
+        
+        // 모든 플레이어들에게 정확도 상태 변경 브로드캐스트
+        await gameManager.BroadcastToAll(new PlayerAccuracyStateBroadcast
+        {
+            PlayerId = client.Id,
+            AccuracyState = accuracyStatePacket.AccuracyState
+        });
     }
 
     public static async Task HandleStartGame(StartGameFromClient startGame, ClientConnection client, GameManager gameManager)

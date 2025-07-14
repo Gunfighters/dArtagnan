@@ -46,6 +46,7 @@ internal class Program
         Console.WriteLine("  dir [i] - 플레이어 이동 방향 변경");
         Console.WriteLine("  run [true/false] - 달리기 상태 변경");
         Console.WriteLine("  shoot [targetId] - 플레이어 공격");
+        Console.WriteLine("  accuracy [state] - 정확도 상태 변경 (-1: 감소, 0: 유지, 1: 증가)");
         Console.WriteLine("  leave - 게임 나가기");
         Console.WriteLine("  quit - 종료");
         Console.WriteLine("=====================================");
@@ -123,6 +124,18 @@ internal class Program
                     else
                     {
                         Console.WriteLine("사용법: shoot [targetId]");
+                    }
+                    break;
+
+                case "accuracy":
+                    if (parts.Length >= 2)
+                    {
+                        var state = int.Parse(parts[1]);
+                        await SendAccuracyState(state);
+                    }
+                    else
+                    {
+                        Console.WriteLine("사용법: accuracy [state] (-1: 감소, 0: 유지, 1: 증가)");
                     }
                     break;
 
@@ -243,6 +256,43 @@ internal class Program
         }
     }
 
+    static async Task SendAccuracyState(int state)
+    {
+        if (!isConnected || stream == null)
+        {
+            Console.WriteLine("먼저 서버에 연결해주세요.");
+            return;
+        }
+
+        if (state < -1 || state > 1)
+        {
+            Console.WriteLine("정확도 상태는 -1, 0, 1 중 하나여야 합니다.");
+            return;
+        }
+
+        try
+        {
+            await NetworkUtils.SendPacketAsync(stream, new setAccuracyState
+            {
+                AccuracyState = state
+            });
+            
+            string stateText = state switch
+            {
+                -1 => "감소",
+                0 => "유지",
+                1 => "증가",
+                _ => "알 수 없음"
+            };
+            
+            Console.WriteLine($"정확도 상태 변경 패킷 전송: {state} ({stateText})");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"정확도 상태 패킷 전송 실패: {ex.Message}");
+        }
+    }
+
     static async Task SendLeave()
     {
         if (!isConnected || stream == null)
@@ -309,6 +359,7 @@ internal class Program
                         Console.WriteLine($"  플레이어 {info.PlayerId}: {info.Nickname}");
                         Console.WriteLine($"    위치: ({info.MovementData.Position.X:F2}, {info.MovementData.Position.Y:F2})");
                         Console.WriteLine($"    명중률: {info.Accuracy}%");
+                        Console.WriteLine($"    정확도 상태: {info.AccuracyState} ({GetAccuracyStateText(info.AccuracyState)})");
                         Console.WriteLine($"    속도: {info.MovementData.Speed:F2}");
                         Console.WriteLine($"    재장전: {info.RemainingReloadTime:F2}/{info.TotalReloadTime:F2}초");
                         Console.WriteLine($"    생존: {(info.Alive ? "생존" : "사망")}");
@@ -333,6 +384,10 @@ internal class Program
                     Console.WriteLine($"플레이어 {leaveBroadcast.PlayerId}가 게임을 떠났습니다");
                     break;
                         
+                case PlayerAccuracyStateBroadcast accuracyStateBroadcast:
+                    Console.WriteLine($"플레이어 {accuracyStateBroadcast.PlayerId}의 정확도 상태 변경: {accuracyStateBroadcast.AccuracyState} ({GetAccuracyStateText(accuracyStateBroadcast.AccuracyState)})");
+                    break;
+                        
                 default:
                     Console.WriteLine($"처리되지 않은 패킷 타입: {packet}");
                     break;
@@ -344,6 +399,17 @@ internal class Program
         }
 
         await Task.CompletedTask;
+    }
+
+    static string GetAccuracyStateText(int state)
+    {
+        return state switch
+        {
+            -1 => "감소",
+            0 => "유지",
+            1 => "증가",
+            _ => "알 수 없음"
+        };
     }
 
     static async Task Disconnect()

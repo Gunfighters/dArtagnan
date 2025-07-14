@@ -9,7 +9,6 @@ public class Player(int id, string nickname, Vector2 position)
     public readonly string Nickname = nickname;
     public int Accuracy = GenerateRandomAccuracy();
     public float Range = Constants.DEFAULT_RANGE;
-        
     public float TotalReloadTime = Constants.DEFAULT_RELOAD_TIME;
     public float RemainingReloadTime = Constants.DEFAULT_RELOAD_TIME / 2;
     public bool Alive = true;
@@ -17,15 +16,9 @@ public class Player(int id, string nickname, Vector2 position)
     public MovementData MovementData = new() { Direction = 0, Position = position, Speed = Constants.WALKING_SPEED };
     public int Balance = 200;
     public bool Bankrupt => Balance <= 0;
-    
-    // 정확도 상태: -1(감소), 0(유지), 1(증가)
-    public int AccuracyState = 0;
-    
-    // 정확도 업데이트를 위한 타이머
-    private float accuracyTimer = 0f;
-    
-    // 정확도 업데이트 간격 (1초)
-    private const float ACCURACY_UPDATE_INTERVAL = 1.0f;
+    public int AccuracyState = 0;   // 정확도 상태: -1(감소), 0(유지), 1(증가)
+    private float accuracyTimer = 0f;    // 정확도 업데이트를 위한 타이머
+    private const float ACCURACY_UPDATE_INTERVAL = 1.0f;    // 정확도 업데이트 간격 (1초)
 
     public void ResetForInitialGame()
     {
@@ -59,6 +52,7 @@ public class Player(int id, string nickname, Vector2 position)
         Range = Range,
         MovementData = MovementData,
         Balance = Balance,
+        AccuracyState = AccuracyState,
     };
 
     public static int GenerateRandomAccuracy()

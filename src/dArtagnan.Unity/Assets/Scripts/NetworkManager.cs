@@ -91,6 +91,11 @@ public class NetworkManager : MonoBehaviour
     {
         Send(new StartGameFromClient());
     }
+    
+    public void SendAccuracyState(int accuracyState)
+    {
+        Send(new setAccuracyState { AccuracyState = accuracyState });
+    }
 
     private void HandlePacket(IPacket packet)
     {
@@ -131,6 +136,9 @@ public class NetworkManager : MonoBehaviour
                 break;
             case PlayerBalanceUpdateBroadcast playerBalanceUpdate:
                 GameManager.Instance.OnPlayerBalanceUpdate(playerBalanceUpdate);
+                break;
+            case PlayerAccuracyStateBroadcast accuracyStateBroadcast:
+                GameManager.Instance.OnPlayerAccuracyStateBroadcast(accuracyStateBroadcast);
                 break;
             default:
                 Debug.LogWarning($"Unhandled packet: {packet}");

@@ -225,6 +225,15 @@ public class GameManager : MonoBehaviour
         updated.SetBalance(playerBalanceUpdate.Balance);
     }
 
+    public void OnPlayerAccuracyStateBroadcast(PlayerAccuracyStateBroadcast accuracyStateBroadcast)
+    {
+        var player = players.GetValueOrDefault(accuracyStateBroadcast.PlayerId);
+        if (player != null)
+        {
+            player.SetAccuracyState(accuracyStateBroadcast.AccuracyState);
+        }
+    }
+
     public void UpdateVelocity(Vector2 newDirection, bool running)
     {
         if (!LocalPlayer.Alive) return;
