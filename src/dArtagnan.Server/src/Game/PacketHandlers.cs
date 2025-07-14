@@ -10,6 +10,26 @@ public static class PacketHandlers
         await client.SendPacketAsync(new PongPacket());
     }
 
+    public static async Task HandleSetAccuracyState(setAccuracyState accuracyStatePacket, ClientConnection client, GameManager gameManager)
+    {
+        var player = gameManager.GetPlayerById(client.Id);
+        if (player == null)
+        {
+            Console.WriteLine($"[정확도] 플레이어 {client.Id}를 찾을 수 없습니다.");
+            return;
+        }
+
+        // 정확도 상태 유효성 검사
+        if (accuracyStatePacket.AccuracyState < -1 || accuracyStatePacket.AccuracyState > 1)
+        {
+            Console.WriteLine($"[정확도] 플레이어 {client.Id}가 잘못된 정확도 상태를 요청했습니다: {accuracyStatePacket.AccuracyState}");
+            return;
+        }
+
+        // 플레이어의 정확도 상태 설정
+        player.SetAccuracyState(accuracyStatePacket.AccuracyState);
+    }
+
     public static async Task HandleStartGame(StartGameFromClient startGame, ClientConnection client, GameManager gameManager)
     {
         var starter = gameManager.Players[client.Id];

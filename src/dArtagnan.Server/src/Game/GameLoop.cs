@@ -71,6 +71,7 @@ public class GameLoop(TcpServer server, GameManager gameManager)
         // 게임 로직 업데이트 (직접 호출)
         UpdatePlayerPositions(deltaTime);
         UpdateReloadTimes(deltaTime);
+        UpdateAccuracies(deltaTime);
     }
 
     /// <summary>
@@ -130,6 +131,19 @@ public class GameLoop(TcpServer server, GameManager gameManager)
                 float newReloadTime = UpdateReloadTime(player.RemainingReloadTime, deltaTime);
                 player.UpdateReloadTime(newReloadTime);
             }
+        }
+    }
+
+    /// <summary>
+    /// 게임 루프에서 호출되는 정확도 업데이트
+    /// </summary>
+    private void UpdateAccuracies(float deltaTime)
+    {
+        foreach (var player in gameManager.Players.Values)
+        {
+            if (!player.Alive) continue;
+
+            player.UpdateAccuracy(deltaTime);
         }
     }
 }
