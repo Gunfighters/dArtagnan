@@ -15,6 +15,12 @@ public class RouletteManager : MonoBehaviour
         slots = GetComponentsInChildren<RouletteSlot>().ToList();
     }
 
+    public void Start()
+    {
+        Debug.Log("Showing AccuracyRoulette...");
+        SetAccuracyPool(new List<int> { 1, 25, 58, 88, 90, 74, 22, 3 });
+    }
+
     public void SetAccuracyPool(List<int> pool)
     {
         accuracyPool = pool;
