@@ -13,7 +13,7 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI gameStartSplash;
     public TextMeshProUGUI roundBoard;
     public TextMeshProUGUI roundSplash;
-    public TextMeshProUGUI spectatingText;
+    public GameObject spectatingText;
     public MovementJoystick movementJoystick;
     public ShootJoystickController ShootJoystickController;
     private Vector2 _lastDirection;
