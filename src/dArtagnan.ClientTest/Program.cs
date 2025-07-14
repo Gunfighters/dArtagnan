@@ -42,16 +42,16 @@ internal class Program
     {
         Console.WriteLine("=== D'Artagnan 테스트 클라이언트 ===");
         Console.WriteLine("명령어:");
-        Console.WriteLine("  connect [host] [port] - 서버 연결 (기본: 54.180.85.77)");
-        Console.WriteLine("  join [nickname] - 게임 참가");
-        Console.WriteLine("  start - 게임 시작");
-        Console.WriteLine("  dir [i] - 플레이어 이동 방향 변경");
-        Console.WriteLine("  speed [runningSpeed] [walkingSpeed] - 플레이어 속도 변경");
-        Console.WriteLine("  run [true/false] - 달리기 상태 변경");
-        Console.WriteLine("  shoot [targetId] - 플레이어 공격");
-        Console.WriteLine("  accuracy [state] - 정확도 상태 변경 (-1: 감소, 0: 유지, 1: 증가)");
-        Console.WriteLine("  leave - 게임 나가기");
-        Console.WriteLine("  quit - 종료");
+        Console.WriteLine("  c/connect [0/1] - 서버 연결 (0: localhost, 1: 54.180.85.77, 기본: 0)");
+        Console.WriteLine("  j/join [nickname] - 게임 참가");
+        Console.WriteLine("  s/start - 게임 시작");
+        Console.WriteLine("  d/dir [i] - 플레이어 이동 방향 변경");
+        Console.WriteLine("  sp/speed [runningSpeed] [walkingSpeed] - 플레이어 속도 변경");
+        Console.WriteLine("  r/run [true/false] - 달리기 상태 변경");
+        Console.WriteLine("  sh/shoot [targetId] - 플레이어 공격");
+        Console.WriteLine("  a/accuracy [state] - 정확도 상태 변경 (-1: 감소, 0: 유지, 1: 증가)");
+        Console.WriteLine("  l/leave - 게임 나가기");
+        Console.WriteLine("  q/quit - 종료");
         Console.WriteLine("=====================================");
 
         var receiveTask = Task.Run(ReceiveLoop);
@@ -79,21 +79,26 @@ internal class Program
         {
             switch (command)
             {
+                case "c":
                 case "connect":
-                    var host = parts.Length > 1 ? parts[1] : "localhost";
-                    var port = parts.Length > 2 ? int.Parse(parts[2]) : 7777;
+                    var serverChoice = parts.Length > 1 ? int.Parse(parts[1]) : 0;
+                    var host = serverChoice == 1 ? "54.180.85.77" : "localhost";
+                    var port = 7777;
                     await ConnectToServer(host, port);
                     break;
 
+                case "j":
                 case "join":
                     var nickname = parts.Length > 1 ? parts[1] : "TestPlayer";
                     await JoinGame(nickname);
                     break;
                     
+                case "s":
                 case "start":
                     await StartGame();
                     break;
 
+                case "d":
                 case "dir":
                     if (parts.Length >= 2)
                     {
@@ -102,10 +107,11 @@ internal class Program
                     }
                     else
                     {
-                        Console.WriteLine("사용법: dir [i]");
+                        Console.WriteLine("사용법: d/dir [i]");
                     }
                     break;
                 
+                case "sp":
                 case "speed":
                     if (parts.Length >= 3)
                     {
@@ -114,11 +120,12 @@ internal class Program
                     }
                     else
                     {
-                        Console.WriteLine("사용법: speed [runningSpeed] [walkingSpeed]");
+                        Console.WriteLine("사용법: sp/speed [runningSpeed] [walkingSpeed]");
                     }
 
                     break;
 
+                case "r":
                 case "run":
                     if (parts.Length >= 2)
                     {
@@ -128,10 +135,11 @@ internal class Program
                     }
                     else
                     {
-                        Console.WriteLine("사용법: run [true/false]");
+                        Console.WriteLine("사용법: r/run [true/false]");
                     }
                     break;
 
+                case "sh":
                 case "shoot":
                     if (parts.Length >= 2)
                     {
@@ -140,10 +148,11 @@ internal class Program
                     }
                     else
                     {
-                        Console.WriteLine("사용법: shoot [targetId]");
+                        Console.WriteLine("사용법: sh/shoot [targetId]");
                     }
                     break;
 
+                case "a":
                 case "accuracy":
                     if (parts.Length >= 2)
                     {
@@ -152,14 +161,16 @@ internal class Program
                     }
                     else
                     {
-                        Console.WriteLine("사용법: accuracy [state] (-1: 감소, 0: 유지, 1: 증가)");
+                        Console.WriteLine("사용법: a/accuracy [state] (-1: 감소, 0: 유지, 1: 증가)");
                     }
                     break;
 
+                case "l":
                 case "leave":
                     await SendLeave();
                     break;
 
+                case "q":
                 case "quit":
                     await Disconnect();
                     isRunning = false;
@@ -196,6 +207,9 @@ internal class Program
             isConnected = true;
 
             Console.WriteLine($"서버에 연결되었습니다: {host}:{port}");
+            
+            // 연결 성공 후 자동으로 게임 참가
+            await JoinGame("TestPlayer");
         }
         catch (Exception ex)
         {
