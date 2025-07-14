@@ -303,7 +303,7 @@ internal class Program
 
         try
         {
-            await NetworkUtils.SendPacketAsync(stream, new setAccuracyState
+            await NetworkUtils.SendPacketAsync(stream, new SetAccuracyState
             {
                 AccuracyState = state
             });

@@ -58,5 +58,16 @@ namespace Assets.HeroEditor4D.Common.Scripts.Collections
                 .Union(Supplies)
                 .Union(Makeup).Union(Mask).Union(Earrings).ToList();
         }
+        
+        public ItemSprite GunSpriteByAccuracy(int accuracy)
+        {
+            return accuracy switch
+            {
+                <= 25 => Firearm1H.Single(s => s.Name == "Anaconda"),
+                <= 50 => Firearm1H.Single(s => s.Name == "DesertEagle"),
+                <= 75 => Firearm2H.Single(s => s.Name == "AK47"),
+                _ => Firearm2H.Single(s => s.Name == "Widowmaker")
+            };
+        }
     }
 }

@@ -24,8 +24,9 @@ namespace dArtagnan.Shared
     [Union(17, typeof(PlayerBalanceUpdateBroadcast))]
     [Union(18, typeof(PingPacket))]
     [Union(19, typeof(PongPacket))]
-    [Union(20, typeof(setAccuracyState))]
+    [Union(20, typeof(SetAccuracyState))]
     [Union(21, typeof(PlayerAccuracyStateBroadcast))]
+    [Union(22, typeof(YourAccuracyAndPool))]
     public interface IPacket
     {
     }
@@ -257,7 +258,7 @@ namespace dArtagnan.Shared
     /// 플레이어의 정확도 증감 상태를 변경하겠다고 요청.
     /// </summary>
     [MessagePackObject]
-    public struct setAccuracyState : IPacket
+    public struct SetAccuracyState : IPacket
     {
         [Key(0)] public int AccuracyState; // -1: 정확도 감소, 0: 정확도 유지, 1: 정확도 증가
     }
@@ -271,6 +272,17 @@ namespace dArtagnan.Shared
     {
         [Key(0)] public int PlayerId;
         [Key(1)] public int AccuracyState; // -1: 정확도 감소, 0: 정확도 유지, 1: 정확도 증가
+    }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// 너의 정확도는 YourAccuracy이다. 등장가능한 정확도 풀은 AccuracyPool과 같다.
+    /// </summary>
+    [MessagePackObject]
+    public struct YourAccuracyAndPool : IPacket
+    {
+        [Key(0)] public int YourAccuracy;
+        [Key(1)] public List<int> AccuracyPool;
     }
 
     [MessagePackObject]

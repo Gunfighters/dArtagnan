@@ -4,8 +4,8 @@ using UnityEngine;
 public class CanvasManager : MonoBehaviour
 {
     public static CanvasManager Instance { get; private set; }
-    public Canvas HUD;
-    public Canvas Roulette;
+    [SerializeField] private Canvas HUD;
+    [SerializeField] private Canvas Roulette;
 
     private void Awake()
     {

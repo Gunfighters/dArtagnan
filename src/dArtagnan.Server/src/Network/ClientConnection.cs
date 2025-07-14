@@ -115,7 +115,7 @@ public class ClientConnection : IDisposable
                     await PacketHandlers.HandlePing(ping, this, gameManager);
                     break;
                     
-                case setAccuracyState accuracyState:
+                case SetAccuracyState accuracyState:
                     await PacketHandlers.HandleSetAccuracyState(accuracyState, this, gameManager);
                     break;
                     

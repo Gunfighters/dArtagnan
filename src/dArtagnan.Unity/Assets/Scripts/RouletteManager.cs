@@ -1,17 +1,29 @@
 using System.Collections.Generic;
 using System.Linq;
 using Assets.HeroEditor4D.Common.Scripts.Collections;
-using Assets.HeroEditor4D.Common.Scripts.Data;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class RouletteManager : MonoBehaviour
 {
-    public List<int> accuracyPool;
-    public List<RouletteSlot> slots;
-    public SpriteCollection GunCollection;
+    public static RouletteManager Instance;
+    [SerializeField] private GameObject roulettePrefab;
+    [SerializeField] private List<int> accuracyPool;
+    [SerializeField] private List<RouletteSlot> slots;
+    [SerializeField] private SpriteCollection GunCollection;
+    [SerializeField] private int target;
+    [SerializeField] private AnimationCurve animationCurve;
+    [SerializeField] private bool Spinning;
+    [SerializeField] private float slotPadding;
+    private float SlotAngle => 360f / slots.Count;
+    private float HalfSlotAngle => SlotAngle / 2;
+    private float HalfSlotAngleWithPadding => HalfSlotAngle * (1 - slotPadding);
+    [SerializeField] private int rotateSpeed;
+    [SerializeField] private float spinDuration;
 
     private void Awake()
     {
+        Instance = this;
         slots = GetComponentsInChildren<RouletteSlot>().ToList();
     }
 
@@ -26,19 +38,52 @@ public class RouletteManager : MonoBehaviour
         accuracyPool = pool;
         for (var i = 0; i < accuracyPool.Count; i++)
         {
-            slots[i].SetItemImage(GunSpriteByAccuracy(accuracyPool[i]));
+            slots[i].SetItem(GunCollection.GunSpriteByAccuracy(accuracyPool[i]));
             slots[i].SetSlotText($"{accuracyPool[i]}%");
         }
     }
 
-    private ItemSprite GunSpriteByAccuracy(int accuracy)
+    public void SetTarget(int targetAccuracy)
     {
-        return accuracy switch
+        target = targetAccuracy;
+    }
+
+    public void Spin()
+    {
+        if (Spinning) return;
+        var selectedIndex = accuracyPool.IndexOf(target);
+        if (selectedIndex == -1)
         {
-            <= 25 => GunCollection.Firearm1H.Single(s => s.Name == "Anaconda"),
-            <= 50 => GunCollection.Firearm1H.Single(s => s.Name == "DesertEagle"),
-            <= 75 => GunCollection.Firearm2H.Single(s => s.Name == "AK47"),
-            _ => GunCollection.Firearm2H.Single(s => s.Name == "Widowmaker")
-        };
+            Debug.LogError($"Not found among the slots: {target}");
+            return;
+        }
+        var angle = SlotAngle * selectedIndex;
+        var leftOffset = (angle - HalfSlotAngleWithPadding) % 360;
+        var rightOffset = (angle + HalfSlotAngleWithPadding) % 360;
+        var randomAngle = Random.Range(leftOffset, rightOffset);
+        var targetAngle = randomAngle + 360 * spinDuration * rotateSpeed;
+        Spinning = true;
+        OnSpin(targetAngle).Forget();
+    }
+
+    private async UniTask OnSpin(float end)
+    {
+        float current = 0;
+        float progress = 0;
+        while (progress < 1)
+        {
+            current += Time.deltaTime;
+            progress = current / spinDuration;
+            var z = Mathf.Lerp(0, end, RouletteProgressFormula(progress));
+            roulettePrefab.transform.rotation = Quaternion.Euler(0, 0, z);
+            await UniTask.WaitForEndOfFrame();
+        }
+
+        Spinning = false;
+    }
+
+    public static float RouletteProgressFormula(float progress)
+    {
+        return 1 - Mathf.Pow(1 - progress, 4); // y = 1 - (1 - x) ^ 4
     }
 }

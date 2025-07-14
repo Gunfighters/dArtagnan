@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Assets.HeroEditor4D.Common.Scripts.CharacterScripts;
 using Assets.HeroEditor4D.Common.Scripts.Collections;
+using Assets.HeroEditor4D.Common.Scripts.Data;
 using Assets.HeroEditor4D.Common.Scripts.Enums;
+using Assets.HeroEditor4D.InventorySystem.Scripts.Data;
 using UnityEngine;
 
 public class ModelManager : MonoBehaviour
@@ -191,6 +193,12 @@ public class ModelManager : MonoBehaviour
         }
         ShotSoundClip = firearmParams.ShotSound;
     }
+
+    public void EquipGun(ItemSprite item)
+    {
+        actualModel.Equip(item, EquipmentPart.Firearm1H);
+    }
+    
     static Vector3 SnapToCardinalDirection(Vector3 dir)
     {
         if (dir == Vector3.zero) return Vector3.zero;

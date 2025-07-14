@@ -229,10 +229,17 @@ public class GameManager : MonoBehaviour
     public void OnPlayerAccuracyStateBroadcast(PlayerAccuracyStateBroadcast accuracyStateBroadcast)
     {
         var player = players.GetValueOrDefault(accuracyStateBroadcast.PlayerId);
-        if (player != null)
+        if (player)
         {
             player.SetAccuracyState(accuracyStateBroadcast.AccuracyState);
         }
+    }
+
+    public void OnYourAccuracyAndPool(YourAccuracyAndPool yourAccuracyAndPool)
+    {
+        RouletteManager.Instance.SetAccuracyPool(yourAccuracyAndPool.AccuracyPool);
+        RouletteManager.Instance.SetTarget(yourAccuracyAndPool.YourAccuracy);
+        CanvasManager.Instance.Show(GameScreen.Roulette);
     }
 
     public void UpdateVelocity(Vector2 newDirection, bool running)

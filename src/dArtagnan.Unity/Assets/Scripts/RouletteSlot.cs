@@ -9,9 +9,9 @@ public class RouletteSlot : MonoBehaviour
     public Image ItemImage;
     public TextMeshProUGUI SlotText;
 
-    public void SetItemImage(ItemSprite itemSprite)
+    public void SetItem(ItemSprite item)
     {
-        ItemImage.sprite = itemSprite.Sprites.Single(s => s.name == "Side");
+        ItemImage.sprite = item.Sprites.Single(s => s.name == "Side");
     }
 
     public void SetSlotText(string text)

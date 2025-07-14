@@ -10,7 +10,7 @@ public static class PacketHandlers
         await client.SendPacketAsync(new PongPacket());
     }
 
-    public static async Task HandleSetAccuracyState(setAccuracyState accuracyStatePacket, ClientConnection client, GameManager gameManager)
+    public static async Task HandleSetAccuracyState(SetAccuracyState accuracyStatePacket, ClientConnection client, GameManager gameManager)
     {
         var player = gameManager.GetPlayerById(client.Id);
         if (player == null)

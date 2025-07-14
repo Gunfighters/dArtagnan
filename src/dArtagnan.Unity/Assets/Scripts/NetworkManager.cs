@@ -94,7 +94,7 @@ public class NetworkManager : MonoBehaviour
     
     public void SendAccuracyState(int accuracyState)
     {
-        Send(new setAccuracyState { AccuracyState = accuracyState });
+        Send(new SetAccuracyState { AccuracyState = accuracyState });
     }
 
     private void HandlePacket(IPacket packet)
