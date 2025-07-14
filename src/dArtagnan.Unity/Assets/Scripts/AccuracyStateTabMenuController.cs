@@ -16,6 +16,11 @@ public class AccuracyStateTabMenuController : MonoBehaviour
     public Color highlightColor;
     public Color normalColor;
 
+    private void Start()
+    {
+        Switch(0);
+    }
+
     public void Switch(int newState)
     {
         var selected = newState switch
