@@ -40,7 +40,7 @@ public class GameManager : MonoBehaviour
     {
         if (Time.time - lastMovementDataUpdateTimestmap >= 1f && LocalPlayer?.Alive is true)
         {
-            NetworkManager.Instance.SendPlayerMovementData(LocalPlayer.Position, LocalPlayer.CurrentDirection, LocalPlayer.Running);
+            NetworkManager.Instance.SendPlayerMovementData(LocalPlayer.Position, LocalPlayer.CurrentDirection, LocalPlayer.Running, LocalPlayer.Speed);
             lastMovementDataUpdateTimestmap = Time.time;
         }
     }
@@ -132,7 +132,7 @@ public class GameManager : MonoBehaviour
         if (!player.Alive)
         {
             ScheduleDeactivation(player);
-            if (player == mainCamera.player)
+            if (player.transform == mainCamera.target)
             {
                 var anotherPlayer = players.Values.FirstOrDefault(p => p.Alive);
                 SetCameraFollow(anotherPlayer);
@@ -230,7 +230,8 @@ public class GameManager : MonoBehaviour
         if (!LocalPlayer.Alive) return;
         LocalPlayer.SetDirection(newDirection);
         LocalPlayer.SetRunning(running);
-        NetworkManager.Instance.SendPlayerMovementData(LocalPlayer.Position, LocalPlayer.CurrentDirection, running);
+        LocalPlayer.SetSpeed(running ? LocalPlayer.runningSpeed : LocalPlayer.walkingSpeed);
+        NetworkManager.Instance.SendPlayerMovementData(LocalPlayer.Position, LocalPlayer.CurrentDirection, running, LocalPlayer.Speed);
         lastMovementDataUpdateTimestmap = Time.time;
     }
 
@@ -242,7 +243,7 @@ public class GameManager : MonoBehaviour
 
     private void SetCameraFollow(Player p)
     {
-        mainCamera.player = p;
+        mainCamera.Follow(p.transform);
         UIManager.Instance.ToggleSpectate(p != LocalPlayer);
     }
 

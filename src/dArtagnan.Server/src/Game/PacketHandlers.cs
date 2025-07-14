@@ -91,8 +91,8 @@ public static class PacketHandlers
         if (player == null) return;
         var directionIndex = movementData.Direction;
         var directionVector = DirectionHelper.IntToDirection(directionIndex);
-        var newSpeed = Player.GetSpeedByRunning(movementData.Running);
-        var newPosition = movementData.Position;
+        var newSpeed = movementData.MovementData.Speed;
+        var newPosition = movementData.MovementData.Position;
         player.UpdateMovementData(newPosition, directionIndex, newSpeed);
         Console.WriteLine($"[이동] 플레이어 {player.Id} 방향: {directionVector}, 위치: ({player.MovementData.Position}) 속도: ({player.MovementData.Speed:F2})");
 

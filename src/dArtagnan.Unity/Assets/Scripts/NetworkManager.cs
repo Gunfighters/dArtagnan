@@ -67,12 +67,12 @@ public class NetworkManager : MonoBehaviour
         Send(new PlayerJoinRequest());
     }
 
-    public void SendPlayerMovementData(Vector3 position, Vector3 direction, bool running)
+    public void SendPlayerMovementData(Vector3 position, Vector3 direction, bool running, float speed)
     {
         Send(new PlayerMovementDataFromClient
         {
             Direction = DirectionHelperClient.DirectionToInt(direction),
-            Position = new (position.x, position.y),
+            MovementData = { Direction = DirectionHelperClient.DirectionToInt(direction), Position = VecConverter.ToSystemVec(position), Speed = speed },
             Running = running
         });
     }

@@ -39,6 +39,8 @@ public class Player : MonoBehaviour
     public Vector2 Position => rb.position;
     private Vector2 faceDirection;
     private bool moving;
+    public float runningSpeed;
+    public float walkingSpeed;
 
     // ID에 따른 플레이어 색깔 (어두운 배경에서 잘 보이도록 조정)
     private static readonly Color[] PlayerColors = {
@@ -194,8 +196,13 @@ public class Player : MonoBehaviour
     public void SetRunning(bool running)
     {
         Running = running;
-        Speed = running ? Constants.RUNNING_SPEED : Constants.WALKING_SPEED;
     }
+
+    public void SetSpeed(float speed)
+    {
+        Speed = speed;
+    }
+    
     public void UpdateMovementDataForReckoning(Vector2 direction, Vector2 position, float speed)
     {
         SetDirection(direction.normalized);

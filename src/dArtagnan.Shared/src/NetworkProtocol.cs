@@ -95,7 +95,8 @@ namespace dArtagnan.Shared
     public struct PlayerMovementDataFromClient : IPacket
     {
         [Key(0)] public int Direction;
-        [Key(1)] public Vector2 Position;
+        // [Key(1)] public Vector2 Position;
+        [Key(1)] public MovementData MovementData;
         [Key(2)] public bool Running;
     }
 
