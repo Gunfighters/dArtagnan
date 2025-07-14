@@ -12,7 +12,6 @@ public class RouletteManager : MonoBehaviour
     [SerializeField] private List<RouletteSlot> slots;
     [SerializeField] private SpriteCollection GunCollection;
     [SerializeField] private int target;
-    [SerializeField] private AnimationCurve animationCurve;
     [SerializeField] private bool Spinning;
     [SerializeField] private float slotPadding;
     private float SlotAngle => 360f / slots.Count;

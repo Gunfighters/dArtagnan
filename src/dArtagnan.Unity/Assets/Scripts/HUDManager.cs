@@ -1,4 +1,5 @@
 using System.Collections;
+using Assets.HeroEditor4D.Common.Scripts.Common;
 using dArtagnan.Shared;
 using TMPro;
 using UnityEngine;
@@ -12,9 +13,11 @@ public class HUDManager : MonoBehaviour
     public TextMeshProUGUI gameStartSplash;
     public TextMeshProUGUI roundBoard;
     public TextMeshProUGUI roundSplash;
+    public AccuracyStateTabMenuController accuracyStateTabMenuController;
     public GameObject spectatingText;
     public MovementJoystick movementJoystick;
-    public ShootJoystickController ShootJoystickController;
+    public ShootJoystickController shootJoystickController;
+    public Canvas onlyWhenLocalPlayerAlive;
     private Vector2 _lastDirection;
     private bool _lastRunning;
     public float gameStartSplashDuration;
@@ -80,9 +83,8 @@ public class HUDManager : MonoBehaviour
 
     public void OnLocalPlayerActivation(Player localPlayer)
     {
-        movementJoystick.gameObject.SetActive(true);
-        ShootJoystickController.LocalPlayer = localPlayer;
-        ShootJoystickController.gameObject.SetActive(true);
+        shootJoystickController.LocalPlayer = localPlayer;
+        onlyWhenLocalPlayerAlive.enabled = true;
     }
     
     public void OnNewHost(bool youAreHost)
@@ -102,12 +104,14 @@ public class HUDManager : MonoBehaviour
         gameStartButton.gameObject.SetActive(GameManager.Instance.LocalPlayer == GameManager.Instance.Host);
         roundBoard.gameObject.SetActive(false);
         roundSplash.gameObject.SetActive(false);
+        onlyWhenLocalPlayerAlive.enabled = true;
     }
 
     public void SetupForGameState(GameInPlayingFromServer playing)
     {
         gameStartButton.gameObject.SetActive(false);
-        roundBoard.text = $"Round {playing.Round} / 4";
+        accuracyStateTabMenuController.gameObject.SetActive(true);
+        roundBoard.text = $"Round #{playing.Round}";
         if (playing.Round == 1)
         {
             gameStartSplash.gameObject.SetActive(true);
@@ -123,7 +127,7 @@ public class HUDManager : MonoBehaviour
 
     public Vector2 ShootJoystickVector()
     {
-        return ShootJoystickController.Direction;
+        return shootJoystickController.Direction;
     }
 
     private void ScheduleDisappear(GameObject obj, float delay)
@@ -140,5 +144,6 @@ public class HUDManager : MonoBehaviour
     public void ToggleSpectate(bool toggle)
     {
         spectatingText.gameObject.SetActive(toggle);
+        onlyWhenLocalPlayerAlive.enabled = !toggle;
     }
 }

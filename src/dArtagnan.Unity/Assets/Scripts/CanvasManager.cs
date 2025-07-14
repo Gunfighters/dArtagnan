@@ -17,10 +17,10 @@ public class CanvasManager : MonoBehaviour
         switch (screen)
         {
             case GameScreen.HUD:
-                HUD.gameObject.SetActive(true);
+                HUD.enabled = true;
                 break;
             case GameScreen.Roulette:
-                Roulette.gameObject.SetActive(true);
+                Roulette.enabled = true;
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(screen), screen, null);
@@ -32,10 +32,10 @@ public class CanvasManager : MonoBehaviour
         switch (screen)
         {
             case GameScreen.HUD:
-                HUD.gameObject.SetActive(false);
+                HUD.enabled = false;
                 break;
             case GameScreen.Roulette:
-                Roulette.gameObject.SetActive(false);
+                Roulette.enabled = false;
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(screen), screen, null);

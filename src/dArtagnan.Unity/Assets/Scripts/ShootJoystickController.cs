@@ -22,6 +22,7 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
 
     private void Update()
     {
+        if (!LocalPlayer) return;
         // shootButton.interactable = controlledPlayerCooldown <= 0;
         HandleOutline.color = Shootable ? LocalPlayer.TargetPlayer is null ? orange : Color.red : Color.grey;
         shootingJoystick.enabled = Shootable;
