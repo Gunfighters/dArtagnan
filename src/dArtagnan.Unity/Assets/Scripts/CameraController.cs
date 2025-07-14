@@ -5,25 +5,25 @@ public class CameraController : MonoBehaviour
 {
     public Transform target;
     public SpriteRenderer groundRenderer;
-    private Vector3 offset = new(0, 0, -10);
-    private Camera cam;
-    [SerializeField] private float cameraMoveSpeed;
-    private float height;
-    private float width;
-    private Vector2 mapSize;
-    private Vector2 center;
+    public Vector3 offset = new(0, 0, -10);
+    public Camera cam;
+    [SerializeField] public float cameraMoveSpeed;
+    public float height;
+    public float width;
+    public Vector2 mapSize;
+    public Vector2 center;
 
     public void Follow(Transform newTarget)
     {
         target = newTarget;
     }
 
-    private void Awake()
+    private void Start()
     {
         cam = GetComponent<Camera>();
         mapSize = groundRenderer.bounds.size / 2;
         height = cam.orthographicSize;
-        width = height * Screen.width / Screen.height;
+        width = height * cam.aspect;
     }
 
     private void Update()
