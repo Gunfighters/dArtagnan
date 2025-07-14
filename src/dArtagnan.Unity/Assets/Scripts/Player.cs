@@ -42,6 +42,8 @@ public class Player : MonoBehaviour
     public int AccuracyState = 0;     // 정확도 상태: -1(감소), 0(유지), 1(증가)
     private float accuracyTimer = 0f;    // 정확도 업데이트를 위한 타이머
     private const float ACCURACY_UPDATE_INTERVAL = 1.0f; // 정확도 업데이트 간격 (1초)
+    public float runningSpeed;
+    public float walkingSpeed;
 
     private static readonly Color[] PlayerColors = {
         new(1f, 0.3f, 0.3f),   // 밝은 빨강 - ID 1
@@ -229,8 +231,13 @@ public class Player : MonoBehaviour
     public void SetRunning(bool running)
     {
         Running = running;
-        Speed = running ? Constants.RUNNING_SPEED : Constants.WALKING_SPEED;
     }
+
+    public void SetSpeed(float speed)
+    {
+        Speed = speed;
+    }
+    
     public void UpdateMovementDataForReckoning(Vector2 direction, Vector2 position, float speed)
     {
         SetDirection(direction.normalized);

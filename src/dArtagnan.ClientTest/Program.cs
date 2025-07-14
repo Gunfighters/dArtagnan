@@ -12,7 +12,9 @@ internal class Program
     private static bool isConnected = false;
     private static bool isRunning = true;
     private static Vector2 position;
-    private static float speed => isRunning ? 160f : 40f;
+    private static float speed => isRunning ? runningSpeed : walkingSpeed;
+    private static float runningSpeed = 4;
+    private static float walkingSpeed = 2;
     private static int direction;
     private static Stopwatch stopwatch = new();
 
@@ -26,9 +28,9 @@ internal class Program
     {
         try
         {
-            var playerDirection = new PlayerMovementDataFromClient { Direction = direction, Position = position, Running = isRunning };
+            var playerDirection = new PlayerMovementDataFromClient { Direction = direction, MovementData = { Direction = direction, Position = position, Speed = speed}, Running = isRunning };
             await NetworkUtils.SendPacketAsync(stream, playerDirection);
-            Console.WriteLine($"이동 데이터 패킷 전송: 방향 {playerDirection.Direction}, 위치 {playerDirection.Position} 달리기 : {isRunning}");
+            Console.WriteLine($"이동 데이터 패킷 전송: 방향 {playerDirection.Direction}, 위치 {playerDirection.MovementData.Position} 속도: {playerDirection.MovementData.Speed} 달리기 : {isRunning}");
         }
         catch (Exception ex)
         {
@@ -44,6 +46,7 @@ internal class Program
         Console.WriteLine("  join [nickname] - 게임 참가");
         Console.WriteLine("  start - 게임 시작");
         Console.WriteLine("  dir [i] - 플레이어 이동 방향 변경");
+        Console.WriteLine("  speed [runningSpeed] [walkingSpeed] - 플레이어 속도 변경");
         Console.WriteLine("  run [true/false] - 달리기 상태 변경");
         Console.WriteLine("  shoot [targetId] - 플레이어 공격");
         Console.WriteLine("  accuracy [state] - 정확도 상태 변경 (-1: 감소, 0: 유지, 1: 증가)");
@@ -102,12 +105,26 @@ internal class Program
                         Console.WriteLine("사용법: dir [i]");
                     }
                     break;
+                
+                case "speed":
+                    if (parts.Length >= 3)
+                    {
+                        runningSpeed = float.Parse(parts[1]);
+                        walkingSpeed = float.Parse(parts[2]);
+                    }
+                    else
+                    {
+                        Console.WriteLine("사용법: speed [runningSpeed] [walkingSpeed]");
+                    }
+
+                    break;
 
                 case "run":
                     if (parts.Length >= 2)
                     {
                         isRunning = bool.Parse(parts[1]);
-                        await SendRunning(isRunning);
+                        Console.WriteLine($"달리기: {isRunning}");
+                        // await SendRunning(isRunning);
                     }
                     else
                     {

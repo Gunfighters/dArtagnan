@@ -42,7 +42,7 @@ namespace dArtagnan.Shared
         public const float RUNNING_SPEED = 160f;
         public const int MIN_ACCURACY = 1;
         public const int MAX_ACCURACY = 100;
-        public const float DEFAULT_RANGE = 600f;
-        public const float SPAWN_RADIUS = 100.0f;
+        public const float DEFAULT_RANGE = 300f;
+        public const float SPAWN_RADIUS = 1.0f;
     }
 } 

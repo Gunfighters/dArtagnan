@@ -62,15 +62,15 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
+    x: 0.48128656
     y: 0
-    width: 1
+    width: 0.0374269
     height: 1
-  near clip plane: 0.3
-  far clip plane: 600
+  near clip plane: -1000
+  far clip plane: 1000
   field of view: 160
   orthographic: 1
-  orthographic size: 400
+  orthographic size: 3
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
@@ -150,10 +150,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6bbef79979c7443baad80f7621059c70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 0}
-  cameraMoveSpeed: 40
-  cameraPosition: {x: 0, y: 0, z: -10}
-  center: {x: 0, y: 0}
-  mapSize: {x: 768, y: 512}
-  height: 0
-  width: 0
+  target: {fileID: 0}
+  smoothSpeed: 5
+  followOffset: {x: 0, y: 0}
+  margin: {x: 0.5, y: 0.5}
+  groundBounds: {fileID: 0}
+  clampToBounds: 1
