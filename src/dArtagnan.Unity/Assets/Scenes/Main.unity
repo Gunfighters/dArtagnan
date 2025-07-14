@@ -319,7 +319,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -1565456284384083479, guid: fca824542389e4c888883be68552e932, type: 3}
       propertyPath: useCustomHost
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1396769493189902549, guid: fca824542389e4c888883be68552e932, type: 3}
       propertyPath: Field
@@ -652,18 +652,6 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1696559962070333282, guid: d776cdaa85a11404aa32dc2834ddc861, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1696559962070333282, guid: d776cdaa85a11404aa32dc2834ddc861, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1696559962070333282, guid: d776cdaa85a11404aa32dc2834ddc861, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1696559962070333282, guid: d776cdaa85a11404aa32dc2834ddc861, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -675,30 +663,6 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 591329191}
-    - target: {fileID: 4616405010655778080, guid: d776cdaa85a11404aa32dc2834ddc861, type: 3}
-      propertyPath: m_RenderMode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4616405010655778080, guid: d776cdaa85a11404aa32dc2834ddc861, type: 3}
-      propertyPath: m_UpdateRectTransformForStandalone
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6022219985323653100, guid: d776cdaa85a11404aa32dc2834ddc861, type: 3}
-      propertyPath: m_PresetInfoIsWorld
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6022219985323653100, guid: d776cdaa85a11404aa32dc2834ddc861, type: 3}
-      propertyPath: m_MatchWidthOrHeight
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6022219985323653100, guid: d776cdaa85a11404aa32dc2834ddc861, type: 3}
-      propertyPath: m_ReferenceResolution.x
-      value: 1920
-      objectReference: {fileID: 0}
-    - target: {fileID: 6022219985323653100, guid: d776cdaa85a11404aa32dc2834ddc861, type: 3}
-      propertyPath: m_ReferenceResolution.y
-      value: 1080
-      objectReference: {fileID: 0}
     - target: {fileID: 8125310600041508904, guid: d776cdaa85a11404aa32dc2834ddc861, type: 3}
       propertyPath: m_LocalPosition.x
       value: 39.1
