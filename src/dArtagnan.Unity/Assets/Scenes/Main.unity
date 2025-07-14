@@ -319,7 +319,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -1565456284384083479, guid: fca824542389e4c888883be68552e932, type: 3}
       propertyPath: useCustomHost
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1396769493189902549, guid: fca824542389e4c888883be68552e932, type: 3}
       propertyPath: Field
