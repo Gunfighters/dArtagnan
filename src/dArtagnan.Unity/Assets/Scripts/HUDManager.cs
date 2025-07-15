@@ -1,5 +1,6 @@
 using System.Collections;
 using Assets.HeroEditor4D.Common.Scripts.Common;
+using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using TMPro;
 using UnityEngine;
@@ -106,9 +107,10 @@ public class HUDManager : MonoBehaviour
 
     public void AnnounceWinner(Player winner)
     {
+        Debug.Log($"Announcing winner: {winner.Nickname}");
         winnerAnnouncement.text = $"{winner.Nickname} HAS WON!";
-        winnerAnnouncement.gameObject.SetActive(true);
-        ScheduleDisappear(winnerAnnouncement.gameObject, winnerAnnouncementDuration);
+        winnerAnnouncement.transform.parent.gameObject.SetActive(true);
+        DelayDeactivation(winnerAnnouncement.transform.parent.gameObject, winnerAnnouncementDuration).Forget();
     }
 
     public void SetupForGameState(GameInWaitingFromServer waiting)
@@ -128,13 +130,13 @@ public class HUDManager : MonoBehaviour
         if (playing.Round == 1)
         {
             gameStartSplash.gameObject.SetActive(true);
-            ScheduleDisappear(gameStartSplash.gameObject, gameStartSplashDuration);
+            DelayDeactivation(gameStartSplash.gameObject, gameStartSplashDuration).Forget();
         }
         else
         {
             roundSplash.text = $"Round #{playing.Round}";
             roundSplash.gameObject.SetActive(true);
-            ScheduleDisappear(roundSplash.gameObject, 1.5f);
+            DelayDeactivation(roundSplash.gameObject, 1.5f).Forget();
         }
     }
 
@@ -143,14 +145,9 @@ public class HUDManager : MonoBehaviour
         return shootJoystickController.Direction;
     }
 
-    private void ScheduleDisappear(GameObject obj, float delay)
+    private async UniTask DelayDeactivation(GameObject obj, float delay)
     {
-        StartCoroutine(Delay(obj, delay));
-    }
-
-    IEnumerator Delay(GameObject obj, float delay)
-    {
-        yield return new WaitForSeconds(delay);
+        await UniTask.WaitForSeconds(delay);
         obj.SetActive(false);
     }
 

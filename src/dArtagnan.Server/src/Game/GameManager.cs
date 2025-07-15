@@ -13,7 +13,7 @@ public class GameManager
     public readonly ConcurrentDictionary<int, ClientConnection> Clients = new(); // 클라이언트 연결도 여기서 관리
     public Player? Host;
     public GameState CurrentGameState { get; private set; } = GameState.Waiting;
-    public Player? LastManStanding => Players.Values.SingleOrDefault(p => p.Alive);
+    public Player? LastManStanding => Players.Values.SingleOrDefault(p => !p.Bankrupt);
     public int Round = 0;
     public List<Player> Survivors => Players.Values.Where(p => p.Alive).ToList();
     public int MANDATORY_BET = 30;
@@ -235,6 +235,8 @@ public class GameManager
 
     private async Task AnnounceWinner()
     {
-        await BroadcastToAll(new WinnerBroadcast { PlayerId = LastManStanding?.Id ?? -1 });
+        var winner = LastManStanding?.Id;
+        Console.WriteLine($"{winner} has won!");
+        await BroadcastToAll(new WinnerBroadcast { PlayerId = winner ?? -1 });
     }
 }

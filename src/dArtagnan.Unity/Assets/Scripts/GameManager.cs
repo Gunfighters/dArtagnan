@@ -260,8 +260,13 @@ public class GameManager : MonoBehaviour
         NetworkManager.Instance.SendPlayerShooting(LocalPlayer!.TargetPlayer!.ID);
     }
 
-    private void SetCameraFollow(Player p)
+    private void SetCameraFollow([CanBeNull] Player p)
     {
+        if (p is null)
+        {
+            Debug.LogError($"Can't follow null player.");
+            return;
+        }
         mainCamera.Follow(p.transform);
         HUDManager.Instance.ToggleSpectate(p != LocalPlayer);
     }

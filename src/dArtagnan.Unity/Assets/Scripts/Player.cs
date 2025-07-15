@@ -95,6 +95,7 @@ public class Player : MonoBehaviour
         
         // ID에 따른 색깔 설정
         nicknameText.color = MyColor;
+        modelManager.SetColor(MyColor);
     }
 
     public void SetAlive(bool alive)

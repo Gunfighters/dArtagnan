@@ -32,7 +32,7 @@ public class ModelManager : MonoBehaviour
     private void Start()
     {
         InitializeTrajectory();
-        SetTransparent();
+        // SetTransparent();
         SetDirection(direction == Vector2.zero ? Vector2.down : direction);
         SetState(initialState);
         InitializeFirearmMuzzle();
@@ -53,7 +53,7 @@ public class ModelManager : MonoBehaviour
         Destroy(modelSilhouette.gameObject);
         actualModel = Instantiate(modelPrefab, transform).GetComponent<Character4D>();
         modelSilhouette = Instantiate(modelPrefab, transform).GetComponent<Character4D>();
-        SetTransparent();
+        // SetTransparent();
         SetDirection(direction == Vector2.zero ? Vector2.down : direction);
         SetState(initialState);
         InitializeFirearmMuzzle();
@@ -65,6 +65,11 @@ public class ModelManager : MonoBehaviour
         trajectory.enabled = false;
         trajectory.SetPosition(0, Vector2.zero);
         // trajectoryColorOriginal = trajectory.material.color;
+    }
+
+    public void SetColor(Color color)
+    {
+        actualModel.BodyColor = color;
     }
     
     void SetTransparent()
