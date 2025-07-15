@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using dArtagnan.Shared;
 using JetBrains.Annotations;
 using Cysharp.Threading.Tasks;
@@ -24,6 +25,7 @@ public class GameManager : MonoBehaviour
     [CanBeNull] public Player Host => players.GetValueOrDefault(hostId, null);
     private GameState gameState;
     private float lastMovementDataUpdateTimestmap;
+    private CancellationTokenSource _deactivationTaskCancellationTokenSource = new();
 
     private void Awake()
     {
@@ -94,7 +96,6 @@ public class GameManager : MonoBehaviour
         HUDManager.Instance.OnNewHost(localPlayerId == hostId);
     }
 
-
     public void OnPlayerJoinBroadcast(PlayerJoinBroadcast payload)
     {
         var info = payload.PlayerInfo;
@@ -132,7 +133,7 @@ public class GameManager : MonoBehaviour
         player.SetAlive(updatePlayerAlive.Alive);
         if (!player.Alive)
         {
-            ScheduleDeactivation(player);
+            ScheduleDeactivation(player).Forget();
             if (player.transform == mainCamera.target)
             {
                 var anotherPlayer = players.Values.FirstOrDefault(p => p.Alive);
@@ -141,15 +142,17 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void ScheduleDeactivation(Player p)
+    private async UniTask ScheduleDeactivation(Player p)
     {
-        StartCoroutine(DelayedDeactivate(p));
-    }
-
-    private IEnumerator DelayedDeactivate(Player p)
-    {
-        yield return new WaitForSeconds(1.5f);
-        p.gameObject.SetActive(false);
+        try
+        {
+            await UniTask.WaitForSeconds(1.5f, cancellationToken: _deactivationTaskCancellationTokenSource.Token);
+            p.gameObject.SetActive(false);
+        }
+        catch (OperationCanceledException)
+        {
+            Debug.Log("Deactivation of player cancelled.");
+        }
     }
 
     public void OnPlayerLeaveBroadcast(PlayerLeaveBroadcast leave)
@@ -175,6 +178,7 @@ public class GameManager : MonoBehaviour
 
     public void OnGamePlaying(GameInPlayingFromServer gamePlaying)
     {
+        CancelAllTasks();
         CanvasManager.Instance.Hide(GameScreen.Roulette);
         CanvasManager.Instance.Show(GameScreen.HUD);
         gameState = GameState.Playing;
@@ -192,7 +196,7 @@ public class GameManager : MonoBehaviour
 
     public void OnGameWaiting(GameInWaitingFromServer gameWaiting)
     {
-        StopAllCoroutines();
+        CancelAllTasks();
         gameState = GameState.Waiting;
         RemovePlayerAll();
         foreach (var info in gameWaiting.PlayersInfo)
@@ -203,6 +207,12 @@ public class GameManager : MonoBehaviour
         AudioManager.PlayForState(GameState.Waiting);
     }
 
+    private void CancelAllTasks()
+    {
+        _deactivationTaskCancellationTokenSource.Cancel();
+        _deactivationTaskCancellationTokenSource.Dispose();
+        _deactivationTaskCancellationTokenSource = new CancellationTokenSource();
+    }
     public void OnPlayerIsTargeting(PlayerIsTargetingBroadcast playerIsTargeting)
     {
         var aiming = players[playerIsTargeting.ShooterId];
@@ -238,10 +248,10 @@ public class GameManager : MonoBehaviour
 
     public void OnYourAccuracyAndPool(YourAccuracyAndPool yourAccuracyAndPool)
     {
+        CanvasManager.Instance.HideAll();
         RouletteManager.Instance.SetAccuracyPool(yourAccuracyAndPool.AccuracyPool);
         RouletteManager.Instance.SetTarget(yourAccuracyAndPool.YourAccuracy);
         CanvasManager.Instance.Show(GameScreen.Roulette);
-        CanvasManager.Instance.Hide(GameScreen.HUD);
     }
 
     public void UpdateVelocity(Vector2 newDirection, bool running, float speed)
@@ -278,5 +288,11 @@ public class GameManager : MonoBehaviour
             ReleasePlayerObject(p);
         }
         players.Clear();
+    }
+
+    private void OnDestroy()
+    {
+        _deactivationTaskCancellationTokenSource.Cancel();
+        _deactivationTaskCancellationTokenSource.Dispose();
     }
 }
