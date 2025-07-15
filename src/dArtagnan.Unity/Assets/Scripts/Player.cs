@@ -119,16 +119,13 @@ public class Player : MonoBehaviour
         {
             modelManager.Idle();
         }
+        else if (Running)
+        {
+            modelManager.Run();
+        }
         else
         {
-            if (Running)
-            {
-                modelManager.Run();
-            }
-            else
-            {
-                modelManager.Walk();
-            }
+            modelManager.Walk();
         }
     }
 
@@ -137,7 +134,7 @@ public class Player : MonoBehaviour
         modelManager.SetDirection(target.Position - rb.position);
         modelManager.Fire();
         modelManager.ShowTrajectory(target.transform);
-        modelManager.ScheduleHideTrajectory();
+        modelManager.ScheduleHideTrajectory().Forget();
     }
     
     public void SetAccuracy(int newAccuracy)

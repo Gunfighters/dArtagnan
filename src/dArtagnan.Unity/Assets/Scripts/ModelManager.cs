@@ -7,6 +7,7 @@ using Assets.HeroEditor4D.Common.Scripts.Collections;
 using Assets.HeroEditor4D.Common.Scripts.Data;
 using Assets.HeroEditor4D.Common.Scripts.Enums;
 using Assets.HeroEditor4D.InventorySystem.Scripts.Data;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class ModelManager : MonoBehaviour
@@ -136,14 +137,9 @@ public class ModelManager : MonoBehaviour
         trajectory.enabled = false;
     }
 
-    public void ScheduleHideTrajectory()
+    public async UniTask ScheduleHideTrajectory()
     {
-        StartCoroutine(HideTrajectoryAfterDuration());
-    }
-
-    IEnumerator HideTrajectoryAfterDuration()
-    {
-        yield return new WaitForSeconds(trajectoryDuration);
+        await UniTask.WaitForSeconds(trajectoryDuration);
         HideTrajectory();
     }
 
