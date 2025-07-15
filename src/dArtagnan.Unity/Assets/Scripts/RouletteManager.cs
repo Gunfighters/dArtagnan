@@ -12,7 +12,7 @@ public class RouletteManager : MonoBehaviour
     [SerializeField] private List<RouletteSlot> slots;
     [SerializeField] private SpriteCollection GunCollection;
     [SerializeField] private int target;
-    [SerializeField] private bool Spinning;
+    [SerializeField] private bool Spinned;
     [SerializeField] private float slotPadding;
     private float SlotAngle => 360f / slots.Count;
     private float HalfSlotAngle => SlotAngle / 2;
@@ -24,6 +24,7 @@ public class RouletteManager : MonoBehaviour
     {
         Instance = this;
         slots = GetComponentsInChildren<RouletteSlot>().ToList();
+        Spinned = false;
     }
 
     public void SetAccuracyPool(List<int> pool)
@@ -43,7 +44,7 @@ public class RouletteManager : MonoBehaviour
 
     public void Spin()
     {
-        if (Spinning) return;
+        if (Spinned) return;
         var selectedIndex = accuracyPool.IndexOf(target);
         if (selectedIndex == -1)
         {
@@ -55,7 +56,7 @@ public class RouletteManager : MonoBehaviour
         var rightOffset = (angle + HalfSlotAngleWithPadding) % 360;
         var randomAngle = Random.Range(leftOffset, rightOffset);
         var targetAngle = randomAngle + 360 * spinDuration * rotateSpeed;
-        Spinning = true;
+        Spinned = true;
         OnSpin(targetAngle).Forget();
     }
 
@@ -71,8 +72,6 @@ public class RouletteManager : MonoBehaviour
             roulettePrefab.transform.rotation = Quaternion.Euler(0, 0, z);
             await UniTask.WaitForEndOfFrame();
         }
-
-        Spinning = false;
         NetworkManager.Instance.SendRouletteDone();
     }
 

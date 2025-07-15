@@ -14,7 +14,7 @@ public static class PacketHandlers
         GameManager gameManager)
     {
         var p = gameManager.GetPlayerById(client.Id)!;
-        gameManager.rouletteDonePlayers.Add(p);
+        if (!gameManager.rouletteDonePlayers.Add(p)) return;
         if (gameManager.rouletteDonePlayers.Count >= gameManager.Players.Count)
         {
             await gameManager.StartRound(1);
