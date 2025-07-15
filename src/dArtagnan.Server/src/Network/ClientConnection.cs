@@ -118,6 +118,10 @@ public class ClientConnection : IDisposable
                 case SetAccuracyState accuracyState:
                     await PacketHandlers.HandleSetAccuracyState(accuracyState, this, gameManager);
                     break;
+                
+                case RouletteDone rouletteDone:
+                    await PacketHandlers.HandleRouletteDone(rouletteDone, this, gameManager);
+                    break;
                     
                 default:
                     Console.WriteLine($"[클라이언트 {Id}] 처리되지 않은 패킷 타입: {packet.GetType().Name}");

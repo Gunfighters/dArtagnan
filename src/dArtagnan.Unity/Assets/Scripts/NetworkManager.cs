@@ -97,6 +97,11 @@ public class NetworkManager : MonoBehaviour
         Send(new SetAccuracyState { AccuracyState = accuracyState });
     }
 
+    public void SendRouletteDone()
+    {
+        Send(new RouletteDone());
+    }
+
     private void HandlePacket(IPacket packet)
     {
         switch (packet)

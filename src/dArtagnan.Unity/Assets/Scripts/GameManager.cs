@@ -175,7 +175,8 @@ public class GameManager : MonoBehaviour
 
     public void OnGamePlaying(GameInPlayingFromServer gamePlaying)
     {
-        StopAllCoroutines();
+        CanvasManager.Instance.Hide(GameScreen.Roulette);
+        CanvasManager.Instance.Show(GameScreen.HUD);
         gameState = GameState.Playing;
         HUDManager.Instance.SetupForGameState(gamePlaying);
         AudioManager.PlayForState(GameState.Playing);
@@ -240,6 +241,7 @@ public class GameManager : MonoBehaviour
         RouletteManager.Instance.SetAccuracyPool(yourAccuracyAndPool.AccuracyPool);
         RouletteManager.Instance.SetTarget(yourAccuracyAndPool.YourAccuracy);
         CanvasManager.Instance.Show(GameScreen.Roulette);
+        CanvasManager.Instance.Hide(GameScreen.HUD);
     }
 
     public void UpdateVelocity(Vector2 newDirection, bool running, float speed)

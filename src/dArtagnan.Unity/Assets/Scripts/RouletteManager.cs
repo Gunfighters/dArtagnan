@@ -26,12 +26,6 @@ public class RouletteManager : MonoBehaviour
         slots = GetComponentsInChildren<RouletteSlot>().ToList();
     }
 
-    public void Start()
-    {
-        Debug.Log("Showing AccuracyRoulette...");
-        SetAccuracyPool(new List<int> { 1, 25, 58, 88, 90, 74, 22, 3 });
-    }
-
     public void SetAccuracyPool(List<int> pool)
     {
         accuracyPool = pool;
@@ -56,7 +50,7 @@ public class RouletteManager : MonoBehaviour
             Debug.LogError($"Not found among the slots: {target}");
             return;
         }
-        var angle = SlotAngle * selectedIndex;
+        var angle = SlotAngle * selectedIndex * -1;
         var leftOffset = (angle - HalfSlotAngleWithPadding) % 360;
         var rightOffset = (angle + HalfSlotAngleWithPadding) % 360;
         var randomAngle = Random.Range(leftOffset, rightOffset);
@@ -79,6 +73,7 @@ public class RouletteManager : MonoBehaviour
         }
 
         Spinning = false;
+        NetworkManager.Instance.SendRouletteDone();
     }
 
     public static float RouletteProgressFormula(float progress)

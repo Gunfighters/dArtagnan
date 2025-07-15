@@ -27,6 +27,7 @@ namespace dArtagnan.Shared
     [Union(20, typeof(SetAccuracyState))]
     [Union(21, typeof(PlayerAccuracyStateBroadcast))]
     [Union(22, typeof(YourAccuracyAndPool))]
+    [Union(23, typeof(RouletteDone))]
     public interface IPacket
     {
     }
@@ -283,6 +284,16 @@ namespace dArtagnan.Shared
     {
         [Key(0)] public int YourAccuracy;
         [Key(1)] public List<int> AccuracyPool;
+    }
+    
+    /// <summary>
+    /// [클라이언트 => 서버]
+    /// 룰렛을 돌려 나의 명중률을 확인하였다.
+    /// </summary>
+    [MessagePackObject]
+    public struct RouletteDone : IPacket
+    {
+        [Key(0)] public int TrialCount;
     }
 
     [MessagePackObject]

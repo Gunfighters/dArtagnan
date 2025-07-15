@@ -113,9 +113,10 @@ public class HUDManager : MonoBehaviour
 
     public void SetupForGameState(GameInWaitingFromServer waiting)
     {
-        gameStartButton.gameObject.SetActive(GameManager.Instance.LocalPlayer == GameManager.Instance.Host);
+        gameStartButton.gameObject.SetActive(GameManager.Instance.LocalPlayer is not null && GameManager.Instance.LocalPlayer == GameManager.Instance.Host);
         roundBoard.gameObject.SetActive(false);
         roundSplash.gameObject.SetActive(false);
+        accuracyStateTabMenuController.gameObject.SetActive(false);
         onlyWhenLocalPlayerAlive.enabled = true;
     }
 

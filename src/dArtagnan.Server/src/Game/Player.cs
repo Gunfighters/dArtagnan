@@ -7,7 +7,7 @@ public class Player(int id, string nickname, Vector2 position)
 {
     public readonly int Id = id;
     public readonly string Nickname = nickname;
-    public int Accuracy = GenerateRandomAccuracy();
+    public int Accuracy;
     public float Range = Constants.DEFAULT_RANGE;
     public float TotalReloadTime = Constants.DEFAULT_RELOAD_TIME;
     public float RemainingReloadTime = Constants.DEFAULT_RELOAD_TIME / 2;
@@ -20,20 +20,20 @@ public class Player(int id, string nickname, Vector2 position)
     private float accuracyTimer = 0f;    // 정확도 업데이트를 위한 타이머
     private const float ACCURACY_UPDATE_INTERVAL = 1.0f;    // 정확도 업데이트 간격 (1초)
 
-    public void ResetForInitialGame()
+    public void ResetForInitialGame(int accuracy)
     {
         TotalReloadTime = Constants.DEFAULT_RELOAD_TIME;
         Range = Constants.DEFAULT_RANGE;
         Balance = 200;
         AccuracyState = 0; // 초기 게임 시작 시 정확도 상태 초기화
         accuracyTimer = 0f;
+        Accuracy = accuracy;
     }
 
     public void ResetForNextRound()
     {
         Alive = true;
         Target = null;
-        Accuracy = GenerateRandomAccuracy();
         MovementData = new MovementData { Direction = 0, Position = Vector2.Zero, Speed = Constants.WALKING_SPEED };
         RemainingReloadTime = TotalReloadTime / 2;
         AccuracyState = 0; // 라운드 시작 시 정확도 상태 초기화
@@ -152,7 +152,7 @@ public class Player(int id, string nickname, Vector2 position)
             int newAccuracy = Accuracy + AccuracyState;
             
             // 정확도 범위 제한
-            newAccuracy = Math.Max(Constants.MIN_ACCURACY, Math.Min(Constants.MAX_ACCURACY, newAccuracy));
+            newAccuracy = Math.Clamp(newAccuracy, Constants.MIN_ACCURACY, Constants.MAX_ACCURACY);
             
             if (newAccuracy != Accuracy)
             {

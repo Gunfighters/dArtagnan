@@ -10,6 +10,17 @@ public static class PacketHandlers
         await client.SendPacketAsync(new PongPacket());
     }
 
+    public static async Task HandleRouletteDone(RouletteDone rouletteDone, ClientConnection client,
+        GameManager gameManager)
+    {
+        var p = gameManager.GetPlayerById(client.Id)!;
+        gameManager.rouletteDonePlayers.Add(p);
+        if (gameManager.rouletteDonePlayers.Count >= gameManager.Players.Count)
+        {
+            await gameManager.StartRound(1);
+        }
+    }
+
     public static async Task HandleSetAccuracyState(SetAccuracyState accuracyStatePacket, ClientConnection client, GameManager gameManager)
     {
         var player = gameManager.GetPlayerById(client.Id);
@@ -46,14 +57,10 @@ public static class PacketHandlers
             return;
         }
 
-        if (gameManager.CurrentGameState == GameState.Playing)
+        if (gameManager.IsGamePlaying())
         {
             Console.WriteLine($"[게임] 경고: 이미 게임이 진행중.");
             return;
-        }
-        foreach (var p in gameManager.Players.Values)
-        {
-            p.ResetForNextRound();
         }
 
         await gameManager.StartGame();
@@ -121,7 +128,7 @@ public static class PacketHandlers
         var newSpeed = movementData.MovementData.Speed;
         var newPosition = movementData.MovementData.Position;
         player.UpdateMovementData(newPosition, directionIndex, newSpeed);
-        Console.WriteLine($"[이동] 플레이어 {player.Id} 방향: {directionVector}, 위치: ({player.MovementData.Position}) 속도: ({player.MovementData.Speed:F2})");
+        // Console.WriteLine($"[이동] 플레이어 {player.Id} 방향: {directionVector}, 위치: ({player.MovementData.Position}) 속도: ({player.MovementData.Speed:F2})");
 
         // 방향 변경을 모든 플레이어에게 브로드캐스트
         await gameManager.BroadcastToAll(new PlayerMovementDataBroadcast

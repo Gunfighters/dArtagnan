@@ -17,6 +17,7 @@ public class GameManager
     public int Round = 0;
     public List<Player> Survivors => Players.Values.Where(p => p.Alive).ToList();
     public int MANDATORY_BET = 30;
+    public HashSet<Player> rouletteDonePlayers = [];
     
     public void AddClient(ClientConnection client)
     {
@@ -146,13 +147,8 @@ public class GameManager
     public async Task StartGame()
     {
         Console.WriteLine($"[게임] 게임 시작! (참가자: {Players.Count}명)");
-        foreach (var p in Players.Values)
-        {
-            p.ResetForInitialGame();
-        }
-        ResetRespawnAll(true);
-        await StartRound(1);
-    }
+        await SetGameState(GameState.RouletteSpinning);
+   }
 
     private async Task SetGameState(GameState newState)
     {
@@ -166,6 +162,26 @@ public class GameManager
                 break;
             case GameState.Playing:
                 await BroadcastToAll(new GameInPlayingFromServer { PlayersInfo = PlayersInRoom(), Round = Round });
+                break;
+            case GameState.RouletteSpinning:
+                rouletteDonePlayers.Clear();
+                List<int> accuracyPool = [];
+                for (var i = 0; i < 8; i++)
+                {
+                    accuracyPool.Add(Player.GenerateRandomAccuracy());
+                }
+                foreach (var p in Players.Values)
+                {
+                    p.ResetForInitialGame(accuracyPool[Random.Shared.Next(0, accuracyPool.Count)]);
+                }
+                ResetRespawnAll(true);
+                await Task.WhenAll(
+                    Players.Values.Select(p => Clients[p.Id].SendPacketAsync(new YourAccuracyAndPool
+                        { AccuracyPool = accuracyPool, YourAccuracy = p.Accuracy })));
+                foreach (var p in Players.Values)
+                {
+                    Console.WriteLine($"{p.Nickname}: {p.Accuracy}%");
+                }
                 break;
         }
     }
@@ -195,10 +211,10 @@ public class GameManager
 
     public bool IsGamePlaying()
     {
-        return CurrentGameState == GameState.Playing;
+        return CurrentGameState != GameState.Waiting;
     }
 
-    private async Task StartRound(int newRound)
+    public async Task StartRound(int newRound)
     {
         ResetRespawnAll(false);
         Round = newRound;
@@ -209,10 +225,11 @@ public class GameManager
     {
         foreach (var p in Players.Values)
         {
-            p.ResetForInitialGame();
+            p.ResetForInitialGame(0);
         }
         ResetRespawnAll(true);
         Round = 0;
+        rouletteDonePlayers.Clear();
         await SetGameState(GameState.Waiting);
     }
 
