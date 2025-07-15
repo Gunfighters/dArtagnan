@@ -50,6 +50,7 @@ internal class Program
         Console.WriteLine("  r/run [true/false] - 달리기 상태 변경");
         Console.WriteLine("  sh/shoot [targetId] - 플레이어 공격");
         Console.WriteLine("  a/accuracy [state] - 정확도 상태 변경 (-1: 감소, 0: 유지, 1: 증가)");
+        Console.WriteLine("  ro/roulette [count] - 룰렛 돌리기 완료 패킷 전송 (기본: 1)");
         Console.WriteLine("  l/leave - 게임 나가기");
         Console.WriteLine("  q/quit - 종료");
         Console.WriteLine("=====================================");
@@ -162,6 +163,19 @@ internal class Program
                     else
                     {
                         Console.WriteLine("사용법: a/accuracy [state] (-1: 감소, 0: 유지, 1: 증가)");
+                    }
+                    break;
+
+                case "ro":
+                case "roulette":
+                    if (parts.Length >= 2)
+                    {
+                        var count = int.Parse(parts[1]);
+                        await SendRoulette(count);
+                    }
+                    else
+                    {
+                        await SendRoulette(1);
                     }
                     break;
 
@@ -324,6 +338,25 @@ internal class Program
         }
     }
 
+    static async Task SendRoulette(int count)
+    {
+        if (!isConnected || stream == null)
+        {
+            Console.WriteLine("먼저 서버에 연결해주세요.");
+            return;
+        }
+
+        try
+        {
+            await NetworkUtils.SendPacketAsync(stream, new RouletteDone { TrialCount = count });
+            Console.WriteLine($"룰렛 돌리기 완료 패킷 전송: 횟수 {count}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"룰렛 돌리기 완료 패킷 전송 실패: {ex.Message}");
+        }
+    }
+
     static async Task SendLeave()
     {
         if (!isConnected || stream == null)
@@ -397,6 +430,21 @@ internal class Program
                     }
                     break;
                         
+                case GameInPlayingFromServer gamePlaying:
+                    Console.WriteLine($"=== 게임 진행 중 (라운드 {gamePlaying.Round}) ===");
+                    Console.WriteLine($"남은 시간: {gamePlaying.RemainingTime:F1}초 / {gamePlaying.TotalTime:F1}초");
+                    foreach (var info in gamePlaying.PlayersInfo)
+                    {
+                        Console.WriteLine($"  플레이어 {info.PlayerId}: {info.Nickname}");
+                        Console.WriteLine($"    위치: ({info.MovementData.Position.X:F2}, {info.MovementData.Position.Y:F2})");
+                        Console.WriteLine($"    명중률: {info.Accuracy}%");
+                        Console.WriteLine($"    정확도 상태: {info.AccuracyState} ({GetAccuracyStateText(info.AccuracyState)})");
+                        Console.WriteLine($"    속도: {info.MovementData.Speed:F2}");
+                        Console.WriteLine($"    재장전: {info.RemainingReloadTime:F2}/{info.TotalReloadTime:F2}초");
+                        Console.WriteLine($"    생존: {(info.Alive ? "생존" : "사망")}");
+                    }
+                    break;
+                        
                 case PlayerShootingBroadcast shooting:
                     var hitMsg = shooting.Hit ? "명중!" : "빗나감";
                     Console.WriteLine($"플레이어 {shooting.ShooterId}가 플레이어 {shooting.TargetId}를 공격 - {hitMsg}");
@@ -417,6 +465,16 @@ internal class Program
                         
                 case PlayerAccuracyStateBroadcast accuracyStateBroadcast:
                     Console.WriteLine($"플레이어 {accuracyStateBroadcast.PlayerId}의 정확도 상태 변경: {accuracyStateBroadcast.AccuracyState} ({GetAccuracyStateText(accuracyStateBroadcast.AccuracyState)})");
+                    break;
+                        
+                case YourAccuracyAndPool yourAccuracyAndPool:
+                    Console.WriteLine($"=== 룰렛 정보 받음 ===");
+                    Console.WriteLine($"당신의 정확도: {yourAccuracyAndPool.YourAccuracy}%");
+                    Console.WriteLine($"정확도 풀: [{string.Join(", ", yourAccuracyAndPool.AccuracyPool)}]");
+                    Console.WriteLine($"자동으로 룰렛 돌리기 완료 패킷 전송...");
+                    
+                    // 자동으로 룰렛 돌리기 완료 패킷 전송
+                    await SendRoulette(1);
                     break;
                         
                 default:
