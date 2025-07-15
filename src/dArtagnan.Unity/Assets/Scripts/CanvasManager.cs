@@ -10,6 +10,8 @@ public class CanvasManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        Init(GameScreen.HUD);
+        Init(GameScreen.Roulette);
     }
 
     public void Show(GameScreen screen)
@@ -36,6 +38,27 @@ public class CanvasManager : MonoBehaviour
                 break;
             case GameScreen.Roulette:
                 Roulette.gameObject.SetActive(false);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(screen), screen, null);
+        }
+    }
+
+    private void Init(GameScreen screen)
+    {
+        switch (screen)
+        {
+            case GameScreen.HUD:
+                HUD.enabled = false;
+                HUD.gameObject.SetActive(true);
+                HUD.gameObject.SetActive(false);
+                HUD.enabled = true;
+                break;
+            case GameScreen.Roulette:
+                Roulette.enabled = false;
+                Roulette.gameObject.SetActive(true);
+                Roulette.gameObject.SetActive(false);
+                Roulette.enabled = true;
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(screen), screen, null);
