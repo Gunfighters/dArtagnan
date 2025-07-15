@@ -251,9 +251,9 @@ public class GameManager : MonoBehaviour
     public void OnYourAccuracyAndPool(YourAccuracyAndPool yourAccuracyAndPool)
     {
         CanvasManager.Instance.HideAll();
+        CanvasManager.Instance.Show(GameScreen.Roulette);
         RouletteManager.Instance.SetAccuracyPool(yourAccuracyAndPool.AccuracyPool);
         RouletteManager.Instance.SetTarget(yourAccuracyAndPool.YourAccuracy);
-        CanvasManager.Instance.Show(GameScreen.Roulette);
     }
 
     public void UpdateVelocity(Vector2 newDirection, bool running, float speed)

@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Assets.HeroEditor4D.Common.Scripts.Collections;
@@ -19,12 +20,28 @@ public class RouletteManager : MonoBehaviour
     private float HalfSlotAngleWithPadding => HalfSlotAngle * (1 - slotPadding);
     [SerializeField] private int rotateSpeed;
     [SerializeField] private float spinDuration;
+    
+    private Coroutine autoSpinCoroutine;
 
     private void Awake()
     {
         Instance = this;
         slots = GetComponentsInChildren<RouletteSlot>().ToList();
-        Spinned = false;
+        ResetRoulette();
+    }
+
+    private void OnEnable()
+    {
+        // 룰렛 화면이 활성화될 때 자동으로 초기화
+        ResetRoulette();
+        Debug.Log("[룰렛] 화면 활성화 - 자동 초기화");
+    }
+
+    private void OnDisable()
+    {
+        // 룰렛 화면이 비활성화될 때 자동으로 정리
+        StopAutoSpinCoroutine();
+        Debug.Log("[룰렛] 화면 비활성화 - 자동 정리");
     }
 
     public void SetAccuracyPool(List<int> pool)
@@ -40,11 +57,16 @@ public class RouletteManager : MonoBehaviour
     public void SetTarget(int targetAccuracy)
     {
         target = targetAccuracy;
+        // 초 후 자동 스핀 시작
+        autoSpinCoroutine = StartCoroutine(AutoSpinAfterSeconds());
     }
 
     public void Spin()
     {
         if (Spinned) return;
+        
+        StopAutoSpinCoroutine();
+        
         var selectedIndex = accuracyPool.IndexOf(target);
         if (selectedIndex == -1)
         {
@@ -73,6 +95,32 @@ public class RouletteManager : MonoBehaviour
             await UniTask.WaitForEndOfFrame();
         }
         NetworkManager.Instance.SendRouletteDone();
+    }
+
+    private IEnumerator AutoSpinAfterSeconds()
+    {
+        yield return new WaitForSeconds(5f);
+        
+        if (!Spinned)
+        {
+            Spin();
+        }
+    }
+
+    private void StopAutoSpinCoroutine()
+    {
+        if (autoSpinCoroutine != null)
+        {
+            StopCoroutine(autoSpinCoroutine);
+            autoSpinCoroutine = null;
+        }
+    }
+
+    private void ResetRoulette()
+    {
+        Spinned = false;
+        StopAutoSpinCoroutine();
+        roulettePrefab.transform.rotation = Quaternion.identity;
     }
 
     public static float RouletteProgressFormula(float progress)
