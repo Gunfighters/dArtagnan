@@ -48,6 +48,7 @@ public class HUDManager : MonoBehaviour
     public void UpdateSpeed(float speed)
     {
         Speed = speed;
+        GameManager.Instance.UpdateVelocity(GetInputDirection(), GetInputRunning(), speed);
     }
 
     public void UpdateRange(float range)
