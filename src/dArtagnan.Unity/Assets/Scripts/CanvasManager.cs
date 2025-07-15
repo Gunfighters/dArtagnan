@@ -64,4 +64,12 @@ public class CanvasManager : MonoBehaviour
                 throw new ArgumentOutOfRangeException(nameof(screen), screen, null);
         }
     }
+
+    public void HideAll()
+    {
+        foreach (var c in Enum.GetValues(typeof(GameScreen)))
+        {
+            Hide((GameScreen) c);
+        }
+    }
 }
