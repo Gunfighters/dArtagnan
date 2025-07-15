@@ -188,6 +188,8 @@ public class GameManager : MonoBehaviour
             p.ToggleUIInGame(true);
         }
         SetCameraFollow(LocalPlayer);
+        
+        HUDManager.Instance.accuracyStateTabMenuController.SwitchUIOnly(LocalPlayer.AccuracyState);
     }
 
     public void OnGameWaiting(GameInWaitingFromServer gameWaiting)

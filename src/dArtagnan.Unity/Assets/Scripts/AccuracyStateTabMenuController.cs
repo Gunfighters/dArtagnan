@@ -18,10 +18,17 @@ public class AccuracyStateTabMenuController : MonoBehaviour
 
     private void Start()
     {
-        Switch(0);
+        SwitchUIOnly(0);
     }
 
     public void Switch(int newState)
+    {
+        SwitchUIOnly(newState);
+        LocalPlayer?.SetAccuracyState(newState);
+        NetworkManager.Instance.SendAccuracyState(newState);
+    }
+
+    public void SwitchUIOnly(int newState)
     {
         var selected = newState switch
         {
@@ -41,7 +48,5 @@ public class AccuracyStateTabMenuController : MonoBehaviour
             menu.color = normalColor;
         }
         state = newState;
-        LocalPlayer.SetAccuracyState(state);
-        NetworkManager.Instance.SendAccuracyState(state);
     }
 }
