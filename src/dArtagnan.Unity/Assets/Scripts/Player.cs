@@ -290,10 +290,15 @@ public class Player : MonoBehaviour
         Speed = info.MovementData.Speed;
         transform.position = VecConverter.ToUnityVec(info.MovementData.Position);
         SetDirection(DirectionHelperClient.IntToDirection(info.MovementData.Direction));
-        Range = info.Range;
+        SetRange(info.Range);
         TotalReloadTime = info.TotalReloadTime;
         RemainingReloadTime = info.RemainingReloadTime;
         accuracyTimer = 0f;
+    }
+
+    public void SetRange(float range)
+    {
+        Range = range;
     }
 
     public bool CanShoot(Player target)

@@ -242,12 +242,12 @@ public class GameManager : MonoBehaviour
         CanvasManager.Instance.Show(GameScreen.Roulette);
     }
 
-    public void UpdateVelocity(Vector2 newDirection, bool running)
+    public void UpdateVelocity(Vector2 newDirection, bool running, float speed)
     {
         if (!LocalPlayer.Alive) return;
         LocalPlayer.SetDirection(newDirection);
         LocalPlayer.SetRunning(running);
-        LocalPlayer.SetSpeed(running ? LocalPlayer.runningSpeed : LocalPlayer.walkingSpeed);
+        LocalPlayer.SetSpeed(speed);
         NetworkManager.Instance.SendPlayerMovementData(LocalPlayer.Position, LocalPlayer.CurrentDirection, running, LocalPlayer.Speed);
         lastMovementDataUpdateTimestmap = Time.time;
     }

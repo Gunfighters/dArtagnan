@@ -140,6 +140,9 @@ public class NetworkManager : MonoBehaviour
             case PlayerAccuracyStateBroadcast accuracyStateBroadcast:
                 GameManager.Instance.OnPlayerAccuracyStateBroadcast(accuracyStateBroadcast);
                 break;
+            case YourAccuracyAndPool yourAccuracyAndPool:
+                GameManager.Instance.OnYourAccuracyAndPool(yourAccuracyAndPool);
+                break;
             default:
                 Debug.LogWarning($"Unhandled packet: {packet}");
                 break;

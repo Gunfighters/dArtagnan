@@ -22,6 +22,7 @@ public class HUDManager : MonoBehaviour
     private bool _lastRunning;
     public float gameStartSplashDuration;
     public float winnerAnnouncementDuration;
+    private float Speed = 2;
 
     private void Awake()
     {
@@ -41,7 +42,17 @@ public class HUDManager : MonoBehaviour
         if (_lastDirection == newDirection && _lastRunning == newRunning) return;
         _lastDirection = newDirection;
         _lastRunning = newRunning;
-        GameManager.Instance.UpdateVelocity(newDirection, newRunning);
+        GameManager.Instance.UpdateVelocity(newDirection, newRunning, Speed);
+    }
+
+    public void UpdateSpeed(float speed)
+    {
+        Speed = speed;
+    }
+
+    public void UpdateRange(float range)
+    {
+        GameManager.Instance.LocalPlayer.SetRange(range);
     }
     
     private Vector2 GetInputDirection()
