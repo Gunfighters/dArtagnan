@@ -8,11 +8,10 @@ namespace dArtagnan.Server;
 /// <summary>
 /// 클라이언트 네트워크 연결과 패킷 라우팅을 담당하는 클래스
 /// </summary>
-public class ClientConnection : IDisposable
+public class ClientConnection
 {
     private readonly NetworkStream stream;
     private readonly TcpClient tcpClient;
-    private bool isConnected;
     private readonly GameManager gameManager;
 
     public int Id { get; }
@@ -28,27 +27,24 @@ public class ClientConnection : IDisposable
         
         IpAddress = client.Client.RemoteEndPoint!.ToString()!.Split(":")[0];
         stream = client.GetStream();
-        isConnected = true;
         this.gameManager = gameManager;
 
-        // GameManager에 클라이언트 등록
-        gameManager.AddClient(this);
+        // Command pattern을 통한 클라이언트 등록
+        var addCommand = new AddClientCommand
+        {
+            ClientId = Id,
+            Client = this
+        };
+        _ = gameManager.EnqueueCommandAsync(addCommand);
 
         // 패킷 수신 루프 시작
         _ = Task.Run(ReceiveLoop);
     }
 
-    public bool IsConnected => isConnected && tcpClient.Connected;
 
-    public void Dispose()
-    {
-        _ = DisconnectAsync();
-    }
 
     public async Task SendPacketAsync(IPacket packet)
     {
-        if (!IsConnected) return;
-
         try
         {
             await NetworkUtils.SendPacketAsync(stream, packet);
@@ -56,15 +52,20 @@ public class ClientConnection : IDisposable
         catch (Exception ex)
         {
             Console.WriteLine($"[클라이언트 {Id}] 패킷 전송 실패: {ex.Message}");
-            await DisconnectAsync();
+            
+            // 통일된 Command 처리 - DisconnectAsync는 RemoveClientCommand에서 처리
+            var removeCommand = new RemoveClientCommand
+            {
+                ClientId = Id,
+                Client = this,
+                IsNormalDisconnect = false
+            };
+            await gameManager.EnqueueCommandAsync(removeCommand);
         }
     }
 
     public Task DisconnectAsync()
     {
-        if (!isConnected) return Task.CompletedTask;
-
-        isConnected = false;
         Console.WriteLine($"[클라이언트 {Id}] 연결 해제 중...");
 
         try
@@ -85,47 +86,71 @@ public class ClientConnection : IDisposable
     {
         try
         {
-            switch (packet)
+            IGameCommand? command = packet switch
             {
-                case PlayerJoinRequest joinRequest:
-                    await PacketHandlers.HandlePlayerJoin(joinRequest, this, gameManager);
-                    break;
-
-                case PlayerMovementDataFromClient movementData:
-                    await PacketHandlers.HandlePlayerMovementData(movementData, this, gameManager);
-                    break;
-
-                case PlayerShootingFromClient shootingData:
-                    await PacketHandlers.HandlePlayerShooting(shootingData, this, gameManager);
-                    break;
-
-                case PlayerLeaveFromClient leaveData:
-                    await PacketHandlers.HandlePlayerLeave(leaveData, this, gameManager);
-                    break;
-                    
-                case PlayerIsTargetingFromClient isTargetingData:
-                    await PacketHandlers.HandlePlayerIsTargeting(isTargetingData, this, gameManager);
-                    break;
-                    
-                case StartGameFromClient start:
-                    await PacketHandlers.HandleStartGame(start, this, gameManager);
-                    break;
-                    
-                case PingPacket ping:
-                    await PacketHandlers.HandlePing(ping, this, gameManager);
-                    break;
-                    
-                case SetAccuracyState accuracyState:
-                    await PacketHandlers.HandleSetAccuracyState(accuracyState, this, gameManager);
-                    break;
+                PlayerJoinRequest joinRequest => new PlayerJoinCommand
+                {
+                    ClientId = Id,
+                    Nickname = $"Player #{Id}",
+                    Client = this
+                },
                 
-                case RouletteDone rouletteDone:
-                    await PacketHandlers.HandleRouletteDone(rouletteDone, this, gameManager);
-                    break;
-                    
-                default:
-                    Console.WriteLine($"[클라이언트 {Id}] 처리되지 않은 패킷 타입: {packet.GetType().Name}");
-                    break;
+                PlayerMovementDataFromClient movementData => new PlayerMovementCommand
+                {
+                    PlayerId = Id,
+                    MovementData = movementData.MovementData,
+                    Running = movementData.Running
+                },
+                
+                PlayerShootingFromClient shootingData => new PlayerShootingCommand
+                {
+                    ShooterId = Id,
+                    TargetId = shootingData.TargetId
+                },
+                
+                PlayerLeaveFromClient => new PlayerLeaveCommand
+                {
+                    PlayerId = Id,
+                    Client = this
+                },
+                
+                PlayerIsTargetingFromClient isTargetingData => new PlayerTargetingCommand
+                {
+                    ShooterId = Id,
+                    TargetId = isTargetingData.TargetId
+                },
+                
+                StartGameFromClient => new StartGameCommand
+                {
+                    PlayerId = Id
+                },
+                
+                PingPacket => new PingCommand
+                {
+                    Client = this
+                },
+                
+                SetAccuracyState accuracyState => new SetAccuracyCommand
+                {
+                    PlayerId = Id,
+                    AccuracyState = accuracyState.AccuracyState
+                },
+                
+                RouletteDone => new RouletteDoneCommand
+                {
+                    PlayerId = Id
+                },
+                
+                _ => null
+            };
+            
+            if (command != null)
+            {
+                await gameManager.EnqueueCommandAsync(command);
+            }
+            else
+            {
+                Console.WriteLine($"[클라이언트 {Id}] 처리되지 않은 패킷 타입: {packet.GetType().Name}");
             }
         }
         catch (Exception ex)
@@ -141,7 +166,7 @@ public class ClientConnection : IDisposable
         {
             Console.WriteLine($"[클라이언트 {Id}] 연결됨. 패킷 수신 시작.");
                 
-            while (IsConnected)
+            while (true)
             {
                 var packet = await NetworkUtils.ReceivePacketAsync(stream);
                     
@@ -155,9 +180,15 @@ public class ClientConnection : IDisposable
         }
         finally
         {
-            // 비정상 종료 시 GameManager에서 정리
-            await gameManager.RemoveClient(Id);
-            await DisconnectAsync();
+            // 비정상 종료 시 통일된 Command 처리
+            var removeCommand = new RemoveClientCommand
+            {
+                ClientId = Id,
+                Client = this,
+                IsNormalDisconnect = false
+            };
+            
+            await gameManager.EnqueueCommandAsync(removeCommand);
         }
     }
 }

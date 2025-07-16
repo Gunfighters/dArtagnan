@@ -98,29 +98,12 @@ public class CommandHandler(TcpServer tcpServer)
     private async Task KillPlayer(int playerId)
     {
         var gameManager = tcpServer.GetGameManager();
-        var player = gameManager.GetPlayerById(playerId);
-
-        if (player == null)
-        {
-            Console.WriteLine($"플레이어 ID {playerId}를 찾을 수 없습니다.");
-            Console.WriteLine("현재 접속 중인 플레이어 ID 목록:");
-            foreach (var p in gameManager.Players.Values)
-            {
-                Console.WriteLine($"  - {p.Id}");
-            }
-            return;
-        }
-
-        if (!player.Alive)
-        {
-            Console.WriteLine($"플레이어 {playerId}({player.Nickname})는 이미 사망한 상태입니다.");
-            return;
-        }
-
-        Console.WriteLine($"[관리자] 플레이어 {playerId}({player.Nickname})를 죽입니다...");
         
-        // PacketHandlers의 HandlePlayerHit 메서드를 직접 사용하여 일관된 로직 적용
-        await PacketHandlers.KillPlayer(player, gameManager);
+        // 직접 처리 대신 Command 생성
+        await gameManager.EnqueueCommandAsync(new AdminKillPlayerCommand
+        {
+            TargetPlayerId = playerId
+        });
     }
 
     /// <summary>

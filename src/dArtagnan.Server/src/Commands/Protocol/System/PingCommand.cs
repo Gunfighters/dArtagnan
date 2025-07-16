@@ -1,0 +1,16 @@
+using dArtagnan.Shared;
+
+namespace dArtagnan.Server;
+
+/// <summary>
+/// 핑 명령 - 클라이언트의 핑 요청에 응답합니다
+/// </summary>
+public class PingCommand : IGameCommand
+{
+    public required ClientConnection Client { get; init; }
+    
+    public async Task ExecuteAsync(GameManager gameManager)
+    {
+        await Client.SendPacketAsync(new PongPacket());
+    }
+} 

@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Numerics;
+using System.Threading.Channels;
 using dArtagnan.Shared;
 
 namespace dArtagnan.Server;
@@ -10,7 +11,7 @@ namespace dArtagnan.Server;
 public class GameManager
 {
     public readonly ConcurrentDictionary<int, Player> Players = new();
-    public readonly ConcurrentDictionary<int, ClientConnection> Clients = new(); // 클라이언트 연결도 여기서 관리
+    public readonly ConcurrentDictionary<int, ClientConnection> Clients = new();
     public Player? Host;
     public GameState CurrentGameState { get; private set; } = GameState.Waiting;
     public Player? LastManStanding => Players.Values.SingleOrDefault(p => !p.Bankrupt);
@@ -19,11 +20,49 @@ public class GameManager
     public int MANDATORY_BET = 30;
     public HashSet<Player> rouletteDonePlayers = [];
     
-    public void AddClient(ClientConnection client)
+    // Command Queue
+    private readonly Channel<IGameCommand> _commandQueue;
+    
+    public GameManager()
     {
-        Clients.TryAdd(client.Id, client);
-        Console.WriteLine($"클라이언트 {client.Id} 추가됨 (현재 접속자: {Clients.Count})");
+        // Unbounded channel 생성
+        _commandQueue = Channel.CreateUnbounded<IGameCommand>(new UnboundedChannelOptions
+        {
+            SingleReader = true,  // 단일 소비자
+            SingleWriter = false  // 다중 생산자
+        });
+        
+        // Command 처리 태스크 자동 시작
+        _ = Task.Run(() => ProcessCommandsAsync());
     }
+    
+    /// <summary>
+    /// Command를 큐에 추가하는 메서드
+    /// </summary>
+    public async Task EnqueueCommandAsync(IGameCommand command)
+    {
+        await _commandQueue.Writer.WriteAsync(command);
+    }
+    
+    /// <summary>
+    /// Command Queue 처리 루프
+    /// </summary>
+    private async Task ProcessCommandsAsync()
+    {
+        await foreach (var command in _commandQueue.Reader.ReadAllAsync())
+        {
+            try
+            {
+                await command.ExecuteAsync(this);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[오류] 커맨드 실행 중 오류: {ex.Message}");
+            }
+        }
+    }
+    
+
 
     private async Task SetHost(Player? player)
     {
@@ -46,7 +85,10 @@ public class GameManager
         return player;
     }
 
-    public async Task RemoveClient(int clientId)
+    /// <summary>
+    /// 내부적으로만 사용되는 클라이언트 제거 메서드 (Command에서만 호출)
+    /// </summary>
+    internal async Task RemoveClientInternal(int clientId)
     {
         var player = GetPlayerById(clientId);
             
@@ -91,7 +133,6 @@ public class GameManager
     public async Task BroadcastToAll(IPacket packet)
     {
         var tasks = Clients.Values
-            .Where(client => client.IsConnected)
             .Select(client => client.SendPacketAsync(packet)).ToList();
 
         if (tasks.Count != 0)
@@ -103,7 +144,7 @@ public class GameManager
     public async Task BroadcastToAllExcept(IPacket packet, int excludeClientId)
     {
         var tasks = Clients.Values
-            .Where(client => client.Id != excludeClientId && client.IsConnected)
+            .Where(client => client.Id != excludeClientId)
             .Select(client => client.SendPacketAsync(packet));
 
         if (tasks.Any())

@@ -28,7 +28,7 @@ public class TcpServer
             Console.WriteLine("클라이언트 연결을 기다리는 중...");
 
             // 게임 루프 초기화 및 시작
-            gameLoop = new GameLoop(this, gameManager);
+            gameLoop = new GameLoop(gameManager);
             _ = Task.Run(() => gameLoop.StartAsync());
 
             // 클라이언트 연결 대기 루프
@@ -79,9 +79,6 @@ public class TcpServer
 
         try
         {
-            // 게임 루프 중지
-            gameLoop.Stop();
-
             tcpListener.Stop();
         }
         catch (Exception ex)
