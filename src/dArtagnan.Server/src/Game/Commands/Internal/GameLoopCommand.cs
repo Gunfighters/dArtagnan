@@ -4,9 +4,9 @@ using dArtagnan.Shared;
 namespace dArtagnan.Server;
 
 /// <summary>
-/// 게임 상태 업데이트 명령 - 주기적으로 게임 상태를 업데이트합니다 (위치, 재장전, 정확도 등)
+/// 게임 루프 명령 - 주기적으로 게임 상태를 업데이트합니다 (위치, 재장전, 정확도 등)
 /// </summary>
-public class UpdateGameStateCommand : IGameCommand
+public class GameLoopCommand : IGameCommand
 {
     public required float DeltaTime { get; init; }
     

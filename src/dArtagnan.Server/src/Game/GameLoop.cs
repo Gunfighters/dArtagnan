@@ -44,7 +44,7 @@ public class GameLoop(GameManager gameManager)
             while (accumulator >= TARGET_FRAME_TIME)
             {
                 // 게임 상태 업데이트 명령을 큐에 추가
-                await gameManager.EnqueueCommandAsync(new UpdateGameStateCommand 
+                await gameManager.EnqueueCommandAsync(new GameLoopCommand 
                 { 
                     DeltaTime = FIXED_DELTA_TIME 
                 });
