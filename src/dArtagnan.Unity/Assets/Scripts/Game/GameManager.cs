@@ -27,9 +27,11 @@ public class GameManager : MonoBehaviour
     private GameState gameState;
     private float lastMovementDataUpdateTimestmap;
     private CancellationTokenSource _deactivationTaskCancellationTokenSource = new();
+    private float ping;
 
     private void Awake()
     {
+        Application.targetFrameRate = 60;
         Instance = this;
         for (var i = 0; i < playerObjectPoolSize; i++)
         {
@@ -126,6 +128,11 @@ public class GameManager : MonoBehaviour
         {
             shooter.ShowHitOrMiss(shooting.Hit);
         }
+    }
+
+    public void UpdatePing(float ping)
+    {
+        this.ping = ping;
     }
 
     public void OnUpdatePlayerAlive(UpdatePlayerAlive updatePlayerAlive)

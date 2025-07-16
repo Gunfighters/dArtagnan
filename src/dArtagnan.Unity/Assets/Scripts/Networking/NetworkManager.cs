@@ -1,4 +1,7 @@
-﻿using System.Net.Sockets;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Sockets;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using UnityEngine;
@@ -13,6 +16,11 @@ public class NetworkManager : MonoBehaviour
     public string customHost;
     public bool useCustomHost;
     public int port;
+    public bool connected;
+    public float pingAvg;
+    public float pingDeviance;
+    private float LastPingRequestTime;
+    private List<float> pingSample = new();
 
     private async UniTaskVoid Awake()
     {
@@ -52,6 +60,8 @@ public class NetworkManager : MonoBehaviour
         // TCP NoDelay 설정 (Nagle's algorithm 비활성화)
         Debug.Log($"Connected to: {host}:{port}");
         _stream = _client.GetStream();
+        connected = true;
+        await NetworkUtils.SendPacketAsync(_stream, new PingPacket());
         await NetworkUtils.SendPacketAsync(_stream, new PlayerJoinRequest());
     }
 
@@ -76,10 +86,16 @@ public class NetworkManager : MonoBehaviour
 
     public void SendPlayerMovementData(Vector3 position, Vector3 direction, bool running, float speed)
     {
+        MovementData data = new()
+        {
+            Direction = DirectionHelperClient.DirectionToInt(direction),
+            Position = VecConverter.ToSystemVec(position + pingAvg / 2 * direction),
+            Speed = speed
+        };
         Send(new PlayerMovementDataFromClient
         {
             Direction = DirectionHelperClient.DirectionToInt(direction),
-            MovementData = { Direction = DirectionHelperClient.DirectionToInt(direction), Position = VecConverter.ToSystemVec(position), Speed = speed },
+            MovementData = data,
             Running = running
         });
     }
@@ -119,8 +135,10 @@ public class NetworkManager : MonoBehaviour
             case PlayerJoinBroadcast joinBroadcast:
                 GameManager.Instance.OnPlayerJoinBroadcast(joinBroadcast);
                 break;
-            case PlayerMovementDataBroadcast playerMovementDataBroadcast:
-                GameManager.Instance.OnPlayerMovementData(playerMovementDataBroadcast);
+            case PlayerMovementDataBroadcast d:
+                var v = DirectionHelper.IntToDirection(d.MovementData.Direction);
+                d.MovementData.Position += v * pingAvg / 2; 
+                GameManager.Instance.OnPlayerMovementData(d);
                 break;
             case PlayerShootingBroadcast shootingBroadcast:
                 GameManager.Instance.OnPlayerShootingBroadcast(shootingBroadcast);
@@ -154,6 +172,26 @@ public class NetworkManager : MonoBehaviour
                 break;
             case YourAccuracyAndPool yourAccuracyAndPool:
                 GameManager.Instance.OnYourAccuracyAndPool(yourAccuracyAndPool);
+                break;
+            case PongPacket _:
+                var elapsed = Time.time - LastPingRequestTime;
+                Send(new PingPacket());
+                LastPingRequestTime = Time.time;
+                if (pingSample.Count >= 100) // 표본 100개
+                {
+                    var avg = pingSample.Average();
+                    var sd = Mathf.Sqrt((float)pingSample.Average(p => Math.Pow(p - avg, 2)));
+                    if (Mathf.Abs(elapsed - avg) > sd) return;
+                    GameManager.Instance.UpdatePing(elapsed);
+                    pingSample.Add(elapsed);
+                    pingSample.RemoveAt(0);
+                    pingAvg = avg;
+                    pingDeviance = sd;
+                }
+                else
+                {
+                    pingSample.Add(elapsed);
+                }
                 break;
             default:
                 Debug.LogWarning($"Unhandled packet: {packet}");

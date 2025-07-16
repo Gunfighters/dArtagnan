@@ -37,6 +37,7 @@ public class Player : MonoBehaviour
     private bool needToCorrect;
     private Vector2 lastUpdatedPosition;
     public float PositionCorrectionThreshold;
+    public float lerpFaceChangeThreshold;
     public Vector2 Position => rb.position;
     private Vector2 faceDirection;
     private bool moving;
@@ -254,13 +255,15 @@ public class Player : MonoBehaviour
         var diff = Vector2.Distance(rb.position, predictedPosition);
         needToCorrect = diff > 0.01f;
         if (diff > PositionCorrectionThreshold) return predictedPosition;
-        var correctionSpeed = Mathf.Max(Speed, Constants.RUNNING_SPEED) * lerpSpeed;
-        if (diff > correctionSpeed / 2)
+        var correctionSpeed = Speed * lerpSpeed;
+        if (diff > lerpFaceChangeThreshold)
         {
             SetFaceDirection(predictedPosition - rb.position);
             SetRunning(true);
         }
-        return Vector2.MoveTowards(rb.position, predictedPosition, correctionSpeed * Time.fixedDeltaTime);
+        var needToGo = (predictedPosition - rb.position).normalized;
+        var actualDirection = DirectionHelperClient.IntToDirection(DirectionHelperClient.DirectionToInt(needToGo));
+        return Vector2.MoveTowards(rb.position, rb.position + actualDirection * diff, correctionSpeed * Time.fixedDeltaTime);
     }
 
     public void HighlightAsTarget(bool show)
