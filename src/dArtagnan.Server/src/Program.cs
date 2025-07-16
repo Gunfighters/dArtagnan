@@ -3,7 +3,7 @@ namespace dArtagnan.Server;
 class Program
 {
     private static TcpServer tcpServer = null!;
-    private static CommandHandler commandHandler = null!; // null!는 "나중에 초기화할 것"을 의미
+    private static AdminConsole adminConsole = null!; // null!는 "나중에 초기화할 것"을 의미
 
     static async Task Main(string[] args)
     {
@@ -14,7 +14,7 @@ class Program
         Console.CancelKeyPress += async (sender, e) =>
         {
             e.Cancel = true;
-            commandHandler.Stop();
+            adminConsole.Stop();
             await tcpServer.StopAsync();
             Environment.Exit(0);
         };
@@ -24,9 +24,9 @@ class Program
         tcpServer = new TcpServer();
         var serverTask = tcpServer.StartAsync(port);
 
-        // 관리자 명령어 핸들러 초기화
-        commandHandler = new CommandHandler(tcpServer);
-        _ = Task.Run(() => commandHandler.StartHandlingAsync());
+        // 관리자 콘솔 초기화
+        adminConsole = new AdminConsole(tcpServer);
+        _ = Task.Run(() => adminConsole.StartHandlingAsync());
 
         await serverTask;
     }

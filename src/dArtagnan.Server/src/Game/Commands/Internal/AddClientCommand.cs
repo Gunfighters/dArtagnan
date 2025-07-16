@@ -5,8 +5,8 @@ namespace dArtagnan.Server;
 /// </summary>
 public class AddClientCommand : IGameCommand
 {
-    public int ClientId { get; set; }
-    public ClientConnection Client { get; set; }
+    public required int ClientId { get; init; }
+    public required ClientConnection Client { get; init; }
     
     public Task ExecuteAsync(GameManager gameManager)
     {

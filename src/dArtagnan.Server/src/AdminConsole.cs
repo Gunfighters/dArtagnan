@@ -1,9 +1,9 @@
 namespace dArtagnan.Server;
 
 /// <summary>
-/// 서버 관리자 명령어를 처리하는 클래스
+/// 서버 관리자 콘솔 명령어를 처리하는 클래스
 /// </summary>
-public class CommandHandler(TcpServer tcpServer)
+public class AdminConsole(TcpServer tcpServer)
 {
     private bool isRunning = true;
 
