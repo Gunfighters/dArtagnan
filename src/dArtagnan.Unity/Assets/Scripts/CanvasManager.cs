@@ -6,12 +6,14 @@ public class CanvasManager : MonoBehaviour
     public static CanvasManager Instance { get; private set; }
     [SerializeField] private Canvas HUD;
     [SerializeField] private Canvas Roulette;
+    [SerializeField] private Canvas Connection;
 
     private void Awake()
     {
         Instance = this;
         Init(GameScreen.HUD);
         Init(GameScreen.Roulette);
+        Show(GameScreen.Connection);
     }
 
     public void Show(GameScreen screen)
@@ -23,6 +25,9 @@ public class CanvasManager : MonoBehaviour
                 break;
             case GameScreen.Roulette:
                 Roulette.gameObject.SetActive(true);
+                break;
+            case GameScreen.Connection:
+                Connection.gameObject.SetActive(true);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(screen), screen, null);
@@ -38,6 +43,9 @@ public class CanvasManager : MonoBehaviour
                 break;
             case GameScreen.Roulette:
                 Roulette.gameObject.SetActive(false);
+                break;
+            case GameScreen.Connection:
+                Connection.gameObject.SetActive(false);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(screen), screen, null);

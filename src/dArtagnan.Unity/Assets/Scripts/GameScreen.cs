@@ -1,5 +1,6 @@
 public enum GameScreen
 {
     HUD,
-    Roulette
+    Roulette,
+    Connection
 }

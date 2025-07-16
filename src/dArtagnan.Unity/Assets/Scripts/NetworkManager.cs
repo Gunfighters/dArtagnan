@@ -20,12 +20,12 @@ public class NetworkManager : MonoBehaviour
         _channel = Channel.CreateSingleConsumerUnbounded<IPacket>();
     }
 
-    private async UniTaskVoid Start()
-    {
-        await ConnectToServer();
-        StartListeningLoop().Forget();
-        SendJoinRequest();
-    }
+    // private async UniTaskVoid Start()
+    // {
+    //     await ConnectToServer();
+    //     StartListeningLoop().Forget();
+    //     SendJoinRequest();
+    // }
 
     private void Update()
     {
@@ -35,9 +35,16 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
-    private async UniTask ConnectToServer()
+    public void Connect(string host, int port)
     {
-        var host = useCustomHost ? customHost : awsHost;
+        ConnectToServer(host, port)
+            .ContinueWith(StartListeningLoop)
+            .Forget();
+    }
+
+    private async UniTask ConnectToServer(string host, int port)
+    {
+        // var host = useCustomHost ? customHost : awsHost;
         Debug.Log($"Connecting to: {host}:{port}");
         _client = new TcpClient();
         await _client.ConnectAsync(host, port).AsUniTask();
@@ -46,6 +53,7 @@ public class NetworkManager : MonoBehaviour
         _client.NoDelay = true;
         Debug.Log($"Connected to: {host}:{port}");
         _stream = _client.GetStream();
+        await NetworkUtils.SendPacketAsync(_stream, new PlayerJoinRequest());
     }
 
     private void Send(IPacket payload)
