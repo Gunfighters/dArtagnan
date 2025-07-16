@@ -342,6 +342,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -1565456284384083479, guid: fca824542389e4c888883be68552e932, type: 3}
+      propertyPath: customHost
+      value: 192.168.0.16
+      objectReference: {fileID: 0}
     - target: {fileID: 1396769493189902549, guid: fca824542389e4c888883be68552e932, type: 3}
       propertyPath: Field
       value: 
