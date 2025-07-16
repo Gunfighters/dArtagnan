@@ -1,4 +1,5 @@
 using System.Collections;
+using Assets.HeroEditor4D.Common.Scripts.Data;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using JetBrains.Annotations;
@@ -278,7 +279,7 @@ public class Player : MonoBehaviour
 
     public void Initialize(PlayerInformation info)
     {
-        modelManager.ResetModel();
+        modelManager.ResetModel(info.Accuracy);
         ID = info.PlayerId;
         SetNickname(info.Nickname);
         SetBalance(info.Balance);
@@ -304,5 +305,10 @@ public class Player : MonoBehaviour
         var mask = LayerMask.GetMask("RemotePlayer", "Obstacle");
         var hit = Physics2D.Raycast(Position, target.Position - Position, Range, mask);
         return hit.transform == target.transform;
+    }
+
+    public void EquipGun(ItemSprite gun)
+    {
+        modelManager.EquipGun(gun);
     }
 }

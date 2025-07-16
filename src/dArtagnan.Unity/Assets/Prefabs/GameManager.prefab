@@ -48,12 +48,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: adfcb06afd9a44da884d18f93ee6785d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  networkManager: {fileID: -1565456284384083479}
   playerObjectPoolSize: 8
   playerObjectPool: []
   playerPrefab: {fileID: 5225883545143339161, guid: 9ea806eaf945f4eef9e1a11aedbf304e, type: 3}
+  mainCamera: {fileID: 0}
   Field: {fileID: 0}
   AudioManager: {fileID: 270576434676097986}
+  GunCollection: {fileID: 11400000, guid: 91824a520d391974a88f36ad4936d63a, type: 2}
 --- !u!114 &2090332019890753341
 MonoBehaviour:
   m_ObjectHideFlags: 0

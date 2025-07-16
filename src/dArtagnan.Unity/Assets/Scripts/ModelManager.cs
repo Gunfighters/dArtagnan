@@ -28,6 +28,7 @@ public class ModelManager : MonoBehaviour
     private Color trajectoryColorOriginal;
     private Transform trajectoryTarget;
     private CharacterState currentState;
+    public SpriteCollection GunCollection;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Start()
@@ -48,7 +49,7 @@ public class ModelManager : MonoBehaviour
         trajectory.SetPosition(1, transform.position);
     }
 
-    public void ResetModel()
+    public void ResetModel(int accuracy)
     {
         Destroy(actualModel.gameObject);
         Destroy(modelSilhouette.gameObject);
@@ -57,6 +58,9 @@ public class ModelManager : MonoBehaviour
         // SetTransparent();
         SetDirection(direction == Vector2.zero ? Vector2.down : direction);
         SetState(initialState);
+        var gunSprite = GunCollection.GunSpriteByAccuracy(accuracy);
+        actualModel.Equip(gunSprite, GunCollection.Firearm1H.Contains(gunSprite) ? EquipmentPart.Firearm1H : EquipmentPart.Firearm2H);
+        modelSilhouette.Equip(gunSprite, GunCollection.Firearm1H.Contains(gunSprite) ? EquipmentPart.Firearm1H : EquipmentPart.Firearm2H);
         InitializeFirearmMuzzle();
     }
 

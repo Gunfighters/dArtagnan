@@ -712,6 +712,7 @@ MonoBehaviour:
   firearmCollection: {fileID: 11400000, guid: 28e732d5a6846604db331fadf9eec50e, type: 2}
   trajectoryDuration: 0.1
   trajectoryOpacity: 0.5
+  GunCollection: {fileID: 11400000, guid: 91824a520d391974a88f36ad4936d63a, type: 2}
 --- !u!82 &-7853337695106768655
 AudioSource:
   m_ObjectHideFlags: 0

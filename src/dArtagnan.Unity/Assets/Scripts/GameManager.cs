@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Assets.HeroEditor4D.Common.Scripts.Collections;
 using dArtagnan.Shared;
 using JetBrains.Annotations;
 using Cysharp.Threading.Tasks;
@@ -184,14 +185,11 @@ public class GameManager : MonoBehaviour
         gameState = GameState.Playing;
         HUDManager.Instance.SetupForGameState(gamePlaying);
         AudioManager.PlayForState(GameState.Playing);
+        RemovePlayerAll();
         foreach (var info in gamePlaying.PlayersInfo)
         {
-            var p = players[info.PlayerId];
-            p.Initialize(info);
-            p.gameObject.SetActive(true);
-            p.ToggleUIInGame(true);
+            AddPlayer(info, true);
         }
-        SetCameraFollow(LocalPlayer);
         
         HUDManager.Instance.accuracyStateTabMenuController.SwitchUIOnly(LocalPlayer.AccuracyState);
     }
