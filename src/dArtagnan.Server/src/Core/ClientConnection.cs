@@ -13,7 +13,7 @@ public class ClientConnection
     private readonly NetworkStream stream;
     private readonly TcpClient tcpClient;
     private readonly GameManager gameManager;
-
+    private bool isRunning = true;
     public int Id { get; }
     public string IpAddress { get; }
 
@@ -38,7 +38,7 @@ public class ClientConnection
         {
             Console.WriteLine($"[클라이언트 {Id}] 연결됨. 패킷 수신 시작.");
                 
-            while (true)
+            while (isRunning)
             {
                 var packet = await NetworkUtils.ReceivePacketAsync(stream);
                     
@@ -48,17 +48,17 @@ public class ClientConnection
         catch (Exception ex)
         {
             Console.WriteLine($"[클라이언트 {Id}] 수신 루프 오류: {ex.Message}");
-        }
-        finally
-        {
-            var removeCommand = new RemoveClientCommand
+            if (isRunning)
             {
-                ClientId = Id,
-                Client = this,
-                IsNormalDisconnect = false
-            };
-            
-            await gameManager.EnqueueCommandAsync(removeCommand);
+                var removeCommand = new RemoveClientCommand
+                {
+                    ClientId = Id,
+                    Client = this,
+                    IsNormalDisconnect = false
+                };
+                
+                await gameManager.EnqueueCommandAsync(removeCommand);
+            }
         }
     }
 
@@ -166,6 +166,7 @@ public class ClientConnection
 
         try
         {
+            isRunning = false;
             stream.Close();
             tcpClient.Close();
         }
