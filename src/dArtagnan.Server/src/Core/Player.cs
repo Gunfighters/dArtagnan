@@ -25,7 +25,7 @@ public class Player(int id, string nickname, Vector2 position)
         TotalReloadTime = Constants.DEFAULT_RELOAD_TIME;
         Range = Constants.DEFAULT_RANGE;
         Balance = 200;
-        AccuracyState = 0; // 초기 게임 시작 시 정확도 상태 초기화
+        AccuracyState = 0;
         accuracyTimer = 0f;
         Accuracy = accuracy;
     }
@@ -36,7 +36,7 @@ public class Player(int id, string nickname, Vector2 position)
         Target = null;
         MovementData = new MovementData { Direction = 0, Position = Vector2.Zero, Speed = Constants.WALKING_SPEED };
         RemainingReloadTime = TotalReloadTime / 2;
-        AccuracyState = 0; // 라운드 시작 시 정확도 상태 초기화
+        AccuracyState = 0;
         accuracyTimer = 0f;
     }
 
@@ -70,7 +70,7 @@ public class Player(int id, string nickname, Vector2 position)
     /// </summary>
     public static Vector2 GetSpawnPosition(int index)
     {
-        const int magicNumber = 53; // 소수여야 함
+        const int magicNumber = 53;
         var angle = index * magicNumber * (float)(Math.PI / 180);
         return new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * Constants.SPAWN_RADIUS;
     }

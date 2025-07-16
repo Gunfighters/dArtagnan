@@ -19,20 +19,14 @@ public class GameManager
     public List<Player> Survivors => Players.Values.Where(p => p.Alive).ToList();
     public int MANDATORY_BET = 30;
     public HashSet<Player> rouletteDonePlayers = [];
-    
-    // Command Queue
-    private readonly Channel<IGameCommand> _commandQueue;
+    private readonly Channel<IGameCommand> _commandQueue = Channel.CreateUnbounded<IGameCommand>(new UnboundedChannelOptions
+    {
+        SingleReader = true,  // 단일 소비자
+        SingleWriter = false  // 다중 생산자
+    });
     
     public GameManager()
     {
-        // Unbounded channel 생성
-        _commandQueue = Channel.CreateUnbounded<IGameCommand>(new UnboundedChannelOptions
-        {
-            SingleReader = true,  // 단일 소비자
-            SingleWriter = false  // 다중 생산자
-        });
-        
-        // Command 처리 태스크 자동 시작
         _ = Task.Run(() => ProcessCommandsAsync());
     }
     
@@ -86,13 +80,12 @@ public class GameManager
     }
 
     /// <summary>
-    /// 내부적으로만 사용되는 클라이언트 제거 메서드 (Command에서만 호출)
+    /// 내부적으로만 사용되는 클라이언트 제거 메서드
     /// </summary>
     internal async Task RemoveClientInternal(int clientId)
     {
         var player = GetPlayerById(clientId);
             
-        // 게임 중인 플레이어면 다른 플레이어들에게 퇴장 알림
         if (player != null)
         {
             Console.WriteLine($"[게임] 플레이어 {player.Id}({player.Nickname}) 퇴장 처리");
@@ -103,7 +96,6 @@ public class GameManager
             }, clientId);
         }
 
-        // 플레이어와 클라이언트 제거
         Players.TryRemove(clientId, out _);
         Clients.TryRemove(clientId, out _);
             

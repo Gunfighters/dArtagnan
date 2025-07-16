@@ -22,7 +22,6 @@ public class ClientConnection
         Id = id;
         tcpClient = client;
         
-        // TCP NoDelay 설정 (Nagle's algorithm 비활성화)
         tcpClient.NoDelay = true;
         
         IpAddress = client.Client.RemoteEndPoint!.ToString()!.Split(":")[0];
@@ -33,45 +32,34 @@ public class ClientConnection
         _ = Task.Run(ReceiveLoop);
     }
 
-
-
-    public async Task SendPacketAsync(IPacket packet)
+    private async Task ReceiveLoop()
     {
         try
         {
-            await NetworkUtils.SendPacketAsync(stream, packet);
+            Console.WriteLine($"[클라이언트 {Id}] 연결됨. 패킷 수신 시작.");
+                
+            while (true)
+            {
+                var packet = await NetworkUtils.ReceivePacketAsync(stream);
+                    
+                await RoutePacket(packet);
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[클라이언트 {Id}] 패킷 전송 실패: {ex.Message}");
-            
-            // 통일된 Command 처리 - DisconnectAsync는 RemoveClientCommand에서 처리
+            Console.WriteLine($"[클라이언트 {Id}] 수신 루프 오류: {ex.Message}");
+        }
+        finally
+        {
             var removeCommand = new RemoveClientCommand
             {
                 ClientId = Id,
                 Client = this,
                 IsNormalDisconnect = false
             };
+            
             await gameManager.EnqueueCommandAsync(removeCommand);
         }
-    }
-
-    public Task DisconnectAsync()
-    {
-        Console.WriteLine($"[클라이언트 {Id}] 연결 해제 중...");
-
-        try
-        {
-            stream.Close();
-            tcpClient.Close();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[클라이언트 {Id}] 연결 해제 중 오류: {ex.Message}");
-        }
-
-        Console.WriteLine($"[클라이언트 {Id}] 연결 해제 완료");
-        return Task.CompletedTask;
     }
 
     private async Task RoutePacket(IPacket packet)
@@ -152,35 +140,41 @@ public class ClientConnection
         }
     }
 
-    private async Task ReceiveLoop()
+    public async Task SendPacketAsync(IPacket packet)
     {
         try
         {
-            Console.WriteLine($"[클라이언트 {Id}] 연결됨. 패킷 수신 시작.");
-                
-            while (true)
-            {
-                var packet = await NetworkUtils.ReceivePacketAsync(stream);
-                    
-                // 패킷 라우팅 처리
-                await RoutePacket(packet);
-            }
+            await NetworkUtils.SendPacketAsync(stream, packet);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[클라이언트 {Id}] 수신 루프 오류: {ex.Message}");
-        }
-        finally
-        {
-            // 비정상 종료 시 통일된 Command 처리
+            Console.WriteLine($"[클라이언트 {Id}] 패킷 전송 실패: {ex.Message}");
+            
             var removeCommand = new RemoveClientCommand
             {
                 ClientId = Id,
                 Client = this,
                 IsNormalDisconnect = false
             };
-            
             await gameManager.EnqueueCommandAsync(removeCommand);
         }
+    }
+
+    public Task DisconnectAsync()
+    {
+        Console.WriteLine($"[클라이언트 {Id}] 연결 해제 중...");
+
+        try
+        {
+            stream.Close();
+            tcpClient.Close();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[클라이언트 {Id}] 연결 해제 중 오류: {ex.Message}");
+        }
+
+        Console.WriteLine($"[클라이언트 {Id}] 연결 해제 완료");
+        return Task.CompletedTask;
     }
 }

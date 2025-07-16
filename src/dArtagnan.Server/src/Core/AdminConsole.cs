@@ -3,15 +3,14 @@ namespace dArtagnan.Server;
 /// <summary>
 /// 서버 관리자 콘솔 명령어를 처리하는 클래스
 /// </summary>
-public class AdminConsole(TcpServer tcpServer)
+public class AdminConsole
 {
-    private bool isRunning = true;
+    private GameManager gameManager;
 
-    /// <summary>
-    /// 관리자 명령어 처리 루프를 시작합니다
-    /// </summary>
-    public async Task StartHandlingAsync()
+    public AdminConsole(GameManager gameManager)
     {
+        this.gameManager = gameManager;
+        
         Console.WriteLine("관리자 명령어:");
         Console.WriteLine("  status/s     - 서버 상태 출력");
         Console.WriteLine("  players/ps    - 현재 플레이어 목록 출력 (모든 정보)");
@@ -19,8 +18,16 @@ public class AdminConsole(TcpServer tcpServer)
         Console.WriteLine("  kill/k [ID]  - 특정 플레이어를 죽입니다 (예: kill 1)");
         Console.WriteLine("  quit/q/exit  - 서버 종료");
         Console.WriteLine();
+        
+        _ = Task.Run(HandleCommandsAsync);
+    }
 
-        while (isRunning)
+    /// <summary>
+    /// 관리자 명령어 처리 루프
+    /// </summary>
+    private async Task HandleCommandsAsync()
+    {
+        while (true)
         {
             try
             {
@@ -31,7 +38,7 @@ public class AdminConsole(TcpServer tcpServer)
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"명령어 처리 오류: {ex.Message}");
+                Console.WriteLine($"관리자 명령어 처리 중 오류: {ex.Message}");
             }
         }
     }
@@ -85,8 +92,6 @@ public class AdminConsole(TcpServer tcpServer)
             case "quit":
             case "q":
             case "exit":
-                isRunning = false;
-                await tcpServer.StopAsync();
                 Environment.Exit(0);
                 break;
 
@@ -102,8 +107,6 @@ public class AdminConsole(TcpServer tcpServer)
     /// </summary>
     private async Task KillPlayer(int playerId)
     {
-        var gameManager = tcpServer.GetGameManager();
-        
         // 직접 처리 대신 Command 생성
         await gameManager.EnqueueCommandAsync(new AdminKillPlayerCommand
         {
@@ -116,11 +119,9 @@ public class AdminConsole(TcpServer tcpServer)
     /// </summary>
     private void PrintServerStatus()
     {
-        var gameManager = tcpServer.GetGameManager();
-            
         Console.WriteLine($"=== 서버 상태 ===");
         Console.WriteLine($"게임 상태: {gameManager.CurrentGameState}");
-        Console.WriteLine($"접속 중인 클라이언트: {tcpServer.GetClientCount()}명");
+        Console.WriteLine($"접속 중인 클라이언트: {gameManager.Clients.Count}명");
         Console.WriteLine($"게임 중인 플레이어: {gameManager.Players.Count}명");
         Console.WriteLine($"생존자: {gameManager.GetAlivePlayerCount()}명");
 
@@ -138,8 +139,6 @@ public class AdminConsole(TcpServer tcpServer)
     /// </summary>
     private void PrintPlayerList()
     {
-        var gameManager = tcpServer.GetGameManager();
-            
         Console.WriteLine($"=== 현재 플레이어 목록 ===");
             
         if (gameManager.Players.Count == 0)
@@ -166,7 +165,6 @@ public class AdminConsole(TcpServer tcpServer)
     /// </summary>
     private void PrintPlayer(int playerId)
     {
-        var gameManager = tcpServer.GetGameManager();
         var player = gameManager.GetPlayerById(playerId);
             
         if (player == null)
@@ -212,13 +210,5 @@ public class AdminConsole(TcpServer tcpServer)
         {
             Console.WriteLine($"  플레이어 정보: 미설정");
         }
-    }
-
-    /// <summary>
-    /// 명령어 처리를 중지합니다
-    /// </summary>
-    public void Stop()
-    {
-        isRunning = false;
     }
 }
