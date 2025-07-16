@@ -289,6 +289,7 @@ namespace dArtagnan.Shared
     /// <summary>
     /// [클라이언트 => 서버]
     /// 룰렛을 돌려 나의 명중률을 확인하였다.
+    /// TrialCount는 현재 안쓰이는 변수이지만 빈 패킷끼리 구분을 못하는 버그 땜애 임시로 존재
     /// </summary>
     [MessagePackObject]
     public struct RouletteDone : IPacket
