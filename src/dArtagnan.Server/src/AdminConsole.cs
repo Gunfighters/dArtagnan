@@ -13,11 +13,11 @@ public class AdminConsole(TcpServer tcpServer)
     public async Task StartHandlingAsync()
     {
         Console.WriteLine("관리자 명령어:");
-        Console.WriteLine("  status     - 서버 상태 출력");
-        Console.WriteLine("  players    - 현재 플레이어 목록 출력 (모든 정보)");
-        Console.WriteLine("  player [ID] - 특정 플레이어 정보 출력 (예: player 1)");
-        Console.WriteLine("  kill [ID]  - 특정 플레이어를 죽입니다 (예: kill 1)");
-        Console.WriteLine("  quit       - 서버 종료");
+        Console.WriteLine("  status/s     - 서버 상태 출력");
+        Console.WriteLine("  players/ps    - 현재 플레이어 목록 출력 (모든 정보)");
+        Console.WriteLine("  player/p [ID] - 특정 플레이어 정보 출력 (예: player 1)");
+        Console.WriteLine("  kill/k [ID]  - 특정 플레이어를 죽입니다 (예: kill 1)");
+        Console.WriteLine("  quit/q/exit  - 서버 종료");
         Console.WriteLine();
 
         while (isRunning)
@@ -49,14 +49,17 @@ public class AdminConsole(TcpServer tcpServer)
         switch (mainCommand)
         {
             case "status":
+            case "s":
                 PrintServerStatus();
                 break;
 
             case "players":
+            case "ps":
                 PrintPlayerList();
                 break;
 
             case "player":
+            case "p":
                 if (parameters.Length > 0 && int.TryParse(parameters[0], out int playerId))
                 {
                     PrintPlayer(playerId);
@@ -68,6 +71,7 @@ public class AdminConsole(TcpServer tcpServer)
                 break;
 
             case "kill":
+            case "k":
                 if (parameters.Length > 0 && int.TryParse(parameters[0], out int targetId))
                 {
                     await KillPlayer(targetId);
@@ -79,6 +83,7 @@ public class AdminConsole(TcpServer tcpServer)
                 break;
 
             case "quit":
+            case "q":
             case "exit":
                 isRunning = false;
                 await tcpServer.StopAsync();
