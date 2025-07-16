@@ -29,14 +29,6 @@ public class ClientConnection
         stream = client.GetStream();
         this.gameManager = gameManager;
 
-        // Command pattern을 통한 클라이언트 등록
-        var addCommand = new AddClientCommand
-        {
-            ClientId = Id,
-            Client = this
-        };
-        _ = gameManager.EnqueueCommandAsync(addCommand);
-
         // 패킷 수신 루프 시작
         _ = Task.Run(ReceiveLoop);
     }

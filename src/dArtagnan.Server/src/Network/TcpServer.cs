@@ -37,9 +37,14 @@ public class TcpServer
                 try
                 {
                     var tcpClient = await tcpListener.AcceptTcpClientAsync();
-                    int clientId = GetAvailableClientId();
-                    var client = new ClientConnection(clientId, tcpClient, gameManager);
-                    Console.WriteLine($"새 클라이언트 연결됨 (ID: {client.Id})");
+                    
+                    // CreateClientCommand를 통해 thread-safe하게 클라이언트 생성
+                    var createCommand = new CreateClientCommand
+                    {
+                        TcpClient = tcpClient
+                    };
+                    
+                    _ = gameManager.EnqueueCommandAsync(createCommand);
                 }
                 catch (ObjectDisposedException)
                 {
@@ -56,20 +61,6 @@ public class TcpServer
         {
             Console.WriteLine($"서버 시작 오류: {ex.Message}");
         }
-    }
-
-    /// <summary>
-    /// 사용 가능한 클라이언트 ID를 찾아 반환합니다.
-    /// 1부터 시작해서 빈 번호를 찾습니다.
-    /// </summary>
-    private int GetAvailableClientId()
-    {
-        int id = 1;
-        while (gameManager.Clients.ContainsKey(id))
-        {
-            id++;
-        }
-        return id;
     }
 
     public Task StopAsync()
