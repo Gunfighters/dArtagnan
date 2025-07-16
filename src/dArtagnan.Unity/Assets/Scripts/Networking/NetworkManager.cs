@@ -47,10 +47,9 @@ public class NetworkManager : MonoBehaviour
         // var host = useCustomHost ? customHost : awsHost;
         Debug.Log($"Connecting to: {host}:{port}");
         _client = new TcpClient();
-        await _client.ConnectAsync(host, port).AsUniTask();
-
-        // TCP NoDelay 설정 (Nagle's algorithm 비활성화)
         _client.NoDelay = true;
+        await _client.ConnectAsync(host, port).AsUniTask();
+        // TCP NoDelay 설정 (Nagle's algorithm 비활성화)
         Debug.Log($"Connected to: {host}:{port}");
         _stream = _client.GetStream();
         await NetworkUtils.SendPacketAsync(_stream, new PlayerJoinRequest());
