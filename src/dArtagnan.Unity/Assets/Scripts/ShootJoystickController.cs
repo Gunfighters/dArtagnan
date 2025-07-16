@@ -10,6 +10,7 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
     public AudioSource reloadSound;
     public Image JoystickAxis;
     public Image HandleOutline;
+    public SpriteRenderer Icon;
     public Player LocalPlayer;
 
     private float RemainingReloadTime => LocalPlayer.RemainingReloadTime;
@@ -24,7 +25,7 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
     {
         if (!LocalPlayer) return;
         // shootButton.interactable = controlledPlayerCooldown <= 0;
-        HandleOutline.color = Shootable ? LocalPlayer.TargetPlayer is null ? orange : Color.red : Color.grey;
+        HandleOutline.color = Icon.color = Shootable ? LocalPlayer.TargetPlayer is null ? orange : Color.red : Color.grey;
         shootingJoystick.enabled = Shootable;
         cooldownImage.fillAmount = RemainingReloadTime <= 0 ? 1 : 1f - RemainingReloadTime / TotalReloadTime;
         if (_reloading && Shootable)
