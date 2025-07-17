@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Sockets;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
+using Networking;
 using UnityEngine;
 
 public class NetworkManager : MonoBehaviour
@@ -12,10 +13,7 @@ public class NetworkManager : MonoBehaviour
     private TcpClient _client;
     private NetworkStream _stream;
     public static NetworkManager Instance { get; private set; }
-    public string awsHost;
-    public string customHost;
-    public bool useCustomHost;
-    public int port;
+    public NetworkManagerConfig config;
     public bool connected;
     public float pingAvg;
     public float pingDeviance;

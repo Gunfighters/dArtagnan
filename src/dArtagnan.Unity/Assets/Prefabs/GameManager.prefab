@@ -54,7 +54,6 @@ MonoBehaviour:
   mainCamera: {fileID: 0}
   Field: {fileID: 0}
   AudioManager: {fileID: 270576434676097986}
-  GunCollection: {fileID: 11400000, guid: 91824a520d391974a88f36ad4936d63a, type: 2}
 --- !u!114 &2090332019890753341
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -191,7 +190,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cbd1f4b5a0af4c34b7bebe285c8fd720, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  awsHost: 54.180.85.77
-  customHost: localhost
-  useCustomHost: 0
-  port: 7777
+  config: {fileID: 11400000, guid: 6c934d44d01dd432aa117b578669fa39, type: 2}
+  connected: 0
+  pingAvg: 0
+  pingDeviance: 0
