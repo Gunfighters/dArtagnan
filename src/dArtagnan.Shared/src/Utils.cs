@@ -39,8 +39,7 @@ namespace dArtagnan.Shared
     public static class Constants
     {
         public const float DEFAULT_RELOAD_TIME = 15.0f;
-        public const float WALKING_SPEED = 40f;
-        public const float RUNNING_SPEED = 160f;
+        public const float MOVEMENT_SPEED = 40f;
         public const int MIN_ACCURACY = 1;
         public const int MAX_ACCURACY = 100;
         public const float DEFAULT_RANGE = 300f;

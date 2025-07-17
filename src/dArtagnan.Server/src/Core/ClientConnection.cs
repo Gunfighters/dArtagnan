@@ -79,7 +79,6 @@ public class ClientConnection
                 {
                     PlayerId = Id,
                     MovementData = movementData.MovementData,
-                    Running = movementData.Running
                 },
                 
                 PlayerShootingFromClient shootingData => new PlayerShootingCommand

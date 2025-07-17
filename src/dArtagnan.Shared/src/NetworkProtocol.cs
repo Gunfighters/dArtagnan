@@ -94,7 +94,7 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [클라이언트 => 서버]
-    /// 플레이어가 자신의 이동 방향, 위치, 달리기 여부를 서버에 보내줄 때 쓰는 패킷.
+    /// 플레이어가 자신의 이동 방향, 위치를 서버에 보내줄 때 쓰는 패킷.
     /// </summary>
     [MessagePackObject]
     public struct PlayerMovementDataFromClient : IPacket
@@ -102,7 +102,6 @@ namespace dArtagnan.Shared
         [Key(0)] public int Direction;
         // [Key(1)] public Vector2 Position;
         [Key(1)] public MovementData MovementData;
-        [Key(2)] public bool Running;
     }
 
     /// <summary>
@@ -114,7 +113,6 @@ namespace dArtagnan.Shared
     {
         [Key(0)] public int PlayerId;
         [Key(1)] public MovementData MovementData;
-        [Key(2)] public bool Running;
     }
 
     /// <summary>

@@ -10,11 +10,9 @@ internal class Program
     private static TcpClient? client;
     private static NetworkStream? stream;
     private static bool isConnected = false;
-    private static bool isRunning = true;
+    private static bool isRunning = true; // 프로그램 실행 상태
     private static Vector2 position;
-    private static float speed => isRunning ? runningSpeed : walkingSpeed;
-    private static float runningSpeed = 4;
-    private static float walkingSpeed = 2;
+    private static float speed = 40f; // 일정한 속도
     private static int direction;
     private static Stopwatch stopwatch = new();
 
@@ -28,9 +26,9 @@ internal class Program
     {
         try
         {
-            var playerDirection = new PlayerMovementDataFromClient { Direction = direction, MovementData = { Direction = direction, Position = position, Speed = speed}, Running = isRunning };
+            var playerDirection = new PlayerMovementDataFromClient { Direction = direction, MovementData = { Direction = direction, Position = position, Speed = speed} };
             await NetworkUtils.SendPacketAsync(stream, playerDirection);
-            Console.WriteLine($"이동 데이터 패킷 전송: 방향 {playerDirection.Direction}, 위치 {playerDirection.MovementData.Position} 속도: {playerDirection.MovementData.Speed} 달리기 : {isRunning}");
+            Console.WriteLine($"이동 데이터 패킷 전송: 방향 {playerDirection.Direction}, 위치 {playerDirection.MovementData.Position} 속도: {playerDirection.MovementData.Speed}");
         }
         catch (Exception ex)
         {
@@ -46,8 +44,6 @@ internal class Program
         Console.WriteLine("  j/join [nickname] - 게임 참가");
         Console.WriteLine("  s/start - 게임 시작");
         Console.WriteLine("  d/dir [i] - 플레이어 이동 방향 변경");
-        Console.WriteLine("  sp/speed [runningSpeed] [walkingSpeed] - 플레이어 속도 변경");
-        Console.WriteLine("  r/run [true/false] - 달리기 상태 변경");
         Console.WriteLine("  sh/shoot [targetId] - 플레이어 공격");
         Console.WriteLine("  a/accuracy [state] - 정확도 상태 변경 (-1: 감소, 0: 유지, 1: 증가)");
         Console.WriteLine("  ro/roulette [count] - 룰렛 돌리기 완료 패킷 전송 (기본: 1)");
@@ -57,7 +53,7 @@ internal class Program
 
         var receiveTask = Task.Run(ReceiveLoop);
 
-        while (isRunning)
+        while (isRunning) // isConnected 대신 isRunning을 사용하도록 변경
         {
             Console.Write("> ");
             var input = Console.ReadLine();
@@ -112,34 +108,6 @@ internal class Program
                     }
                     break;
                 
-                case "sp":
-                case "speed":
-                    if (parts.Length >= 3)
-                    {
-                        runningSpeed = float.Parse(parts[1]);
-                        walkingSpeed = float.Parse(parts[2]);
-                    }
-                    else
-                    {
-                        Console.WriteLine("사용법: sp/speed [runningSpeed] [walkingSpeed]");
-                    }
-
-                    break;
-
-                case "r":
-                case "run":
-                    if (parts.Length >= 2)
-                    {
-                        isRunning = bool.Parse(parts[1]);
-                        Console.WriteLine($"달리기: {isRunning}");
-                        // await SendRunning(isRunning);
-                    }
-                    else
-                    {
-                        Console.WriteLine("사용법: r/run [true/false]");
-                    }
-                    break;
-
                 case "sh":
                 case "shoot":
                     if (parts.Length >= 2)
@@ -187,7 +155,7 @@ internal class Program
                 case "q":
                 case "quit":
                     await Disconnect();
-                    isRunning = false;
+                    isRunning = false; // isConnected 대신 isRunning을 사용하도록 변경
                     break;
 
                 default:
@@ -263,19 +231,6 @@ internal class Program
 
         CalculatePositionSoFar();
         direction = dir;
-        await SendMovementData();
-    }
-
-    static async Task SendRunning(bool running)
-    {
-        if (!isConnected || stream == null)
-        {
-            Console.WriteLine("먼저 서버에 연결해주세요.");
-            return;
-        }
-            
-        isRunning = running;
-        CalculatePositionSoFar();
         await SendMovementData();
     }
 
@@ -378,7 +333,7 @@ internal class Program
 
     static async Task ReceiveLoop()
     {
-        while (isRunning)
+        while (isRunning) // isConnected 대신 isRunning을 사용하도록 변경
         {
             if (stream != null && isConnected)
             {
