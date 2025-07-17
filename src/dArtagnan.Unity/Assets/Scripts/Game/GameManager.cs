@@ -13,7 +13,7 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
-    public PlayerPoolManager playerPoolManager;
+    public PlayerManager playerManager;
     private readonly Dictionary<int, Player> players = new();
     public List<Player> Survivors => players.Values.Where(p => p.Alive).ToList();
     private int localPlayerId;
@@ -45,22 +45,9 @@ public class GameManager : MonoBehaviour
 
     private void AddPlayer(PlayerInformation info, bool inGame)
     {
-        Debug.Log($"Add Player #{info.PlayerId} at {info.MovementData.Position} with direction {info.MovementData.Direction} and speed {info.MovementData.Speed}");
-        if (players.ContainsKey(info.PlayerId))
-        {
-            throw new Exception($"Trying to add player #{info.PlayerId} that already exists");
-        }
-
-        var p = playerPoolManager.Pool.Get();
-        var directionVec = DirectionHelper.IntToDirection(info.MovementData.Direction);
-        var estimatedPosition = info.MovementData.Position;
-        var estimatedRemainingReloadTime = info.RemainingReloadTime;
-        Debug.Log($"Estimated Position: {estimatedPosition}");
-        info.MovementData.Position = estimatedPosition;
-        info.RemainingReloadTime = estimatedRemainingReloadTime;
+        var p = playerManager.CreatePlayer(info);
         p.Initialize(info);
         players[info.PlayerId] = p;
-        Debug.Log($"Player #{info.PlayerId} added at {p.Position} (Object: {players[info.PlayerId]})");
         
         if (p == LocalPlayer)
         {
@@ -152,7 +139,7 @@ public class GameManager : MonoBehaviour
     {
         if (players.TryGetValue(leave.PlayerId, out var leavingPlayer))
         {
-            playerPoolManager.Pool.Release(leavingPlayer);
+            playerManager.RemovePlayer(leave.PlayerId);
             players.Remove(leave.PlayerId);
             Debug.Log($"Player #{leave.PlayerId} was successfully removed.");
         }
@@ -270,7 +257,7 @@ public class GameManager : MonoBehaviour
     {
         foreach (var p in players.Values)
         {
-            playerPoolManager.Pool.Release(p);
+            playerManager.RemovePlayer(p.ID);
         }
         players.Clear();
     }
