@@ -263,6 +263,7 @@ public class Player : MonoBehaviour
         }
         var needToGo = (predictedPosition - rb.position).normalized;
         var actualDirection = DirectionHelperClient.IntToDirection(DirectionHelperClient.DirectionToInt(needToGo));
+        // TODO: 최단경로 알고리즘 이용하여 벽 피해가기.
         return Vector2.MoveTowards(rb.position, rb.position + actualDirection * diff, correctionSpeed * Time.fixedDeltaTime);
     }
 

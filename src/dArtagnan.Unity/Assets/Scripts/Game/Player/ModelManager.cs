@@ -51,13 +51,8 @@ public class ModelManager : MonoBehaviour
 
     public void ResetModel(int accuracy)
     {
-        Destroy(actualModel.gameObject);
-        Destroy(modelSilhouette.gameObject);
-        actualModel = Instantiate(modelPrefab, transform).GetComponent<Character4D>();
-        modelSilhouette = Instantiate(modelPrefab, transform).GetComponent<Character4D>();
-        // SetTransparent();
-        SetDirection(direction == Vector2.zero ? Vector2.down : direction);
-        SetState(initialState);
+        actualModel.SetExpression("Default");
+        modelSilhouette.SetExpression("Default");
         var gunSprite = GunCollection.GunSpriteByAccuracy(accuracy);
         actualModel.Equip(gunSprite, GunCollection.Firearm1H.Contains(gunSprite) ? EquipmentPart.Firearm1H : EquipmentPart.Firearm2H);
         modelSilhouette.Equip(gunSprite, GunCollection.Firearm1H.Contains(gunSprite) ? EquipmentPart.Firearm1H : EquipmentPart.Firearm2H);
