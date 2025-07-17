@@ -1,8 +1,12 @@
 using System.Linq;
+using dArtagnan.Shared;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Serialization;
+
 public class TargetManager : MonoBehaviour
 {
+    [SerializeField] private EventChannel packetChannel;
     [CanBeNull] private Player LocalPlayer => GameManager.Instance.LocalPlayer;
     [CanBeNull] private Player LastSentTarget;
 
@@ -24,7 +28,7 @@ public class TargetManager : MonoBehaviour
             || changed)
         {
             LocalPlayer.Aim(newTarget);
-            NetworkManager.Instance.SendPlayerNewTarget(newTarget?.ID ?? -1);
+            packetChannel.Raise(new PlayerIsTargetingFromClient { TargetId = newTarget?.ID ?? -1 });
             LastSentTarget = newTarget;
         }
     }

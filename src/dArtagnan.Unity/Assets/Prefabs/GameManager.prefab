@@ -50,6 +50,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: adfcb06afd9a44da884d18f93ee6785d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  packetChannel: {fileID: 11400000, guid: d02993eae3520408bbcddcd5d95844f8, type: 2}
   playerManager: {fileID: 1058137494920116139}
   mainCamera: {fileID: 0}
   Field: {fileID: 0}
@@ -66,6 +67,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83964d1530a741079700ea5bf7ea6a39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  packetChannel: {fileID: 11400000, guid: d02993eae3520408bbcddcd5d95844f8, type: 2}
 --- !u!82 &3056038483346782095
 AudioSource:
   m_ObjectHideFlags: 0
@@ -190,10 +192,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cbd1f4b5a0af4c34b7bebe285c8fd720, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  packetChannel: {fileID: 11400000, guid: d02993eae3520408bbcddcd5d95844f8, type: 2}
   config: {fileID: 11400000, guid: 6c934d44d01dd432aa117b578669fa39, type: 2}
-  connected: 0
-  pingAvg: 0
-  pingDeviance: 0
 --- !u!114 &2655052901297011441
 MonoBehaviour:
   m_ObjectHideFlags: 0

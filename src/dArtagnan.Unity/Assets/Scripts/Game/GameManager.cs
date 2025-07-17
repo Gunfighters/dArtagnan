@@ -12,6 +12,7 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    [SerializeField] private PacketChannel packetChannel;
     public static GameManager Instance { get; private set; }
     public PlayerManager playerManager;
     private int localPlayerId;
@@ -30,13 +31,15 @@ public class GameManager : MonoBehaviour
     {
         Application.targetFrameRate = 60;
         Instance = this;
+        packetChannel.On<YouAre>(OnYouAre);
+        packetChannel.On<PlayerJoinBroadcast>(OnPlayerJoinBroadcast);
     }
 
     private void Update()
     {
         if (Time.time - lastMovementDataUpdateTimestmap >= 1f && LocalPlayer?.Alive is true)
         {
-            NetworkManager.Instance.SendPlayerMovementData(LocalPlayer.Position, LocalPlayer.CurrentDirection, LocalPlayer.Running, LocalPlayer.Speed);
+            SendLocalPlayerMovementData();
             lastMovementDataUpdateTimestmap = Time.time;
         }
     }
@@ -187,7 +190,7 @@ public class GameManager : MonoBehaviour
 
     public void StartGame()
     {
-        NetworkManager.Instance.SendStartGame();
+        packetChannel.Raise(new StartGameFromClient());
     }
 
     public void OnPlayerBalanceUpdate(PlayerBalanceUpdateBroadcast playerBalanceUpdate)
@@ -219,14 +222,29 @@ public class GameManager : MonoBehaviour
         LocalPlayer.SetDirection(newDirection);
         LocalPlayer.SetRunning(running);
         LocalPlayer.SetSpeed(speed);
-        NetworkManager.Instance.SendPlayerMovementData(LocalPlayer.Position, LocalPlayer.CurrentDirection, running, LocalPlayer.Speed);
+        SendLocalPlayerMovementData();
         lastMovementDataUpdateTimestmap = Time.time;
+    }
+
+    private void SendLocalPlayerMovementData()
+    {
+        packetChannel.Raise(new PlayerMovementDataFromClient
+        {
+            Direction = DirectionHelperClient.DirectionToInt(LocalPlayer.CurrentDirection),
+            MovementData = new MovementData
+            {
+                Direction = DirectionHelperClient.DirectionToInt(LocalPlayer.CurrentDirection),
+                Position = VecConverter.ToSystemVec(LocalPlayer.Position),
+                Speed = LocalPlayer.Speed
+            }
+        });
+
     }
 
     public void ShootTarget()
     {
         if (!LocalPlayer?.TargetPlayer) return;
-        NetworkManager.Instance.SendPlayerShooting(LocalPlayer!.TargetPlayer!.ID);
+        packetChannel.Raise(new PlayerShootingFromClient { TargetId = LocalPlayer.TargetPlayer.ID });
     }
 
     private void SetCameraFollow([CanBeNull] Player p)

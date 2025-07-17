@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using Assets.HeroEditor4D.Common.Scripts.Collections;
 using Cysharp.Threading.Tasks;
+using dArtagnan.Shared;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class RouletteManager : MonoBehaviour
 {
+    [SerializeField] private EventChannel packetChannel;
     public static RouletteManager Instance;
     [SerializeField] private GameObject roulettePrefab;
     [SerializeField] private List<int> accuracyPool;
@@ -94,7 +97,7 @@ public class RouletteManager : MonoBehaviour
             roulettePrefab.transform.rotation = Quaternion.Euler(0, 0, z);
             await UniTask.WaitForEndOfFrame();
         }
-        NetworkManager.Instance.SendRouletteDone();
+        packetChannel.Raise(new RouletteDone());
     }
 
     private IEnumerator AutoSpinAfterSeconds()

@@ -579,6 +579,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05dc46cc5f34c481ab5993e5c46145b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  packetChannel: {fileID: 11400000, guid: d02993eae3520408bbcddcd5d95844f8, type: 2}
   up: {fileID: 5024141810432263973}
   keep: {fileID: 1614698842544444459}
   down: {fileID: 1912858862835226395}

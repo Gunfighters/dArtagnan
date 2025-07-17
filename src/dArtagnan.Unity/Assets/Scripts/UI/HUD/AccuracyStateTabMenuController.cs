@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using dArtagnan.Shared;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class AccuracyStateTabMenuController : MonoBehaviour
 {
+    [SerializeField] private EventChannel packetChannel;
     public TextMeshProUGUI up;
     public TextMeshProUGUI keep;
     public TextMeshProUGUI down;
@@ -25,7 +28,7 @@ public class AccuracyStateTabMenuController : MonoBehaviour
     {
         SwitchUIOnly(newState);
         LocalPlayer?.SetAccuracyState(newState);
-        NetworkManager.Instance.SendAccuracyState(newState);
+        packetChannel.Raise(new SetAccuracyState() { AccuracyState = newState});
     }
 
     public void SwitchUIOnly(int newState)
