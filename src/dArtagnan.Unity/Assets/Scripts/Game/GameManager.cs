@@ -7,14 +7,13 @@ using Assets.HeroEditor4D.Common.Scripts.Collections;
 using dArtagnan.Shared;
 using JetBrains.Annotations;
 using Cysharp.Threading.Tasks;
+using Game;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
-    public int playerObjectPoolSize;
-    public List<GameObject> playerObjectPool = new();
-    public GameObject playerPrefab;
+    public PlayerPoolManager playerPoolManager;
     private readonly Dictionary<int, Player> players = new();
     public List<Player> Survivors => players.Values.Where(p => p.Alive).ToList();
     private int localPlayerId;
@@ -33,12 +32,6 @@ public class GameManager : MonoBehaviour
     {
         Application.targetFrameRate = 60;
         Instance = this;
-        for (var i = 0; i < playerObjectPoolSize; i++)
-        {
-            var obj = Instantiate(playerPrefab);
-            obj.SetActive(false);
-            playerObjectPool.Add(obj);
-        }
     }
 
     private void Update()
@@ -58,33 +51,25 @@ public class GameManager : MonoBehaviour
             throw new Exception($"Trying to add player #{info.PlayerId} that already exists");
         }
 
-        var obj = playerObjectPool.FirstOrDefault();
-        if (obj is null)
-        {
-            Debug.LogWarning($"No more object in the pool. Instantiating...");
-            obj = Instantiate(playerPrefab, Field.transform);
-        }
-        playerObjectPool.Remove(obj);
-        var player = obj.GetComponent<Player>();
+        var p = playerPoolManager.Pool.Get();
         var directionVec = DirectionHelper.IntToDirection(info.MovementData.Direction);
         var estimatedPosition = info.MovementData.Position;
         var estimatedRemainingReloadTime = info.RemainingReloadTime;
         Debug.Log($"Estimated Position: {estimatedPosition}");
         info.MovementData.Position = estimatedPosition;
         info.RemainingReloadTime = estimatedRemainingReloadTime;
-        player.Initialize(info);
-        players[info.PlayerId] = player;
-        Debug.Log($"Player #{info.PlayerId} added at {player.Position} (Object: {players[info.PlayerId]})");
+        p.Initialize(info);
+        players[info.PlayerId] = p;
+        Debug.Log($"Player #{info.PlayerId} added at {p.Position} (Object: {players[info.PlayerId]})");
         
-        if (player == LocalPlayer)
+        if (p == LocalPlayer)
         {
             CanvasManager.Instance.Show(GameScreen.HUD);
-            SetCameraFollow(player);
-            HUDManager.Instance.OnLocalPlayerActivation(player);
+            SetCameraFollow(p);
+            HUDManager.Instance.OnLocalPlayerActivation(p);
         }
-        player.ToggleUIInGame(inGame);
-        player.gameObject.layer = LayerMask.NameToLayer(player == LocalPlayer ? "LocalPlayer" : "RemotePlayer");
-        player.gameObject.SetActive(true);
+        p.ToggleUIInGame(inGame);
+        p.gameObject.layer = LayerMask.NameToLayer(p == LocalPlayer ? "LocalPlayer" : "RemotePlayer");
     }
 
     public void OnYouAre(YouAre payload)
@@ -167,7 +152,7 @@ public class GameManager : MonoBehaviour
     {
         if (players.TryGetValue(leave.PlayerId, out var leavingPlayer))
         {
-            ReleasePlayerObject(leavingPlayer);
+            playerPoolManager.Pool.Release(leavingPlayer);
             players.Remove(leave.PlayerId);
             Debug.Log($"Player #{leave.PlayerId} was successfully removed.");
         }
@@ -175,13 +160,6 @@ public class GameManager : MonoBehaviour
         {
             Debug.LogWarning($"Tried to remove player #{leave.PlayerId}, but they were not found in the dictionary. They might have been cleared already.");
         }
-    }
-
-    private void ReleasePlayerObject(Player p)
-    {
-        Debug.Log($"Releasing: {p.ID}");
-        p.gameObject.SetActive(false);
-        playerObjectPool.Add(p.gameObject);
     }
 
     public void OnGamePlaying(GameInPlayingFromServer gamePlaying)
@@ -292,7 +270,7 @@ public class GameManager : MonoBehaviour
     {
         foreach (var p in players.Values)
         {
-            ReleasePlayerObject(p);
+            playerPoolManager.Pool.Release(p);
         }
         players.Clear();
     }

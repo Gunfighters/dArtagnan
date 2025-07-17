@@ -20,7 +20,7 @@ public class NetworkManager : MonoBehaviour
     private float LastPingRequestTime;
     private List<float> pingSample = new();
 
-    private async UniTaskVoid Awake()
+    private void Awake()
     {
         Instance = this;
         _channel = Channel.CreateSingleConsumerUnbounded<IPacket>();
