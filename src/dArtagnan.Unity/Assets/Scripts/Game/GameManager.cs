@@ -14,15 +14,13 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     public PlayerManager playerManager;
-    private readonly Dictionary<int, Player> players = new();
-    public List<Player> Survivors => players.Values.Where(p => p.Alive).ToList();
     private int localPlayerId;
-    [CanBeNull] public Player LocalPlayer => players.GetValueOrDefault(localPlayerId, null);
+    [CanBeNull] public Player LocalPlayer => playerManager.GetPlayer(localPlayerId);
     public CameraController mainCamera;
     public GameObject Field;
     public AudioManager AudioManager;
     private int hostId;
-    [CanBeNull] public Player Host => players.GetValueOrDefault(hostId, null);
+    [CanBeNull] public Player Host => playerManager.GetPlayer(hostId);
     private GameState gameState;
     private float lastMovementDataUpdateTimestmap;
     private CancellationTokenSource _deactivationTaskCancellationTokenSource = new();
@@ -47,7 +45,6 @@ public class GameManager : MonoBehaviour
     {
         var p = playerManager.CreatePlayer(info);
         p.Initialize(info);
-        players[info.PlayerId] = p;
         
         if (p == LocalPlayer)
         {
@@ -82,7 +79,7 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayerMovementData(PlayerMovementDataBroadcast payload)
     {
-        var targetPlayer = players[payload.PlayerId];
+        var targetPlayer = playerManager.GetPlayer(payload.PlayerId);
         if (targetPlayer == LocalPlayer) return;
         var direction = DirectionHelperClient.IntToDirection(payload.MovementData.Direction);
         var serverPosition = VecConverter.ToUnityVec(payload.MovementData.Position);
@@ -92,8 +89,8 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayerShootingBroadcast(PlayerShootingBroadcast shooting)
     {
-        var shooter = players[shooting.ShooterId];
-        var target = players[shooting.TargetId];
+        var shooter = playerManager.GetPlayer(shooting.ShooterId);
+        var target = playerManager.GetPlayer(shooting.TargetId);
         shooter.Fire(target);
         shooter.UpdateRemainingReloadTime(shooter.TotalReloadTime);
         if (gameState == GameState.Playing)
@@ -109,15 +106,15 @@ public class GameManager : MonoBehaviour
 
     public void OnUpdatePlayerAlive(UpdatePlayerAlive updatePlayerAlive)
     {
-        var player = players[updatePlayerAlive.PlayerId];
+        var player = playerManager.GetPlayer(updatePlayerAlive.PlayerId);
         player.SetAlive(updatePlayerAlive.Alive);
         if (!player.Alive)
         {
             ScheduleDeactivation(player).Forget();
             if (player.transform == mainCamera.target)
             {
-                var anotherPlayer = players.Values.FirstOrDefault(p => p.Alive);
-                SetCameraFollow(anotherPlayer);
+                var another = playerManager.Survivors.FirstOrDefault();
+                SetCameraFollow(another);
             }
         }
     }
@@ -137,16 +134,7 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayerLeaveBroadcast(PlayerLeaveBroadcast leave)
     {
-        if (players.TryGetValue(leave.PlayerId, out var leavingPlayer))
-        {
-            playerManager.RemovePlayer(leave.PlayerId);
-            players.Remove(leave.PlayerId);
-            Debug.Log($"Player #{leave.PlayerId} was successfully removed.");
-        }
-        else
-        {
-            Debug.LogWarning($"Tried to remove player #{leave.PlayerId}, but they were not found in the dictionary. They might have been cleared already.");
-        }
+        playerManager.RemovePlayer(leave.PlayerId);
     }
 
     public void OnGamePlaying(GameInPlayingFromServer gamePlaying)
@@ -187,15 +175,14 @@ public class GameManager : MonoBehaviour
     }
     public void OnPlayerIsTargeting(PlayerIsTargetingBroadcast playerIsTargeting)
     {
-        var aiming = players[playerIsTargeting.ShooterId];
+        var aiming = playerManager.GetPlayer(playerIsTargeting.ShooterId);
         if (aiming == LocalPlayer) return;
-        players.TryGetValue(playerIsTargeting.TargetId, out var target);
-        aiming.Aim(target);
+        aiming.Aim(playerManager.GetPlayer(playerIsTargeting.TargetId));
     }
 
     public void OnWinner(WinnerBroadcast winner)
     {
-        HUDManager.Instance.AnnounceWinner(players[winner.PlayerId]);
+        HUDManager.Instance.AnnounceWinner(playerManager.GetPlayer(winner.PlayerId));
     }
 
     public void StartGame()
@@ -205,16 +192,16 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayerBalanceUpdate(PlayerBalanceUpdateBroadcast playerBalanceUpdate)
     {
-        var updated = players[playerBalanceUpdate.PlayerId];
+        var updated = playerManager.GetPlayer(playerBalanceUpdate.PlayerId);
         updated.SetBalance(playerBalanceUpdate.Balance);
     }
 
     public void OnPlayerAccuracyStateBroadcast(PlayerAccuracyStateBroadcast accuracyStateBroadcast)
     {
-        var player = players.GetValueOrDefault(accuracyStateBroadcast.PlayerId);
-        if (player)
+        var p = playerManager.GetPlayer(accuracyStateBroadcast.PlayerId);
+        if (p)
         {
-            player.SetAccuracyState(accuracyStateBroadcast.AccuracyState);
+            p.SetAccuracyState(accuracyStateBroadcast.AccuracyState);
         }
     }
 
@@ -255,11 +242,7 @@ public class GameManager : MonoBehaviour
 
     private void RemovePlayerAll()
     {
-        foreach (var p in players.Values)
-        {
-            playerManager.RemovePlayer(p.ID);
-        }
-        players.Clear();
+        playerManager.RemovePlayerAll();
     }
 
     private void OnDestroy()

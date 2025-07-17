@@ -10,6 +10,7 @@ namespace Game
         [SerializeField] private PlayerPoolManager playerPoolManager;
 
         private readonly Dictionary<int, Player> _players = new();
+        public IEnumerable<Player> Survivors => _players.Values.Where(p => p.Alive);
         
         public Player GetPlayer(int id)
         {
@@ -34,6 +35,14 @@ namespace Game
             else
             {
                 Debug.LogWarning($"Player {playerId} could not be removed.");
+            }
+        }
+
+        public void RemovePlayerAll()
+        {
+            foreach (var p in _players.Values.ToList())
+            {
+                RemovePlayer(p.ID);
             }
         }
     }

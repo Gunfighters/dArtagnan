@@ -34,7 +34,7 @@ public class TargetManager : MonoBehaviour
     {
         Player best = null;
         var targetPool =
-            GameManager.Instance.Survivors.Where(target =>
+            GameManager.Instance.playerManager.Survivors.Where(target =>
                 target != LocalPlayer
                 && LocalPlayer!.CanShoot(target));
         if (HUDManager.Instance.ShootJoystickVector() == Vector2.zero) // 사거리 내 가장 가까운 적.
