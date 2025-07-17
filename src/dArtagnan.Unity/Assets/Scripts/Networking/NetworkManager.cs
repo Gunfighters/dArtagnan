@@ -11,7 +11,7 @@ using UnityEngine.Serialization;
 public class NetworkManager : MonoBehaviour
 {
     [Header("Packet Channel")]
-    [SerializeField] private PacketChannel packetChannel;
+    [SerializeField] private EventChannel packetChannel;
     
     [Header("Config")]
     [SerializeField] private NetworkManagerConfig config;

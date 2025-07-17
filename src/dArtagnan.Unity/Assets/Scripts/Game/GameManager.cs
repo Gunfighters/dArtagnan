@@ -12,30 +12,41 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] private PacketChannel packetChannel;
+    [SerializeField] public EventChannel packetChannel;
     public static GameManager Instance { get; private set; }
     public PlayerManager playerManager;
-    private int localPlayerId;
+    public int localPlayerId;
     [CanBeNull] public Player LocalPlayer => playerManager.GetPlayer(localPlayerId);
     public CameraController mainCamera;
     public GameObject Field;
     public AudioManager AudioManager;
-    private int hostId;
+    public int hostId;
     [CanBeNull] public Player Host => playerManager.GetPlayer(hostId);
-    private GameState gameState;
-    private float lastMovementDataUpdateTimestmap;
-    private CancellationTokenSource _deactivationTaskCancellationTokenSource = new();
-    private float ping;
+    public GameState gameState;
+    public float lastMovementDataUpdateTimestmap;
+    public CancellationTokenSource _deactivationTaskCancellationTokenSource = new();
+    public float ping;
 
-    private void Awake()
+    public void Awake()
     {
         Application.targetFrameRate = 60;
         Instance = this;
         packetChannel.On<YouAre>(OnYouAre);
         packetChannel.On<PlayerJoinBroadcast>(OnPlayerJoinBroadcast);
+        packetChannel.On<NewHostBroadcast>(OnNewHost);
+        packetChannel.On<PlayerLeaveBroadcast>(OnPlayerLeaveBroadcast);
+        packetChannel.On<PlayerMovementDataBroadcast>(OnPlayerMovementData);
+        packetChannel.On<PlayerShootingBroadcast>(OnPlayerShootingBroadcast);
+        packetChannel.On<PlayerBalanceUpdateBroadcast>(OnPlayerBalanceUpdate);
+        packetChannel.On<PlayerIsTargetingBroadcast>(OnPlayerIsTargeting);
+        packetChannel.On<UpdatePlayerAlive>(OnUpdatePlayerAlive);
+        packetChannel.On<GameInPlayingFromServer>(OnGamePlaying);
+        packetChannel.On<GameInWaitingFromServer>(OnGameWaiting);
+        packetChannel.On<YourAccuracyAndPool>(OnYourAccuracyAndPool);
+        packetChannel.On<PlayerAccuracyStateBroadcast>(OnPlayerAccuracyStateBroadcast);;
     }
 
-    private void Update()
+    public void Update()
     {
         if (Time.time - lastMovementDataUpdateTimestmap >= 1f && LocalPlayer?.Alive is true)
         {
@@ -44,7 +55,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void AddPlayer(PlayerInformation info, bool inGame)
+    public void AddPlayer(PlayerInformation info, bool inGame)
     {
         var p = playerManager.CreatePlayer(info);
         p.Initialize(info);
@@ -122,7 +133,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private async UniTask ScheduleDeactivation(Player p)
+    public async UniTask ScheduleDeactivation(Player p)
     {
         try
         {
@@ -170,7 +181,7 @@ public class GameManager : MonoBehaviour
         AudioManager.PlayForState(GameState.Waiting);
     }
 
-    private void CancelAllTasks()
+    public void CancelAllTasks()
     {
         _deactivationTaskCancellationTokenSource.Cancel();
         _deactivationTaskCancellationTokenSource.Dispose();
@@ -226,7 +237,7 @@ public class GameManager : MonoBehaviour
         lastMovementDataUpdateTimestmap = Time.time;
     }
 
-    private void SendLocalPlayerMovementData()
+    public void SendLocalPlayerMovementData()
     {
         packetChannel.Raise(new PlayerMovementDataFromClient
         {
@@ -247,7 +258,7 @@ public class GameManager : MonoBehaviour
         packetChannel.Raise(new PlayerShootingFromClient { TargetId = LocalPlayer.TargetPlayer.ID });
     }
 
-    private void SetCameraFollow([CanBeNull] Player p)
+    public void SetCameraFollow([CanBeNull] Player p)
     {
         if (p is null)
         {
@@ -258,12 +269,12 @@ public class GameManager : MonoBehaviour
         HUDManager.Instance.ToggleSpectate(p != LocalPlayer);
     }
 
-    private void RemovePlayerAll()
+    public void RemovePlayerAll()
     {
         playerManager.RemovePlayerAll();
     }
 
-    private void OnDestroy()
+    public void OnDestroy()
     {
         _deactivationTaskCancellationTokenSource.Cancel();
         _deactivationTaskCancellationTokenSource.Dispose();

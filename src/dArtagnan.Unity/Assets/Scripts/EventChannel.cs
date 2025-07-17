@@ -26,7 +26,6 @@ public class EventChannel : ScriptableObject
         {
             foreach (var action in channel)
             {
-                Debug.Log($"Event {type.Name}.{action.Method.Name}");
                 action.DynamicInvoke(value);
             }
         }

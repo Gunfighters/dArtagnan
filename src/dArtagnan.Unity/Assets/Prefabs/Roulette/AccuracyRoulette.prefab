@@ -50,12 +50,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02df507c0b7f42b3b1b4727789893702, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  packetChannel: {fileID: 11400000, guid: d02993eae3520408bbcddcd5d95844f8, type: 2}
   roulettePrefab: {fileID: 7373461086874304860}
   accuracyPool: 
   slots: []
   GunCollection: {fileID: 11400000, guid: 91824a520d391974a88f36ad4936d63a, type: 2}
   target: 0
-  Spinning: 0
+  Spinned: 0
   slotPadding: 0
   rotateSpeed: 1
   spinDuration: 7
