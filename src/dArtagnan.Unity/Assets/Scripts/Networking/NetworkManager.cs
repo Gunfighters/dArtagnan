@@ -10,9 +10,6 @@ using UnityEngine.Serialization;
 
 public class NetworkManager : MonoBehaviour
 {
-    [Header("Packet Channel")]
-    [SerializeField] private EventChannel packetChannel;
-    
     [Header("Config")]
     [SerializeField] private NetworkManagerConfig config;
 
@@ -22,19 +19,19 @@ public class NetworkManager : MonoBehaviour
 
     private void OnEnable()
     {
-        packetChannel.On<PlayerMovementDataFromClient>(Send);
-        packetChannel.On<PlayerShootingFromClient>(Send);
-        packetChannel.On<PlayerIsTargetingFromClient>(Send);
-        packetChannel.On<StartGameFromClient>(Send);
-        packetChannel.On<SetAccuracyState>(Send);
-        packetChannel.On<RouletteDone>(Send);
+        EventChannel<IPacket>.Instance.On<PlayerMovementDataFromClient>(Send);
+        EventChannel<IPacket>.Instance.On<PlayerShootingFromClient>(Send);
+        EventChannel<IPacket>.Instance.On<PlayerIsTargetingFromClient>(Send);
+        EventChannel<IPacket>.Instance.On<StartGameFromClient>(Send);
+        EventChannel<IPacket>.Instance.On<SetAccuracyState>(Send);
+        EventChannel<IPacket>.Instance.On<RouletteDone>(Send);
     }
 
     private void Update()
     {
         if (_channel.Reader.TryRead(out var packet))
         {
-            packetChannel.Raise(packet);
+            EventChannel<IPacket>.Instance.Raise(packet);
         }
     }
 

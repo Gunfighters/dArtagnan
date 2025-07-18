@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
-[CreateAssetMenu(fileName = "EventChannel", menuName = "Events/Event Channel")]
-public class EventChannel : ScriptableObject
+public class EventChannel<TEventType>
 {
     private readonly Dictionary<Type, List<Delegate>> _channels = new();
+    public static EventChannel<TEventType> Instance => _instance ??= new EventChannel<TEventType>();
 
-    public void On<T>(Action<T> action)
+    private static EventChannel<TEventType> _instance;
+
+    public void On<T>(Action<T> action) where T : TEventType
     {
         var type = typeof(T);
-        Debug.Log($"On {type.Name}: {action.Method.Name}");
         if (!_channels.ContainsKey(typeof(T)))
         {
             _channels[type] = new List<Delegate>();
@@ -18,10 +18,9 @@ public class EventChannel : ScriptableObject
         _channels[type].Add(action);
     }
 
-    public void Raise<T>(T value)
+    public void Raise<T>(T value) where T : TEventType
     {
         var type = value.GetType();
-        Debug.Log($"Raising {type.Name}");
         if (_channels.TryGetValue(type, out var channel))
         {
             foreach (var action in channel)

@@ -6,7 +6,6 @@ using UnityEngine.Serialization;
 
 public class TargetManager : MonoBehaviour
 {
-    [SerializeField] private EventChannel packetChannel;
     [CanBeNull] private Player LocalPlayer => GameManager.Instance.LocalPlayer;
     [CanBeNull] private Player LastSentTarget;
 
@@ -28,7 +27,7 @@ public class TargetManager : MonoBehaviour
             || changed)
         {
             LocalPlayer.Aim(newTarget);
-            packetChannel.Raise(new PlayerIsTargetingFromClient { TargetId = newTarget?.ID ?? -1 });
+            EventChannel<IPacket>.Instance.Raise(new PlayerIsTargetingFromClient { TargetId = newTarget?.ID ?? -1 });
             LastSentTarget = newTarget;
         }
     }

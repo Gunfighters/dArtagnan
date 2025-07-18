@@ -9,7 +9,6 @@ using UnityEngine.UI;
 
 public class AccuracyStateTabMenuController : MonoBehaviour
 {
-    [SerializeField] private EventChannel packetChannel;
     public TextMeshProUGUI up;
     public TextMeshProUGUI keep;
     public TextMeshProUGUI down;
@@ -28,7 +27,7 @@ public class AccuracyStateTabMenuController : MonoBehaviour
     {
         SwitchUIOnly(newState);
         LocalPlayer?.SetAccuracyState(newState);
-        packetChannel.Raise(new SetAccuracyState() { AccuracyState = newState});
+        EventChannel<IPacket>.Instance.Raise(new SetAccuracyState() { AccuracyState = newState});
     }
 
     public void SwitchUIOnly(int newState)

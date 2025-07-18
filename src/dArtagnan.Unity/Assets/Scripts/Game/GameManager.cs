@@ -12,7 +12,6 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] public EventChannel packetChannel;
     public static GameManager Instance { get; private set; }
     public PlayerManager playerManager;
     public int localPlayerId;
@@ -31,19 +30,19 @@ public class GameManager : MonoBehaviour
     {
         Application.targetFrameRate = 60;
         Instance = this;
-        packetChannel.On<YouAre>(OnYouAre);
-        packetChannel.On<PlayerJoinBroadcast>(OnPlayerJoinBroadcast);
-        packetChannel.On<NewHostBroadcast>(OnNewHost);
-        packetChannel.On<PlayerLeaveBroadcast>(OnPlayerLeaveBroadcast);
-        packetChannel.On<PlayerMovementDataBroadcast>(OnPlayerMovementData);
-        packetChannel.On<PlayerShootingBroadcast>(OnPlayerShootingBroadcast);
-        packetChannel.On<PlayerBalanceUpdateBroadcast>(OnPlayerBalanceUpdate);
-        packetChannel.On<PlayerIsTargetingBroadcast>(OnPlayerIsTargeting);
-        packetChannel.On<UpdatePlayerAlive>(OnUpdatePlayerAlive);
-        packetChannel.On<GameInPlayingFromServer>(OnGamePlaying);
-        packetChannel.On<GameInWaitingFromServer>(OnGameWaiting);
-        packetChannel.On<YourAccuracyAndPool>(OnYourAccuracyAndPool);
-        packetChannel.On<PlayerAccuracyStateBroadcast>(OnPlayerAccuracyStateBroadcast);;
+        EventChannel<IPacket>.Instance.On<YouAre>(OnYouAre);
+        EventChannel<IPacket>.Instance.On<PlayerJoinBroadcast>(OnPlayerJoinBroadcast);
+        EventChannel<IPacket>.Instance.On<NewHostBroadcast>(OnNewHost);
+        EventChannel<IPacket>.Instance.On<PlayerLeaveBroadcast>(OnPlayerLeaveBroadcast);
+        EventChannel<IPacket>.Instance.On<PlayerMovementDataBroadcast>(OnPlayerMovementData);
+        EventChannel<IPacket>.Instance.On<PlayerShootingBroadcast>(OnPlayerShootingBroadcast);
+        EventChannel<IPacket>.Instance.On<PlayerBalanceUpdateBroadcast>(OnPlayerBalanceUpdate);
+        EventChannel<IPacket>.Instance.On<PlayerIsTargetingBroadcast>(OnPlayerIsTargeting);
+        EventChannel<IPacket>.Instance.On<UpdatePlayerAlive>(OnUpdatePlayerAlive);
+        EventChannel<IPacket>.Instance.On<GameInPlayingFromServer>(OnGamePlaying);
+        EventChannel<IPacket>.Instance.On<GameInWaitingFromServer>(OnGameWaiting);
+        EventChannel<IPacket>.Instance.On<YourAccuracyAndPool>(OnYourAccuracyAndPool);
+        EventChannel<IPacket>.Instance.On<PlayerAccuracyStateBroadcast>(OnPlayerAccuracyStateBroadcast);;
     }
 
     public void Update()
@@ -201,7 +200,7 @@ public class GameManager : MonoBehaviour
 
     public void StartGame()
     {
-        packetChannel.Raise(new StartGameFromClient());
+        EventChannel<IPacket>.Instance.Raise(new StartGameFromClient());
     }
 
     public void OnPlayerBalanceUpdate(PlayerBalanceUpdateBroadcast playerBalanceUpdate)
@@ -239,7 +238,7 @@ public class GameManager : MonoBehaviour
 
     public void SendLocalPlayerMovementData()
     {
-        packetChannel.Raise(new PlayerMovementDataFromClient
+        EventChannel<IPacket>.Instance.Raise(new PlayerMovementDataFromClient
         {
             Direction = DirectionHelperClient.DirectionToInt(LocalPlayer.CurrentDirection),
             MovementData = new MovementData
@@ -255,7 +254,7 @@ public class GameManager : MonoBehaviour
     public void ShootTarget()
     {
         if (!LocalPlayer?.TargetPlayer) return;
-        packetChannel.Raise(new PlayerShootingFromClient { TargetId = LocalPlayer.TargetPlayer.ID });
+        EventChannel<IPacket>.Instance.Raise(new PlayerShootingFromClient { TargetId = LocalPlayer.TargetPlayer.ID });
     }
 
     public void SetCameraFollow([CanBeNull] Player p)

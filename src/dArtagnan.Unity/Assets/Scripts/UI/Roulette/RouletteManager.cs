@@ -9,7 +9,6 @@ using UnityEngine.Serialization;
 
 public class RouletteManager : MonoBehaviour
 {
-    [SerializeField] private EventChannel packetChannel;
     public static RouletteManager Instance;
     [SerializeField] private GameObject roulettePrefab;
     [SerializeField] private List<int> accuracyPool;
@@ -97,7 +96,7 @@ public class RouletteManager : MonoBehaviour
             roulettePrefab.transform.rotation = Quaternion.Euler(0, 0, z);
             await UniTask.WaitForEndOfFrame();
         }
-        packetChannel.Raise(new RouletteDone());
+        EventChannel<IPacket>.Instance.Raise(new RouletteDone());
     }
 
     private IEnumerator AutoSpinAfterSeconds()
