@@ -1,13 +1,14 @@
 using System.Linq;
 using dArtagnan.Shared;
+using Game;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 public class TargetManager : MonoBehaviour
 {
-    [CanBeNull] private Player LocalPlayer => GameManager.Instance.LocalPlayer;
-    [CanBeNull] private Player LastSentTarget;
+    [CanBeNull] private static Player LocalPlayer => PlayerGeneralManager.LocalPlayer;
+    [CanBeNull] private Player _lastSentTarget;
 
     private void Update()
     {
@@ -22,13 +23,13 @@ public class TargetManager : MonoBehaviour
         }
 
         if (HUDManager.Instance.ShootJoystickVector() == Vector2.zero) return;
-        if ((LastSentTarget is null && newTarget is not null)
-            || (newTarget is null && LastSentTarget is not null)
+        if ((_lastSentTarget is null && newTarget is not null)
+            || (newTarget is null && _lastSentTarget is not null)
             || changed)
         {
             LocalPlayer.Aim(newTarget);
-            EventChannel<IPacket>.Instance.Raise(new PlayerIsTargetingFromClient { TargetId = newTarget?.ID ?? -1 });
-            LastSentTarget = newTarget;
+            PacketChannel.Raise(new PlayerIsTargetingFromClient { TargetId = newTarget?.ID ?? -1 });
+            _lastSentTarget = newTarget;
         }
     }
 
@@ -37,7 +38,7 @@ public class TargetManager : MonoBehaviour
     {
         Player best = null;
         var targetPool =
-            GameManager.Instance.playerManager.Survivors.Where(target =>
+            PlayerGeneralManager.Survivors.Where(target =>
                 target != LocalPlayer
                 && LocalPlayer!.CanShoot(target));
         if (HUDManager.Instance.ShootJoystickVector() == Vector2.zero) // 사거리 내 가장 가까운 적.

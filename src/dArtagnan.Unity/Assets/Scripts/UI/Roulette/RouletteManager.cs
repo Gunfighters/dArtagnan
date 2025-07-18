@@ -37,6 +37,8 @@ public class RouletteManager : MonoBehaviour
         // 룰렛 화면이 활성화될 때 자동으로 초기화
         ResetRoulette();
         Debug.Log("[룰렛] 화면 활성화 - 자동 초기화");
+        PacketChannel.On<YourAccuracyAndPool>(e => SetAccuracyPool(e.AccuracyPool));
+        PacketChannel.On<YourAccuracyAndPool>(e => SetTarget(e.YourAccuracy));
     }
 
     private void OnDisable()
@@ -96,7 +98,7 @@ public class RouletteManager : MonoBehaviour
             roulettePrefab.transform.rotation = Quaternion.Euler(0, 0, z);
             await UniTask.WaitForEndOfFrame();
         }
-        EventChannel<IPacket>.Instance.Raise(new RouletteDone());
+        PacketChannel.Raise(new RouletteDone());
     }
 
     private IEnumerator AutoSpinAfterSeconds()

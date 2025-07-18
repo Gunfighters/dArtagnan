@@ -5,11 +5,13 @@ namespace Game
 {
     public class PlayerPoolManager : MonoBehaviour
     {
+        public static PlayerPoolManager Instance { get; private set; }
         public PlayerPoolConfig config;
         public IObjectPool<Player> Pool;
 
-        private void Awake()
+        private void OnEnable()
         {
+            Instance = this;
             Pool = new ObjectPool<Player>(
                 CreateGameObjectBase,
                 ActionOnGet,
@@ -21,7 +23,7 @@ namespace Game
 
         private Player CreateGameObjectBase()
         {
-            var gameObjectBase = Instantiate(config.playerPrefab).GetComponent<Player>();
+            var gameObjectBase = GameObject.Instantiate(config.playerPrefab).GetComponent<Player>();
             gameObjectBase.transform.SetParent(transform);
             return gameObjectBase;
         }

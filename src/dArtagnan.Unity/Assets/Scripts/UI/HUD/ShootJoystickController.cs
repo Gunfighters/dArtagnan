@@ -1,3 +1,5 @@
+using dArtagnan.Shared;
+using Game;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -47,7 +49,7 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
         JoystickAxis.enabled = false;
         if (Shootable)
         {
-            GameManager.Instance.ShootTarget();
+            PacketChannel.Raise(new PlayerShootingFromClient { TargetId = PlayerGeneralManager.LocalPlayer.TargetPlayer.ID });
         }
     }
 }

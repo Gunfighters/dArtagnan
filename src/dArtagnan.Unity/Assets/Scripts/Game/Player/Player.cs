@@ -65,6 +65,20 @@ public class Player : MonoBehaviour
         HighlightAsTarget(false);
     }
 
+    private void OnEnable()
+    {
+        PacketChannel.On<PlayerAccuracyStateBroadcast>(e =>
+        {
+            if (e.PlayerId == ID)
+                SetAccuracyState(e.AccuracyState);
+        });
+        PacketChannel.On<PlayerBalanceUpdateBroadcast>(e =>
+        {
+            if (e.PlayerId == ID)
+                SetBalance(e.Balance);
+        });
+    }
+
     private void Update()
     {
         UpdateModel();

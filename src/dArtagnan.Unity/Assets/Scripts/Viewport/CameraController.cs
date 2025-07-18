@@ -1,9 +1,12 @@
+using System.Linq;
+using dArtagnan.Shared;
+using Game;
 using UnityEngine;
 
 [RequireComponent(typeof(Camera))]
 public class CameraController : MonoBehaviour
 {
-    public Transform target;
+    public Player target;
     public SpriteRenderer groundRenderer;
     public Vector3 offset = new(0, 0, -10);
     public Camera cam;
@@ -13,7 +16,19 @@ public class CameraController : MonoBehaviour
     public Vector2 mapSize;
     public Vector2 center;
 
-    public void Follow(Transform newTarget)
+    private void OnEnable()
+    {
+        LocalEventChannel.OnNewCameraTarget += Follow;
+        PacketChannel.On<UpdatePlayerAlive>(OnUpdatePlayerAlive);
+    }
+
+    private void OnUpdatePlayerAlive(UpdatePlayerAlive e)
+    {
+        if (!e.Alive && e.PlayerId == target.ID)
+            LocalEventChannel.InvokeOnNewCameraTarget(PlayerGeneralManager.Survivors.First());
+    }
+
+    private void Follow(Player newTarget)
     {
         target = newTarget;
     }
@@ -37,7 +52,7 @@ public class CameraController : MonoBehaviour
     private void LimitCameraArea()
     {
         transform.position = Vector3.Lerp(transform.position, 
-            target.position + offset, 
+            target.transform.position + offset, 
             Time.deltaTime * cameraMoveSpeed);
         var lx = mapSize.x - width;
         var clampX = Mathf.Clamp(transform.position.x, -lx + center.x, lx + center.x);

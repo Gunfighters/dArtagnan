@@ -1,4 +1,5 @@
 using System;
+using dArtagnan.Shared;
 using UnityEngine;
 
 public class CanvasManager : MonoBehaviour
@@ -13,11 +14,20 @@ public class CanvasManager : MonoBehaviour
         Instance = this;
         Init(GameScreen.HUD);
         Init(GameScreen.Roulette);
-        Show(GameScreen.Connection);
+        Show(GameScreen.Connection, true);
     }
 
-    public void Show(GameScreen screen)
+    private void OnEnable()
     {
+        PacketChannel.On<GameInWaitingFromServer>(e => Show(GameScreen.HUD, true));
+        PacketChannel.On<GameInPlayingFromServer>(e => Show(GameScreen.HUD, true));
+        PacketChannel.On<YourAccuracyAndPool>(e => Show(GameScreen.Roulette, true));
+    }
+
+    private void Show(GameScreen screen, bool hideAll)
+    {
+        if (hideAll)
+            HideAll();
         switch (screen)
         {
             case GameScreen.HUD:

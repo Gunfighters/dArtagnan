@@ -19,19 +19,19 @@ public class NetworkManager : MonoBehaviour
 
     private void OnEnable()
     {
-        EventChannel<IPacket>.Instance.On<PlayerMovementDataFromClient>(Send);
-        EventChannel<IPacket>.Instance.On<PlayerShootingFromClient>(Send);
-        EventChannel<IPacket>.Instance.On<PlayerIsTargetingFromClient>(Send);
-        EventChannel<IPacket>.Instance.On<StartGameFromClient>(Send);
-        EventChannel<IPacket>.Instance.On<SetAccuracyState>(Send);
-        EventChannel<IPacket>.Instance.On<RouletteDone>(Send);
+        PacketChannel.On<PlayerMovementDataFromClient>(Send);
+        PacketChannel.On<PlayerShootingFromClient>(Send);
+        PacketChannel.On<PlayerIsTargetingFromClient>(Send);
+        PacketChannel.On<StartGameFromClient>(Send);
+        PacketChannel.On<SetAccuracyState>(Send);
+        PacketChannel.On<RouletteDone>(Send);
     }
 
     private void Update()
     {
         if (_channel.Reader.TryRead(out var packet))
         {
-            EventChannel<IPacket>.Instance.Raise(packet);
+            PacketChannel.Raise(packet);
         }
     }
 

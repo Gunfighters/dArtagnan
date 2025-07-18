@@ -1,7 +1,6 @@
-using System.Collections;
-using Assets.HeroEditor4D.Common.Scripts.Common;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
+using Game;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -28,12 +27,10 @@ public class HUDManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-    }
-
-    private void Start()
-    {
-        CanvasManager.Instance.Show(GameScreen.HUD);
-        SetupForGameState(new GameInWaitingFromServer());
+        PacketChannel.On<GameInPlayingFromServer>(SetupForGameState);
+        PacketChannel.On<GameInWaitingFromServer>(SetupForGameState);
+        PacketChannel.On<WinnerBroadcast>(e => AnnounceWinner(PlayerGeneralManager.GetPlayer(e.PlayerId)));
+        LocalEventChannel.OnLocalPlayerAlive += alive => ToggleSpectate(!alive);
     }
 
     private void Update()
@@ -43,18 +40,43 @@ public class HUDManager : MonoBehaviour
         if (_lastDirection == newDirection && _lastRunning == newRunning) return;
         _lastDirection = newDirection;
         _lastRunning = newRunning;
-        GameManager.Instance.UpdateVelocity(newDirection, newRunning, Speed);
+        UpdateVelocity(newDirection, newRunning, Speed);
     }
 
     public void UpdateSpeed(float speed)
     {
         Speed = speed;
-        GameManager.Instance.UpdateVelocity(GetInputDirection(), GetInputRunning(), speed);
+        UpdateVelocity(GetInputDirection(), GetInputRunning(), speed);
     }
-
+    
+    public void UpdateVelocity(Vector2 newDirection, bool running, float speed)
+    {
+        var localPlayer = PlayerGeneralManager.LocalPlayer;
+        if (!localPlayer.Alive) return;
+        localPlayer.SetDirection(newDirection);
+        localPlayer.SetRunning(running);
+        localPlayer.SetSpeed(speed);
+        SendLocalPlayerMovementData();
+    }
+    
+    public void SendLocalPlayerMovementData()
+    {
+        var localPlayer = PlayerGeneralManager.LocalPlayer;
+        PacketChannel.Raise(new PlayerMovementDataFromClient
+        {
+            Direction = DirectionHelperClient.DirectionToInt(localPlayer.CurrentDirection),
+            MovementData = new MovementData
+            {
+                Direction = DirectionHelperClient.DirectionToInt(localPlayer.CurrentDirection),
+                Position = VecConverter.ToSystemVec(localPlayer.Position),
+                Speed = localPlayer.Speed
+            }
+        });
+    }
+    
     public void UpdateRange(float range)
     {
-        GameManager.Instance.LocalPlayer.SetRange(range);
+        PlayerGeneralManager.LocalPlayer.SetRange(range);
     }
     
     private Vector2 GetInputDirection()
@@ -94,18 +116,7 @@ public class HUDManager : MonoBehaviour
         return direction.normalized;
     }
 
-    public void OnLocalPlayerActivation(Player localPlayer)
-    {
-        shootJoystickController.LocalPlayer = localPlayer;
-        onlyWhenLocalPlayerAlive.enabled = true;
-    }
-    
-    public void OnNewHost(bool youAreHost)
-    {
-        gameStartButton.gameObject.SetActive(youAreHost);
-    }
-
-    public void AnnounceWinner(Player winner)
+    private void AnnounceWinner(Player winner)
     {
         Debug.Log($"Announcing winner: {winner.Nickname}");
         winnerAnnouncement.text = $"{winner.Nickname} HAS WON!";
@@ -113,16 +124,18 @@ public class HUDManager : MonoBehaviour
         DelayDeactivation(winnerAnnouncement.transform.parent.gameObject, winnerAnnouncementDuration).Forget();
     }
 
-    public void SetupForGameState(GameInWaitingFromServer waiting)
+    private void SetupForGameState(GameInWaitingFromServer waiting)
     {
-        gameStartButton.gameObject.SetActive(GameManager.Instance.LocalPlayer is not null && GameManager.Instance.LocalPlayer == GameManager.Instance.Host);
+        gameStartButton.gameObject.SetActive(
+            PlayerGeneralManager.LocalPlayer is not null
+            && PlayerGeneralManager.LocalPlayer == PlayerGeneralManager.HostPlayer);
         roundBoard.gameObject.SetActive(false);
         roundSplash.gameObject.SetActive(false);
         accuracyStateTabMenuController.gameObject.SetActive(false);
         onlyWhenLocalPlayerAlive.enabled = true;
     }
 
-    public void SetupForGameState(GameInPlayingFromServer playing)
+    private void SetupForGameState(GameInPlayingFromServer playing)
     {
         gameStartButton.gameObject.SetActive(false);
         accuracyStateTabMenuController.gameObject.SetActive(true);
@@ -151,7 +164,7 @@ public class HUDManager : MonoBehaviour
         obj.SetActive(false);
     }
 
-    public void ToggleSpectate(bool toggle)
+    private void ToggleSpectate(bool toggle)
     {
         spectatingText.gameObject.SetActive(toggle);
         onlyWhenLocalPlayerAlive.enabled = !toggle;

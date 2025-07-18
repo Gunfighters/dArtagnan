@@ -1,3 +1,4 @@
+using dArtagnan.Shared;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,6 +13,6 @@ public class GameStartButton : MonoBehaviour
 
     private void Start()
     {
-        _btn.onClick.AddListener(GameManager.Instance.StartGame);
+        _btn.onClick.AddListener(() => PacketChannel.Raise(new StartGameFromClient()));
     }
 }

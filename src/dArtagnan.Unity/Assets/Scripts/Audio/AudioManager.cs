@@ -7,22 +7,20 @@ public class AudioManager : MonoBehaviour
     public AudioClip BGMWaiting;
     public AudioSource BGMPlayer;
 
-    private void Awake()
+    private void OnEnable()
     {
-        BGMPlayer.loop = true;
+        PacketChannel.On<GameInPlayingFromServer>(e => PlayForState(GameState.Playing));
+        PacketChannel.On<GameInWaitingFromServer>(e => PlayForState(GameState.Waiting));
     }
 
-    public void PlayForState(GameState state)
+    private void PlayForState(GameState state)
     {
-        switch (state)
+        BGMPlayer.clip = state switch
         {
-            case GameState.Playing:
-                BGMPlayer.clip = BGMInGame;
-                break;
-            case GameState.Waiting:
-                BGMPlayer.clip = BGMWaiting;
-                break;
-        }
+            GameState.Playing => BGMInGame,
+            GameState.Waiting => BGMWaiting,
+            _ => BGMPlayer.clip
+        };
         BGMPlayer.Play();
     }
 }

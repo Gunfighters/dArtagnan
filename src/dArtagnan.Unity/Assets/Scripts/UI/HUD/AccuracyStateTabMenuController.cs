@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using dArtagnan.Shared;
+using Game;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class AccuracyStateTabMenuController : MonoBehaviour
@@ -13,21 +13,32 @@ public class AccuracyStateTabMenuController : MonoBehaviour
     public TextMeshProUGUI keep;
     public TextMeshProUGUI down;
     public Image tabFocus;
-    private int state = 0;
-    private Player LocalPlayer => GameManager.Instance.LocalPlayer;
+    private int _state = 0;
     public Color highlightColor;
     public Color normalColor;
 
-    private void Start()
+    private void OnEnable()
     {
-        SwitchUIOnly(0);
+        PacketChannel.On<GameInPlayingFromServer>(OnGamePlaying);
+        PacketChannel.On<PlayerAccuracyStateBroadcast>(OnStateBroadcast);
+    }
+
+    private void OnGamePlaying(GameInPlayingFromServer e)
+    {
+        SwitchUIOnly(e.PlayersInfo.Single(i => i.PlayerId == PlayerGeneralManager.LocalPlayer.ID).AccuracyState);
+    }
+
+    private void OnStateBroadcast(PlayerAccuracyStateBroadcast e)
+    {
+        if (PlayerGeneralManager.LocalPlayer.ID == e.PlayerId)
+            SwitchUIOnly(e.AccuracyState);
     }
 
     public void Switch(int newState)
     {
         SwitchUIOnly(newState);
-        LocalPlayer?.SetAccuracyState(newState);
-        EventChannel<IPacket>.Instance.Raise(new SetAccuracyState() { AccuracyState = newState});
+        PlayerGeneralManager.LocalPlayer?.SetAccuracyState(newState);
+        PacketChannel.Raise(new SetAccuracyState { AccuracyState = newState});
     }
 
     public void SwitchUIOnly(int newState)
@@ -37,7 +48,7 @@ public class AccuracyStateTabMenuController : MonoBehaviour
             1 => up,
             0 => keep,
             -1 => down,
-            _ => throw new Exception($"Invalid state: {state}")
+            _ => throw new Exception($"Invalid state: {_state}")
         };
         tabFocus.transform.SetParent(selected.transform);
         var pos = tabFocus.transform.localPosition;
@@ -49,6 +60,6 @@ public class AccuracyStateTabMenuController : MonoBehaviour
         {
             menu.color = normalColor;
         }
-        state = newState;
+        _state = newState;
     }
 }
