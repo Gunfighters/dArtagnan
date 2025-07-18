@@ -42,7 +42,8 @@ public class GameManager : MonoBehaviour
         EventChannel<IPacket>.Instance.On<GameInPlayingFromServer>(OnGamePlaying);
         EventChannel<IPacket>.Instance.On<GameInWaitingFromServer>(OnGameWaiting);
         EventChannel<IPacket>.Instance.On<YourAccuracyAndPool>(OnYourAccuracyAndPool);
-        EventChannel<IPacket>.Instance.On<PlayerAccuracyStateBroadcast>(OnPlayerAccuracyStateBroadcast);;
+        EventChannel<IPacket>.Instance.On<PlayerAccuracyStateBroadcast>(OnPlayerAccuracyStateBroadcast);
+        EventChannel<IPacket>.Instance.On<WinnerBroadcast>(OnWinner);
     }
 
     public void Update()
