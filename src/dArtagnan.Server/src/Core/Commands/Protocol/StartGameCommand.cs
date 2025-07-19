@@ -13,10 +13,6 @@ public class StartGameCommand : IGameCommand
     
     public async Task ExecuteAsync(GameManager gameManager)
     {
-        // === 권한 검증 ===
-        if (!ValidateStartPermission(gameManager))
-            return;
-
         Console.WriteLine($"[게임] 게임 시작! (참가자: {gameManager.Players.Count}명)");
 
         // === 게임 전체 상태 초기화 (한 번에) ===
@@ -30,32 +26,7 @@ public class StartGameCommand : IGameCommand
         await BroadcastRouletteStart(gameManager, accuracyPool);
     }
 
-    /// <summary>
-    /// 게임 시작 권한을 검증합니다
-    /// </summary>
-    private bool ValidateStartPermission(GameManager gameManager)
-    {
-        var starter = gameManager.GetPlayerById(PlayerId);
-        if (starter == null)
-        {
-            Console.WriteLine($"[게임] 플레이어 {PlayerId}를 찾을 수 없습니다.");
-            return false;
-        }
-        
-        if (starter != gameManager.Host)
-        {
-            Console.WriteLine($"[게임] 경고: 방장이 아닌 플레이어가 게임 시작 시도 (Player #{starter.Id})");
-            return false;
-        }
 
-        if (gameManager.IsGamePlaying())
-        {
-            Console.WriteLine($"[게임] 경고: 이미 게임이 진행중.");
-            return false;
-        }
-
-        return true;
-    }
 
     /// <summary>
     /// 게임 전체 상태를 초기화합니다 (중복 제거)

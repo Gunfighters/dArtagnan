@@ -201,7 +201,7 @@ public class GameManager
             Round = Round, 
             TotalTime = 0f, 
             RemainingTime = 0f,
-            BettingAmount = Round <= 0 || Round > MAX_ROUNDS ? 0 : BettingAmounts[Math.Min(Round - 1, BettingAmounts.Length - 1)]
+            BettingAmount = BettingAmounts[Round - 1]
         });
     }
 
@@ -334,7 +334,7 @@ public class GameManager
         if (CurrentGameState != GameState.Playing || Round <= 0 || Round > MAX_ROUNDS)
             return;
             
-        var currentBettingAmount = BettingAmounts[Math.Min(Round - 1, BettingAmounts.Length - 1)];
+        var currentBettingAmount = BettingAmounts[Round - 1];
         var totalDeducted = 0;
         
         Console.WriteLine($"[베팅] 라운드 {Round}: {currentBettingAmount}달러씩 차감 시작");

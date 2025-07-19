@@ -13,7 +13,6 @@ public class RouletteDoneCommand : IGameCommand
     public async Task ExecuteAsync(GameManager gameManager)
     {
         var player = gameManager.GetPlayerById(PlayerId);
-        if (player == null) return;
         
         // 이미 완료한 플레이어인지 확인
         if (!gameManager.rouletteDonePlayers.Add(player)) return;
@@ -51,7 +50,7 @@ public class RouletteDoneCommand : IGameCommand
             Round = gameManager.Round, 
             TotalTime = 0f, 
             RemainingTime = 0f,
-            BettingAmount = gameManager.Round <= 0 || gameManager.Round > GameManager.MAX_ROUNDS ? 0 : gameManager.BettingAmounts[Math.Min(gameManager.Round - 1, gameManager.BettingAmounts.Length - 1)]
+            BettingAmount = gameManager.BettingAmounts[gameManager.Round - 1]
         });
     }
 } 

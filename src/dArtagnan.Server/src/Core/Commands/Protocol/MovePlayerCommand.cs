@@ -13,7 +13,6 @@ public class PlayerMovementCommand : IGameCommand
     public async Task ExecuteAsync(GameManager gameManager)
     {
         var player = gameManager.GetPlayerById(PlayerId);
-        if (player == null) return;
         
         // 플레이어 위치, 방향, 속도 업데이트
         player.UpdateMovementData(
