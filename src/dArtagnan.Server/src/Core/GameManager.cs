@@ -13,12 +13,12 @@ public class GameManager
     public readonly ConcurrentDictionary<int, Player> Players = new();
     public readonly ConcurrentDictionary<int, ClientConnection> Clients = new();
     public Player? Host;
-    public GameState CurrentGameState { get; private set; } = GameState.Waiting;
+    public GameState CurrentGameState { get; set; } = GameState.Waiting;
     public Player? LastManStanding => Players.Values.SingleOrDefault(p => !p.Bankrupt);
     public int Round = 0;
     public List<Player> Survivors => Players.Values.Where(p => p.Alive).ToList();
     
-    // 새로운 베팅금/판돈 시스템
+    // 베팅금/판돈 시스템
     public int TotalPrizeMoney = 0; // 총 판돈
     public float BettingTimer = 0f; // 베팅금 차감 타이머 (10초마다)
     private readonly int[] BettingAmounts = { 10, 20, 30, 40 }; // 라운드별 베팅금
@@ -163,6 +163,15 @@ public class GameManager
     }
 
     /// <summary>
+    /// 현재 라운드의 베팅금을 반환합니다
+    /// </summary>
+    public int GetCurrentBettingAmount()
+    {
+        if (Round <= 0 || Round > MAX_ROUNDS) return 0;
+        return BettingAmounts[Math.Min(Round - 1, BettingAmounts.Length - 1)];
+    }
+
+    /// <summary>
     /// 라운드 종료 조건을 확인합니다
     /// </summary>
     public bool ShouldEndRound()
@@ -191,49 +200,7 @@ public class GameManager
         }
     }
 
-    /// <summary>
-    /// 새로운 게임을 시작합니다 (룰렛 단계부터)
-    /// </summary>
-    public async Task StartNewGameAsync()
-    {
-        Console.WriteLine($"[게임] 게임 시작! (참가자: {Players.Count}명)");
-        
-        // 게임 시작시 베팅 시스템 초기화
-        TotalPrizeMoney = 0;
-        BettingTimer = 0f;
-        
-        await TransitionToRouletteAsync();
-   }
 
-    /// <summary>
-    /// 룰렛 상태로 전환합니다
-    /// </summary>
-    private async Task TransitionToRouletteAsync()
-    {
-        var oldState = CurrentGameState;
-        CurrentGameState = GameState.RouletteSpinning;
-        Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {CurrentGameState}");
-        
-        rouletteDonePlayers.Clear();
-        
-        List<int> accuracyPool = [];
-        for (var i = 0; i < 8; i++)
-        {
-            accuracyPool.Add(Player.GenerateRandomAccuracy());
-        }
-        foreach (var p in Players.Values)
-        {
-            p.ResetForInitialGame(accuracyPool[Random.Shared.Next(0, accuracyPool.Count)]);
-        }
-        ResetRespawnAll(true);
-        await Task.WhenAll(
-            Players.Values.Select(p => Clients[p.Id].SendPacketAsync(new YourAccuracyAndPool
-                { AccuracyPool = accuracyPool, YourAccuracy = p.Accuracy })));
-        foreach (var p in Players.Values)
-        {
-            Console.WriteLine($"{p.Nickname}: {p.Accuracy}%");
-        }
-    }
 
     /// <summary>
     /// 플레이 상태로 전환합니다
@@ -248,7 +215,8 @@ public class GameManager
             PlayersInfo = PlayersInRoom(), 
             Round = Round, 
             TotalTime = 0f, 
-            RemainingTime = 0f
+            RemainingTime = 0f,
+            BettingAmount = GetCurrentBettingAmount()
         });
     }
 
@@ -269,10 +237,9 @@ public class GameManager
     /// </summary>
     public async Task EndCurrentRoundAsync()
     {
-        await Task.Delay(2500);
-        
-        // 라운드 승리자에게 판돈 지급
         await GiveRoundPrizeToWinner();
+
+        await Task.Delay(2500);
         
         if (ShouldEndGame())
         {
@@ -350,9 +317,6 @@ public class GameManager
                 PlayerId = winner.Id,
                 Balance = winner.Balance
             });
-            
-            // 라운드 승리 알림 (기존 WinnerBroadcast 재사용)
-            // await BroadcastToAll(new RoundWinnerBroadcast { PlayerId = winner.Id, PrizeWon = TotalPrizeMoney });
         }
         else if (TotalPrizeMoney > 0)
         {
