@@ -388,7 +388,7 @@ internal class Program
                         
                 case GameInPlayingFromServer gamePlaying:
                     Console.WriteLine($"=== 게임 진행 중 (라운드 {gamePlaying.Round}) ===");
-                    Console.WriteLine($"베팅금: {gamePlaying.BettingAmount}달러/10초 | 남은 시간: {gamePlaying.RemainingTime:F1}초 / {gamePlaying.TotalTime:F1}초");
+                    Console.WriteLine($"베팅금: {gamePlaying.BettingAmount}달러/10초");
                     foreach (var info in gamePlaying.PlayersInfo)
                     {
                         Console.WriteLine($"  플레이어 {info.PlayerId}: {info.Nickname}");

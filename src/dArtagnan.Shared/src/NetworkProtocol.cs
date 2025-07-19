@@ -214,17 +214,14 @@ namespace dArtagnan.Shared
     /// [서버 => 클라이언트]
     /// 게임이 현재 '진행중' 상태에 있으며 플레이어들의 상태는 PlayersInfo와 같고 Round번째 라운드를 진행 중이다.
     /// 게임이 시작되거나 각 라운드가 시작될 때만 보내진다.
-    /// 남은 시간은 RemainingTime, 총 시간은 TotalTime이다.
-    /// BettingAmount는 이번 라운드의 10초마다 차감되는 베팅금이다.
+    /// 클라: BettingAmount는 이번 라운드의 10초마다 차감되는 베팅금이다.
     /// </summary>
     [MessagePackObject]
     public struct GameInPlayingFromServer : IPacket
     {
         [Key(0)] public List<PlayerInformation> PlayersInfo;
         [Key(1)] public int Round;
-        [Key(2)] public float TotalTime;
-        [Key(3)] public float RemainingTime;
-        [Key(4)] public int BettingAmount;
+        [Key(2)] public int BettingAmount;
     }
 
     /// <summary>

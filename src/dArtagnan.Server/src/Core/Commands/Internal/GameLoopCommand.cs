@@ -17,10 +17,10 @@ public class GameLoopCommand : IGameCommand
         {
             // 베팅금 타이머 업데이트 (10초마다 차감)
             gameManager.BettingTimer += DeltaTime;
-            if (gameManager.BettingTimer >= 10f) // 10초
+            if (gameManager.BettingTimer >= Constants.BETTING_PERIOD)
             {
                 await DeductBettingMoney(gameManager);
-                gameManager.BettingTimer -= 10f; // 정확한 시간 간격 유지
+                gameManager.BettingTimer -= Constants.BETTING_PERIOD;
             }
         }
         

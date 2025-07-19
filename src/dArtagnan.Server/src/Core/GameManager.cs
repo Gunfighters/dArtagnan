@@ -7,6 +7,8 @@ namespace dArtagnan.Server;
 
 /// <summary>
 /// 게임 세션, 클라이언트 연결, 브로드캐스팅을 통합 관리하는 클래스
+/// 커맨드에서 공통으로 쓰이는 유틸함수들을 모아둔다.
+/// 나머지 게임로직은 커맨드에서 직접 처리한다.
 /// </summary>
 public class GameManager
 {
@@ -224,9 +226,7 @@ public class GameManager
         
         await BroadcastToAll(new GameInPlayingFromServer { 
             PlayersInfo = PlayersInRoom(), 
-            Round = Round, 
-            TotalTime = 0f, 
-            RemainingTime = 0f,
+            Round = Round,
             BettingAmount = BettingAmounts[Round - 1]
         });
     }
