@@ -5,16 +5,20 @@ using UnityEngine;
 
 public static class PacketChannel
 {
-    private static readonly Dictionary<Type, List<Delegate>> Channels = new();
+    private static readonly Dictionary<Type, List<Action<IPacket>>> Channels = new();
 
-    public static void On<T>(Action<T> action) where T : IPacket
+    public static void On<T>(Action<T> action) where T : struct, IPacket
     {
         var type = typeof(T);
         if (!Channels.ContainsKey(typeof(T)))
         {
-            Channels[type] = new List<Delegate>();
+            Channels[type] = new ();
         }
-        Channels[type].Add(action);
+
+        Channels[type].Add(Wrapper);
+        return;
+
+        void Wrapper(IPacket packet) => action.Invoke((T)packet);
     }
 
     public static void Raise<T>(T value) where T : IPacket
@@ -24,7 +28,8 @@ public static class PacketChannel
         {
             foreach (var action in channel)
             {
-                action.DynamicInvoke(value);
+                Debug.Log($"Raise {type.Name} -> {action.Method.Name}");
+                action.Invoke(value);
             }
         }
     }
