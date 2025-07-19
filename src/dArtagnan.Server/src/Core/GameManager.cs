@@ -14,9 +14,7 @@ public class GameManager
     public readonly ConcurrentDictionary<int, ClientConnection> Clients = new();
     public Player? Host;
     public GameState CurrentGameState { get; set; } = GameState.Waiting;
-    public Player? LastManStanding => Players.Values.SingleOrDefault(p => !p.Bankrupt);
-    public int Round = 0;
-    public List<Player> Survivors => Players.Values.Where(p => p.Alive).ToList();
+    public int Round = 0; 
     
     // 베팅금/판돈 시스템
     public int TotalPrizeMoney = 0; // 총 판돈
@@ -118,7 +116,7 @@ public class GameManager
 
         if (Players.IsEmpty && CurrentGameState == GameState.Playing)
         {
-            await TransitionToWaitingAsync();
+            await ResetGameToWaiting();
         }
     }
 
@@ -220,18 +218,6 @@ public class GameManager
     }
 
     /// <summary>
-    /// 대기 상태로 전환합니다
-    /// </summary>
-    private async Task TransitionToWaitingAsync()
-    {
-        var oldState = CurrentGameState;
-        CurrentGameState = GameState.Waiting;
-        Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {CurrentGameState}");
-        
-        await BroadcastToAll(new GameInWaitingFromServer { PlayersInfo = PlayersInRoom() });
-    }
-
-    /// <summary>
     /// 현재 라운드를 종료하고 다음 단계로 진행합니다
     /// </summary>
     public async Task EndCurrentRoundAsync()
@@ -243,7 +229,7 @@ public class GameManager
         if (ShouldEndGame())
         {
             await AnnounceGameWinner();
-            await EndWholeGameAsync();
+            await ResetGameToWaiting();
         }
         else
         {
@@ -276,10 +262,13 @@ public class GameManager
     }
 
     /// <summary>
-    /// 게임 전체를 종료하고 대기실로 돌아갑니다
+    /// 게임을 완전히 초기화하고 대기 상태로 돌아갑니다
     /// </summary>
-    private async Task EndWholeGameAsync()
+    private async Task ResetGameToWaiting()
     {
+        var oldState = CurrentGameState;
+        
+        // 게임 완전 초기화
         foreach (var p in Players.Values)
         {
             p.ResetForInitialGame(0);
@@ -292,7 +281,11 @@ public class GameManager
         TotalPrizeMoney = 0;
         BettingTimer = 0f;
         
-        await TransitionToWaitingAsync();
+        // 대기 상태로 전환
+        CurrentGameState = GameState.Waiting;
+        Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {CurrentGameState}");
+        
+        await BroadcastToAll(new GameInWaitingFromServer { PlayersInfo = PlayersInRoom() });
     }
 
     /// <summary>
@@ -300,7 +293,7 @@ public class GameManager
     /// </summary>
     private async Task GiveRoundPrizeToWinner()
     {
-        var survivors = Survivors;
+        var survivors = Players.Values.Where(p => p.Alive).ToList();
         
         // 생존자가 1명일 때만 판돈 지급
         if (survivors.Count == 1 && TotalPrizeMoney > 0)
@@ -339,7 +332,7 @@ public class GameManager
     
     private async Task AnnounceGameWinner()
     {
-        var winner = LastManStanding?.Id;
+        var winner = Players.Values.SingleOrDefault(p => !p.Bankrupt)?.Id;
         
         Console.WriteLine($"[게임 종료] 최종 승리자: {winner}");
         await BroadcastToAll(new GameWinnerBroadcast { PlayerId = winner ?? -1 });
