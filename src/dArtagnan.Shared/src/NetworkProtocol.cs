@@ -28,6 +28,7 @@ namespace dArtagnan.Shared
     [Union(21, typeof(PlayerAccuracyStateBroadcast))]
     [Union(22, typeof(YourAccuracyAndPool))]
     [Union(23, typeof(RouletteDone))]
+    [Union(24, typeof(BettingDeductionBroadcast))]
     public interface IPacket
     {
     }
@@ -200,6 +201,7 @@ namespace dArtagnan.Shared
     /// <summary>
     /// [서버 => 클라이언트]
     /// 게임이 현재 '대기' 상태에 있으며 플레이어들의 상태는 PlayersInfo와 같다.
+    /// 클라이언트가 방에 처음 입장하거나 게임이 종료된 후 게임이 대기 상태로 돌아갈때 만 보내진다.
     /// </summary>
     [MessagePackObject]
     public struct GameInWaitingFromServer : IPacket
@@ -210,6 +212,7 @@ namespace dArtagnan.Shared
     /// <summary>
     /// [서버 => 클라이언트]
     /// 게임이 현재 '진행중' 상태에 있으며 플레이어들의 상태는 PlayersInfo와 같고 Round번째 라운드를 진행 중이다.
+    /// 게임이 시작되거나 각 라운드가 시작될 때만 보내진다.
     /// 남은 시간은 RemainingTime, 총 시간은 TotalTime이다.
     /// </summary>
     [MessagePackObject]
@@ -303,5 +306,16 @@ namespace dArtagnan.Shared
     [MessagePackObject]
     public struct PongPacket : IPacket
     {  
+    }
+    
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// 베팅금이 차감되었음을 알려주는 패킷
+    /// </summary>
+    [MessagePackObject]
+    public struct BettingDeductionBroadcast : IPacket
+    {
+        [Key(0)] public int DeductedAmount; // 차감된 베팅금
+        [Key(1)] public int TotalPrizeMoney; // 업데이트된 총 판돈
     }
 }

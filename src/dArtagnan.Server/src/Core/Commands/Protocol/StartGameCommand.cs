@@ -30,6 +30,6 @@ public class StartGameCommand : IGameCommand
             return;
         }
 
-        await gameManager.StartGame();
+        await gameManager.StartNewGameAsync();
     }
 } 

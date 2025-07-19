@@ -376,6 +376,7 @@ internal class Program
                     foreach (var info in gameWaiting.PlayersInfo)
                     {
                         Console.WriteLine($"  플레이어 {info.PlayerId}: {info.Nickname}");
+                        Console.WriteLine($"    소지금: {info.Balance}달러");
                         Console.WriteLine($"    위치: ({info.MovementData.Position.X:F2}, {info.MovementData.Position.Y:F2})");
                         Console.WriteLine($"    명중률: {info.Accuracy}%");
                         Console.WriteLine($"    정확도 상태: {info.AccuracyState} ({GetAccuracyStateText(info.AccuracyState)})");
@@ -391,6 +392,7 @@ internal class Program
                     foreach (var info in gamePlaying.PlayersInfo)
                     {
                         Console.WriteLine($"  플레이어 {info.PlayerId}: {info.Nickname}");
+                        Console.WriteLine($"    소지금: {info.Balance}달러");
                         Console.WriteLine($"    위치: ({info.MovementData.Position.X:F2}, {info.MovementData.Position.Y:F2})");
                         Console.WriteLine($"    명중률: {info.Accuracy}%");
                         Console.WriteLine($"    정확도 상태: {info.AccuracyState} ({GetAccuracyStateText(info.AccuracyState)})");
@@ -430,6 +432,15 @@ internal class Program
                     
                     // 자동으로 룰렛 돌리기 완료 패킷 전송
                     await SendRoulette(1);
+                    break;
+                
+                case BettingDeductionBroadcast bettingDeduction:
+                    Console.WriteLine($"🎯 [베팅금 차감] {bettingDeduction.DeductedAmount}달러씩 차감됨");
+                    Console.WriteLine($"💰 현재 총 판돈: {bettingDeduction.TotalPrizeMoney}달러");
+                    break;
+                    
+                case PlayerBalanceUpdateBroadcast balanceUpdate:
+                    Console.WriteLine($"💳 플레이어 {balanceUpdate.PlayerId}의 소지금 업데이트: {balanceUpdate.Balance}달러");
                     break;
                         
                 default:

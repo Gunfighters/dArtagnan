@@ -77,9 +77,9 @@ public class PlayerShootingCommand : IGameCommand
             Alive = player.Alive
         });
         
-        if (gameManager.RoundOver())
+        if (gameManager.ShouldEndRound())
         {
-            await gameManager.ProcessRoundOver();
+            await gameManager.EndCurrentRoundAsync();
         }
     }
 } 

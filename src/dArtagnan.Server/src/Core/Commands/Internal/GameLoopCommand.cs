@@ -4,21 +4,44 @@ using dArtagnan.Shared;
 namespace dArtagnan.Server;
 
 /// <summary>
-/// 게임 루프 명령 - 주기적으로 게임 상태를 업데이트합니다 (위치, 재장전, 정확도 등)
+/// 새로운 게임 루프 명령 - 베팅금 차감, 정확도 업데이트, 플레이어 상태 관리
 /// </summary>
 public class GameLoopCommand : IGameCommand
 {
     public required float DeltaTime { get; init; }
     
-    public Task ExecuteAsync(GameManager gameManager)
+    public async Task ExecuteAsync(GameManager gameManager)
     {
-        // 플레이어 상태 업데이트
+        // 게임이 플레이 중일 때만 타이머 업데이트
+        if (gameManager.CurrentGameState == GameState.Playing)
+        {
+            // 베팅금 타이머 업데이트 (10초마다 차감)
+            gameManager.BettingTimer += DeltaTime;
+            if (gameManager.BettingTimer >= 10f) // 10초
+            {
+                await gameManager.DeductBettingMoney();
+                gameManager.BettingTimer -= 10f; // 정확한 시간 간격 유지
+            }
+        }
+        
+        // 플레이어 상태 업데이트 (게임 상태와 무관하게 실행)
+        UpdatePlayerStates(gameManager, DeltaTime);
+    }
+    
+    /// <summary>
+    /// 모든 플레이어의 상태를 업데이트합니다
+    /// </summary>
+    private Task UpdatePlayerStates(GameManager gameManager, float deltaTime)
+    {
         foreach (var player in gameManager.Players.Values)
         {
             if (!player.Alive) continue;
             
+            // 정확도 업데이트 (매초마다 1% 증감)
+            player.UpdateAccuracy(deltaTime);
+            
             // 위치 업데이트
-            var newPosition = CalculateNewPosition(player.MovementData, DeltaTime);
+            var newPosition = CalculateNewPosition(player.MovementData, deltaTime);
             if (Vector2.Distance(newPosition, player.MovementData.Position) > 0.01f)
             {
                 player.UpdatePosition(newPosition);
@@ -27,16 +50,16 @@ public class GameLoopCommand : IGameCommand
             // 재장전 시간 업데이트
             if (player.RemainingReloadTime > 0)
             {
-                player.UpdateReloadTime(Math.Max(0, player.RemainingReloadTime - DeltaTime));
+                player.UpdateReloadTime(Math.Max(0, player.RemainingReloadTime - deltaTime));
             }
-            
-            // 정확도 업데이트
-            player.UpdateAccuracy(DeltaTime);
         }
         
         return Task.CompletedTask;
     }
     
+    /// <summary>
+    /// 플레이어의 새로운 위치를 계산합니다
+    /// </summary>
     private static Vector2 CalculateNewPosition(MovementData movementData, float deltaTime)
     {
         var vector = DirectionHelper.IntToDirection(movementData.Direction);

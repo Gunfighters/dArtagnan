@@ -23,7 +23,7 @@ public class RouletteDoneCommand : IGameCommand
         if (gameManager.rouletteDonePlayers.Count >= gameManager.Players.Count)
         {
             Console.WriteLine("[룰렛] 모든 플레이어 룰렛 완료 - 첫 라운드 시작");
-            await gameManager.StartRound(1);
+            await gameManager.StartNextRoundAsync(1);
         }
     }
 } 
