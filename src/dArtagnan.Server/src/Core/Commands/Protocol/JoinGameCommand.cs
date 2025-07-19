@@ -7,9 +7,9 @@ namespace dArtagnan.Server;
 /// </summary>
 public class PlayerJoinCommand : IGameCommand
 {
-    public required int ClientId { get; init; }
-    public required string Nickname { get; init; }
-    public required ClientConnection Client { get; init; }
+    public int ClientId;
+    public string Nickname;
+    public ClientConnection Client;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {

@@ -7,7 +7,7 @@ namespace dArtagnan.Server;
 /// </summary>
 public class PingCommand : IGameCommand
 {
-    public required ClientConnection Client { get; init; }
+    public ClientConnection Client;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {

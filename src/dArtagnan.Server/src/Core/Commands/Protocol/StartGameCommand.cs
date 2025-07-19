@@ -9,7 +9,7 @@ namespace dArtagnan.Server;
 /// </summary>
 public class StartGameCommand : IGameCommand
 {
-    public required int PlayerId { get; init; }
+    public int PlayerId;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {

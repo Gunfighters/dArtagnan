@@ -13,14 +13,14 @@ public class GameManager
     public readonly ConcurrentDictionary<int, Player> Players = new();
     public readonly ConcurrentDictionary<int, ClientConnection> Clients = new();
     public Player? Host;
-    public GameState CurrentGameState { get; set; } = GameState.Waiting;
+    public GameState CurrentGameState = GameState.Waiting;
     public int Round = 0; 
     
     // 베팅금/판돈 시스템
     public int TotalPrizeMoney = 0; // 총 판돈
     public float BettingTimer = 0f; // 베팅금 차감 타이머 (10초마다)
-    private readonly int[] BettingAmounts = { 10, 20, 30, 40 }; // 라운드별 베팅금
-    private const int MAX_ROUNDS = 4; // 최대 라운드 수
+    public readonly int[] BettingAmounts = { 10, 20, 30, 40 }; // 라운드별 베팅금
+    public const int MAX_ROUNDS = 4; // 최대 라운드 수
     
     public HashSet<Player> rouletteDonePlayers = [];
     private readonly Channel<IGameCommand> _commandQueue = Channel.CreateUnbounded<IGameCommand>(new UnboundedChannelOptions
@@ -154,19 +154,7 @@ public class GameManager
         return Players.Values.Select(player => player.PlayerInformation).ToList();
     }
 
-    public int GetAlivePlayerCount()
-    {
-        return Players.Values.Count(p => p.Alive);
-    }
 
-    /// <summary>
-    /// 현재 라운드의 베팅금을 반환합니다
-    /// </summary>
-    public int GetCurrentBettingAmount()
-    {
-        if (Round <= 0 || Round > MAX_ROUNDS) return 0;
-        return BettingAmounts[Math.Min(Round - 1, BettingAmounts.Length - 1)];
-    }
 
     /// <summary>
     /// 라운드 종료 조건을 확인합니다
@@ -193,7 +181,7 @@ public class GameManager
         {
             var player = pool.ElementAt(index);
             player.ResetForNextRound();
-            player.UpdatePosition(Player.GetSpawnPosition(index));
+            player.MovementData.Position = Player.GetSpawnPosition(index);
         }
     }
 
@@ -213,7 +201,7 @@ public class GameManager
             Round = Round, 
             TotalTime = 0f, 
             RemainingTime = 0f,
-            BettingAmount = GetCurrentBettingAmount()
+            BettingAmount = Round <= 0 || Round > MAX_ROUNDS ? 0 : BettingAmounts[Math.Min(Round - 1, BettingAmounts.Length - 1)]
         });
     }
 

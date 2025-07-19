@@ -8,7 +8,7 @@ namespace dArtagnan.Server;
 /// </summary>
 public class GameLoopCommand : IGameCommand
 {
-    public required float DeltaTime { get; init; }
+    public float DeltaTime;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {
@@ -44,13 +44,13 @@ public class GameLoopCommand : IGameCommand
             var newPosition = CalculateNewPosition(player.MovementData, deltaTime);
             if (Vector2.Distance(newPosition, player.MovementData.Position) > 0.01f)
             {
-                player.UpdatePosition(newPosition);
+                player.MovementData.Position = newPosition;
             }
             
             // 재장전 시간 업데이트
             if (player.RemainingReloadTime > 0)
             {
-                player.UpdateReloadTime(Math.Max(0, player.RemainingReloadTime - deltaTime));
+                player.RemainingReloadTime = Math.Max(0, player.RemainingReloadTime - deltaTime);
             }
         }
         

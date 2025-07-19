@@ -8,7 +8,7 @@ namespace dArtagnan.Server;
 /// </summary>
 public class RouletteDoneCommand : IGameCommand
 {
-    public required int PlayerId { get; init; }
+    public int PlayerId;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {
@@ -51,7 +51,7 @@ public class RouletteDoneCommand : IGameCommand
             Round = gameManager.Round, 
             TotalTime = 0f, 
             RemainingTime = 0f,
-            BettingAmount = gameManager.GetCurrentBettingAmount()
+            BettingAmount = gameManager.Round <= 0 || gameManager.Round > GameManager.MAX_ROUNDS ? 0 : gameManager.BettingAmounts[Math.Min(gameManager.Round - 1, gameManager.BettingAmounts.Length - 1)]
         });
     }
 } 

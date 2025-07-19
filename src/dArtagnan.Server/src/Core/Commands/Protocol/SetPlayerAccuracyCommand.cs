@@ -7,8 +7,8 @@ namespace dArtagnan.Server;
 /// </summary>
 public class SetAccuracyCommand : IGameCommand
 {
-    public required int PlayerId { get; init; }
-    public required int AccuracyState { get; init; }
+    public int PlayerId;
+    public int AccuracyState;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {

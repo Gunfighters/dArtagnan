@@ -7,8 +7,8 @@ namespace dArtagnan.Server;
 /// </summary>
 public class PlayerLeaveCommand : IGameCommand
 {
-    public required int PlayerId { get; init; }
-    public required ClientConnection Client { get; init; }
+    public int PlayerId;
+    public ClientConnection Client;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {

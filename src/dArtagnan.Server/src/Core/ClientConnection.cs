@@ -14,8 +14,8 @@ public class ClientConnection
     private readonly TcpClient tcpClient;
     private readonly GameManager gameManager;
     private bool isRunning = true;
-    public int Id { get; }
-    public string IpAddress { get; }
+    public readonly int Id;
+    public readonly string IpAddress;
 
     public ClientConnection(int id, TcpClient client, GameManager gameManager)
     {

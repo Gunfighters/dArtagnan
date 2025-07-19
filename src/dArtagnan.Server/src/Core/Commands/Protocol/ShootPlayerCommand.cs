@@ -7,8 +7,8 @@ namespace dArtagnan.Server;
 /// </summary>
 public class PlayerShootingCommand : IGameCommand
 {
-    public required int ShooterId { get; init; }
-    public required int TargetId { get; init; }
+    public int ShooterId;
+    public int TargetId;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {
@@ -30,7 +30,7 @@ public class PlayerShootingCommand : IGameCommand
         bool hit = Random.Shared.NextDouble() * 100 < shooter.Accuracy;
         
         // 재장전 시간 설정
-        shooter.UpdateReloadTime(shooter.TotalReloadTime);
+        shooter.RemainingReloadTime = shooter.TotalReloadTime;
         
         Console.WriteLine($"[전투] 플레이어 {shooter.Id} -> {target.Id} 사격: {(hit ? "명중" : "빗나감")}");
         
@@ -69,7 +69,7 @@ public class PlayerShootingCommand : IGameCommand
     private async Task KillPlayer(Player player, GameManager gameManager)
     {
         Console.WriteLine($"[전투] 플레이어 {player.Id} 사망");
-        player.UpdateAlive(false);
+        player.Alive = false;
         
         await gameManager.BroadcastToAll(new UpdatePlayerAlive
         {

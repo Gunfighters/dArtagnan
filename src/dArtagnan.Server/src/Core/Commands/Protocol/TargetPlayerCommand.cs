@@ -7,8 +7,8 @@ namespace dArtagnan.Server;
 /// </summary>
 public class PlayerTargetingCommand : IGameCommand
 {
-    public required int ShooterId { get; init; }
-    public required int TargetId { get; init; }
+    public int ShooterId;
+    public int TargetId;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {

@@ -72,44 +72,9 @@ public class Player(int id, string nickname, Vector2 position)
 
     public void UpdateMovementData(Vector2 position, int direction, float speed)
     {
-        UpdatePosition(position);
-        UpdateDirection(direction);
-        UpdateSpeed(speed);
-    }
-
-    public void UpdatePosition(Vector2 newPosition)
-    {
-        MovementData.Position = newPosition;
-    }
-
-    public void UpdateDirection(int direction)
-    {
+        MovementData.Position = position;
         MovementData.Direction = direction;
-    }
-
-    public void UpdateSpeed(float newSpeed)
-    {
-        MovementData.Speed = newSpeed;
-    }
-
-    public void UpdateAlive(bool alive)
-    {
-        Alive = alive;
-    }
-
-    public void UpdateReloadTime(float remaining)
-    {
-        RemainingReloadTime = remaining;
-    }
-
-    public void UpdateTarget(Player target)
-    {
-        Target = target;
-    }
-
-    public void UpdateRange(float range)
-    {
-        Range = range;
+        MovementData.Speed = speed;
     }
 
     public int Withdraw(int amount)

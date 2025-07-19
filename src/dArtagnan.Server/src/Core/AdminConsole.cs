@@ -123,7 +123,7 @@ public class AdminConsole
         Console.WriteLine($"게임 상태: {gameManager.CurrentGameState}");
         Console.WriteLine($"접속 중인 클라이언트: {gameManager.Clients.Count}명");
         Console.WriteLine($"게임 중인 플레이어: {gameManager.Players.Count}명");
-        Console.WriteLine($"생존자: {gameManager.GetAlivePlayerCount()}명");
+        Console.WriteLine($"생존자: {gameManager.Players.Values.Count(p => p.Alive)}명");
 
         foreach (var player in gameManager.Players.Values)
         {

@@ -7,7 +7,7 @@ namespace dArtagnan.Server;
 /// </summary>
 public class CreateClientCommand : IGameCommand
 {
-    public required TcpClient TcpClient { get; init; }
+    public TcpClient TcpClient;
     
     public Task ExecuteAsync(GameManager gameManager)
     {
