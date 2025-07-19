@@ -47,7 +47,7 @@ public class Player : MonoBehaviour
     public float runningSpeed;
     public float walkingSpeed;
     private Collider2D collider2D;
-    private RaycastHit2D[] hits = new RaycastHit2D[1];
+    private RaycastHit2D[] hits = new RaycastHit2D[2];
     private ContactFilter2D contactFilter2D = new();
 
     private static readonly Color[] PlayerColors = {
@@ -68,7 +68,7 @@ public class Player : MonoBehaviour
         HighlightAsTarget(false);
         collider2D = GetComponent<Collider2D>();
         contactFilter2D.useLayerMask = true;
-        contactFilter2D.layerMask = LayerMask.GetMask("RemotePlayer", "Obstacle");
+        contactFilter2D.layerMask = LayerMask.GetMask("Player", "Obstacle");
     }
 
     private void OnEnable()
@@ -326,7 +326,10 @@ public class Player : MonoBehaviour
 
     public bool CanShoot(Player target)
     {
-        collider2D.Cast(target.Position - Position, contactFilter2D, hits, Range);
+        collider2D.Raycast(target.Position - Position, contactFilter2D, hits, Range);
+        // hits.Sort((x, y) => x.distance.CompareTo(y.distance));
+        // Debug.DrawLine(collider2D., hits[0].collider.transform.position, Color.red, 10);
+        // var size = Physics2D.Raycast(Position, target.Position - Position, Range,);
         System.Array.Sort(hits, (x, y) => x.distance.CompareTo(y.distance));
         return hits[0].transform == target.transform;
     }

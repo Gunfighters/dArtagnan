@@ -40,6 +40,7 @@ public class TargetManager : MonoBehaviour
             PlayerGeneralManager.Survivors.Where(target =>
                 target != LocalPlayer
                 && LocalPlayer!.CanShoot(target));
+        Debug.Log(targetPool.Count());
         if (HUDManager.Instance.ShootJoystickVector() == Vector2.zero) // 사거리 내 가장 가까운 적.
         {
             var minDistance = LocalPlayer.Range;
