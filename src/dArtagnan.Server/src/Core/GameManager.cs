@@ -185,26 +185,6 @@ public class GameManager
         }
     }
 
-
-
-    /// <summary>
-    /// 플레이 상태로 전환합니다
-    /// </summary>
-    private async Task TransitionToPlayingAsync()
-    {
-        var oldState = CurrentGameState;
-        CurrentGameState = GameState.Playing;
-        Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {CurrentGameState}");
-        
-        await BroadcastToAll(new GameInPlayingFromServer { 
-            PlayersInfo = PlayersInRoom(), 
-            Round = Round, 
-            TotalTime = 0f, 
-            RemainingTime = 0f,
-            BettingAmount = BettingAmounts[Round - 1]
-        });
-    }
-
     /// <summary>
     /// 현재 라운드를 종료하고 다음 단계로 진행합니다
     /// </summary>
@@ -226,17 +206,9 @@ public class GameManager
     }
 
     /// <summary>
-    /// 게임이 진행 중인지 확인합니다
-    /// </summary>
-    public bool IsGamePlaying()
-    {
-        return CurrentGameState != GameState.Waiting;
-    }
-
-    /// <summary>
     /// 다음 라운드를 시작합니다
     /// </summary>
-    public async Task StartNextRoundAsync(int newRound)
+    private async Task StartNextRoundAsync(int newRound)
     {
         ResetRespawnAll(false);
         Round = newRound;
@@ -246,7 +218,17 @@ public class GameManager
         
         Console.WriteLine($"[라운드 {newRound}] 라운드 시작! 현재 판돈: {TotalPrizeMoney}달러");
         
-        await TransitionToPlayingAsync();
+        var oldState = CurrentGameState;
+        CurrentGameState = GameState.Playing;
+        Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {CurrentGameState}");
+        
+        await BroadcastToAll(new GameInPlayingFromServer { 
+            PlayersInfo = PlayersInRoom(), 
+            Round = Round, 
+            TotalTime = 0f, 
+            RemainingTime = 0f,
+            BettingAmount = BettingAmounts[Round - 1]
+        });
     }
 
     /// <summary>
@@ -324,46 +306,5 @@ public class GameManager
         
         Console.WriteLine($"[게임 종료] 최종 승리자: {winner}");
         await BroadcastToAll(new GameWinnerBroadcast { PlayerId = winner ?? -1 });
-    }
-    
-    /// <summary>
-    /// 10초마다 호출되는 베팅금 차감 메서드
-    /// </summary>
-    public async Task DeductBettingMoney()
-    {
-        if (CurrentGameState != GameState.Playing || Round <= 0 || Round > MAX_ROUNDS)
-            return;
-            
-        var currentBettingAmount = BettingAmounts[Round - 1];
-        var totalDeducted = 0;
-        
-        Console.WriteLine($"[베팅] 라운드 {Round}: {currentBettingAmount}달러씩 차감 시작");
-        
-        foreach (var player in Players.Values.Where(p => p.Alive))
-        {
-            var deducted = Math.Min(currentBettingAmount, player.Balance);
-            player.Balance -= deducted;
-            totalDeducted += deducted;
-            
-            Console.WriteLine($"[베팅] {player.Nickname}: {deducted}달러 차감 (잔액: {player.Balance}달러)");
-            
-            // 개별 플레이어 잔액 업데이트 브로드캐스트
-            await BroadcastToAll(new PlayerBalanceUpdateBroadcast
-            {
-                PlayerId = player.Id,
-                Balance = player.Balance
-            });
-        }
-        
-        // 총 판돈에 추가
-        TotalPrizeMoney += totalDeducted;
-        Console.WriteLine($"[베팅] 총 {totalDeducted}달러 차감, 현재 판돈: {TotalPrizeMoney}달러");
-        
-        // 베팅금 차감 브로드캐스트
-        await BroadcastToAll(new BettingDeductionBroadcast 
-        { 
-            DeductedAmount = currentBettingAmount,
-            TotalPrizeMoney = TotalPrizeMoney
-        });
     }
 }

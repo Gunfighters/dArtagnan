@@ -19,13 +19,54 @@ public class GameLoopCommand : IGameCommand
             gameManager.BettingTimer += DeltaTime;
             if (gameManager.BettingTimer >= 10f) // 10초
             {
-                await gameManager.DeductBettingMoney();
+                await DeductBettingMoney(gameManager);
                 gameManager.BettingTimer -= 10f; // 정확한 시간 간격 유지
             }
         }
         
         // 플레이어 상태 업데이트 (게임 상태와 무관하게 실행)
         await UpdatePlayerStates(gameManager, DeltaTime);
+    }
+    
+    /// <summary>
+    /// 10초마다 호출되는 베팅금 차감 메서드
+    /// </summary>
+    private async Task DeductBettingMoney(GameManager gameManager)
+    {
+        if (gameManager.CurrentGameState != GameState.Playing || gameManager.Round <= 0 || gameManager.Round > GameManager.MAX_ROUNDS)
+            return;
+            
+        var currentBettingAmount = gameManager.BettingAmounts[gameManager.Round - 1];
+        var totalDeducted = 0;
+        
+        Console.WriteLine($"[베팅] 라운드 {gameManager.Round}: {currentBettingAmount}달러씩 차감 시작");
+        
+        foreach (var player in gameManager.Players.Values.Where(p => p.Alive))
+        {
+            var deducted = Math.Min(currentBettingAmount, player.Balance);
+            player.Balance -= deducted;
+            totalDeducted += deducted;
+            
+            Console.WriteLine($"[베팅] {player.Nickname}: {deducted}달러 차감 (잔액: {player.Balance}달러)");
+            
+            // 개별 플레이어 잔액 업데이트 브로드캐스트
+            await gameManager.BroadcastToAll(new PlayerBalanceUpdateBroadcast
+            {
+                PlayerId = player.Id,
+                Balance = player.Balance
+            });
+        }
+        
+        // 총 판돈에 추가
+        gameManager.TotalPrizeMoney += totalDeducted;
+        Console.WriteLine($"[베팅] 총 {totalDeducted}달러 차감, 현재 판돈: {gameManager.TotalPrizeMoney}달러");
+        
+        // 베팅금 차감 브로드캐스트
+        await gameManager.BroadcastToAll(new BettingDeductionBroadcast 
+        { 
+            DeductedAmount = currentBettingAmount,
+            TotalPrizeMoney = gameManager.TotalPrizeMoney
+        });
     }
     
     /// <summary>

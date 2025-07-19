@@ -22,7 +22,7 @@ public class StartGameCommand : IGameCommand
         }
         
         // 이미 게임 진행 중인지 확인
-        if (gameManager.IsGamePlaying())
+        if (gameManager.CurrentGameState != GameState.Waiting)
         {
             Console.WriteLine($"[게임] 이미 게임 진행중");
             return;

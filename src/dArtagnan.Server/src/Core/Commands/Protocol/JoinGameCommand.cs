@@ -13,7 +13,7 @@ public class PlayerJoinCommand : IGameCommand
     
     public async Task ExecuteAsync(GameManager gameManager)
     {
-        if (gameManager.IsGamePlaying())
+        if (gameManager.CurrentGameState != GameState.Waiting)
         {
             Console.WriteLine($"[게임] {ClientId}번 클라이언트 난입 거부.");
             return;

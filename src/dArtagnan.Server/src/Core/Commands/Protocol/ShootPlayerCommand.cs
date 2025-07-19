@@ -44,7 +44,7 @@ public class PlayerShootingCommand : IGameCommand
         });
         
         // 명중 시 피해 처리
-        if (hit && gameManager.IsGamePlaying())
+        if (hit && gameManager.CurrentGameState != GameState.Waiting)
         {
             // 타겟의 돈 일부를 사격자에게 이전
             shooter.Balance += target.Withdraw(Math.Max(target.Balance / 10, 50));
