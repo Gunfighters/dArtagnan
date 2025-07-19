@@ -35,26 +35,17 @@ public class GameLoopCommand : IGameCommand
     {
         if (gameManager.CurrentGameState != GameState.Playing || gameManager.Round <= 0 || gameManager.Round > GameManager.MAX_ROUNDS)
             return;
-            
-        var currentBettingAmount = gameManager.BettingAmounts[gameManager.Round - 1];
+        
         var totalDeducted = 0;
         
-        Console.WriteLine($"[베팅] 라운드 {gameManager.Round}: {currentBettingAmount}달러씩 차감 시작");
+        Console.WriteLine($"[베팅] 라운드 {gameManager.Round}: {gameManager.BettingAmount}달러씩 차감 시작");
         
         foreach (var player in gameManager.Players.Values.Where(p => p.Alive))
         {
-            var deducted = Math.Min(currentBettingAmount, player.Balance);
-            player.Balance -= deducted;
+            var deducted = await gameManager.WithdrawFromPlayerAsync(player, gameManager.BettingAmount);
             totalDeducted += deducted;
             
             Console.WriteLine($"[베팅] {player.Nickname}: {deducted}달러 차감 (잔액: {player.Balance}달러)");
-            
-            // 개별 플레이어 잔액 업데이트 브로드캐스트
-            await gameManager.BroadcastToAll(new PlayerBalanceUpdateBroadcast
-            {
-                PlayerId = player.Id,
-                Balance = player.Balance
-            });
         }
         
         // 총 판돈에 추가
@@ -64,9 +55,12 @@ public class GameLoopCommand : IGameCommand
         // 베팅금 차감 브로드캐스트
         await gameManager.BroadcastToAll(new BettingDeductionBroadcast 
         { 
-            DeductedAmount = currentBettingAmount,
+            DeductedAmount = gameManager.BettingAmount,
             TotalPrizeMoney = gameManager.TotalPrizeMoney
         });
+        
+        // 베팅금 차감 후 게임/라운드 종료 조건 체크
+        await gameManager.CheckAndHandleGameEndAsync();
     }
     
     /// <summary>

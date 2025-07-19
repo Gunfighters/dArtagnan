@@ -20,8 +20,9 @@ public class GameManager
     
     // 베팅금/판돈 시스템
     public int TotalPrizeMoney = 0; // 총 판돈
-    public float BettingTimer = 0f; // 베팅금 차감 타이머 (10초마다)
     public readonly int[] BettingAmounts = { 10, 20, 30, 40 }; // 라운드별 베팅금
+    public int BettingAmount = 0;
+    public float BettingTimer = 0f; // 베팅금 차감 타이머 (10초마다)
     public const int MAX_ROUNDS = 4; // 최대 라운드 수
     
     public HashSet<Player> rouletteDonePlayers = [];
@@ -156,7 +157,94 @@ public class GameManager
         return Players.Values.Select(player => player.PlayerInformation).ToList();
     }
 
+    /// <summary>
+    /// 플레이어에서 돈을 차감하고 잔액 업데이트를 브로드캐스트합니다
+    /// </summary>
+    public async Task<int> WithdrawFromPlayerAsync(Player player, int amount)
+    {
+        var actualWithdrawn = player.Withdraw(amount);
+        
+        // 잔액 업데이트 브로드캐스트
+        await BroadcastToAll(new PlayerBalanceUpdateBroadcast
+        {
+            PlayerId = player.Id,
+            Balance = player.Balance
+        });
+        
+        // 파산 시 즉시 사망 처리
+        if (player.Bankrupt && player.Alive)
+        {
+            Console.WriteLine($"[게임] 플레이어 {player.Id}({player.Nickname}) 파산으로 사망!");
+            
+            player.Alive = false;
+            await BroadcastToAll(new UpdatePlayerAlive
+            {
+                PlayerId = player.Id,
+                Alive = player.Alive
+            });
+        }
+        
+        return actualWithdrawn;
+    }
+    
+    /// <summary>
+    /// 플레이어 간 돈 이전을 처리하고 양쪽 모두 잔액 브로드캐스트를 합니다 (사격 등에서 사용)
+    /// </summary>
+    public async Task<int> TransferMoneyBetweenPlayersAsync(Player from, Player to, int amount)
+    {
+        var actualTransferred = from.Withdraw(amount);
+        to.Balance += actualTransferred;
+        
+        // 양쪽 플레이어 잔액 업데이트 브로드캐스트
+        await BroadcastToAll(new PlayerBalanceUpdateBroadcast
+        {
+            PlayerId = from.Id,
+            Balance = from.Balance
+        });
+        await BroadcastToAll(new PlayerBalanceUpdateBroadcast
+        {
+            PlayerId = to.Id,
+            Balance = to.Balance
+        });
+        
+        // 돈을 잃은 플레이어의 파산 체크
+        if (from.Bankrupt && from.Alive)
+        {
+            Console.WriteLine($"[게임] 플레이어 {from.Id}({from.Nickname}) 파산으로 사망!");
+            
+            from.Alive = false;
+            await BroadcastToAll(new UpdatePlayerAlive
+            {
+                PlayerId = from.Id,
+                Alive = from.Alive
+            });
+        }
+        
+        return actualTransferred;
+    }
+    
+    /// <summary>
+    /// 게임/라운드 종료 조건을 체크하고 적절한 처리를 수행합니다
+    /// </summary>
+    public async Task CheckAndHandleGameEndAsync()
+    {
+        if (ShouldEndRound())
+        {
+            await GiveRoundPrizeToWinner();
 
+            await Task.Delay(2500);
+        
+            if (ShouldEndGame())
+            {
+                await AnnounceGameWinner();
+                await ResetGameToWaiting();
+            }
+            else
+            {
+                await StartNextRoundAsync(Round + 1);
+            }
+        }
+    }
 
     /// <summary>
     /// 라운드 종료 조건을 확인합니다
@@ -188,37 +276,17 @@ public class GameManager
     }
 
     /// <summary>
-    /// 현재 라운드를 종료하고 다음 단계로 진행합니다
-    /// </summary>
-    public async Task EndCurrentRoundAsync()
-    {
-        await GiveRoundPrizeToWinner();
-
-        await Task.Delay(2500);
-        
-        if (ShouldEndGame())
-        {
-            await AnnounceGameWinner();
-            await ResetGameToWaiting();
-        }
-        else
-        {
-            await StartNextRoundAsync(Round + 1);
-        }
-    }
-
-    /// <summary>
     /// 다음 라운드를 시작합니다
     /// </summary>
     private async Task StartNextRoundAsync(int newRound)
     {
         ResetRespawnAll(false);
         Round = newRound;
-        
-        // 새 라운드 시작시 베팅 타이머 초기화
+        BettingAmount = BettingAmounts[Round-1];
         BettingTimer = 0f;
+        TotalPrizeMoney = 0;
         
-        Console.WriteLine($"[라운드 {newRound}] 라운드 시작! 현재 판돈: {TotalPrizeMoney}달러");
+        Console.WriteLine($"[라운드 {newRound}] 라운드 시작! 현재 베팅금: {BettingAmount}달러");
         
         var oldState = CurrentGameState;
         CurrentGameState = GameState.Playing;
@@ -291,12 +359,6 @@ public class GameManager
         else if (TotalPrizeMoney > 0)
         {
             Console.WriteLine($"[라운드 {Round}] 생존자가 {survivors.Count}명이므로 판돈 {TotalPrizeMoney}달러는 다음 라운드로 이월");
-        }
-        
-        // 다음 라운드를 위해 판돈 초기화 (생존자가 1명일 때만)
-        if (survivors.Count == 1)
-        {
-            TotalPrizeMoney = 0;
         }
     }
     

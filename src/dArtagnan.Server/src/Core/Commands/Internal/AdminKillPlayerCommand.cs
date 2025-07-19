@@ -34,10 +34,7 @@ public class AdminKillPlayerCommand : IGameCommand
             PlayerId = player.Id,
             Alive = player.Alive
         });
-        
-        if (gameManager.ShouldEndRound())
-        {
-            await gameManager.EndCurrentRoundAsync();
-        }
+
+        await gameManager.CheckAndHandleGameEndAsync();
     }
 } 

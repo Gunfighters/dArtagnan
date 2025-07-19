@@ -44,13 +44,14 @@ public class StartGameCommand : IGameCommand
 
 
     /// <summary>
-    /// 게임 전체 상태를 초기화합니다 (중복 제거)
+    /// 게임 전체 상태를 초기화합니다
     /// </summary>
     private static void InitializeGameState(GameManager gameManager)
     {
         gameManager.Round = 0;
         gameManager.TotalPrizeMoney = 0;
         gameManager.BettingTimer = 0f;
+        gameManager.BettingAmount = 0;
         gameManager.rouletteDonePlayers.Clear();
         gameManager.CurrentGameState = GameState.RouletteSpinning;
         

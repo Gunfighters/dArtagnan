@@ -29,7 +29,7 @@ public class RouletteDoneCommand : IGameCommand
     }
 
     /// <summary>
-    /// 첫 라운드를 깔끔하게 시작합니다 (중복 처리 제거)
+    /// 첫 라운드를 시작
     /// </summary>
     private static async Task StartFirstRound(GameManager gameManager)
     {
@@ -37,19 +37,19 @@ public class RouletteDoneCommand : IGameCommand
         gameManager.Round = 1;
         gameManager.BettingTimer = 0f;
         gameManager.CurrentGameState = GameState.Playing;
+        gameManager.BettingAmount = gameManager.BettingAmounts[gameManager.Round - 1];
         
         Console.WriteLine($"[게임] 게임 상태 변경: RouletteSpinning -> Playing");
-        Console.WriteLine($"[라운드 1] 첫 라운드 시작! 베팅금: 10달러/10초");
+        Console.WriteLine($"[라운드 1] 첫 라운드 시작! 베팅금: {gameManager.BettingAmount}달러/{Constants.BETTING_PERIOD}초");
         
-        // === 생존한 플레이어들만 위치 재배치 ===
-        gameManager.ResetRespawnAll(false); // 파산자 제외
+        gameManager.ResetRespawnAll(true);
         
         // === 게임 시작 브로드캐스트 ===
         await gameManager.BroadcastToAll(new GameInPlayingFromServer
         { 
             PlayersInfo = gameManager.PlayersInRoom(), 
             Round = gameManager.Round,
-            BettingAmount = gameManager.BettingAmounts[gameManager.Round - 1]
+            BettingAmount = gameManager.BettingAmount
         });
     }
 } 
