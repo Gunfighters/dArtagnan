@@ -9,10 +9,25 @@ namespace dArtagnan.Server;
 /// </summary>
 public class StartGameCommand : IGameCommand
 {
-    public int PlayerId;
+    required public int PlayerId;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {
+        // 클라이언트 검증 - 방장만 게임 시작 가능
+        var starter = gameManager.GetPlayerById(PlayerId);
+        if (starter == null || starter != gameManager.Host) 
+        {
+            Console.WriteLine($"[게임] 비방장 {PlayerId}의 게임 시작 요청 거부");
+            return;
+        }
+        
+        // 이미 게임 진행 중인지 확인
+        if (gameManager.IsGamePlaying())
+        {
+            Console.WriteLine($"[게임] 이미 게임 진행중");
+            return;
+        }
+
         Console.WriteLine($"[게임] 게임 시작! (참가자: {gameManager.Players.Count}명)");
 
         // === 게임 전체 상태 초기화 (한 번에) ===

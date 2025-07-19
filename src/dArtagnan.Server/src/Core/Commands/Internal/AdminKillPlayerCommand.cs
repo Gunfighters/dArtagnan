@@ -7,7 +7,7 @@ namespace dArtagnan.Server;
 /// </summary>
 public class AdminKillPlayerCommand : IGameCommand
 {
-    public int TargetPlayerId;
+    required public int TargetPlayerId;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {

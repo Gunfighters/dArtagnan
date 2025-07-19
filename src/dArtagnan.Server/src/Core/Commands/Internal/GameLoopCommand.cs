@@ -8,7 +8,7 @@ namespace dArtagnan.Server;
 /// </summary>
 public class GameLoopCommand : IGameCommand
 {
-    public float DeltaTime;
+    required public float DeltaTime;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {
@@ -25,7 +25,7 @@ public class GameLoopCommand : IGameCommand
         }
         
         // 플레이어 상태 업데이트 (게임 상태와 무관하게 실행)
-        UpdatePlayerStates(gameManager, DeltaTime);
+        await UpdatePlayerStates(gameManager, DeltaTime);
     }
     
     /// <summary>

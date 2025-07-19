@@ -7,11 +7,15 @@ namespace dArtagnan.Server;
 /// </summary>
 public class PlayerTargetingCommand : IGameCommand
 {
-    public int ShooterId;
-    public int TargetId;
+    required public int ShooterId;
+    required public int TargetId;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {
+        var shooter = gameManager.GetPlayerById(ShooterId);
+        var target = gameManager.GetPlayerById(TargetId);
+        if (shooter == null || target == null) return;
+        
         await gameManager.BroadcastToAll(new PlayerIsTargetingBroadcast
         { 
             ShooterId = ShooterId, 

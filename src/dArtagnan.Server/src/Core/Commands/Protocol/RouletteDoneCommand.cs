@@ -8,11 +8,12 @@ namespace dArtagnan.Server;
 /// </summary>
 public class RouletteDoneCommand : IGameCommand
 {
-    public int PlayerId;
+    required public int PlayerId;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {
         var player = gameManager.GetPlayerById(PlayerId);
+        if (player == null) return;
         
         // 이미 완료한 플레이어인지 확인
         if (!gameManager.rouletteDonePlayers.Add(player)) return;
