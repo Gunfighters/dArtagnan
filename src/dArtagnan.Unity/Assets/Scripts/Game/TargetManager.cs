@@ -3,7 +3,6 @@ using dArtagnan.Shared;
 using Game;
 using JetBrains.Annotations;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 public class TargetManager : MonoBehaviour
 {

@@ -64,6 +64,7 @@ namespace Game
             {
                 LocalEventChannel.InvokeOnNewCameraTarget(p);
             }
+            p.gameObject.layer = LayerMask.NameToLayer(p == LocalPlayer ? "LocalPlayer" : "RemotePlayer");
         }
 
         private static void RemovePlayer(int playerId)

@@ -13,7 +13,7 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
     public Image JoystickAxis;
     public Image HandleOutline;
     public SpriteRenderer Icon;
-    public Player LocalPlayer;
+    public Player LocalPlayer => PlayerGeneralManager.LocalPlayer;
 
     private float RemainingReloadTime => LocalPlayer.RemainingReloadTime;
     private float TotalReloadTime => LocalPlayer.TotalReloadTime;
@@ -47,7 +47,7 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
     public void OnPointerUp(PointerEventData eventData)
     {
         JoystickAxis.enabled = false;
-        if (Shootable)
+        if (Shootable && PlayerGeneralManager.LocalPlayer.TargetPlayer)
         {
             PacketChannel.Raise(new PlayerShootingFromClient { TargetId = PlayerGeneralManager.LocalPlayer.TargetPlayer.ID });
         }

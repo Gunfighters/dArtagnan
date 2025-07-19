@@ -24,7 +24,6 @@ public static class PacketChannel
         {
             foreach (var action in channel)
             {
-                Debug.Log($"Raised {type.Name} : Run {action.Method.Name}({value})");
                 action.DynamicInvoke(value);
             }
         }

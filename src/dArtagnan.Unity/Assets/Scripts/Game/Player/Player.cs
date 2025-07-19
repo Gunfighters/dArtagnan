@@ -46,6 +46,9 @@ public class Player : MonoBehaviour
     private const float ACCURACY_UPDATE_INTERVAL = 1.0f; // 정확도 업데이트 간격 (1초)
     public float runningSpeed;
     public float walkingSpeed;
+    private Collider2D collider2D;
+    private RaycastHit2D[] hits = new RaycastHit2D[1];
+    private ContactFilter2D contactFilter2D = new();
 
     private static readonly Color[] PlayerColors = {
         new(1f, 0.3f, 0.3f),   // 밝은 빨강 - ID 1
@@ -58,11 +61,14 @@ public class Player : MonoBehaviour
         new(0.8f, 0.4f, 1f)    // 밝은 보라 - ID 8
     };
 
-    public Color MyColor => ID >= 1 && ID <= 8 ? PlayerColors[ID - 1] : Color.white;
+    public Color MyColor => ID is >= 1 and <= 8 ? PlayerColors[ID - 1] : Color.white;
 
     private void Awake()
     {
         HighlightAsTarget(false);
+        collider2D = GetComponent<Collider2D>();
+        contactFilter2D.useLayerMask = true;
+        contactFilter2D.layerMask = LayerMask.GetMask("RemotePlayer", "Obstacle");
     }
 
     private void OnEnable()
@@ -320,9 +326,9 @@ public class Player : MonoBehaviour
 
     public bool CanShoot(Player target)
     {
-        var mask = LayerMask.GetMask("RemotePlayer", "Obstacle");
-        var hit = Physics2D.Raycast(Position, target.Position - Position, Range, mask);
-        return hit.transform == target.transform;
+        collider2D.Cast(target.Position - Position, contactFilter2D, hits, Range);
+        System.Array.Sort(hits, (x, y) => x.distance.CompareTo(y.distance));
+        return hits[0].transform == target.transform;
     }
 
     public void EquipGun(ItemSprite gun)
