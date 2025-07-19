@@ -23,7 +23,6 @@ public class GameManager
     public float BettingTimer = 0f; // 베팅금 차감 타이머 (10초마다)
     private readonly int[] BettingAmounts = { 10, 20, 30, 40 }; // 라운드별 베팅금
     private const int MAX_ROUNDS = 4; // 최대 라운드 수
-    private const float BETTING_INTERVAL = 10f; // 10초마다 베팅금 차감
     
     public HashSet<Player> rouletteDonePlayers = [];
     private readonly Channel<IGameCommand> _commandQueue = Channel.CreateUnbounded<IGameCommand>(new UnboundedChannelOptions
@@ -243,7 +242,7 @@ public class GameManager
         
         if (ShouldEndGame())
         {
-            await AnnounceWinner();
+            await AnnounceGameWinner();
             await EndWholeGameAsync();
         }
         else
@@ -311,6 +310,14 @@ public class GameManager
             
             Console.WriteLine($"[라운드 {Round}] {winner.Nickname}이(가) 라운드 승리! 판돈 {TotalPrizeMoney}달러 획득");
             
+            // 라운드 승리자 브로드캐스트
+            await BroadcastToAll(new RoundWinnerBroadcast
+            {
+                PlayerId = winner.Id,
+                Round = Round,
+                PrizeMoney = TotalPrizeMoney
+            });
+            
             // 승리자 잔액 업데이트 브로드캐스트
             await BroadcastToAll(new PlayerBalanceUpdateBroadcast
             {
@@ -330,12 +337,12 @@ public class GameManager
         }
     }
     
-    private async Task AnnounceWinner()
+    private async Task AnnounceGameWinner()
     {
         var winner = LastManStanding?.Id;
         
         Console.WriteLine($"[게임 종료] 최종 승리자: {winner}");
-        await BroadcastToAll(new WinnerBroadcast { PlayerId = winner ?? -1 });
+        await BroadcastToAll(new GameWinnerBroadcast { PlayerId = winner ?? -1 });
     }
     
     /// <summary>

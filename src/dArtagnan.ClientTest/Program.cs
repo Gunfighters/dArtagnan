@@ -442,6 +442,21 @@ internal class Program
                 case PlayerBalanceUpdateBroadcast balanceUpdate:
                     Console.WriteLine($"💳 플레이어 {balanceUpdate.PlayerId}의 소지금 업데이트: {balanceUpdate.Balance}달러");
                     break;
+                    
+                case RoundWinnerBroadcast roundWinner:
+                    Console.WriteLine($"🏆 [라운드 {roundWinner.Round} 승리] 플레이어 {roundWinner.PlayerId}가 {roundWinner.PrizeMoney}달러 획득!");
+                    break;
+                    
+                case GameWinnerBroadcast gameWinner:
+                    if (gameWinner.PlayerId == -1)
+                    {
+                        Console.WriteLine($"🎊 [게임 종료] 승리자 없음!");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"🎊 [게임 최종 승리] 플레이어 {gameWinner.PlayerId}가 게임에서 승리했습니다!");
+                    }
+                    break;
                         
                 default:
                     Console.WriteLine($"처리되지 않은 패킷 타입: {packet}");

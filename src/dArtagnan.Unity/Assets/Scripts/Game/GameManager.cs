@@ -228,7 +228,7 @@ public class GameManager : MonoBehaviour
         aiming.Aim(target);
     }
 
-    public void OnWinner(WinnerBroadcast winner)
+    public void OnWinner(GameWinnerBroadcast winner)
     {
         HUDManager.Instance.AnnounceWinner(players[winner.PlayerId]);
     }

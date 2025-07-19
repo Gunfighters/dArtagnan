@@ -19,16 +19,17 @@ namespace dArtagnan.Shared
     [Union(12, typeof(PlayerIsTargetingBroadcast))]
     [Union(13, typeof(StartGameFromClient))]
     [Union(14, typeof(NewHostBroadcast))]
-    [Union(15, typeof(WinnerBroadcast))]
-    [Union(16, typeof(GameInWaitingFromServer))]
-    [Union(17, typeof(PlayerBalanceUpdateBroadcast))]
-    [Union(18, typeof(PingPacket))]
-    [Union(19, typeof(PongPacket))]
-    [Union(20, typeof(SetAccuracyState))]
-    [Union(21, typeof(PlayerAccuracyStateBroadcast))]
-    [Union(22, typeof(YourAccuracyAndPool))]
-    [Union(23, typeof(RouletteDone))]
-    [Union(24, typeof(BettingDeductionBroadcast))]
+    [Union(15, typeof(RoundWinnerBroadcast))]
+    [Union(16, typeof(GameWinnerBroadcast))]
+    [Union(17, typeof(GameInWaitingFromServer))]
+    [Union(18, typeof(PlayerBalanceUpdateBroadcast))]
+    [Union(19, typeof(PingPacket))]
+    [Union(20, typeof(PongPacket))]
+    [Union(21, typeof(SetAccuracyState))]
+    [Union(22, typeof(PlayerAccuracyStateBroadcast))]
+    [Union(23, typeof(YourAccuracyAndPool))]
+    [Union(24, typeof(RouletteDone))]
+    [Union(25, typeof(BettingDeductionBroadcast))]
     public interface IPacket
     {
     }
@@ -238,12 +239,26 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// PlayerId번 플레이어가 승리했다.
+    /// PlayerId번 플레이어가 라운드에서 승리했다.
+    /// 클라: 이패킷 받으면 단순히 게임승리 UI만 띄우면 됨.
     /// </summary>
     [MessagePackObject]
-    public struct WinnerBroadcast : IPacket
+    public struct RoundWinnerBroadcast : IPacket
     {
-        [Key(0)] public int PlayerId; // 승자가 없으면 -1.
+        [Key(0)] public int PlayerId; // 라운드 승자
+        [Key(1)] public int Round; // 라운드 번호
+        [Key(2)] public int PrizeMoney; // 획득한 판돈
+    }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// PlayerId번 플레이어가 게임 전체에서 승리했다.
+    /// 클라: 이패킷 받으면 단순히 게임승리 UI만 띄우면 됨.
+    /// </summary>
+    [MessagePackObject]
+    public struct GameWinnerBroadcast : IPacket
+    {
+        [Key(0)] public int PlayerId; // 게임 최종 승자가 없으면 -1.
     }
 
     /// <summary>
@@ -312,7 +327,9 @@ namespace dArtagnan.Shared
     
     /// <summary>
     /// [서버 => 클라이언트]
-    /// 베팅금이 차감되었음을 알려주는 패킷
+    /// 10초마다 베팅금이 차감되었음을 알려주는 패킷
+    /// 클라: 이패킷 받으면 판돈을 TotalPrizeMoney 로 업데이트하고
+    /// 모든 플레이어의 잔액을 DeductedAmount만큼 감소시킨다.
     /// </summary>
     [MessagePackObject]
     public struct BettingDeductionBroadcast : IPacket

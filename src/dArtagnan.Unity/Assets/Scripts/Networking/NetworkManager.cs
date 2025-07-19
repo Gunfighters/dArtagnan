@@ -155,7 +155,7 @@ public class NetworkManager : MonoBehaviour
             case PlayerIsTargetingBroadcast playerIsTargetingBroadcast:
                 GameManager.Instance.OnPlayerIsTargeting(playerIsTargetingBroadcast);
                 break;
-            case WinnerBroadcast winner:
+            case GameWinnerBroadcast winner:
                 GameManager.Instance.OnWinner(winner);
                 break;
             case GameInWaitingFromServer gameWaiting:
