@@ -1238,7 +1238,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3537545694715885258, guid: 01a130391dbd841daaa8df2d8d1186a3, type: 3}
       propertyPath: m_CullingMask.m_Bits
-      value: 351
+      value: 95
       objectReference: {fileID: 0}
     - target: {fileID: 4532210604443218552, guid: 01a130391dbd841daaa8df2d8d1186a3, type: 3}
       propertyPath: m_Cameras.Array.size
