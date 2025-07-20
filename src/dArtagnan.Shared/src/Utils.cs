@@ -13,7 +13,7 @@ namespace dArtagnan.Shared
     /// <summary>
     /// 클라이언트와 서버가 공유하는 방향.
     /// </summary>
-    public class DirectionHelper
+    public static class DirectionHelper
     {
         public static readonly List<Vector2> Directions = new()
         {
@@ -27,7 +27,7 @@ namespace dArtagnan.Shared
             -Vector2.UnitX,
             Vector2.Normalize(-Vector2.UnitX + Vector2.UnitY),
         };
-        public static Vector2 IntToDirection(int direction)
+        public static Vector2 IntToDirection(this int direction)
         {
             return Directions[direction];
         }
@@ -39,7 +39,7 @@ namespace dArtagnan.Shared
     public static class Constants
     {
         public const float DEFAULT_RELOAD_TIME = 15.0f;
-        public const float MOVEMENT_SPEED = 40f;
+        public const float MOVEMENT_SPEED = 3f;
         public const int MIN_ACCURACY = 1;
         public const int MAX_ACCURACY = 100;
         public const float DEFAULT_RANGE = 4f;
