@@ -30,6 +30,8 @@ namespace dArtagnan.Shared
     [Union(23, typeof(YourAccuracyAndPool))]
     [Union(24, typeof(RouletteDone))]
     [Union(25, typeof(BettingDeductionBroadcast))]
+    [Union(26, typeof(AugmentSelectionStartFromServer))]
+    [Union(27, typeof(AugmentSelectionFromClient))]
     public interface IPacket
     {
     }
@@ -71,6 +73,7 @@ namespace dArtagnan.Shared
         [Key(8)] public MovementData MovementData;
         [Key(9)] public int Balance;
         [Key(10)] public int AccuracyState;
+        [Key(11)] public List<int> Augments; // 보유한 증강 ID 리스트
     }
 
     /// <summary>
@@ -201,7 +204,7 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// 게임이 현재 '대기' 상태에 있으며 플레이어들의 상태는 PlayersInfo와 같다.
+    /// 'Waiting' 상태를 시작한다 플레이어들의 상태는 PlayersInfo와 같고 Round번째 라운드를 진행 중이다.
     /// 클라이언트가 방에 처음 입장하거나 게임이 종료된 후 게임이 대기 상태로 돌아갈때 만 보내진다.
     /// </summary>
     [MessagePackObject]
@@ -212,7 +215,7 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// 게임이 현재 '진행중' 상태에 있으며 플레이어들의 상태는 PlayersInfo와 같고 Round번째 라운드를 진행 중이다.
+    /// 'Round' 상태를 시작한다 플레이어들의 상태는 PlayersInfo와 같고 Round번째 라운드를 진행 중이다.
     /// 게임이 시작되거나 각 라운드가 시작될 때만 보내진다.
     /// 클라: BettingAmount는 이번 라운드의 10초마다 차감되는 베팅금이다.
     /// </summary>
@@ -333,5 +336,26 @@ namespace dArtagnan.Shared
     {
         [Key(0)] public int DeductedAmount; // 차감된 베팅금
         [Key(1)] public int TotalPrizeMoney; // 업데이트된 총 판돈
+    }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// 라운드 종료 후 증강 선택을 시작할 때 보내는 패킷
+    /// 3개의 증강 옵션을 제공한다.
+    /// </summary>
+    [MessagePackObject]
+    public struct AugmentStartFromServer : IPacket
+    {
+        [Key(0)] public List<int> AugmentOptions; // 선택할 수 있는 3개의 증강 ID
+    }
+
+    /// <summary>
+    /// [클라이언트 => 서버]
+    /// 플레이어가 선택한 증강 번호를 보내는 패킷
+    /// </summary>
+    [MessagePackObject]
+    public struct AugmentDoneFromClient : IPacket
+    {
+        [Key(0)] public int SelectedAugmentIndex; // 선택한 증강의 인덱스 (0, 1, 2)
     }
 }

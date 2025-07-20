@@ -22,7 +22,7 @@ public class GameManager
     public int TotalPrizeMoney = 0; // 총 판돈
     public readonly int[] BettingAmounts = { 10, 20, 30, 40 }; // 라운드별 베팅금
     public int BettingAmount = 0;
-    public float BettingTimer = 0f; // 베팅금 차감 타이머 (10초마다)
+    public float BettingTimer = 0f; // 베팅금 차감 타이머 constants.BETTING_PERIOD 마다
     public const int MAX_ROUNDS = 4; // 최대 라운드 수
     
     public HashSet<Player> rouletteDonePlayers = [];
