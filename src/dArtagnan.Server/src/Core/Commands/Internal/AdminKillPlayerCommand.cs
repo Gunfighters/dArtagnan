@@ -7,7 +7,7 @@ namespace dArtagnan.Server;
 /// </summary>
 public class AdminKillPlayerCommand : IGameCommand
 {
-    public required int TargetPlayerId { get; init; }
+    required public int TargetPlayerId;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {
@@ -27,17 +27,14 @@ public class AdminKillPlayerCommand : IGameCommand
         Console.WriteLine($"[관리자] 플레이어 {TargetPlayerId}({player.Nickname})를 죽입니다...");
         
         // 플레이어 사망 처리
-        player.UpdateAlive(false);
+        player.Alive = false;
         
         await gameManager.BroadcastToAll(new UpdatePlayerAlive
         {
             PlayerId = player.Id,
             Alive = player.Alive
         });
-        
-        if (gameManager.RoundOver())
-        {
-            await gameManager.ProcessRoundOver();
-        }
+
+        await gameManager.CheckAndHandleGameEndAsync();
     }
 } 

@@ -7,9 +7,8 @@ namespace dArtagnan.Server;
 /// </summary>
 public class PlayerMovementCommand : IGameCommand
 {
-    public required int PlayerId { get; init; }
-    public required MovementData MovementData { get; init; }
-    public required bool Running { get; init; }
+    required public int PlayerId;
+    required public MovementData MovementData;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {
@@ -28,7 +27,6 @@ public class PlayerMovementCommand : IGameCommand
         {
             PlayerId = PlayerId,
             MovementData = player.MovementData,
-            Running = Running,
         });
     }
 } 

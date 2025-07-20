@@ -19,15 +19,17 @@ namespace dArtagnan.Shared
     [Union(12, typeof(PlayerIsTargetingBroadcast))]
     [Union(13, typeof(StartGameFromClient))]
     [Union(14, typeof(NewHostBroadcast))]
-    [Union(15, typeof(WinnerBroadcast))]
-    [Union(16, typeof(GameInWaitingFromServer))]
-    [Union(17, typeof(PlayerBalanceUpdateBroadcast))]
-    [Union(18, typeof(PingPacket))]
-    [Union(19, typeof(PongPacket))]
-    [Union(20, typeof(SetAccuracyState))]
-    [Union(21, typeof(PlayerAccuracyStateBroadcast))]
-    [Union(22, typeof(YourAccuracyAndPool))]
-    [Union(23, typeof(RouletteDone))]
+    [Union(15, typeof(RoundWinnerBroadcast))]
+    [Union(16, typeof(GameWinnerBroadcast))]
+    [Union(17, typeof(GameInWaitingFromServer))]
+    [Union(18, typeof(PlayerBalanceUpdateBroadcast))]
+    [Union(19, typeof(PingPacket))]
+    [Union(20, typeof(PongPacket))]
+    [Union(21, typeof(SetAccuracyState))]
+    [Union(22, typeof(PlayerAccuracyStateBroadcast))]
+    [Union(23, typeof(YourAccuracyAndPool))]
+    [Union(24, typeof(RouletteDone))]
+    [Union(25, typeof(BettingDeductionBroadcast))]
     public interface IPacket
     {
     }
@@ -94,7 +96,7 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [클라이언트 => 서버]
-    /// 플레이어가 자신의 이동 방향, 위치, 달리기 여부를 서버에 보내줄 때 쓰는 패킷.
+    /// 플레이어가 자신의 이동 방향, 위치를 서버에 보내줄 때 쓰는 패킷.
     /// </summary>
     [MessagePackObject]
     public struct PlayerMovementDataFromClient : IPacket
@@ -102,7 +104,6 @@ namespace dArtagnan.Shared
         [Key(0)] public int Direction;
         // [Key(1)] public Vector2 Position;
         [Key(1)] public MovementData MovementData;
-        [Key(2)] public bool Running;
     }
 
     /// <summary>
@@ -114,7 +115,6 @@ namespace dArtagnan.Shared
     {
         [Key(0)] public int PlayerId;
         [Key(1)] public MovementData MovementData;
-        [Key(2)] public bool Running;
     }
 
     /// <summary>
@@ -202,6 +202,7 @@ namespace dArtagnan.Shared
     /// <summary>
     /// [서버 => 클라이언트]
     /// 게임이 현재 '대기' 상태에 있으며 플레이어들의 상태는 PlayersInfo와 같다.
+    /// 클라이언트가 방에 처음 입장하거나 게임이 종료된 후 게임이 대기 상태로 돌아갈때 만 보내진다.
     /// </summary>
     [MessagePackObject]
     public struct GameInWaitingFromServer : IPacket
@@ -212,15 +213,15 @@ namespace dArtagnan.Shared
     /// <summary>
     /// [서버 => 클라이언트]
     /// 게임이 현재 '진행중' 상태에 있으며 플레이어들의 상태는 PlayersInfo와 같고 Round번째 라운드를 진행 중이다.
-    /// 남은 시간은 RemainingTime, 총 시간은 TotalTime이다.
+    /// 게임이 시작되거나 각 라운드가 시작될 때만 보내진다.
+    /// 클라: BettingAmount는 이번 라운드의 10초마다 차감되는 베팅금이다.
     /// </summary>
     [MessagePackObject]
     public struct GameInPlayingFromServer : IPacket
     {
         [Key(0)] public List<PlayerInformation> PlayersInfo;
         [Key(1)] public int Round;
-        [Key(2)] public float TotalTime;
-        [Key(3)] public float RemainingTime;
+        [Key(2)] public int BettingAmount;
     }
 
     /// <summary>
@@ -235,12 +236,26 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// PlayerId번 플레이어가 승리했다.
+    /// PlayerId번 플레이어가 라운드에서 승리했다.
+    /// 클라: 이패킷 받으면 단순히 게임승리 UI만 띄우면 됨.
     /// </summary>
     [MessagePackObject]
-    public struct WinnerBroadcast : IPacket
+    public struct RoundWinnerBroadcast : IPacket
     {
-        [Key(0)] public int PlayerId; // 승자가 없으면 -1.
+        [Key(0)] public int PlayerId; // 라운드 승자
+        [Key(1)] public int Round; // 라운드 번호
+        [Key(2)] public int PrizeMoney; // 획득한 판돈
+    }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// PlayerId번 플레이어가 게임 전체에서 승리했다.
+    /// 클라: 이패킷 받으면 단순히 게임승리 UI만 띄우면 됨.
+    /// </summary>
+    [MessagePackObject]
+    public struct GameWinnerBroadcast : IPacket
+    {
+        [Key(0)] public int PlayerId; // 게임 최종 승자가 없으면 -1.
     }
 
     /// <summary>
@@ -305,5 +320,18 @@ namespace dArtagnan.Shared
     [MessagePackObject]
     public struct PongPacket : IPacket
     {  
+    }
+    
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// 10초마다 베팅금이 차감되었음을 알려주는 패킷
+    /// 클라: 이패킷 받으면 판돈을 TotalPrizeMoney 로 업데이트하고
+    /// 모든 플레이어의 잔액을 DeductedAmount만큼 감소시킨다.
+    /// </summary>
+    [MessagePackObject]
+    public struct BettingDeductionBroadcast : IPacket
+    {
+        [Key(0)] public int DeductedAmount; // 차감된 베팅금
+        [Key(1)] public int TotalPrizeMoney; // 업데이트된 총 판돈
     }
 }

@@ -13,7 +13,7 @@ public class Player(int id, string nickname, Vector2 position)
     public float RemainingReloadTime = Constants.DEFAULT_RELOAD_TIME / 2;
     public bool Alive = true;
     public Player? Target;
-    public MovementData MovementData = new() { Direction = 0, Position = position, Speed = Constants.WALKING_SPEED };
+    public MovementData MovementData = new() { Direction = 0, Position = position, Speed = Constants.MOVEMENT_SPEED };
     public int Balance = 200;
     public bool Bankrupt => Balance <= 0;
     public int AccuracyState = 0;   // 정확도 상태: -1(감소), 0(유지), 1(증가)
@@ -34,7 +34,7 @@ public class Player(int id, string nickname, Vector2 position)
     {
         Alive = true;
         Target = null;
-        MovementData = new MovementData { Direction = 0, Position = Vector2.Zero, Speed = Constants.WALKING_SPEED };
+        MovementData = new MovementData { Direction = 0, Position = Vector2.Zero, Speed = Constants.MOVEMENT_SPEED };
         RemainingReloadTime = TotalReloadTime / 2;
         AccuracyState = 0;
         accuracyTimer = 0f;
@@ -60,11 +60,6 @@ public class Player(int id, string nickname, Vector2 position)
         return Random.Shared.Next(Constants.MIN_ACCURACY, Constants.MAX_ACCURACY + 1);
     }
 
-    public static float GetSpeedByRunning(bool isRunning)
-    {
-        return isRunning ? Constants.RUNNING_SPEED : Constants.WALKING_SPEED;
-    }
-
     /// <summary>
     /// index에 따른 원형 배치 위치.
     /// </summary>
@@ -77,44 +72,9 @@ public class Player(int id, string nickname, Vector2 position)
 
     public void UpdateMovementData(Vector2 position, int direction, float speed)
     {
-        UpdatePosition(position);
-        UpdateDirection(direction);
-        UpdateSpeed(speed);
-    }
-
-    public void UpdatePosition(Vector2 newPosition)
-    {
-        MovementData.Position = newPosition;
-    }
-
-    public void UpdateDirection(int direction)
-    {
+        MovementData.Position = position;
         MovementData.Direction = direction;
-    }
-
-    public void UpdateSpeed(float newSpeed)
-    {
-        MovementData.Speed = newSpeed;
-    }
-
-    public void UpdateAlive(bool alive)
-    {
-        Alive = alive;
-    }
-
-    public void UpdateReloadTime(float remaining)
-    {
-        RemainingReloadTime = remaining;
-    }
-
-    public void UpdateTarget(Player target)
-    {
-        Target = target;
-    }
-
-    public void UpdateRange(float range)
-    {
-        Range = range;
+        MovementData.Speed = speed;
     }
 
     public int Withdraw(int amount)

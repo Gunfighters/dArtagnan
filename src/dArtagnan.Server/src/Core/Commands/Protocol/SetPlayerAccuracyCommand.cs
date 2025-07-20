@@ -7,22 +7,18 @@ namespace dArtagnan.Server;
 /// </summary>
 public class SetAccuracyCommand : IGameCommand
 {
-    public required int PlayerId { get; init; }
-    public required int AccuracyState { get; init; }
+    required public int PlayerId;
+    required public int AccuracyState;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {
         var player = gameManager.GetPlayerById(PlayerId);
-        if (player == null)
-        {
-            Console.WriteLine($"[정확도] 플레이어 {PlayerId}를 찾을 수 없습니다.");
-            return;
-        }
+        if (player == null) return;
 
-        // 정확도 상태 유효성 검사
+        // 클라이언트 검증 - 정확도 상태 유효성 검사
         if (AccuracyState < -1 || AccuracyState > 1)
         {
-            Console.WriteLine($"[정확도] 플레이어 {PlayerId}가 잘못된 정확도 상태를 요청했습니다: {AccuracyState}");
+            Console.WriteLine($"[정확도] 클라이언트 {PlayerId}가 잘못된 정확도 상태 요청: {AccuracyState}");
             return;
         }
 

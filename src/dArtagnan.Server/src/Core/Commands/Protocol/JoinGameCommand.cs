@@ -7,13 +7,13 @@ namespace dArtagnan.Server;
 /// </summary>
 public class PlayerJoinCommand : IGameCommand
 {
-    public required int ClientId { get; init; }
-    public required string Nickname { get; init; }
-    public required ClientConnection Client { get; init; }
+    required public int ClientId;
+    required public string Nickname;
+    required public ClientConnection Client;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {
-        if (gameManager.IsGamePlaying())
+        if (gameManager.CurrentGameState != GameState.Waiting)
         {
             Console.WriteLine($"[게임] {ClientId}번 클라이언트 난입 거부.");
             return;

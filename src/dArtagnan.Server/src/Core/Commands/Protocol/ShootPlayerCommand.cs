@@ -7,8 +7,8 @@ namespace dArtagnan.Server;
 /// </summary>
 public class PlayerShootingCommand : IGameCommand
 {
-    public required int ShooterId { get; init; }
-    public required int TargetId { get; init; }
+    required public int ShooterId;
+    required public int TargetId;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {
@@ -30,7 +30,7 @@ public class PlayerShootingCommand : IGameCommand
         bool hit = Random.Shared.NextDouble() * 100 < shooter.Accuracy;
         
         // 재장전 시간 설정
-        shooter.UpdateReloadTime(shooter.TotalReloadTime);
+        shooter.RemainingReloadTime = shooter.TotalReloadTime;
         
         Console.WriteLine($"[전투] 플레이어 {shooter.Id} -> {target.Id} 사격: {(hit ? "명중" : "빗나감")}");
         
@@ -44,22 +44,10 @@ public class PlayerShootingCommand : IGameCommand
         });
         
         // 명중 시 피해 처리
-        if (hit && gameManager.IsGamePlaying())
+        if (hit && gameManager.CurrentGameState != GameState.Waiting)
         {
             // 타겟의 돈 일부를 사격자에게 이전
-            shooter.Balance += target.Withdraw(Math.Max(target.Balance / 10, 50));
-            
-            // 잔액 업데이트 브로드캐스트
-            await gameManager.BroadcastToAll(new PlayerBalanceUpdateBroadcast
-            { 
-                Balance = shooter.Balance, 
-                PlayerId = shooter.Id 
-            });
-            await gameManager.BroadcastToAll(new PlayerBalanceUpdateBroadcast
-            { 
-                Balance = target.Balance, 
-                PlayerId = target.Id 
-            });
+            await gameManager.TransferMoneyBetweenPlayersAsync(target, shooter, gameManager.BettingAmount);
             
             // 타겟 사망 처리
             await KillPlayer(target, gameManager);
@@ -68,8 +56,16 @@ public class PlayerShootingCommand : IGameCommand
     
     private async Task KillPlayer(Player player, GameManager gameManager)
     {
-        Console.WriteLine($"[전투] 플레이어 {player.Id} 사망");
-        player.UpdateAlive(false);
+        // 이미 죽은 플레이어는 처리하지 않음 (파산 등으로 이미 사망한 경우)
+        if (!player.Alive)
+        {
+            Console.WriteLine($"[전투] 플레이어 {player.Id}는 이미 사망 상태 (파산 등)");
+            await gameManager.CheckAndHandleGameEndAsync();
+            return;
+        }
+        
+        Console.WriteLine($"[전투] 플레이어 {player.Id} 사격으로 사망");
+        player.Alive = false;
         
         await gameManager.BroadcastToAll(new UpdatePlayerAlive
         {
@@ -77,9 +73,6 @@ public class PlayerShootingCommand : IGameCommand
             Alive = player.Alive
         });
         
-        if (gameManager.RoundOver())
-        {
-            await gameManager.ProcessRoundOver();
-        }
+        await gameManager.CheckAndHandleGameEndAsync();
     }
 } 

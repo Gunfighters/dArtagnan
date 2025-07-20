@@ -7,9 +7,9 @@ namespace dArtagnan.Server;
 /// </summary>
 public class RemoveClientCommand : IGameCommand
 {
-    public required int ClientId { get; init; }
-    public required ClientConnection? Client { get; init; }
-    public required bool IsNormalDisconnect { get; init; } // 정상 종료 여부
+    required public int ClientId;
+    required public ClientConnection? Client;
+    required public bool IsNormalDisconnect; // 정상 종료 여부
     
     public async Task ExecuteAsync(GameManager gameManager)
     {
