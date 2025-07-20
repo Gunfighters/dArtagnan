@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using dArtagnan.Shared;
 using UnityEngine;
 
@@ -18,7 +19,11 @@ public static class PacketChannel
         Channels[type].Add(Wrapper);
         return;
 
-        void Wrapper(IPacket packet) => action.Invoke((T)packet);
+        void Wrapper(IPacket packet)
+        {
+            Debug.Log($"Raise {packet.GetType()} : {action.Method.DeclaringType}.{action.Method.Name}");
+            action.Invoke((T)packet);
+        }
     }
 
     public static void Raise<T>(T value) where T : IPacket
@@ -26,11 +31,18 @@ public static class PacketChannel
         var type = value.GetType();
         if (Channels.TryGetValue(type, out var channel))
         {
-            foreach (var action in channel)
+            List<Action<IPacket>> run = new();
+            bool modified;
+            do
             {
-                Debug.Log($"Raise {type.Name} -> {action.Method.Name}");
-                action.Invoke(value);
-            }
+                modified = false;
+                foreach (var action in channel.ToArray().Where(a => !run.Contains(a)))
+                {
+                    action.Invoke(value);
+                    run.Add(action);
+                    modified = true;
+                }
+            } while (modified);
         }
     }
 }

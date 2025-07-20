@@ -3,27 +3,27 @@ using UnityEngine;
 
 namespace Game
 {
-    public class StateManager : MonoBehaviour
+    public class GameStateManager : MonoBehaviour
     {
-        public GameState GameState { get; private set; }
-        private void OnEnable()
+        public static GameState GameState { get; private set; }
+        public void Awake()
         {
             PacketChannel.On<GameInPlayingFromServer>(OnGamePlaying);
             PacketChannel.On<GameInWaitingFromServer>(OnGameWaiting);
             PacketChannel.On<YourAccuracyAndPool>(OnYourAccuracyAndPool);;
         }
 
-        private void OnGamePlaying(GameInPlayingFromServer e)
+        private static void OnGamePlaying(GameInPlayingFromServer e)
         {
             GameState = GameState.Playing;
         }
 
-        private void OnGameWaiting(GameInWaitingFromServer e)
+        private static void OnGameWaiting(GameInWaitingFromServer e)
         {
             GameState = GameState.Waiting;
         }
 
-        private void OnYourAccuracyAndPool(YourAccuracyAndPool e)
+        private static void OnYourAccuracyAndPool(YourAccuracyAndPool e)
         {
             GameState = GameState.RouletteSpinning;
         }

@@ -2,15 +2,9 @@ using UnityEngine;
 
 public class SpectatingRibbonController : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void Awake()
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        LocalEventChannel.OnLocalPlayerAlive += alive => gameObject.SetActive(!alive);
+        gameObject.SetActive(false);
     }
 }

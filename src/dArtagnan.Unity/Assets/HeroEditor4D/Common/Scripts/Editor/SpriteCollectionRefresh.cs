@@ -20,7 +20,7 @@ namespace HeroEditor4D.Common.Editor
         public static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets,
             string[] movedFromAssetPaths)
         {
-            var spriteCollection = Object.FindObjectOfType<SpriteCollection>();
+            var spriteCollection = Object.FindAnyObjectByType<SpriteCollection>();
 
             if (spriteCollection != null) Refresh(spriteCollection);
         }

@@ -55,12 +55,12 @@ namespace Assets.HeroEditor4D.Common.Scripts.EditorScripts
             if (Run.isOn) options.Add(new CaptureOption("Run"));
             if (Slash.isOn)
                 options.Add(new CaptureOption("Idle",
-                    FindObjectOfType<Character4D>().WeaponType == WeaponType.Melee2H ? "Slash2H" : "Slash1H"));
+                    FindAnyObjectByType<Character4D>().WeaponType == WeaponType.Melee2H ? "Slash2H" : "Slash1H"));
             if (Jab.isOn) options.Add(new CaptureOption("Idle", "Jab"));
 
             if (Shot.isOn)
             {
-                var character = FindObjectOfType<Character>();
+                var character = FindAnyObjectByType<Character>();
 
                 switch (character.WeaponType)
                 {
@@ -83,7 +83,7 @@ namespace Assets.HeroEditor4D.Common.Scripts.EditorScripts
             if (Block.isOn) options.Add(new CaptureOption("ShieldBlock"));
             if (Death.isOn) options.Add(new CaptureOption(null, null, "Death"));
 
-            FindObjectOfType<SpriteSheetCapture>().Capture(direction, options, int.Parse(FrameSize.text),
+            FindAnyObjectByType<SpriteSheetCapture>().Capture(direction, options, int.Parse(FrameSize.text),
                 int.Parse(FrameCount.text), Shadow.isOn);
             Close();
         }

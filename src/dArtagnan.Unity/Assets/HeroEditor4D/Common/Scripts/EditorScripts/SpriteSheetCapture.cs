@@ -21,7 +21,7 @@ namespace Assets.HeroEditor4D.Common.Scripts.EditorScripts
         private IEnumerator CaptureFrames(Vector2 direction, List<CaptureOption> options, int frameSize, int frameCount,
             bool shadow)
         {
-            _character = FindObjectOfType<Character4D>();
+            _character = FindAnyObjectByType<Character4D>();
             _character.SetDirection(direction);
             _character.Shadows.ForEach(i => i.SetActive(false));
             _character.Shadows[0].SetActive(shadow);

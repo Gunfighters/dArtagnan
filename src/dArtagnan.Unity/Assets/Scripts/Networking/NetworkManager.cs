@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
+using Game;
 using Networking;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 public class NetworkManager : MonoBehaviour
 {
@@ -17,7 +14,7 @@ public class NetworkManager : MonoBehaviour
     private NetworkStream _stream;
     private readonly Channel<IPacket> _channel = Channel.CreateSingleConsumerUnbounded<IPacket>();
 
-    private void OnEnable()
+    public void Awake()
     {
         PacketChannel.On<PlayerMovementDataFromClient>(Send);
         PacketChannel.On<PlayerShootingFromClient>(Send);
@@ -25,6 +22,7 @@ public class NetworkManager : MonoBehaviour
         PacketChannel.On<StartGameFromClient>(Send);
         PacketChannel.On<SetAccuracyState>(Send);
         PacketChannel.On<RouletteDone>(Send);
+        LocalEventChannel.OnEndpointSelected += Connect;
     }
 
     private void Update()
@@ -35,7 +33,7 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
-    public void Connect(string host, int port)
+    private void Connect(string host, int port)
     {
         ConnectToServer(host, port)
             .ContinueWith(StartListeningLoop)

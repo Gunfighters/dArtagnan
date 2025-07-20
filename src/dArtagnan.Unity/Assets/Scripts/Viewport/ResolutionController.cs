@@ -6,7 +6,7 @@ public class ResolutionController : MonoBehaviour
     public int xRatio;
     public int yRatio;
 
-    private void OnEnable()
+    private void Awake()
     {
         SetupCameraRect();
         // TODO: UGUI로 가려질 영역 한번 더 계산해서 가려주는 게 좋겠다. 레터박스 보이는 게 운이 좋은 것.

@@ -9,7 +9,7 @@ namespace Game
         public PlayerPoolConfig config;
         public IObjectPool<Player> Pool;
 
-        private void OnEnable()
+        private void Awake()
         {
             Instance = this;
             Pool = new ObjectPool<Player>(

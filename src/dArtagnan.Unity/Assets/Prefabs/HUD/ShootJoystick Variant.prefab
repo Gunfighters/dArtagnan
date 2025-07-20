@@ -290,6 +290,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2929252283123773939, guid: aaa2c939c0359ac4dbce3f49e8b90252, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4421368874472710101}
+    - targetCorrespondingSourceObject: {fileID: 2929252283123773939, guid: aaa2c939c0359ac4dbce3f49e8b90252, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -5148987593427677174}
   m_SourcePrefab: {fileID: 100100000, guid: aaa2c939c0359ac4dbce3f49e8b90252, type: 3}
 --- !u!1 &7787210251918212480 stripped
 GameObject:
@@ -314,7 +317,6 @@ MonoBehaviour:
   JoystickAxis: {fileID: 7787210251918212482}
   HandleOutline: {fileID: 7787210252238043524}
   Icon: {fileID: 4706362944421951538}
-  LocalPlayer: {fileID: 0}
 --- !u!82 &4421368874472710101
 AudioSource:
   m_ObjectHideFlags: 0
@@ -412,6 +414,18 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &-5148987593427677174
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7787210251918212480}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83964d1530a741079700ea5bf7ea6a39, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &7787210251918212482 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2929252283123773937, guid: aaa2c939c0359ac4dbce3f49e8b90252, type: 3}

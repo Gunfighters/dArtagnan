@@ -59,7 +59,7 @@ namespace Assets.HeroEditor4D.Common.Scripts.EditorScripts
 
         public void OnValidate()
         {
-            if (Character == null) Character = FindObjectOfType<Character4D>();
+            if (Character == null) Character = FindAnyObjectByType<Character4D>();
         }
 
         /// <summary>

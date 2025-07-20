@@ -4,7 +4,10 @@
 TagManager:
   serializedVersion: 3
   tags:
-  - PlayerObject
+  - LocalPlayerController
+  - HostOnly
+  - DeadOnly
+  - InGame
   layers:
   - Default
   - TransparentFX

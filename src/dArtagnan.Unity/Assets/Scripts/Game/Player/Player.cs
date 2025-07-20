@@ -1,10 +1,12 @@
 using System.Collections;
+using System.Linq;
 using Assets.HeroEditor4D.Common.Scripts.Data;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
+using Utils;
 
 public class Player : MonoBehaviour
 {
@@ -46,9 +48,9 @@ public class Player : MonoBehaviour
     private const float ACCURACY_UPDATE_INTERVAL = 1.0f; // 정확도 업데이트 간격 (1초)
     public float runningSpeed;
     public float walkingSpeed;
-    private Collider2D collider2D;
-    private RaycastHit2D[] hits = new RaycastHit2D[2];
-    private ContactFilter2D contactFilter2D = new();
+    private Collider2D _collider2D;
+    private readonly RaycastHit2D[] hits = new RaycastHit2D[2];
+    private ContactFilter2D _contactFilter2D = new();
 
     private static readonly Color[] PlayerColors = {
         new(1f, 0.3f, 0.3f),   // 밝은 빨강 - ID 1
@@ -62,27 +64,25 @@ public class Player : MonoBehaviour
     };
 
     public Color MyColor => ID is >= 1 and <= 8 ? PlayerColors[ID - 1] : Color.white;
+    
+    public PlayerMovementDataFromClient MovementData =>  new()
+    {
+            Direction = CurrentDirection.DirectionToInt(),
+            MovementData =
+            {
+                Direction = CurrentDirection.DirectionToInt(),
+                Position = Position.ToSystemVec(),
+                Speed = Speed
+            },
+            Running = true
+        };
 
     private void Awake()
     {
         HighlightAsTarget(false);
-        collider2D = GetComponent<Collider2D>();
-        contactFilter2D.useLayerMask = true;
-        contactFilter2D.layerMask = LayerMask.GetMask("Player", "Obstacle");
-    }
-
-    private void OnEnable()
-    {
-        PacketChannel.On<PlayerAccuracyStateBroadcast>(e =>
-        {
-            if (e.PlayerId == ID)
-                SetAccuracyState(e.AccuracyState);
-        });
-        PacketChannel.On<PlayerBalanceUpdateBroadcast>(e =>
-        {
-            if (e.PlayerId == ID)
-                SetBalance(e.Balance);
-        });
+        _collider2D = GetComponent<Collider2D>();
+        _contactFilter2D.useLayerMask = true;
+        _contactFilter2D.layerMask = LayerMask.GetMask("Player", "Obstacle");
     }
 
     private void Update()
@@ -239,7 +239,7 @@ public class Player : MonoBehaviour
 
     public void SetDirection(Vector2 direction)
     {
-        CurrentDirection = direction;
+        CurrentDirection = direction.normalized;
         SetFaceDirection(direction);
     }
 
@@ -282,7 +282,7 @@ public class Player : MonoBehaviour
             SetRunning(true);
         }
         var needToGo = (predictedPosition - rb.position).normalized;
-        var actualDirection = DirectionHelperClient.IntToDirection(DirectionHelperClient.DirectionToInt(needToGo));
+        var actualDirection = needToGo.DirectionToInt().IntToDirection();
         // TODO: 최단경로 알고리즘 이용하여 벽 피해가기.
         return Vector2.MoveTowards(rb.position, rb.position + actualDirection * diff, correctionSpeed * Time.fixedDeltaTime);
     }
@@ -311,8 +311,8 @@ public class Player : MonoBehaviour
         SetAccuracy(info.Accuracy);
         SetAccuracyState(info.AccuracyState);
         Speed = info.MovementData.Speed;
-        transform.position = VecConverter.ToUnityVec(info.MovementData.Position);
-        SetDirection(DirectionHelperClient.IntToDirection(info.MovementData.Direction));
+        transform.position = info.MovementData.Position.ToUnityVec();
+        SetDirection(info.MovementData.Direction.IntToDirection());
         SetRange(info.Range);
         TotalReloadTime = info.TotalReloadTime;
         RemainingReloadTime = info.RemainingReloadTime;
@@ -326,7 +326,7 @@ public class Player : MonoBehaviour
 
     public bool CanShoot(Player target)
     {
-        collider2D.Raycast(target.Position - Position, contactFilter2D, hits, Range);
+        _collider2D.Raycast(target.Position - Position, _contactFilter2D, hits, Range);
         // hits.Sort((x, y) => x.distance.CompareTo(y.distance));
         // Debug.DrawLine(collider2D., hits[0].collider.transform.position, Color.red, 10);
         // var size = Physics2D.Raycast(Position, target.Position - Position, Range,);

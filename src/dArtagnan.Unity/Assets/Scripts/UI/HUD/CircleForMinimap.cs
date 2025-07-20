@@ -1,3 +1,4 @@
+using Game;
 using UnityEngine;
 
 public class CircleForMinimap : MonoBehaviour
@@ -14,8 +15,7 @@ public class CircleForMinimap : MonoBehaviour
         player = GetComponentInParent<Player>();
         originalScale = transform.localScale;
 
-        int localPlayerLayer = LayerMask.NameToLayer("LocalPlayer");
-        if (player.gameObject.layer == localPlayerLayer)
+        if (player == PlayerGeneralManager.LocalPlayer)
         {
             spriteRenderer.sprite = triangleSprite;
         }
@@ -24,15 +24,15 @@ public class CircleForMinimap : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (player != null && spriteRenderer != null)
+        if (player && spriteRenderer)
         {
             // 플레이어 색깔 적용
             spriteRenderer.color = player.MyColor;
             
             // accuracy에 비례해서 원의 크기 조절
-            float t = Mathf.Clamp01(player.Accuracy / 100f);
-            float scaleMultiplier = Mathf.Lerp(0.5f, 1.5f, t);
-            transform.localScale = originalScale * scaleMultiplier * 1.5f;
+            var t = Mathf.Clamp01(player.Accuracy / 100f);
+            var scaleMultiplier = Mathf.Lerp(0.5f, 1.5f, t);
+            transform.localScale = originalScale * (scaleMultiplier * 1.5f);
         }
     }
 }

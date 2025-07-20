@@ -17,7 +17,7 @@ public class AccuracyStateTabMenuController : MonoBehaviour
     public Color highlightColor;
     public Color normalColor;
 
-    private void OnEnable()
+    public void Awake()
     {
         PacketChannel.On<GameInPlayingFromServer>(OnGamePlaying);
         PacketChannel.On<PlayerAccuracyStateBroadcast>(OnStateBroadcast);

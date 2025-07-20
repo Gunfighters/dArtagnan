@@ -16,7 +16,7 @@ public class CameraController : MonoBehaviour
     public Vector2 mapSize;
     public Vector2 center;
 
-    private void OnEnable()
+    private void Awake()
     {
         LocalEventChannel.OnNewCameraTarget += Follow;
         PacketChannel.On<UpdatePlayerAlive>(OnUpdatePlayerAlive);

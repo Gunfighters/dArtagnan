@@ -4,16 +4,16 @@ using System.Linq;
 using UnityEngine;
 using dArtagnan.Shared;
 
-public class DirectionHelperClient
+public static class DirectionHelperClient
 {
     private static readonly List<Vector2> Directions = DirectionHelper.Directions.Select(d => new Vector2(d.X, d.Y)).ToList();
 
-    public static Vector2 IntToDirection(int i)
+    public static Vector2 IntToDirection(this int i)
     {
         return Directions[i];
     }
     
-    public static int DirectionToInt(Vector2 direction)
+    public static int DirectionToInt(this Vector2 direction)
     {
         if (direction == Vector2.zero) return 0;
         var minAngle = float.MaxValue;

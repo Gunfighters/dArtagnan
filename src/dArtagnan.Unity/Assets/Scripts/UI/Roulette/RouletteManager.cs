@@ -5,11 +5,9 @@ using Assets.HeroEditor4D.Common.Scripts.Collections;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 public class RouletteManager : MonoBehaviour
 {
-    public static RouletteManager Instance;
     [SerializeField] private GameObject roulettePrefab;
     [SerializeField] private List<int> accuracyPool;
     [SerializeField] private List<RouletteSlot> slots;
@@ -25,11 +23,11 @@ public class RouletteManager : MonoBehaviour
     
     private Coroutine autoSpinCoroutine;
 
-    private void Awake()
+    public void Awake()
     {
-        Instance = this;
+        PacketChannel.On<YourAccuracyAndPool>(e => SetAccuracyPool(e.AccuracyPool));
+        PacketChannel.On<YourAccuracyAndPool>(e => SetTarget(e.YourAccuracy));
         slots = GetComponentsInChildren<RouletteSlot>().ToList();
-        ResetRoulette();
     }
 
     private void OnEnable()
@@ -37,8 +35,6 @@ public class RouletteManager : MonoBehaviour
         // 룰렛 화면이 활성화될 때 자동으로 초기화
         ResetRoulette();
         Debug.Log("[룰렛] 화면 활성화 - 자동 초기화");
-        PacketChannel.On<YourAccuracyAndPool>(e => SetAccuracyPool(e.AccuracyPool));
-        PacketChannel.On<YourAccuracyAndPool>(e => SetTarget(e.YourAccuracy));
     }
 
     private void OnDisable()

@@ -1,28 +1,30 @@
 using dArtagnan.Shared;
 using UnityEngine;
+using Utils;
 
 namespace Game
 {
     /// <summary>
-    /// 이동, 조준, 사격, 사망을 관리하는 매니저
+    /// 이동, 조준, 사격, 사망, 증감상태, 잔고를 관리하는 매니저
     /// </summary>
     public class PlayerCorePlayManager : MonoBehaviour
     {
-        [SerializeField] private StateManager stateManager;
-        private void OnEnable()
+        public void Awake()
         {
             PacketChannel.On<PlayerMovementDataBroadcast>(OnPlayerMovementData);
             PacketChannel.On<PlayerIsTargetingBroadcast>(OnPlayerIsTargeting);
             PacketChannel.On<PlayerShootingBroadcast>(OnPlayerShoot);
             PacketChannel.On<UpdatePlayerAlive>(OnUpdatePlayerAlive);
+            PacketChannel.On<PlayerAccuracyStateBroadcast>(OnAccuracyStateBroadcast);
+            PacketChannel.On<PlayerBalanceUpdateBroadcast>(OnBalanceUpdate);
         }
 
         private static void OnPlayerMovementData(PlayerMovementDataBroadcast e)
         {
             var targetPlayer = PlayerGeneralManager.GetPlayer(e.PlayerId);
             if (targetPlayer == PlayerGeneralManager.LocalPlayer) return;
-            var direction = DirectionHelperClient.IntToDirection(e.MovementData.Direction);
-            var serverPosition = VecConverter.ToUnityVec(e.MovementData.Position);
+            var direction = e.MovementData.Direction.IntToDirection();
+            var serverPosition = e.MovementData.Position.ToUnityVec();
             targetPlayer.UpdateMovementDataForReckoning(direction, serverPosition, e.MovementData.Speed);
             targetPlayer.SetRunning(e.Running);
         }
@@ -34,13 +36,13 @@ namespace Game
             aiming.Aim(PlayerGeneralManager.GetPlayer(playerIsTargeting.TargetId));
         }
         
-        private void OnPlayerShoot(PlayerShootingBroadcast e)
+        private static void OnPlayerShoot(PlayerShootingBroadcast e)
         {
             var shooter = PlayerGeneralManager.GetPlayer(e.ShooterId);
             var target = PlayerGeneralManager.GetPlayer(e.TargetId);
             shooter.Fire(target);
             shooter.UpdateRemainingReloadTime(shooter.TotalReloadTime);
-            if (stateManager.GameState == GameState.Playing)
+            if (GameStateManager.GameState == GameState.Playing)
             {
                 shooter.ShowHitOrMiss(e.Hit);
             }
@@ -54,6 +56,16 @@ namespace Game
             {
                 LocalEventChannel.InvokeOnLocalPlayerAlive(updated.Alive);
             }
+        }
+        
+        private static void OnAccuracyStateBroadcast(PlayerAccuracyStateBroadcast e)
+        {
+            PlayerGeneralManager.GetPlayer(e.PlayerId).SetAccuracyState(e.AccuracyState);
+        }
+
+        private static void OnBalanceUpdate(PlayerBalanceUpdateBroadcast e)
+        {
+            PlayerGeneralManager.GetPlayer(e.PlayerId).SetBalance(e.Balance);
         }
     }
 }

@@ -1,18 +1,19 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SliderText : MonoBehaviour
 {
-    public string Label;
-    private TextMeshProUGUI text;
+    public string label;
+    public TextMeshProUGUI text;
 
     private void Awake()
     {
-        text = GetComponent<TextMeshProUGUI>();
+        GetComponent<Slider>().onValueChanged.AddListener(UpdateNumber);
     }
 
-    public void UpdateNumber(float value)
+    private void UpdateNumber(float value)
     {
-        text.SetText($"{Label}: {value}");
+        text.SetText($"{label}: {value}");
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 public static class LocalEventChannel
 {
@@ -10,4 +11,8 @@ public static class LocalEventChannel
 
     public static event Action<bool> OnLocalPlayerAlive;
     public static void InvokeOnLocalPlayerAlive(bool alive) => OnLocalPlayerAlive?.Invoke(alive);
+
+    public static event Action<string, int> OnEndpointSelected;
+    
+    public static void InvokeOnEndpointSelected(string endpoint, int port) => OnEndpointSelected?.Invoke(endpoint, port);
 }
