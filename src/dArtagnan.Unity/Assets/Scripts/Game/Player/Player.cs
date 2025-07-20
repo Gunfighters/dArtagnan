@@ -74,7 +74,6 @@ public class Player : MonoBehaviour
                 Position = Position.ToSystemVec(),
                 Speed = Speed
             },
-            Running = true
         };
 
     private void Awake()
@@ -117,7 +116,7 @@ public class Player : MonoBehaviour
         
         // ID에 따른 색깔 설정
         nicknameText.color = MyColor;
-        modelManager.SetColor(MyColor);
+        modelManager.SetHatColor(MyColor);
     }
 
     public void SetAlive(bool alive)
@@ -141,13 +140,9 @@ public class Player : MonoBehaviour
         {
             modelManager.Idle();
         }
-        else if (Running)
-        {
-            modelManager.Run();
-        }
         else
         {
-            modelManager.Walk();
+            modelManager.Run();
         }
     }
 

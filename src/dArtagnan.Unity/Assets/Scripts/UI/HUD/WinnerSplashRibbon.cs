@@ -13,11 +13,11 @@ namespace UI.HUD
         public float duration;
         private void Awake()
         {
-            PacketChannel.On<WinnerBroadcast>(OnWinnerBroadcast);
+            PacketChannel.On<RoundWinnerBroadcast>(OnWinnerBroadcast);
             gameObject.SetActive(false);
         }
 
-        private void OnWinnerBroadcast(WinnerBroadcast e)
+        private void OnWinnerBroadcast(RoundWinnerBroadcast e)
         {
             var winner = PlayerGeneralManager.GetPlayer(e.PlayerId);
             text.text = $"{winner.Nickname} HAS WON!";

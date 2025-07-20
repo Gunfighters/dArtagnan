@@ -67,9 +67,10 @@ public class ModelManager : MonoBehaviour
         // trajectoryColorOriginal = trajectory.material.color;
     }
 
-    public void SetColor(Color color)
+    public void SetHatColor(Color color)
     {
-        actualModel.BodyColor = color;
+        actualModel.SetHatColor(color);
+        modelSilhouette.SetHatColor(color);
     }
     
     void SetTransparent()

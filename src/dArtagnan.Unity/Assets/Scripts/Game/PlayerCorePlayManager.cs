@@ -26,7 +26,6 @@ namespace Game
             var direction = e.MovementData.Direction.IntToDirection();
             var serverPosition = e.MovementData.Position.ToUnityVec();
             targetPlayer.UpdateMovementDataForReckoning(direction, serverPosition, e.MovementData.Speed);
-            targetPlayer.SetRunning(e.Running);
         }
         
         private static void OnPlayerIsTargeting(PlayerIsTargetingBroadcast playerIsTargeting)

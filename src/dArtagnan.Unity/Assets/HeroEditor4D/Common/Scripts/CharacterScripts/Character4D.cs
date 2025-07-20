@@ -100,6 +100,11 @@ namespace Assets.HeroEditor4D.Common.Scripts.CharacterScripts
             set { Parts.ForEach(i => i.Helmet = i.HelmetRenderer.GetComponent<SpriteMapping>().FindSprite(value)); }
         }
 
+        public void SetHatColor(Color color)
+        {
+            Parts.ForEach(i => i.HelmetRenderer.color = color);
+        }
+
         public List<Sprite> Armor
         {
             set { Parts.ForEach(i => i.Armor = value.ToList()); }
