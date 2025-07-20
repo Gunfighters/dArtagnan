@@ -22,6 +22,12 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
 
     private readonly Color orange = new(1.0f, 0.64f, 0.0f);
     public Vector2 Direction => shootingJoystick.Direction;
+    
+    public bool Moving => Direction != Vector2.zero;
+
+    private bool HasMoved = false;
+
+    private bool _cancelling = false;
 
     private void Update()
     {
@@ -35,6 +41,17 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
             reloadSound.Play();
             _reloading = false;
         }
+        if (Moving)
+        {
+            HasMoved = true;
+            LocalPlayer.Aim(LocalPlayer.TargetPlayer);
+        }
+
+        _cancelling = HasMoved && !Moving; // cancelling
+        if (_cancelling)
+        {
+            LocalPlayer.Aim(null);
+        }
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -44,12 +61,14 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
             JoystickAxis.enabled = true;
         }
     }
+    
     public void OnPointerUp(PointerEventData eventData)
     {
+        Debug.Log(Direction);
         JoystickAxis.enabled = false;
-        if (Shootable && PlayerGeneralManager.LocalPlayer.TargetPlayer)
-        {
+        if (!Shootable || !PlayerGeneralManager.LocalPlayer.TargetPlayer || HasMoved && !Moving)
+            HasMoved = false;
+        else
             PacketChannel.Raise(new PlayerShootingFromClient { TargetId = PlayerGeneralManager.LocalPlayer.TargetPlayer.ID });
-        }
     }
 }

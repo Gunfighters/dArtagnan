@@ -23,8 +23,9 @@ public class TargetManager : MonoBehaviour
         Aiming.TargetPlayer?.HighlightAsTarget(false);
         Aiming.TargetPlayer = newTarget;
         Aiming.TargetPlayer?.HighlightAsTarget(true);
-        Aiming.Aim(newTarget);
-        PacketChannel.Raise(new PlayerIsTargetingFromClient { TargetId = newTarget?.ID ?? -1 });
+        PacketChannel.Raise(_shootingJoystick.Moving
+            ? new PlayerIsTargetingFromClient { TargetId = newTarget?.ID ?? -1 }
+            : new PlayerIsTargetingFromClient { TargetId = -1 });
     }
     
     private Player GetAutoTarget()

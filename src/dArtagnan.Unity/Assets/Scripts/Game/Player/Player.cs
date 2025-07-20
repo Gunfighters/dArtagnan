@@ -21,7 +21,6 @@ public class Player : MonoBehaviour
     public float RemainingReloadTime { get; private set; }
     public float TotalReloadTime { get; private set; }
     public float Speed { get; private set; }
-    public bool Running;
     public Rigidbody2D rb;
     public ModelManager modelManager;
     public TextMeshProUGUI accuracyText;
@@ -46,11 +45,9 @@ public class Player : MonoBehaviour
     public int AccuracyState = 0;     // 정확도 상태: -1(감소), 0(유지), 1(증가)
     private float accuracyTimer = 0f;    // 정확도 업데이트를 위한 타이머
     private const float ACCURACY_UPDATE_INTERVAL = 1.0f; // 정확도 업데이트 간격 (1초)
-    public float runningSpeed;
-    public float walkingSpeed;
     private Collider2D _collider2D;
     private readonly RaycastHit2D[] hits = new RaycastHit2D[2];
-    private ContactFilter2D _contactFilter2D = new();
+    private ContactFilter2D _contactFilter2D;
 
     private static readonly Color[] PlayerColors = {
         new(1f, 0.3f, 0.3f),   // 밝은 빨강 - ID 1
@@ -243,11 +240,6 @@ public class Player : MonoBehaviour
         modelManager.SetDirection(direction);
     }
 
-    public void SetRunning(bool running)
-    {
-        Running = running;
-    }
-
     public void SetSpeed(float speed)
     {
         Speed = speed;
@@ -274,7 +266,6 @@ public class Player : MonoBehaviour
         if (diff > lerpFaceChangeThreshold)
         {
             SetFaceDirection(predictedPosition - rb.position);
-            SetRunning(true);
         }
         var needToGo = (predictedPosition - rb.position).normalized;
         var actualDirection = needToGo.DirectionToInt().IntToDirection();
@@ -321,6 +312,7 @@ public class Player : MonoBehaviour
 
     public bool CanShoot(Player target)
     {
+        if (Vector2.Distance(target.Position, Position) > Range) return false;
         _collider2D.Raycast(target.Position - Position, _contactFilter2D, hits, Range);
         // hits.Sort((x, y) => x.distance.CompareTo(y.distance));
         // Debug.DrawLine(collider2D., hits[0].collider.transform.position, Color.red, 10);

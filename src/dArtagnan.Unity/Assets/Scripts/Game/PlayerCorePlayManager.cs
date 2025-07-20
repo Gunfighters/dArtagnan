@@ -32,7 +32,7 @@ namespace Game
         {
             var aiming = PlayerGeneralManager.GetPlayer(playerIsTargeting.ShooterId);
             if (aiming == PlayerGeneralManager.LocalPlayer) return;
-            aiming.Aim(PlayerGeneralManager.GetPlayer(playerIsTargeting.TargetId));
+            aiming.Aim(playerIsTargeting.TargetId == -1 ? null : PlayerGeneralManager.GetPlayer(playerIsTargeting.TargetId));
         }
         
         private static void OnPlayerShoot(PlayerShootingBroadcast e)
