@@ -30,8 +30,8 @@ namespace dArtagnan.Shared
     [Union(23, typeof(YourAccuracyAndPool))]
     [Union(24, typeof(RouletteDone))]
     [Union(25, typeof(BettingDeductionBroadcast))]
-    [Union(26, typeof(AugmentSelectionStartFromServer))]
-    [Union(27, typeof(AugmentSelectionFromClient))]
+    [Union(26, typeof(AugmentStartFromServer))]
+    [Union(27, typeof(AugmentDoneFromClient))]
     public interface IPacket
     {
     }
