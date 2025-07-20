@@ -40,7 +40,7 @@ public class PlayerJoinCommand : IGameCommand
         });
         
         // 현재 게임 상태 전송
-        var waitingPacket = new GameInWaitingFromServer 
+        var waitingPacket = new WaitingStartFromServer 
         { 
             PlayersInfo = gameManager.PlayersInRoom() 
         };

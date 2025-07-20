@@ -19,11 +19,11 @@ public class AccuracyStateTabMenuController : MonoBehaviour
 
     public void Awake()
     {
-        PacketChannel.On<GameInPlayingFromServer>(OnGamePlaying);
+        PacketChannel.On<RoundStartFromServer>(OnGamePlaying);
         PacketChannel.On<PlayerAccuracyStateBroadcast>(OnStateBroadcast);
     }
 
-    private void OnGamePlaying(GameInPlayingFromServer e)
+    private void OnGamePlaying(RoundStartFromServer e)
     {
         SwitchUIOnly(e.PlayersInfo.Single(i => i.PlayerId == PlayerGeneralManager.LocalPlayer.ID).AccuracyState);
     }

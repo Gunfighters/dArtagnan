@@ -13,7 +13,7 @@ public class GameLoopCommand : IGameCommand
     public async Task ExecuteAsync(GameManager gameManager)
     {
         // 게임이 플레이 중일 때만 타이머 업데이트
-        if (gameManager.CurrentGameState == GameState.Playing)
+        if (gameManager.CurrentGameState == GameState.Round)
         {
             // 베팅금 타이머 업데이트 (10초마다 차감)
             gameManager.BettingTimer += DeltaTime;
@@ -33,7 +33,7 @@ public class GameLoopCommand : IGameCommand
     /// </summary>
     private async Task DeductBettingMoney(GameManager gameManager)
     {
-        if (gameManager.CurrentGameState != GameState.Playing || gameManager.Round <= 0 || gameManager.Round > GameManager.MAX_ROUNDS)
+        if (gameManager.CurrentGameState != GameState.Round || gameManager.Round <= 0 || gameManager.Round > GameManager.MAX_ROUNDS)
             return;
         
         var totalDeducted = 0;

@@ -6,8 +6,8 @@ namespace dArtagnan.Shared
     public enum GameState
     {
         Waiting,    // 대기 중 (Ready 단계 포함)
-        Playing,    // 게임 진행 중
-        RouletteSpinning, // 룰렛 돌리는 중
+        Round,    // 게임 진행 중
+        Roulette, // 룰렛 돌리는 중
     }
 
     /// <summary>

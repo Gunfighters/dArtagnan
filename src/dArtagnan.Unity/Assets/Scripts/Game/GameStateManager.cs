@@ -8,24 +8,24 @@ namespace Game
         public static GameState GameState { get; private set; }
         public void Awake()
         {
-            PacketChannel.On<GameInPlayingFromServer>(OnGamePlaying);
-            PacketChannel.On<GameInWaitingFromServer>(OnGameWaiting);
+            PacketChannel.On<RoundStartFromServer>(OnGamePlaying);
+            PacketChannel.On<WaitingStartFromServer>(OnGameWaiting);
             PacketChannel.On<YourAccuracyAndPool>(OnYourAccuracyAndPool);;
         }
 
-        private static void OnGamePlaying(GameInPlayingFromServer e)
+        private static void OnGamePlaying(RoundStartFromServer e)
         {
-            GameState = GameState.Playing;
+            GameState = GameState.Round;
         }
 
-        private static void OnGameWaiting(GameInWaitingFromServer e)
+        private static void OnGameWaiting(WaitingStartFromServer e)
         {
             GameState = GameState.Waiting;
         }
 
         private static void OnYourAccuracyAndPool(YourAccuracyAndPool e)
         {
-            GameState = GameState.RouletteSpinning;
+            GameState = GameState.Roulette;
         }
     }
 }

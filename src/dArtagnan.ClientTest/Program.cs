@@ -371,7 +371,7 @@ internal class Program
                     Console.WriteLine($"{movementDataBroadcast.PlayerId}번 플레이어 이동 데이터 갱신: 방향 {movementDataBroadcast.MovementData.Direction}, 위치 {movementDataBroadcast.MovementData.Position} 속도 {movementDataBroadcast.MovementData.Speed}");
                     break;
                         
-                case GameInWaitingFromServer gameWaiting:
+                case WaitingStartFromServer gameWaiting:
                     Console.WriteLine($"=== 현재 방 상태 ===");
                     foreach (var info in gameWaiting.PlayersInfo)
                     {
@@ -386,7 +386,7 @@ internal class Program
                     }
                     break;
                         
-                case GameInPlayingFromServer gamePlaying:
+                case RoundStartFromServer gamePlaying:
                     Console.WriteLine($"=== 게임 진행 중 (라운드 {gamePlaying.Round}) ===");
                     Console.WriteLine($"베팅금: {gamePlaying.BettingAmount}달러/10초");
                     foreach (var info in gamePlaying.PlayersInfo)

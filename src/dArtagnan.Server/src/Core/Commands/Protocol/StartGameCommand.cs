@@ -53,7 +53,7 @@ public class StartGameCommand : IGameCommand
         gameManager.BettingTimer = 0f;
         gameManager.BettingAmount = 0;
         gameManager.rouletteDonePlayers.Clear();
-        gameManager.CurrentGameState = GameState.RouletteSpinning;
+        gameManager.CurrentGameState = GameState.Roulette;
         
         Console.WriteLine($"[게임] 게임 상태 초기화 완료 -> RouletteSpinning");
     }

@@ -13,11 +13,11 @@ namespace UI.HUD
         
         private void Awake()
         {
-            PacketChannel.On<GameInPlayingFromServer>(OnGameInPlayingFromServer);
+            PacketChannel.On<RoundStartFromServer>(OnRoundStartFromServer);
             gameObject.SetActive(false);
         }
 
-        private void OnGameInPlayingFromServer(GameInPlayingFromServer e)
+        private void OnRoundStartFromServer(RoundStartFromServer e)
         {
             text.text = $"ROUND #{e.Round}";
             gameObject.SetActive(true);

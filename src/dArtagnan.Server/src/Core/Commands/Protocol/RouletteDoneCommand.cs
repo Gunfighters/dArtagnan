@@ -36,7 +36,7 @@ public class RouletteDoneCommand : IGameCommand
         // === 라운드 상태 설정 ===
         gameManager.Round = 1;
         gameManager.BettingTimer = 0f;
-        gameManager.CurrentGameState = GameState.Playing;
+        gameManager.CurrentGameState = GameState.Round;
         gameManager.BettingAmount = gameManager.BettingAmounts[gameManager.Round - 1];
         
         Console.WriteLine($"[게임] 게임 상태 변경: RouletteSpinning -> Playing");
@@ -45,7 +45,7 @@ public class RouletteDoneCommand : IGameCommand
         gameManager.ResetRespawnAll(true);
         
         // === 게임 시작 브로드캐스트 ===
-        await gameManager.BroadcastToAll(new GameInPlayingFromServer
+        await gameManager.BroadcastToAll(new RoundStartFromServer
         { 
             PlayersInfo = gameManager.PlayersInRoom(), 
             Round = gameManager.Round,

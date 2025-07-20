@@ -14,14 +14,14 @@ namespace dArtagnan.Shared
     [Union(7, typeof(UpdatePlayerAlive))]
     [Union(8, typeof(PlayerLeaveFromClient))]
     [Union(9, typeof(PlayerLeaveBroadcast))]
-    [Union(10, typeof(GameInPlayingFromServer))]
+    [Union(10, typeof(RoundStartFromServer))]
     [Union(11, typeof(PlayerIsTargetingFromClient))]
     [Union(12, typeof(PlayerIsTargetingBroadcast))]
     [Union(13, typeof(StartGameFromClient))]
     [Union(14, typeof(NewHostBroadcast))]
     [Union(15, typeof(RoundWinnerBroadcast))]
     [Union(16, typeof(GameWinnerBroadcast))]
-    [Union(17, typeof(GameInWaitingFromServer))]
+    [Union(17, typeof(WaitingStartFromServer))]
     [Union(18, typeof(PlayerBalanceUpdateBroadcast))]
     [Union(19, typeof(PingPacket))]
     [Union(20, typeof(PongPacket))]
@@ -205,7 +205,7 @@ namespace dArtagnan.Shared
     /// 클라이언트가 방에 처음 입장하거나 게임이 종료된 후 게임이 대기 상태로 돌아갈때 만 보내진다.
     /// </summary>
     [MessagePackObject]
-    public struct GameInWaitingFromServer : IPacket
+    public struct WaitingStartFromServer : IPacket
     {
         [Key(0)] public List<PlayerInformation> PlayersInfo;
     }
@@ -217,7 +217,7 @@ namespace dArtagnan.Shared
     /// 클라: BettingAmount는 이번 라운드의 10초마다 차감되는 베팅금이다.
     /// </summary>
     [MessagePackObject]
-    public struct GameInPlayingFromServer : IPacket
+    public struct RoundStartFromServer : IPacket
     {
         [Key(0)] public List<PlayerInformation> PlayersInfo;
         [Key(1)] public int Round;

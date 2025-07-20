@@ -25,8 +25,8 @@ namespace Game
             PacketChannel.On<NewHostBroadcast>(OnNewHost);
             PacketChannel.On<PlayerLeaveBroadcast>(e => RemovePlayer(e.PlayerId));
 
-            PacketChannel.On<GameInWaitingFromServer>(e => ResetEveryone(e.PlayersInfo));
-            PacketChannel.On<GameInPlayingFromServer>(e => ResetEveryone(e.PlayersInfo));
+            PacketChannel.On<WaitingStartFromServer>(e => ResetEveryone(e.PlayersInfo));
+            PacketChannel.On<RoundStartFromServer>(e => ResetEveryone(e.PlayersInfo));
         }
         
         public static Player GetPlayer(int id)

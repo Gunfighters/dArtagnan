@@ -9,7 +9,7 @@ namespace UI.HUD
         private void Awake()
         {
             LocalEventChannel.OnNewHost += (_, isHost) => gameObject.SetActive(isHost);
-            PacketChannel.On<GameInWaitingFromServer>(_ => gameObject.SetActive(PlayerGeneralManager.LocalPlayer == PlayerGeneralManager.HostPlayer));
+            PacketChannel.On<WaitingStartFromServer>(_ => gameObject.SetActive(PlayerGeneralManager.LocalPlayer == PlayerGeneralManager.HostPlayer));
             gameObject.SetActive(PlayerGeneralManager.LocalPlayer == PlayerGeneralManager.HostPlayer);
         }
     }

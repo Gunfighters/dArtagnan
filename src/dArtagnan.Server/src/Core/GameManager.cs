@@ -117,7 +117,7 @@ public class GameManager
             await SetHost(nextHost);
         }
 
-        if (Players.IsEmpty && CurrentGameState == GameState.Playing)
+        if (Players.IsEmpty && CurrentGameState == GameState.Round)
         {
             await ResetGameToWaiting();
         }
@@ -289,10 +289,10 @@ public class GameManager
         Console.WriteLine($"[라운드 {newRound}] 라운드 시작! 현재 베팅금: {BettingAmount}달러");
         
         var oldState = CurrentGameState;
-        CurrentGameState = GameState.Playing;
+        CurrentGameState = GameState.Round;
         Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {CurrentGameState}");
         
-        await BroadcastToAll(new GameInPlayingFromServer { 
+        await BroadcastToAll(new RoundStartFromServer { 
             PlayersInfo = PlayersInRoom(), 
             Round = Round,
             BettingAmount = BettingAmounts[Round - 1]
@@ -323,7 +323,7 @@ public class GameManager
         CurrentGameState = GameState.Waiting;
         Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {CurrentGameState}");
         
-        await BroadcastToAll(new GameInWaitingFromServer { PlayersInfo = PlayersInRoom() });
+        await BroadcastToAll(new WaitingStartFromServer { PlayersInfo = PlayersInRoom() });
     }
 
     /// <summary>

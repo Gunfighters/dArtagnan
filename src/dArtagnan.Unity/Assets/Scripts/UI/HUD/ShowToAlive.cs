@@ -8,7 +8,7 @@ namespace UI.HUD
         private void Awake()
         {
             LocalEventChannel.OnLocalPlayerAlive += gameObject.SetActive;
-            PacketChannel.On<GameInWaitingFromServer>(_ => gameObject.SetActive(true));
+            PacketChannel.On<WaitingStartFromServer>(_ => gameObject.SetActive(true));
             gameObject.SetActive(false);
         }
     }

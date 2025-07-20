@@ -11,8 +11,8 @@ public class CanvasManager : MonoBehaviour
 
     public void Awake()
     {
-        PacketChannel.On<GameInWaitingFromServer>(e => Show(GameScreen.HUD, true));
-        PacketChannel.On<GameInPlayingFromServer>(e => Show(GameScreen.HUD, true));
+        PacketChannel.On<WaitingStartFromServer>(e => Show(GameScreen.HUD, true));
+        PacketChannel.On<RoundStartFromServer>(e => Show(GameScreen.HUD, true));
         PacketChannel.On<YourAccuracyAndPool>(e => Show(GameScreen.Roulette, true));
         LocalEventChannel.OnEndpointSelected += (_, _) => Hide(GameScreen.Connection);
     }

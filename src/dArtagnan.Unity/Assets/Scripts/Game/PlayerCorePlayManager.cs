@@ -41,7 +41,7 @@ namespace Game
             var target = PlayerGeneralManager.GetPlayer(e.TargetId);
             shooter.Fire(target);
             shooter.UpdateRemainingReloadTime(shooter.TotalReloadTime);
-            if (GameStateManager.GameState == GameState.Playing)
+            if (GameStateManager.GameState == GameState.Round)
             {
                 shooter.ShowHitOrMiss(e.Hit);
             }

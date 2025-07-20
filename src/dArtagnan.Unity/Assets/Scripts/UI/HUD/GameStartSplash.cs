@@ -12,11 +12,11 @@ namespace UI.HUD
         public float duration;
         private void Awake()
         {
-            PacketChannel.On<GameInPlayingFromServer>(OnGameInPlaying);
+            PacketChannel.On<RoundStartFromServer>(OnGameInPlaying);
             gameObject.SetActive(false);
         }
         
-        private void OnGameInPlaying(GameInPlayingFromServer e)
+        private void OnGameInPlaying(RoundStartFromServer e)
         {
             if (e.Round != 1) return;
             gameObject.SetActive(true);
