@@ -698,6 +698,10 @@ PrefabInstance:
       propertyPath: label
       value: Range
       objectReference: {fileID: 0}
+    - target: {fileID: 6372959470729420920, guid: cada869e20c674f059d43e2f6ac5ce04, type: 3}
+      propertyPath: m_MaxValue
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 6372959470729420921, guid: cada869e20c674f059d43e2f6ac5ce04, type: 3}
       propertyPath: m_Pivot.x
       value: 1
