@@ -64,6 +64,7 @@ namespace Game
             if (p == LocalPlayer)
             {
                 LocalEventChannel.InvokeOnNewCameraTarget(p);
+                LocalEventChannel.InvokeOnLocalPlayerAlive(true);
             }
         }
 
