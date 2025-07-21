@@ -12,6 +12,8 @@ namespace dArtagnan.Server;
 /// </summary>
 public class GameManager
 {
+
+    // 방 정보
     public readonly ConcurrentDictionary<int, Player> Players = new();
     public readonly ConcurrentDictionary<int, ClientConnection> Clients = new();
     public Player? Host;
@@ -25,7 +27,13 @@ public class GameManager
     public float BettingTimer = 0f; // 베팅금 차감 타이머 constants.BETTING_PERIOD 마다
     public const int MAX_ROUNDS = 4; // 최대 라운드 수
     
+    // 증강 시스템
     public HashSet<Player> rouletteDonePlayers = [];
+    public Dictionary<int, List<int>> playerAugmentOptions = []; // 플레이어별 증강 옵션 저장
+    public HashSet<int> augmentSelectionDonePlayers = []; // 증강 선택을 완료한 플레이어 ID
+    
+    
+    // 커맨드 시스템
     private readonly Channel<IGameCommand> _commandQueue = Channel.CreateUnbounded<IGameCommand>(new UnboundedChannelOptions
     {
         SingleReader = true,  // 단일 소비자
@@ -158,6 +166,64 @@ public class GameManager
     }
 
     /// <summary>
+    /// 증강 선택을 시작합니다
+    /// </summary>
+    public async Task StartAugmentSelection()
+    {
+        Console.WriteLine("[증강] 증강 선택 단계 시작");
+        
+        // 게임 상태를 Augments로 변경
+        CurrentGameState = GameState.Augments;
+        
+        // 플레이어별 증강 옵션 저장소 초기화
+        playerAugmentOptions.Clear();
+        augmentSelectionDonePlayers.Clear();
+        
+        // 파산하지 않은 플레이어들에게 증강 선택 패킷 전송
+        var alivePlayers = Players.Values.Where(p => !p.Bankrupt).ToList();
+        
+        foreach (var player in alivePlayers)
+        {
+            var client = Clients.GetValueOrDefault(player.Id);
+            if (client != null)
+            {
+                var augmentOptions = GenerateAugmentOptions();
+                
+                // 플레이어별 증강 옵션 저장
+                playerAugmentOptions[player.Id] = augmentOptions;
+                
+                await client.SendPacketAsync(new AugmentStartFromServer
+                {
+                    AugmentOptions = augmentOptions
+                });
+                
+                Console.WriteLine($"[증강] {player.Id}번 플레이어에게 증강 선택 옵션 전송: [{string.Join(", ", augmentOptions)}]");
+            }
+        }
+    }
+
+    /// <summary>
+    /// 랜덤 증강 옵션 3개를 생성합니다
+    /// </summary>
+    private List<int> GenerateAugmentOptions()
+    {
+        // 임시로 3개의 랜덤 증강 ID 생성 (1~10 범위)
+        var options = new List<int>();
+        var random = new Random();
+        
+        while (options.Count < 3)
+        {
+            var augmentId = random.Next(1, 11);
+            if (!options.Contains(augmentId))
+            {
+                options.Add(augmentId);
+            }
+        }
+        
+        return options;
+    }
+
+    /// <summary>
     /// 플레이어에서 돈을 차감하고 잔액 업데이트를 브로드캐스트합니다
     /// </summary>
     public async Task<int> WithdrawFromPlayerAsync(Player player, int amount)
@@ -241,7 +307,8 @@ public class GameManager
             }
             else
             {
-                await StartNextRoundAsync(Round + 1);
+                // 라운드 종료 후 다음 라운드 진행 전에 증강 선택 단계 시작
+                await StartAugmentSelection();
             }
         }
     }
@@ -278,7 +345,7 @@ public class GameManager
     /// <summary>
     /// 다음 라운드를 시작합니다
     /// </summary>
-    private async Task StartNextRoundAsync(int newRound)
+    public async Task StartNextRoundAsync(int newRound)
     {
         ResetRespawnAll(false);
         Round = newRound;

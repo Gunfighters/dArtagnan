@@ -120,6 +120,12 @@ public class ClientConnection
                     PlayerId = Id
                 },
                 
+                AugmentDoneFromClient augmentDone => new AugmentDoneCommand
+                {
+                    ClientId = Id,
+                    SelectedAugmentIndex = augmentDone.SelectedAugmentIndex
+                },
+                
                 _ => null
             };
             

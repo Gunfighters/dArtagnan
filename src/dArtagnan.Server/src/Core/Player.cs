@@ -17,6 +17,7 @@ public class Player(int id, string nickname, Vector2 position)
     public int Balance = 200;
     public bool Bankrupt => Balance <= 0;
     public int AccuracyState = 0;   // 정확도 상태: -1(감소), 0(유지), 1(증가)
+    public List<int> Augments = [];  // 보유한 증강 ID 리스트
     private float accuracyTimer = 0f;    // 정확도 업데이트를 위한 타이머
     private const float ACCURACY_UPDATE_INTERVAL = 1.0f;    // 정확도 업데이트 간격 (1초)
 
@@ -26,6 +27,7 @@ public class Player(int id, string nickname, Vector2 position)
         Range = Constants.DEFAULT_RANGE;
         Balance = 200;
         AccuracyState = 0;
+        Augments.Clear();
         accuracyTimer = 0f;
         Accuracy = accuracy;
     }
@@ -53,6 +55,7 @@ public class Player(int id, string nickname, Vector2 position)
         MovementData = MovementData,
         Balance = Balance,
         AccuracyState = AccuracyState,
+        Augments = Augments,
     };
 
     public static int GenerateRandomAccuracy()
