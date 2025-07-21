@@ -47,6 +47,7 @@ internal class Program
         Console.WriteLine("  sh/shoot [targetId] - 플레이어 공격");
         Console.WriteLine("  a/accuracy [state] - 정확도 상태 변경 (-1: 감소, 0: 유지, 1: 증가)");
         Console.WriteLine("  ro/roulette [count] - 룰렛 돌리기 완료 패킷 전송 (기본: 1)");
+        Console.WriteLine("  au/augment [index] - 증강 선택 (0, 1, 2 중 하나)");
         Console.WriteLine("  l/leave - 게임 나가기");
         Console.WriteLine("  q/quit - 종료");
         Console.WriteLine("=====================================");
@@ -144,6 +145,19 @@ internal class Program
                     else
                     {
                         await SendRoulette(1);
+                    }
+                    break;
+
+                case "au":
+                case "augment":
+                    if (parts.Length >= 2)
+                    {
+                        var index = int.Parse(parts[1]);
+                        await SendAugmentSelection(index);
+                    }
+                    else
+                    {
+                        Console.WriteLine("사용법: au/augment [index] (0, 1, 2 중 하나)");
                     }
                     break;
 
@@ -312,6 +326,34 @@ internal class Program
         }
     }
 
+    static async Task SendAugmentSelection(int index)
+    {
+        if (!isConnected || stream == null)
+        {
+            Console.WriteLine("먼저 서버에 연결해주세요.");
+            return;
+        }
+
+        if (index < 0 || index > 2)
+        {
+            Console.WriteLine("증강 인덱스는 0, 1, 2 중 하나여야 합니다.");
+            return;
+        }
+
+        try
+        {
+            await NetworkUtils.SendPacketAsync(stream, new AugmentDoneFromClient
+            {
+                SelectedAugmentIndex = index
+            });
+            Console.WriteLine($"증강 선택 패킷 전송: 인덱스 {index}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"증강 선택 패킷 전송 실패: {ex.Message}");
+        }
+    }
+
     static async Task SendLeave()
     {
         if (!isConnected || stream == null)
@@ -383,6 +425,10 @@ internal class Program
                         Console.WriteLine($"    속도: {info.MovementData.Speed:F2}");
                         Console.WriteLine($"    재장전: {info.RemainingReloadTime:F2}/{info.TotalReloadTime:F2}초");
                         Console.WriteLine($"    생존: {(info.Alive ? "생존" : "사망")}");
+                        if (info.Augments.Count > 0)
+                        {
+                            Console.WriteLine($"    증강: [{string.Join(", ", info.Augments)}]");
+                        }
                     }
                     break;
                         
@@ -399,6 +445,10 @@ internal class Program
                         Console.WriteLine($"    속도: {info.MovementData.Speed:F2}");
                         Console.WriteLine($"    재장전: {info.RemainingReloadTime:F2}/{info.TotalReloadTime:F2}초");
                         Console.WriteLine($"    생존: {(info.Alive ? "생존" : "사망")}");
+                        if (info.Augments.Count > 0)
+                        {
+                            Console.WriteLine($"    증강: [{string.Join(", ", info.Augments)}]");
+                        }
                     }
                     break;
                         
@@ -456,6 +506,15 @@ internal class Program
                     {
                         Console.WriteLine($"🎊 [게임 최종 승리] 플레이어 {gameWinner.PlayerId}가 게임에서 승리했습니다!");
                     }
+                    break;
+
+                case AugmentStartFromServer augmentStart:
+                    Console.WriteLine($"🔮 [증강 선택] 증강 옵션을 받았습니다:");
+                    for (int i = 0; i < augmentStart.AugmentOptions.Count; i++)
+                    {
+                        Console.WriteLine($"  {i}: 증강 ID {augmentStart.AugmentOptions[i]}");
+                    }
+                    Console.WriteLine($"명령어 'au [0|1|2]'로 증강을 선택하세요.");
                     break;
                         
                 default:
