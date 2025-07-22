@@ -308,7 +308,8 @@ public class GameManager
             else
             {
                 // 라운드 종료 후 다음 라운드 진행 전에 증강 선택 단계 시작
-                await StartAugmentSelection();
+                // await StartAugmentSelection();
+                await StartNextRoundAsync(Round + 1);
             }
         }
     }
