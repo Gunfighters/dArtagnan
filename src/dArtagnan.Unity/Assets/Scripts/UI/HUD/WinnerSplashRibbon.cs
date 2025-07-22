@@ -19,7 +19,7 @@ namespace UI.HUD
 
         private void OnWinnerBroadcast(RoundWinnerBroadcast e)
         {
-            var winner = PlayerGeneralManager.GetPlayer(e.PlayerId);
+            var winner = PlayerGeneralManager.GetPlayer(e.PlayerIds[0]);
             text.text = $"{winner.Nickname} HAS WON!";
             gameObject.SetActive(true);
             Disappear().Forget();
