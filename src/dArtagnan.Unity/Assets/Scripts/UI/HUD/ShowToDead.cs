@@ -7,7 +7,6 @@ namespace UI.HUD
         public void Initialize()
         {
             LocalEventChannel.OnLocalPlayerAlive += alive => gameObject.SetActive(!alive);
-            gameObject.SetActive(false);
         }
     }
 }

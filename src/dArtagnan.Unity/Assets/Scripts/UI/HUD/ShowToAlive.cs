@@ -9,7 +9,6 @@ namespace UI.HUD
         {
             LocalEventChannel.OnLocalPlayerAlive += gameObject.SetActive;
             PacketChannel.On<WaitingStartFromServer>(_ => gameObject.SetActive(true));
-            gameObject.SetActive(false);
         }
     }
 }

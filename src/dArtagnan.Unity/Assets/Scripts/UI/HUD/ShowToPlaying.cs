@@ -9,7 +9,6 @@ namespace UI.HUD
         {
             PacketChannel.On<WaitingStartFromServer>(_ => gameObject.SetActive(false));
             PacketChannel.On<RoundStartFromServer>(_ => gameObject.SetActive(true));
-            gameObject.SetActive(false);
         }
     }
 }
