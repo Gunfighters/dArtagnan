@@ -400,40 +400,54 @@ public class GameManager
     {
         var survivors = Players.Values.Where(p => p.Alive).ToList();
         
-        // 생존자가 1명일 때만 판돈 지급
-        if (survivors.Count == 1 && TotalPrizeMoney > 0)
+        // 생존자가 있고 판돈이 있을 때 판돈을 분배
+        if (survivors.Count > 0 && TotalPrizeMoney > 0)
         {
-            var winner = survivors[0];
-            winner.Balance += TotalPrizeMoney;
+            int prizePerWinner = TotalPrizeMoney / survivors.Count;
+            var winnerIds = new List<int>();
             
-            Console.WriteLine($"[라운드 {Round}] {winner.Nickname}이(가) 라운드 승리! 판돈 {TotalPrizeMoney}달러 획득");
+            foreach (var winner in survivors)
+            {
+                winner.Balance += prizePerWinner;
+                winnerIds.Add(winner.Id);
+                
+                // 승리자 잔액 업데이트 브로드캐스트
+                await BroadcastToAll(new PlayerBalanceUpdateBroadcast
+                {
+                    PlayerId = winner.Id,
+                    Balance = winner.Balance
+                });
+            }
+            
+            if (survivors.Count == 1)
+            {
+                Console.WriteLine($"[라운드 {Round}] {survivors[0].Nickname}이(가) 라운드 승리! 판돈 {TotalPrizeMoney}달러 획득");
+            }
+            else
+            {
+                Console.WriteLine($"[라운드 {Round}] 생존자 {survivors.Count}명이 판돈을 공유! 각자 {prizePerWinner}달러 획득");
+            }
             
             // 라운드 승리자 브로드캐스트
             await BroadcastToAll(new RoundWinnerBroadcast
             {
-                PlayerId = winner.Id,
+                PlayerIds = winnerIds,
                 Round = Round,
                 PrizeMoney = TotalPrizeMoney
-            });
-            
-            // 승리자 잔액 업데이트 브로드캐스트
-            await BroadcastToAll(new PlayerBalanceUpdateBroadcast
-            {
-                PlayerId = winner.Id,
-                Balance = winner.Balance
             });
         }
         else if (TotalPrizeMoney > 0)
         {
-            Console.WriteLine($"[라운드 {Round}] 생존자가 {survivors.Count}명이므로 판돈 {TotalPrizeMoney}달러는 다음 라운드로 이월");
+            Console.WriteLine($"[라운드 {Round}] 생존자가 없으므로 판돈 {TotalPrizeMoney}달러는 다음 라운드로 이월");
         }
     }
     
     private async Task AnnounceGameWinner()
     {
-        var winner = Players.Values.SingleOrDefault(p => !p.Bankrupt)?.Id;
+        var winners = Players.Values.Where(p => !p.Bankrupt).Select(p => p.Id).ToList();
         
-        Console.WriteLine($"[게임 종료] 최종 승리자: {winner}");
-        await BroadcastToAll(new GameWinnerBroadcast { PlayerId = winner ?? -1 });
+        Console.WriteLine($"[게임 종료] 최종 승리자 {winners.Count}명: {string.Join(", ", winners)}");
+        
+        await BroadcastToAll(new GameWinnerBroadcast { PlayerIds = winners });
     }
 }

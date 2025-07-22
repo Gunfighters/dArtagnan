@@ -239,26 +239,26 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// PlayerId번 플레이어가 라운드에서 승리했다.
+    /// PlayerId번 플레이어들이 라운드에서 승리했다.
     /// 클라: 이패킷 받으면 단순히 게임승리 UI만 띄우면 됨.
     /// </summary>
     [MessagePackObject]
     public struct RoundWinnerBroadcast : IPacket
     {
-        [Key(0)] public int PlayerId; // 라운드 승자
+        [Key(0)] public List<int> PlayerIds; // 라운드 승자들
         [Key(1)] public int Round; // 라운드 번호
         [Key(2)] public int PrizeMoney; // 획득한 판돈
     }
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// PlayerId번 플레이어가 게임 전체에서 승리했다.
+    /// PlayerId번 플레이어들이 게임 전체에서 승리했다.
     /// 클라: 이패킷 받으면 단순히 게임승리 UI만 띄우면 됨.
     /// </summary>
     [MessagePackObject]
     public struct GameWinnerBroadcast : IPacket
     {
-        [Key(0)] public int PlayerId; // 게임 최종 승자가 없으면 -1.
+        [Key(0)] public List<int> PlayerIds; // 게임 최종 승자들. 승자가 없으면 빈 리스트.
     }
 
     /// <summary>
