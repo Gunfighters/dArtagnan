@@ -22,7 +22,8 @@ public class GameManager
     
     // 베팅금/판돈 시스템
     public int TotalPrizeMoney = 0; // 총 판돈
-    public readonly int[] BettingAmounts = { 10, 20, 30, 40 }; // 라운드별 베팅금
+    //public readonly int[] BettingAmounts = { 10, 20, 30, 40 }; // 라운드별 베팅금
+    public readonly int[] BettingAmounts = { 50, 20, 30, 40 }; // 라운드별 베팅금 //개발용
     public int BettingAmount = 0;
     public float BettingTimer = 0f; // 베팅금 차감 타이머 constants.BETTING_PERIOD 마다
     public const int MAX_ROUNDS = 4; // 최대 라운드 수
@@ -303,12 +304,14 @@ public class GameManager
             if (ShouldEndGame())
             {
                 await AnnounceGameWinner();
+                //await Task.Delay(2500);
                 await ResetGameToWaiting();
             }
             else
             {
                 // 라운드 종료 후 다음 라운드 진행 전에 증강 선택 단계 시작
-                await StartAugmentSelection();
+                //await StartAugmentSelection();
+                await StartNextRoundAsync(Round + 1);
             }
         }
     }
@@ -399,47 +402,39 @@ public class GameManager
     private async Task GiveRoundPrizeToWinner()
     {
         var survivors = Players.Values.Where(p => p.Alive).ToList();
+        int prizePerWinner = survivors.Count==0 ? 0 : TotalPrizeMoney / survivors.Count;
+        var winnerIds = new List<int>();
         
-        // 생존자가 있고 판돈이 있을 때 판돈을 분배
-        if (survivors.Count > 0 && TotalPrizeMoney > 0)
+        foreach (var winner in survivors)
         {
-            int prizePerWinner = TotalPrizeMoney / survivors.Count;
-            var winnerIds = new List<int>();
+            winner.Balance += prizePerWinner;
+            winnerIds.Add(winner.Id);
             
-            foreach (var winner in survivors)
+            // 승리자 잔액 업데이트 브로드캐스트
+            await BroadcastToAll(new PlayerBalanceUpdateBroadcast
             {
-                winner.Balance += prizePerWinner;
-                winnerIds.Add(winner.Id);
-                
-                // 승리자 잔액 업데이트 브로드캐스트
-                await BroadcastToAll(new PlayerBalanceUpdateBroadcast
-                {
-                    PlayerId = winner.Id,
-                    Balance = winner.Balance
-                });
-            }
-            
-            if (survivors.Count == 1)
-            {
-                Console.WriteLine($"[라운드 {Round}] {survivors[0].Nickname}이(가) 라운드 승리! 판돈 {TotalPrizeMoney}달러 획득");
-            }
-            else
-            {
-                Console.WriteLine($"[라운드 {Round}] 생존자 {survivors.Count}명이 판돈을 공유! 각자 {prizePerWinner}달러 획득");
-            }
-            
-            // 라운드 승리자 브로드캐스트
-            await BroadcastToAll(new RoundWinnerBroadcast
-            {
-                PlayerIds = winnerIds,
-                Round = Round,
-                PrizeMoney = TotalPrizeMoney
+                PlayerId = winner.Id,
+                Balance = winner.Balance
             });
         }
-        else if (TotalPrizeMoney > 0)
+        
+        if (survivors.Count == 1)
         {
-            Console.WriteLine($"[라운드 {Round}] 생존자가 없으므로 판돈 {TotalPrizeMoney}달러는 다음 라운드로 이월");
+            Console.WriteLine($"[라운드 {Round}] {survivors[0].Nickname}이(가) 라운드 승리! 판돈 {TotalPrizeMoney}달러 획득");
         }
+        //사실 현재 게임로직 상 라운드 승리자가 여러명일 수는 없음.
+        else
+        {
+            Console.WriteLine($"[라운드 {Round}] 생존자 {survivors.Count}명이 판돈을 공유! 각자 {prizePerWinner}달러 획득");
+        }
+        
+        // 라운드 승리자 브로드캐스트
+        await BroadcastToAll(new RoundWinnerBroadcast
+        {
+            PlayerIds = winnerIds,
+            Round = Round,
+            PrizeMoney = TotalPrizeMoney
+        });
     }
     
     private async Task AnnounceGameWinner()

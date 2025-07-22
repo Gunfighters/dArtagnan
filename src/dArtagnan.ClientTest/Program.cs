@@ -494,17 +494,30 @@ internal class Program
                     break;
                     
                 case RoundWinnerBroadcast roundWinner:
-                    Console.WriteLine($"🏆 [라운드 {roundWinner.Round} 승리] 플레이어 {roundWinner.PlayerId}가 {roundWinner.PrizeMoney}달러 획득!");
-                    break;
-                    
-                case GameWinnerBroadcast gameWinner:
-                    if (gameWinner.PlayerId == -1)
+                    if (roundWinner.PlayerIds != null && roundWinner.PlayerIds.Count > 0)
                     {
-                        Console.WriteLine($"🎊 [게임 종료] 승리자 없음!");
+                        var winnerText = roundWinner.PlayerIds.Count == 1 
+                            ? $"플레이어 {roundWinner.PlayerIds[0]}"
+                            : $"플레이어 [{string.Join(", ", roundWinner.PlayerIds)}]";
+                        Console.WriteLine($"🏆 [라운드 {roundWinner.Round} 승리] {winnerText}가 {roundWinner.PrizeMoney}달러 획득!");
                     }
                     else
                     {
-                        Console.WriteLine($"🎊 [게임 최종 승리] 플레이어 {gameWinner.PlayerId}가 게임에서 승리했습니다!");
+                        Console.WriteLine($"🏆 [라운드 {roundWinner.Round}] 승리자 없음!");
+                    }
+                    break;
+                    
+                case GameWinnerBroadcast gameWinner:
+                    if (gameWinner.PlayerIds != null && gameWinner.PlayerIds.Count > 0)
+                    {
+                        var winnerText = gameWinner.PlayerIds.Count == 1 
+                            ? $"플레이어 {gameWinner.PlayerIds[0]}"
+                            : $"플레이어 [{string.Join(", ", gameWinner.PlayerIds)}]";
+                        Console.WriteLine($"🎊 [게임 최종 승리] {winnerText}가 게임에서 승리했습니다!");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"🎊 [게임 종료] 승리자 없음!");
                     }
                     break;
 
