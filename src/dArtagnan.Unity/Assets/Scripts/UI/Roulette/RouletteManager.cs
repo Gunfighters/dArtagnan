@@ -6,7 +6,7 @@ using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using UnityEngine;
 
-public class RouletteManager : MonoBehaviour
+public class RouletteManager : MonoBehaviour, IChannelListener
 {
     [SerializeField] private GameObject roulettePrefab;
     [SerializeField] private List<int> accuracyPool;
@@ -23,7 +23,7 @@ public class RouletteManager : MonoBehaviour
     
     private Coroutine autoSpinCoroutine;
 
-    public void Awake()
+    public void Initialize()
     {
         PacketChannel.On<YourAccuracyAndPool>(e => SetAccuracyPool(e.AccuracyPool));
         PacketChannel.On<YourAccuracyAndPool>(e => SetTarget(e.YourAccuracy));

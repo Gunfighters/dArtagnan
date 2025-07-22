@@ -3,13 +3,13 @@ using dArtagnan.Shared;
 using Game;
 using UnityEngine;
 
-public class CanvasManager : MonoBehaviour
+public class CanvasManager : MonoBehaviour, IChannelListener
 {
     [SerializeField] private Canvas HUD;
     [SerializeField] private Canvas Roulette;
     [SerializeField] private Canvas Connection;
 
-    public void Awake()
+    public void Initialize()
     {
         PacketChannel.On<WaitingStartFromServer>(e => Show(GameScreen.HUD, true));
         PacketChannel.On<RoundStartFromServer>(e => Show(GameScreen.HUD, true));

@@ -15,4 +15,8 @@ public static class LocalEventChannel
     public static event Action<string, int> OnEndpointSelected;
     
     public static void InvokeOnEndpointSelected(string endpoint, int port) => OnEndpointSelected?.Invoke(endpoint, port);
+
+    public static event Action<int> OnLocalPlayerBalanceUpdate;
+    
+    public static void InvokeOnLocalPlayerBalanceUpdate(int balance) => OnLocalPlayerBalanceUpdate?.Invoke(balance);
 }

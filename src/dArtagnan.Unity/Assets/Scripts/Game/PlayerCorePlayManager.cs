@@ -7,9 +7,9 @@ namespace Game
     /// <summary>
     /// 이동, 조준, 사격, 사망, 증감상태, 잔고를 관리하는 매니저
     /// </summary>
-    public class PlayerCorePlayManager : MonoBehaviour
+    public class PlayerCorePlayManager : MonoBehaviour, IChannelListener
     {
-        public void Awake()
+        public void Initialize()
         {
             PacketChannel.On<PlayerMovementDataBroadcast>(OnPlayerMovementData);
             PacketChannel.On<PlayerIsTargetingBroadcast>(OnPlayerIsTargeting);
@@ -64,7 +64,12 @@ namespace Game
 
         private static void OnBalanceUpdate(PlayerBalanceUpdateBroadcast e)
         {
-            PlayerGeneralManager.GetPlayer(e.PlayerId).SetBalance(e.Balance);
+            var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
+            updated.SetBalance(e.Balance);
+            if (updated == PlayerGeneralManager.LocalPlayer)
+            {
+                LocalEventChannel.InvokeOnLocalPlayerBalanceUpdate(updated.Balance);
+            }
         }
     }
 }

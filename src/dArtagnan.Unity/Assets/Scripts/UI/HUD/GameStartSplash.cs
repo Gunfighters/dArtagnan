@@ -7,10 +7,10 @@ using UnityEngine;
 
 namespace UI.HUD
 {
-    public class GameStartSplash : MonoBehaviour
+    public class GameStartSplash : MonoBehaviour, IChannelListener
     {
         public float duration;
-        private void Awake()
+        public void Initialize()
         {
             PacketChannel.On<RoundStartFromServer>(OnGameInPlaying);
             gameObject.SetActive(false);

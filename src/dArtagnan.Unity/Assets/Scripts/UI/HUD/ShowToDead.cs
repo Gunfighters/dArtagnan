@@ -2,9 +2,9 @@ using UnityEngine;
 
 namespace UI.HUD
 {
-    public class ShowToDead : MonoBehaviour
+    public class ShowToDead : MonoBehaviour, IChannelListener
     {
-        private void Awake()
+        public void Initialize()
         {
             LocalEventChannel.OnLocalPlayerAlive += alive => gameObject.SetActive(!alive);
             gameObject.SetActive(false);

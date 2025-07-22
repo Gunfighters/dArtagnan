@@ -4,7 +4,7 @@ using Game;
 using UnityEngine;
 
 [RequireComponent(typeof(Camera))]
-public class CameraController : MonoBehaviour
+public class CameraController : MonoBehaviour, IChannelListener
 {
     public Player target;
     public SpriteRenderer groundRenderer;
@@ -16,7 +16,7 @@ public class CameraController : MonoBehaviour
     public Vector2 mapSize;
     public Vector2 center;
 
-    private void Awake()
+    public void Initialize()
     {
         LocalEventChannel.OnNewCameraTarget += Follow;
         PacketChannel.On<UpdatePlayerAlive>(OnUpdatePlayerAlive);

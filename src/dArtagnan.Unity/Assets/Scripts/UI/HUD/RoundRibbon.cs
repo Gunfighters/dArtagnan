@@ -6,12 +6,12 @@ using UnityEngine;
 
 namespace UI.HUD
 {
-    public class RoundRibbon : MonoBehaviour
+    public class RoundRibbon : MonoBehaviour, IChannelListener
     {
         public TextMeshProUGUI text;
         public float duration;
         
-        private void Awake()
+        public void Initialize()
         {
             PacketChannel.On<RoundStartFromServer>(OnRoundStartFromServer);
             gameObject.SetActive(false);

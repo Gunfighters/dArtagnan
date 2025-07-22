@@ -174,7 +174,7 @@ MonoBehaviour:
   m_BlockingObjects: 0
   m_BlockingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 32
 --- !u!114 &280978137
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -592,6 +592,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7438439048696636064, guid: 1041545665bc54c358b99b3f1672da0a, type: 3}
+      propertyPath: m_PresetInfoIsWorld
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8576042348011786300, guid: 1041545665bc54c358b99b3f1672da0a, type: 3}
       propertyPath: m_PresetInfoIsWorld
       value: 1
       objectReference: {fileID: 0}

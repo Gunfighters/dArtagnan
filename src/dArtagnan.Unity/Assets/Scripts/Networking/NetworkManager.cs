@@ -5,7 +5,7 @@ using Game;
 using Networking;
 using UnityEngine;
 
-public class NetworkManager : MonoBehaviour
+public class NetworkManager : MonoBehaviour, IChannelListener
 {
     [Header("Config")]
     [SerializeField] private NetworkManagerConfig config;
@@ -14,7 +14,7 @@ public class NetworkManager : MonoBehaviour
     private NetworkStream _stream;
     private readonly Channel<IPacket> _channel = Channel.CreateSingleConsumerUnbounded<IPacket>();
 
-    public void Awake()
+    public void Initialize()
     {
         PacketChannel.On<PlayerMovementDataFromClient>(Send);
         PacketChannel.On<PlayerShootingFromClient>(Send);

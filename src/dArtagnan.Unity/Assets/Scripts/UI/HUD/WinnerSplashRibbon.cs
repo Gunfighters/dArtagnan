@@ -7,11 +7,11 @@ using UnityEngine;
 
 namespace UI.HUD
 {
-    public class WinnerSplashRibbon : MonoBehaviour
+    public class WinnerSplashRibbon : MonoBehaviour, IChannelListener
     {
         public TextMeshProUGUI text;
         public float duration;
-        private void Awake()
+        public void Initialize()
         {
             PacketChannel.On<RoundWinnerBroadcast>(OnWinnerBroadcast);
             gameObject.SetActive(false);

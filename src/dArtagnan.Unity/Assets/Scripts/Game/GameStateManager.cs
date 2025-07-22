@@ -3,10 +3,10 @@ using UnityEngine;
 
 namespace Game
 {
-    public class GameStateManager : MonoBehaviour
+    public class GameStateManager : MonoBehaviour, IChannelListener
     {
         public static GameState GameState { get; private set; }
-        public void Awake()
+        public void Initialize()
         {
             PacketChannel.On<RoundStartFromServer>(OnGamePlaying);
             PacketChannel.On<WaitingStartFromServer>(OnGameWaiting);

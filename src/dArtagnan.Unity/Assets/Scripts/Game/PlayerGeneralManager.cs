@@ -9,7 +9,7 @@ namespace Game
     /// <summary>
     /// 플레이어 생성, 플레이어 삭제, 방장 설정, 로컬플레이어 설정을 관리하는 매니저.
     /// </summary>
-    public class PlayerGeneralManager : MonoBehaviour
+    public class PlayerGeneralManager : MonoBehaviour, IChannelListener
     {
         private static readonly Dictionary<int, Player> Players = new();
         public static IEnumerable<Player> Survivors => Players.Values.Where(p => p.Alive);
@@ -18,7 +18,7 @@ namespace Game
         public static Player LocalPlayer => GetPlayer(_localPlayerId);
         public static Player HostPlayer => GetPlayer(_hostId); // TODO: private
 
-        public void Awake()
+        public void Initialize()
         {
             PacketChannel.On<PlayerJoinBroadcast>(OnJoin);
             PacketChannel.On<YouAre>(OnYouAre);
@@ -65,6 +65,8 @@ namespace Game
             {
                 LocalEventChannel.InvokeOnNewCameraTarget(p);
                 LocalEventChannel.InvokeOnLocalPlayerAlive(true);
+                Debug.Log(p.Balance);
+                LocalEventChannel.InvokeOnLocalPlayerBalanceUpdate(p.Balance);
             }
         }
 

@@ -4,9 +4,9 @@ using UnityEngine;
 
 namespace UI.HUD
 {
-    public class ShowToHost : MonoBehaviour
+    public class ShowToHost : MonoBehaviour, IChannelListener
     {
-        private void Awake()
+        public void Initialize()
         {
             LocalEventChannel.OnNewHost += (_, isHost) => gameObject.SetActive(isHost);
             PacketChannel.On<WaitingStartFromServer>(_ => gameObject.SetActive(PlayerGeneralManager.LocalPlayer == PlayerGeneralManager.HostPlayer));

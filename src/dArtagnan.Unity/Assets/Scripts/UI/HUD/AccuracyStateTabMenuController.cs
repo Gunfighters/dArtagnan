@@ -7,7 +7,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class AccuracyStateTabMenuController : MonoBehaviour
+public class AccuracyStateTabMenuController : MonoBehaviour, IChannelListener
 {
     public TextMeshProUGUI up;
     public TextMeshProUGUI keep;
@@ -17,7 +17,7 @@ public class AccuracyStateTabMenuController : MonoBehaviour
     public Color highlightColor;
     public Color normalColor;
 
-    public void Awake()
+    public void Initialize()
     {
         PacketChannel.On<RoundStartFromServer>(OnGamePlaying);
         PacketChannel.On<PlayerAccuracyStateBroadcast>(OnStateBroadcast);

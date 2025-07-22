@@ -3,9 +3,9 @@ using UnityEngine;
 
 namespace UI.HUD
 {
-    public class ShowToPlaying : MonoBehaviour
+    public class ShowToPlaying : MonoBehaviour, IChannelListener
     {
-        private void Awake()
+        public void Initialize()
         {
             PacketChannel.On<WaitingStartFromServer>(_ => gameObject.SetActive(false));
             PacketChannel.On<RoundStartFromServer>(_ => gameObject.SetActive(true));
