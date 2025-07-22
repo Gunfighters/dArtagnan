@@ -13,7 +13,7 @@ public class AugmentDoneCommand : IGameCommand
     public async Task ExecuteAsync(GameManager gameManager)
     {
         // 게임 상태 확인
-        if (gameManager.CurrentGameState != GameState.Augments)
+        if (gameManager.CurrentGameState != GameState.Augment)
         {
             Console.WriteLine($"[증강] {ClientId}번 클라이언트 - 잘못된 게임 상태에서 증강 선택 시도");
             return;

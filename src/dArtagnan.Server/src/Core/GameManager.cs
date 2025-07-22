@@ -172,8 +172,8 @@ public class GameManager
     {
         Console.WriteLine("[증강] 증강 선택 단계 시작");
         
-        // 게임 상태를 Augments로 변경
-        CurrentGameState = GameState.Augments;
+        // 게임 상태를 Augment로 변경
+        CurrentGameState = GameState.Augment;
         
         // 플레이어별 증강 옵션 저장소 초기화
         playerAugmentOptions.Clear();
