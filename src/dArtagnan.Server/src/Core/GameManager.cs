@@ -125,7 +125,7 @@ public class GameManager
             await SetHost(nextHost);
         }
 
-        if (Players.IsEmpty && CurrentGameState == GameState.Round)
+        if (Players.IsEmpty)
         {
             await ResetGameToWaiting();
         }
