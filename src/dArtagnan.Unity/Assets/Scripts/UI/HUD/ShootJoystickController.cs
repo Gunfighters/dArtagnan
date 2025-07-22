@@ -25,15 +25,16 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
     
     public bool Moving => Direction != Vector2.zero;
 
-    private bool HasMoved = false;
-
-    private bool _cancelling = false;
+    private bool _isPointerDown;
+    private Vector2 _lastDirection;
+    private bool hasAimed;
 
     private void Update()
     {
         if (!LocalPlayer) return;
         // shootButton.interactable = controlledPlayerCooldown <= 0;
-        HandleOutline.color = Icon.color = Shootable ? LocalPlayer.TargetPlayer is null ? orange : Color.red : Color.grey;
+        HandleOutline.color =
+            Icon.color = Shootable ? LocalPlayer.TargetPlayer is null ? orange : Color.red : Color.grey;
         shootingJoystick.enabled = Shootable;
         cooldownImage.fillAmount = RemainingReloadTime <= 0 ? 1 : 1f - RemainingReloadTime / TotalReloadTime;
         if (_reloading && Shootable)
@@ -41,17 +42,15 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
             reloadSound.Play();
             _reloading = false;
         }
-        if (Moving)
+
+        if (_isPointerDown)
         {
-            HasMoved = true;
-            LocalPlayer.Aim(LocalPlayer.TargetPlayer);
+            _lastDirection = Direction;
         }
 
-        _cancelling = HasMoved && !Moving; // cancelling
-        if (_cancelling)
-        {
-            LocalPlayer.Aim(null);
-        }
+        hasAimed |= Moving;
+
+        LocalPlayer.Aim(Moving ? LocalPlayer.TargetPlayer : null);
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -59,16 +58,17 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
         if (Shootable)
         {
             JoystickAxis.enabled = true;
+            _isPointerDown = true;
         }
     }
     
     public void OnPointerUp(PointerEventData eventData)
     {
-        Debug.Log(Direction);
+        Debug.Log(_lastDirection);
         JoystickAxis.enabled = false;
-        if (!Shootable || !PlayerGeneralManager.LocalPlayer.TargetPlayer || HasMoved && !Moving)
-            HasMoved = false;
-        else
+        _isPointerDown = false;
+        hasAimed = false;
+        if (Shootable && PlayerGeneralManager.LocalPlayer.TargetPlayer && (_lastDirection != Vector2.zero || _lastDirection == Vector2.zero && !hasAimed))
             PacketChannel.Raise(new PlayerShootingFromClient { TargetId = PlayerGeneralManager.LocalPlayer.TargetPlayer.ID });
     }
 }
