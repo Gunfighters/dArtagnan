@@ -13,7 +13,6 @@ namespace UI.HUD
         public void Initialize()
         {
             PacketChannel.On<RoundStartFromServer>(OnGameInPlaying);
-            gameObject.SetActive(false);
         }
         
         private void OnGameInPlaying(RoundStartFromServer e)

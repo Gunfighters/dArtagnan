@@ -14,7 +14,6 @@ namespace UI.HUD
         public void Initialize()
         {
             PacketChannel.On<RoundWinnerBroadcast>(OnWinnerBroadcast);
-            gameObject.SetActive(false);
         }
 
         private void OnWinnerBroadcast(RoundWinnerBroadcast e)
