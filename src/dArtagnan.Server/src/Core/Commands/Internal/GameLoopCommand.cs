@@ -66,7 +66,7 @@ public class GameLoopCommand : IGameCommand
     /// <summary>
     /// 모든 플레이어의 상태를 업데이트합니다
     /// </summary>
-    private Task UpdatePlayerStates(GameManager gameManager, float deltaTime)
+    private async Task  UpdatePlayerStates(GameManager gameManager, float deltaTime)
     {
         foreach (var player in gameManager.Players.Values)
         {
@@ -95,8 +95,6 @@ public class GameLoopCommand : IGameCommand
                 player.RemainingReloadTime = Math.Max(0, player.RemainingReloadTime - deltaTime);
             }
         }
-        
-        return Task.CompletedTask;
     }
     
     /// <summary>
