@@ -126,6 +126,18 @@ public class ClientConnection
                     SelectedAugmentIndex = augmentDone.SelectedAugmentIndex
                 },
                 
+                ItemCreatingStateFromClient itemCreating => new ItemCreatingStateCommand
+                {
+                    PlayerId = Id,
+                    IsCreatingItem = itemCreating.IsCreatingItem
+                },
+                
+                UseItemFromClient useItem => new UseItemCommand
+                {
+                    PlayerId = Id,
+                    TargetPlayerId = useItem.TargetPlayerId
+                },
+                
                 _ => null
             };
             

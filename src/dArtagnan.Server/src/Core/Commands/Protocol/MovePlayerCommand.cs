@@ -14,6 +14,13 @@ public class PlayerMovementCommand : IGameCommand
     {
         var player = gameManager.GetPlayerById(PlayerId);
         if (player == null) return;
+
+        // 아이템 제작 중에는 움직일 수 없음
+        if (player.IsCreatingItem)
+        {
+            Console.WriteLine($"[이동] 플레이어 {PlayerId}는 아이템 제작 중으로 이동 불가");
+            return;
+        }
         
         // 플레이어 위치, 방향, 속도 업데이트
         player.UpdateMovementData(

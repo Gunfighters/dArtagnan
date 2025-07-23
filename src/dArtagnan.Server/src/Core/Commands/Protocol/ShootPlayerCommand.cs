@@ -18,6 +18,13 @@ public class PlayerShootingCommand : IGameCommand
             Console.WriteLine($"[전투] 플레이어 {ShooterId} 사격 불가 (사망 또는 재장전 중)");
             return;
         }
+
+        // 아이템 제작 중에는 사격할 수 없음
+        if (shooter.IsCreatingItem)
+        {
+            Console.WriteLine($"[전투] 플레이어 {ShooterId}는 아이템 제작 중으로 사격 불가");
+            return;
+        }
             
         var target = gameManager.GetPlayerById(TargetId);
         if (target == null || !target.Alive)

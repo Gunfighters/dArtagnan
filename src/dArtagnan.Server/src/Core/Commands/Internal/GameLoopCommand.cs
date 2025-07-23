@@ -75,6 +75,13 @@ public class GameLoopCommand : IGameCommand
             // 정확도 업데이트 (매초마다 1% 증감)
             player.UpdateAccuracy(deltaTime);
             
+            // 아이템 제작 타이머 업데이트
+            if (player.UpdateCreating(deltaTime))
+            {
+                // 아이템 제작 완료 시 랜덤 아이템 지급
+                await GiveRandomItemToPlayer(gameManager, player);
+            }
+            
             // 위치 업데이트
             var newPosition = CalculateNewPosition(player.MovementData, deltaTime);
             if (Vector2.Distance(newPosition, player.MovementData.Position) > 0.01f)
@@ -101,5 +108,23 @@ public class GameLoopCommand : IGameCommand
         if (vector == Vector2.Zero) return movementData.Position;
         
         return movementData.Position + vector * movementData.Speed * deltaTime;
+    }
+
+    /// <summary>
+    /// 플레이어에게 랜덤 아이템을 지급합니다
+    /// </summary>
+    private static async Task GiveRandomItemToPlayer(GameManager gameManager, Player player)
+    {
+        // 임시로 아이템 ID 1~5 중 랜덤 선택 (나중에 아이템 시스템 확장 시 수정)
+        int randomItemId = Random.Shared.Next(1, 6);
+        
+        player.AcquireItem(randomItemId);
+        
+        // 아이템 획득 브로드캐스트
+        await gameManager.BroadcastToAll(new ItemAcquiredBroadcast
+        {
+            PlayerId = player.Id,
+            ItemId = randomItemId
+        });
     }
 } 

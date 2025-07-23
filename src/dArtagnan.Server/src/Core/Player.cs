@@ -18,6 +18,9 @@ public class Player(int id, string nickname, Vector2 position)
     public bool Bankrupt => Balance <= 0;
     public int AccuracyState = 0;   // 정확도 상태: -1(감소), 0(유지), 1(증가)
     public List<int> Augments = [];  // 보유한 증강 ID 리스트
+    public int CurrentItem = -1;     // 현재 소지한 아이템 ID (-1이면 없음)
+    public bool IsCreatingItem = false;  // 아이템 제작 중인지 여부
+    public float CreatingRemainingTime = 0f; // 아이템 제작 남은 시간
     private float accuracyTimer = 0f;    // 정확도 업데이트를 위한 타이머
     private const float ACCURACY_UPDATE_INTERVAL = 1.0f;    // 정확도 업데이트 간격 (1초)
 
@@ -28,6 +31,9 @@ public class Player(int id, string nickname, Vector2 position)
         Balance = 200;
         AccuracyState = 0;
         Augments.Clear();
+        CurrentItem = -1;
+        IsCreatingItem = false;
+        CreatingRemainingTime = 0f;
         accuracyTimer = 0f;
         Accuracy = accuracy;
     }
@@ -39,6 +45,8 @@ public class Player(int id, string nickname, Vector2 position)
         MovementData = new MovementData { Direction = 0, Position = Vector2.Zero, Speed = Constants.MOVEMENT_SPEED };
         RemainingReloadTime = TotalReloadTime / 2;
         AccuracyState = 0;
+        IsCreatingItem = false;
+        CreatingRemainingTime = 0f;
         accuracyTimer = 0f;
     }
 
@@ -56,6 +64,9 @@ public class Player(int id, string nickname, Vector2 position)
         Balance = Balance,
         AccuracyState = AccuracyState,
         Augments = Augments,
+        CurrentItem = CurrentItem,
+        IsCreatingItem = IsCreatingItem,
+        CreatingRemainingTime = CreatingRemainingTime,
     };
 
     public static int GenerateRandomAccuracy()
@@ -123,5 +134,71 @@ public class Player(int id, string nickname, Vector2 position)
                 Console.WriteLine($"[정확도] 플레이어 {Id}의 정확도 변경: {Accuracy}% (상태: {AccuracyState})");
             }
         }
+    }
+
+    /// <summary>
+    /// 아이템 제작을 시작합니다.
+    /// </summary>
+    public void StartCreatingItem()
+    {
+        IsCreatingItem = true;
+        CreatingRemainingTime = Constants.CREATING_DURATION;
+        Console.WriteLine($"[아이템] 플레이어 {Id}가 아이템 제작 시작 ({Constants.CREATING_DURATION}초)");
+    }
+
+    /// <summary>
+    /// 아이템 제작을 취소합니다.
+    /// </summary>
+    public void CancelCreatingItem()
+    {
+        IsCreatingItem = false;
+        CreatingRemainingTime = 0f;
+        Console.WriteLine($"[아이템] 플레이어 {Id}가 아이템 제작 취소");
+    }
+
+    /// <summary>
+    /// 아이템 제작 타이머를 업데이트합니다. 게임 루프에서 호출됩니다.
+    /// </summary>
+    /// <param name="deltaTime">프레임 시간</param>
+    /// <returns>아이템 제작이 완료되었으면 true</returns>
+    public bool UpdateCreating(float deltaTime)
+    {
+        if (!IsCreatingItem) return false;
+        
+        CreatingRemainingTime -= deltaTime;
+        
+        if (CreatingRemainingTime <= 0f)
+        {
+            IsCreatingItem = false;
+            CreatingRemainingTime = 0f;
+            Console.WriteLine($"[아이템] 플레이어 {Id}의 아이템 제작 완료!");
+            return true;
+        }
+        
+        return false;
+    }
+
+    /// <summary>
+    /// 아이템을 획득합니다.
+    /// </summary>
+    /// <param name="itemId">획득할 아이템 ID</param>
+    public void AcquireItem(int itemId)
+    {
+        CurrentItem = itemId;
+        Console.WriteLine($"[아이템] 플레이어 {Id}가 아이템 {itemId} 획득");
+    }
+
+    /// <summary>
+    /// 아이템을 사용합니다.
+    /// </summary>
+    /// <returns>사용한 아이템 ID, 아이템이 없으면 -1</returns>
+    public int UseItem()
+    {
+        if (CurrentItem == -1) return -1;
+        
+        int usedItem = CurrentItem;
+        CurrentItem = -1;
+        Console.WriteLine($"[아이템] 플레이어 {Id}가 아이템 {usedItem} 사용");
+        return usedItem;
     }
 }
