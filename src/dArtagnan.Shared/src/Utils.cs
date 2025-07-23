@@ -47,5 +47,6 @@ namespace dArtagnan.Shared
         public const float SPAWN_RADIUS = 1.0f;
         //public const float BETTING_PERIOD = 10.0f;
         public const float BETTING_PERIOD = 3.0f;   //개발용
+        public const float CREATING_DURATION = 3.0f;
     }
 } 

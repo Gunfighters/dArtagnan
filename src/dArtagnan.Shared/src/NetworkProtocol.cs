@@ -32,6 +32,11 @@ namespace dArtagnan.Shared
     [Union(25, typeof(BettingDeductionBroadcast))]
     [Union(26, typeof(AugmentStartFromServer))]
     [Union(27, typeof(AugmentDoneFromClient))]
+    [Union(28, typeof(ItemCreatingStateFromClient))]
+    [Union(29, typeof(PlayerCreatingStateBroadcast))]
+    [Union(30, typeof(ItemAcquiredBroadcast))]
+    [Union(31, typeof(UseItemFromClient))]
+    [Union(32, typeof(ItemUsedBroadcast))]
     public interface IPacket
     {
     }
@@ -74,6 +79,9 @@ namespace dArtagnan.Shared
         [Key(9)] public int Balance;
         [Key(10)] public int AccuracyState;
         [Key(11)] public List<int> Augments; // 보유한 증강 ID 리스트
+        [Key(12)] public int CurrentItem; // 현재 소지한 아이템 ID. 없으면 -1
+        [Key(13)] public bool IsCreatingItem; // 아이템 제작 중인지 여부
+        [Key(14)] public float CreatingRemainingTime; // 아이템 제작 남은 시간
     }
 
     /// <summary>
@@ -357,5 +365,59 @@ namespace dArtagnan.Shared
     public struct AugmentDoneFromClient : IPacket
     {
         [Key(0)] public int SelectedAugmentIndex; // 선택한 증강의 인덱스 (0, 1, 2)
+    }
+
+    /// <summary>
+    /// [클라이언트 => 서버]
+    /// 아이템 제작 상태를 변경하겠다는 패킷
+    /// </summary>
+    [MessagePackObject]
+    public struct ItemCreatingStateFromClient : IPacket
+    {
+        [Key(0)] public bool IsCreatingItem; // true: 제작 시작, false: 제작 취소
+    }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// PlayerId번 플레이어의 아이템 제작 상태가 변경되었음을 알리는 패킷
+    /// </summary>
+    [MessagePackObject]
+    public struct PlayerCreatingStateBroadcast : IPacket
+    {
+        [Key(0)] public int PlayerId;
+        [Key(1)] public bool IsCreatingItem; // 아이템 제작 중인지 여부
+    }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// PlayerId번 플레이어가 ItemId번 아이템을 획득했음을 알리는 패킷
+    /// </summary>
+    [MessagePackObject]
+    public struct ItemAcquiredBroadcast : IPacket
+    {
+        [Key(0)] public int PlayerId;
+        [Key(1)] public int ItemId; // 획득한 아이템의 ID
+    }
+
+    /// <summary>
+    /// [클라이언트 => 서버]
+    /// 현재 소지한 아이템을 사용하겠다는 패킷
+    /// </summary>
+    [MessagePackObject]
+    public struct UseItemFromClient : IPacket
+    {
+        [Key(0)] public int TargetPlayerId; // 타겟이 필요한 아이템의 경우 대상 플레이어 ID. 자기 자신이나 타겟이 없으면 -1
+    }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// PlayerId번 플레이어가 ItemId번 아이템을 사용했음을 알리는 패킷
+    /// </summary>
+    [MessagePackObject]
+    public struct ItemUsedBroadcast : IPacket
+    {
+        [Key(0)] public int PlayerId; // 아이템을 사용한 플레이어
+        [Key(1)] public int ItemId; // 사용한 아이템의 ID
+        // [Key(2)] public int TargetPlayerId; // 아이템의 대상이 된 플레이어 ID. 없으면 -1
     }
 }
