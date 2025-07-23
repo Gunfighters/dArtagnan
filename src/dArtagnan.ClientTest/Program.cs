@@ -48,6 +48,8 @@ internal class Program
         Console.WriteLine("  a/accuracy [state] - 정확도 상태 변경 (-1: 감소, 0: 유지, 1: 증가)");
         Console.WriteLine("  ro/roulette [count] - 룰렛 돌리기 완료 패킷 전송 (기본: 1)");
         Console.WriteLine("  au/augment [index] - 증강 선택 (0, 1, 2 중 하나)");
+        Console.WriteLine("  ic/item-create [true/false] - 아이템 제작 시작/취소 (기본: true)");
+        Console.WriteLine("  iu/use-item [targetId] - 아이템 사용 (targetId는 선택적, 기본: -1)");
         Console.WriteLine("  l/leave - 게임 나가기");
         Console.WriteLine("  q/quit - 종료");
         Console.WriteLine("=====================================");
@@ -158,6 +160,32 @@ internal class Program
                     else
                     {
                         Console.WriteLine("사용법: au/augment [index] (0, 1, 2 중 하나)");
+                    }
+                    break;
+
+                case "ic":
+                case "item-create":
+                    if (parts.Length >= 2)
+                    {
+                        var isCreating = bool.Parse(parts[1]);
+                        await SendItemCreating(isCreating);
+                    }
+                    else
+                    {
+                        await SendItemCreating(true); // 기본값: 제작 시작
+                    }
+                    break;
+
+                case "iu":
+                case "use-item":
+                    if (parts.Length >= 2)
+                    {
+                        var targetId = int.Parse(parts[1]);
+                        await SendUseItem(targetId);
+                    }
+                    else
+                    {
+                        await SendUseItem(-1); // 기본값: 타겟 없음
                     }
                     break;
 
@@ -354,6 +382,54 @@ internal class Program
         }
     }
 
+    static async Task SendItemCreating(bool isCreating)
+    {
+        if (!isConnected || stream == null)
+        {
+            Console.WriteLine("먼저 서버에 연결해주세요.");
+            return;
+        }
+
+        try
+        {
+            await NetworkUtils.SendPacketAsync(stream, new ItemCreatingStateFromClient
+            {
+                IsCreatingItem = isCreating
+            });
+            
+            var action = isCreating ? "시작" : "취소";
+            Console.WriteLine($"아이템 제작 {action} 패킷 전송");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"아이템 제작 패킷 전송 실패: {ex.Message}");
+        }
+    }
+
+    static async Task SendUseItem(int targetId)
+    {
+        if (!isConnected || stream == null)
+        {
+            Console.WriteLine("먼저 서버에 연결해주세요.");
+            return;
+        }
+
+        try
+        {
+            await NetworkUtils.SendPacketAsync(stream, new UseItemFromClient
+            {
+                TargetPlayerId = targetId
+            });
+            
+            var targetText = targetId == -1 ? "타겟 없음" : $"타겟 {targetId}";
+            Console.WriteLine($"아이템 사용 패킷 전송: {targetText}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"아이템 사용 패킷 전송 실패: {ex.Message}");
+        }
+    }
+
     static async Task SendLeave()
     {
         if (!isConnected || stream == null)
@@ -429,6 +505,11 @@ internal class Program
                         {
                             Console.WriteLine($"    증강: [{string.Join(", ", info.Augments)}]");
                         }
+                        Console.WriteLine($"    아이템: {(info.CurrentItem == -1 ? "없음" : $"ID {info.CurrentItem}")}");
+                        if (info.IsCreatingItem)
+                        {
+                            Console.WriteLine($"    제작 중: {info.CreatingRemainingTime:F1}초 남음");
+                        }
                     }
                     break;
                         
@@ -448,6 +529,11 @@ internal class Program
                         if (info.Augments.Count > 0)
                         {
                             Console.WriteLine($"    증강: [{string.Join(", ", info.Augments)}]");
+                        }
+                        Console.WriteLine($"    아이템: {(info.CurrentItem == -1 ? "없음" : $"ID {info.CurrentItem}")}");
+                        if (info.IsCreatingItem)
+                        {
+                            Console.WriteLine($"    제작 중: {info.CreatingRemainingTime:F1}초 남음");
                         }
                     }
                     break;
@@ -528,6 +614,19 @@ internal class Program
                         Console.WriteLine($"  {i}: 증강 ID {augmentStart.AugmentOptions[i]}");
                     }
                     Console.WriteLine($"명령어 'au [0|1|2]'로 증강을 선택하세요.");
+                    break;
+
+                case PlayerCreatingStateBroadcast creatingState:
+                    var stateText = creatingState.IsCreatingItem ? "시작" : "중단";
+                    Console.WriteLine($"🔨 [아이템 제작] 플레이어 {creatingState.PlayerId}가 아이템 제작을 {stateText}했습니다");
+                    break;
+
+                case ItemAcquiredBroadcast itemAcquired:
+                    Console.WriteLine($"📦 [아이템 획득] 플레이어 {itemAcquired.PlayerId}가 아이템 ID {itemAcquired.ItemId}를 획득했습니다!");
+                    break;
+
+                case ItemUsedBroadcast itemUsed:
+                    Console.WriteLine($"⚡ [아이템 사용] 플레이어 {itemUsed.PlayerId}가 아이템 ID {itemUsed.ItemId}를 사용했습니다");
                     break;
                         
                 default:
