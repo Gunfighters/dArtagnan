@@ -41,9 +41,9 @@ public class TargetManager : MonoBehaviour
             var minDistance = Aiming.Range;
             foreach (var target in targetPool)
             {
-                if (Vector2.Distance(target.Position, Aiming.Position) < minDistance)
+                if (Vector2.Distance(target.Physics.Position, Aiming.Physics.Position) < minDistance)
                 {
-                    minDistance = Vector2.Distance(target.Position, Aiming.Position);
+                    minDistance = Vector2.Distance(target.Physics.Position, Aiming.Physics.Position);
                     best = target;
                 }
             }
@@ -54,7 +54,7 @@ public class TargetManager : MonoBehaviour
         var minAngle = float.MaxValue;
         foreach (var target in targetPool)
         {
-            var direction = target.Position - Aiming.Position;
+            var direction = target.Physics.Position - Aiming.Physics.Position;
             if (Vector2.Angle(aim, direction) < minAngle
                 && Aiming.CanShoot(target)
                )

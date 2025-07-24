@@ -10,7 +10,7 @@ namespace UI.HUD
         {
             var slider = GetComponent<Slider>();
             slider.onValueChanged.AddListener(PlayerGeneralManager.LocalPlayer.SetSpeed);
-            slider.onValueChanged.AddListener(_ => PacketChannel.Raise(PlayerGeneralManager.LocalPlayer.MovementData));
+            slider.onValueChanged.AddListener(_ => PacketChannel.Raise(PlayerGeneralManager.LocalPlayer.Physics.MovementData));
             slider.value = slider.value;
         }
     }

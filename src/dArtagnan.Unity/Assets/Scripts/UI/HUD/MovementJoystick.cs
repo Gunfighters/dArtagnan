@@ -14,9 +14,9 @@ public class MovementJoystick : MonoBehaviour
     private void Update()
     {
         var newDirection = GetInputDirection();
-        if (newDirection == LocalPlayer.CurrentDirection) return;
-        LocalPlayer.SetDirection(newDirection.normalized);
-        PacketChannel.Raise(LocalPlayer.MovementData);
+        if (newDirection == LocalPlayer.Physics.MovementData.Direction.IntToDirection()) return;
+        LocalPlayer.Physics.SetDirection(newDirection.normalized);
+        PacketChannel.Raise(LocalPlayer.Physics.MovementData);
     }
 
     private Vector2 GetInputDirection()

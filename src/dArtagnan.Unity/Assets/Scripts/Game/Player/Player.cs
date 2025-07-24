@@ -16,12 +16,10 @@ public class Player : MonoBehaviour
     public float Range { get; private set; }
     public int Accuracy { get; private set; }
     public int Balance { get; private set; }
-    public Vector2 CurrentDirection { get; private set; }
     public bool Alive { get; private set; }
     public float RemainingReloadTime { get; private set; }
     public float TotalReloadTime { get; private set; }
     public float Speed { get; private set; }
-    public Rigidbody2D rb;
     public ModelManager modelManager;
     public TextMeshProUGUI accuracyText;
     public ReloadingTimePie reloadingTimePie;
@@ -33,13 +31,6 @@ public class Player : MonoBehaviour
     public Color HitTextColor;
     public Color MissTextColor;
     public float hitMissShowingDuration;
-    float LastServerUpdateTimestamp;
-    public float lerpSpeed;
-    private bool needToCorrect;
-    private Vector2 lastUpdatedPosition;
-    public float PositionCorrectionThreshold;
-    public float lerpFaceChangeThreshold;
-    public Vector2 Position => rb.position;
     private Vector2 faceDirection;
     private bool moving;
     public int AccuracyState = 0;     // 정확도 상태: -1(감소), 0(유지), 1(증가)
@@ -48,6 +39,7 @@ public class Player : MonoBehaviour
     private Collider2D _collider2D;
     private readonly RaycastHit2D[] hits = new RaycastHit2D[2];
     private ContactFilter2D _contactFilter2D;
+    public PlayerPhysics Physics { get; private set; }
 
     private static readonly Color[] PlayerColors = {
         new(1f, 0.3f, 0.3f),   // 밝은 빨강 - ID 1
@@ -61,20 +53,10 @@ public class Player : MonoBehaviour
     };
 
     public Color MyColor => ID is >= 1 and <= 8 ? PlayerColors[ID - 1] : Color.white;
-    
-    public PlayerMovementDataFromClient MovementData =>  new()
-    {
-            Direction = CurrentDirection.DirectionToInt(),
-            MovementData =
-            {
-                Direction = CurrentDirection.DirectionToInt(),
-                Position = Position.ToSystemVec(),
-                Speed = Speed
-            },
-        };
 
     private void Awake()
     {
+        Physics = GetComponent<PlayerPhysics>();
         HighlightAsTarget(false);
         _collider2D = GetComponent<Collider2D>();
         _contactFilter2D.useLayerMask = true;
@@ -83,19 +65,8 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
-        UpdateModel();
         UpdateRemainingReloadTime(RemainingReloadTime - Time.deltaTime);
         UpdateClientAccuracy(Time.deltaTime);
-    }
-
-    private void FixedUpdate()
-    {
-        if (Alive)
-        {
-            var nextPosition = NextPosition();
-            moving = nextPosition != rb.position;
-            rb.MovePosition(nextPosition);
-        }
     }
 
     public void ToggleUIInGame(bool show)
@@ -128,24 +99,10 @@ public class Player : MonoBehaviour
             modelManager.Die();
         }
     }
-    
-    private void UpdateModel()
-    {
-        if (!Alive) return;
-        SetFaceDirection(faceDirection);
-        if (!moving)
-        {
-            modelManager.Idle();
-        }
-        else
-        {
-            modelManager.Run();
-        }
-    }
 
     public void Fire(Player target)
     {
-        modelManager.SetDirection(target.Position - rb.position);
+        modelManager.SetDirection(target.Physics.Position - Physics.Position);
         modelManager.Fire();
         modelManager.ShowTrajectory(target.transform);
         modelManager.ScheduleHideTrajectory().Forget();
@@ -229,48 +186,9 @@ public class Player : MonoBehaviour
         HitMissText.enabled = false;
     }
 
-    public void SetDirection(Vector2 direction)
-    {
-        CurrentDirection = direction.normalized;
-        SetFaceDirection(direction);
-    }
-
-    public void SetFaceDirection(Vector2 direction)
-    {
-        modelManager.SetDirection(direction);
-    }
-
     public void SetSpeed(float speed)
     {
         Speed = speed;
-    }
-    
-    public void UpdateMovementDataForReckoning(Vector2 direction, Vector2 position, float speed)
-    {
-        SetDirection(direction.normalized);
-        Speed = speed;
-        lastUpdatedPosition = position;
-        LastServerUpdateTimestamp = Time.time;
-        needToCorrect = true;
-    }
-
-    private Vector2 NextPosition()
-    {
-        if (!needToCorrect) return rb.position + Speed * Time.fixedDeltaTime * CurrentDirection;
-        var elapsed = Time.time - LastServerUpdateTimestamp;
-        var predictedPosition = lastUpdatedPosition + Speed * elapsed * CurrentDirection;
-        var diff = Vector2.Distance(rb.position, predictedPosition);
-        needToCorrect = diff > 0.01f;
-        if (diff > PositionCorrectionThreshold) return predictedPosition;
-        var correctionSpeed = Speed * lerpSpeed;
-        if (diff > lerpFaceChangeThreshold)
-        {
-            SetFaceDirection(predictedPosition - rb.position);
-        }
-        var needToGo = (predictedPosition - rb.position).normalized;
-        var actualDirection = needToGo.DirectionToInt().IntToDirection();
-        // TODO: 최단경로 알고리즘 이용하여 벽 피해가기.
-        return Vector2.MoveTowards(rb.position, rb.position + actualDirection * diff, correctionSpeed * Time.fixedDeltaTime);
     }
 
     public void HighlightAsTarget(bool show)
@@ -296,10 +214,8 @@ public class Player : MonoBehaviour
         SetAlive(info.Alive);
         SetAccuracy(info.Accuracy);
         SetAccuracyState(info.AccuracyState);
-        Speed = info.MovementData.Speed;
-        transform.position = info.MovementData.Position.ToUnityVec();
-        SetDirection(info.MovementData.Direction.IntToDirection());
         SetRange(info.Range);
+        Physics.UpdateMovementDataForReckoning(info.MovementData);
         TotalReloadTime = info.TotalReloadTime;
         RemainingReloadTime = info.RemainingReloadTime;
         accuracyTimer = 0f;
@@ -312,8 +228,8 @@ public class Player : MonoBehaviour
 
     public bool CanShoot(Player target)
     {
-        if (Vector2.Distance(target.Position, Position) > Range) return false;
-        _collider2D.Raycast(target.Position - Position, _contactFilter2D, hits, Range);
+        if (Vector2.Distance(target.Physics.Position, Physics.Position) > Range) return false;
+        _collider2D.Raycast(target.Physics.Position - Physics.Position, _contactFilter2D, hits, Range);
         // hits.Sort((x, y) => x.distance.CompareTo(y.distance));
         // Debug.DrawLine(collider2D., hits[0].collider.transform.position, Color.red, 10);
         // var size = Physics2D.Raycast(Position, target.Position - Position, Range,);

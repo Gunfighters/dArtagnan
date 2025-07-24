@@ -25,7 +25,7 @@ namespace Game
             if (targetPlayer == PlayerGeneralManager.LocalPlayer) return;
             var direction = e.MovementData.Direction.IntToDirection();
             var serverPosition = e.MovementData.Position.ToUnityVec();
-            targetPlayer.UpdateMovementDataForReckoning(direction, serverPosition, e.MovementData.Speed);
+            targetPlayer.Physics.UpdateMovementDataForReckoning(e.MovementData);
         }
         
         private static void OnPlayerIsTargeting(PlayerIsTargetingBroadcast playerIsTargeting)

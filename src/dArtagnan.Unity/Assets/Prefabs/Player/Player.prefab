@@ -600,6 +600,7 @@ GameObject:
   - component: {fileID: -7853337695106768655}
   - component: {fileID: 292453355771749842}
   - component: {fileID: 6951937384970160707}
+  - component: {fileID: -4597722617616241456}
   m_Layer: 3
   m_Name: Player
   m_TagString: PlayerObject
@@ -930,8 +931,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   nicknameText: {fileID: 8427718665256367766}
-  Running: 0
-  rb: {fileID: 6538588046089182224}
   modelManager: {fileID: 6386919334395040828}
   accuracyText: {fileID: 1300332755926592805}
   reloadingTimePie: {fileID: 1863006141226761352}
@@ -942,12 +941,22 @@ MonoBehaviour:
   HitTextColor: {r: 1, g: 0.39741528, b: 0, a: 1}
   MissTextColor: {r: 0.69467115, g: 0, b: 1, a: 1}
   hitMissShowingDuration: 0.3
-  lerpSpeed: 1
-  PositionCorrectionThreshold: 40
-  lerpFaceChangeThreshold: 0.5
   AccuracyState: 0
-  runningSpeed: 4
-  walkingSpeed: 2
+--- !u!114 &-4597722617616241456
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5225883545143339161}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb7694ec8e974b5da0ab6ee1d17ef3ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  positionCorrectionThreshold: 50
+  lerpSpeed: 1.1
+  faceChangeThreshold: 10
 --- !u!1 &5383444114266678679
 GameObject:
   m_ObjectHideFlags: 0
