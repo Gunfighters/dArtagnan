@@ -19,7 +19,6 @@ public class Player : MonoBehaviour
     public bool Alive { get; private set; }
     public float RemainingReloadTime { get; private set; }
     public float TotalReloadTime { get; private set; }
-    public float Speed { get; private set; }
     public ModelManager modelManager;
     public TextMeshProUGUI accuracyText;
     public ReloadingTimePie reloadingTimePie;
@@ -184,11 +183,6 @@ public class Player : MonoBehaviour
     {
         yield return new WaitForSeconds(hitMissShowingDuration);
         HitMissText.enabled = false;
-    }
-
-    public void SetSpeed(float speed)
-    {
-        Speed = speed;
     }
 
     public void HighlightAsTarget(bool show)

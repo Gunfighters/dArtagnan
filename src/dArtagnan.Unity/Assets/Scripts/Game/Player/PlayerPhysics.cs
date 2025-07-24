@@ -74,10 +74,15 @@ public class PlayerPhysics : MonoBehaviour
     public void UpdateMovementDataForReckoning(MovementData data)
     {
         SetDirection(data.Direction.IntToDirection());
-        _speed = data.Speed;
+        SetSpeed(data.Speed);
         _lastUpdatedPosition = data.Position.ToUnityVec();
         _lastServerUpdateTimestamp = Time.time;
         _needToCorrect = true;
+    }
+
+    public void SetSpeed(float speed)
+    {
+        _speed = speed;
     }
 
     public void SetDirection(Vector2 newDir)
