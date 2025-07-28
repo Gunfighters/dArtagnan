@@ -1,4 +1,5 @@
 using dArtagnan.Shared;
+using Game.Misc;
 using TMPro;
 using UnityEngine;
 
@@ -9,6 +10,7 @@ namespace Game.Player.Components
         public int ID { get; private set; }
         public string Nickname { get; private set; }
         public TextMeshProUGUI nicknameText;
+        [SerializeField] private ColorPool colorPool;
         public ModelManager ModelManager { get; private set; }
         public PlayerHealth Health { get; private set; }
         public PlayerPhysics Physics { get; private set; }
@@ -17,18 +19,7 @@ namespace Game.Player.Components
         public PlayerReload Reload { get; private set; }
         public PlayerBalance Balance { get; private set; }
 
-        private static readonly Color[] PlayerColors = {
-            new(1f, 0.3f, 0.3f),   // 밝은 빨강 - ID 1
-            new(0.4f, 0.7f, 1f),   // 밝은 파랑 - ID 2  
-            new(0.4f, 1f, 0.4f),   // 밝은 초록 - ID 3
-            new(1f, 0.8f, 0.2f),   // 밝은 주황 - ID 4 (노란색 대체)
-            new(1f, 0.4f, 1f),     // 밝은 자홍 - ID 5
-            new(0.4f, 1f, 1f),     // 밝은 시안 - ID 6
-            new(1f, 0.6f, 0.2f),   // 따뜻한 주황 - ID 7
-            new(0.8f, 0.4f, 1f)    // 밝은 보라 - ID 8
-        };
-
-        public Color MyColor => ID is >= 1 and <= 8 ? PlayerColors[ID - 1] : Color.white;
+        public Color MyColor => colorPool.colors[ID - 1];
 
         private void Awake()
         {
