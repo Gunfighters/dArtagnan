@@ -4,9 +4,6 @@ using Utils;
 
 namespace Game
 {
-    /// <summary>
-    /// 이동, 조준, 사격, 사망, 증감상태, 잔고를 관리하는 매니저
-    /// </summary>
     public class PlayerCorePlayManager : MonoBehaviour, IChannelListener
     {
         public void Initialize()
@@ -23,9 +20,9 @@ namespace Game
         {
             var targetPlayer = PlayerGeneralManager.GetPlayer(e.PlayerId);
             if (targetPlayer == PlayerGeneralManager.LocalPlayer) return;
-            var direction = e.MovementData.Direction.IntToDirection();
-            var serverPosition = e.MovementData.Position.ToUnityVec();
-            targetPlayer.Physics.UpdateMovementDataForReckoning(e.MovementData);
+            
+            targetPlayer.Physics.UpdateRemotePlayerMovement(e.MovementData);
+            Debug.Log($"[패킷 수신] 플레이어 {e.PlayerId} 이동 데이터");
         }
         
         private static void OnPlayerIsTargeting(PlayerIsTargetingBroadcast playerIsTargeting)

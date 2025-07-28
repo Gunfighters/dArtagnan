@@ -84,12 +84,7 @@ public class Player(int id, string nickname, Vector2 position)
         return new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * Constants.SPAWN_RADIUS;
     }
 
-    public void UpdateMovementData(Vector2 position, int direction, float speed)
-    {
-        MovementData.Position = position;
-        MovementData.Direction = direction;
-        MovementData.Speed = speed;
-    }
+
 
     public int Withdraw(int amount)
     {

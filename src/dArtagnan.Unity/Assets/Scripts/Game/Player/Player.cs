@@ -3,6 +3,7 @@ using System.Linq;
 using Assets.HeroEditor4D.Common.Scripts.Data;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
+using Game;
 using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
@@ -199,7 +200,7 @@ public class Player : MonoBehaviour
             modelManager.ShowTrajectory(target.transform, true);
     }
 
-    public void Initialize(PlayerInformation info)
+    public void Initialize(PlayerInformation info, bool isRemotePlayer = false)
     {
         modelManager.ResetModel(info.Accuracy);
         ID = info.PlayerId;
@@ -209,7 +210,18 @@ public class Player : MonoBehaviour
         SetAccuracy(info.Accuracy);
         SetAccuracyState(info.AccuracyState);
         SetRange(info.Range);
-        Physics.UpdateMovementDataForReckoning(info.MovementData);
+        
+        if (!isRemotePlayer)
+        {
+            Physics.SetDirection(info.MovementData.Direction.IntToDirection());
+            Physics.SetSpeed(info.MovementData.Speed);
+            transform.position = info.MovementData.Position.ToUnityVec();
+        }
+        else
+        {
+            Physics.UpdateRemotePlayerMovement(info.MovementData);
+        }
+        
         TotalReloadTime = info.TotalReloadTime;
         RemainingReloadTime = info.RemainingReloadTime;
         accuracyTimer = 0f;

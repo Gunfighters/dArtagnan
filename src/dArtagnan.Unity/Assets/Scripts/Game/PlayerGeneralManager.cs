@@ -6,9 +6,6 @@ using UnityEngine;
 
 namespace Game
 {
-    /// <summary>
-    /// 플레이어 생성, 플레이어 삭제, 방장 설정, 로컬플레이어 설정을 관리하는 매니저.
-    /// </summary>
     public class PlayerGeneralManager : MonoBehaviour, IChannelListener
     {
         private static readonly Dictionary<int, Player> Players = new();
@@ -16,7 +13,7 @@ namespace Game
         private static int _localPlayerId;
         private static int _hostId;
         public static Player LocalPlayer => GetPlayer(_localPlayerId);
-        public static Player HostPlayer => GetPlayer(_hostId); // TODO: private
+        public static Player HostPlayer => GetPlayer(_hostId);
 
         public void Initialize()
         {
@@ -57,15 +54,18 @@ namespace Game
         
         private static void CreatePlayer(PlayerInformation info)
         {
-            Debug.Log($"Create Player #{info.PlayerId} at {info.MovementData.Position} with direction {info.MovementData.Direction} and speed {info.MovementData.Speed}");
             var p = PlayerPoolManager.Instance.Pool.Get();
-            p.Initialize(info);
+            
+            bool isRemotePlayer = info.PlayerId != _localPlayerId;
+            p.Initialize(info, isRemotePlayer);
+            p.Physics.Initialize(isRemotePlayer);
+            
             Players.Add(info.PlayerId, p);
-            if (p == LocalPlayer)
+            
+            if (info.PlayerId == _localPlayerId)
             {
                 LocalEventChannel.InvokeOnNewCameraTarget(p);
                 LocalEventChannel.InvokeOnLocalPlayerAlive(true);
-                Debug.Log(p.Balance);
                 LocalEventChannel.InvokeOnLocalPlayerBalanceUpdate(p.Balance);
             }
         }
@@ -75,10 +75,6 @@ namespace Game
             if (Players.Remove(playerId, out var removed))
             {
                 PlayerPoolManager.Instance.Pool.Release(removed);
-            }
-            else
-            {
-                Debug.LogWarning($"Player {playerId} could not be removed.");
             }
         }
 
