@@ -41,7 +41,7 @@ public class ClientConnection
             while (isRunning)
             {
                 var packet = await NetworkUtils.ReceivePacketAsync(stream);
-                    
+                        
                 await RoutePacket(packet);
             }
         }
@@ -66,84 +66,109 @@ public class ClientConnection
     {
         try
         {
-            IGameCommand? command = packet switch
+            IGameCommand? command = null; // command 변수를 미리 선언합니다.
+
+            // switch '식'을 switch '문'으로 변경합니다.
+            switch (packet)
             {
-                PlayerJoinRequest joinRequest => new PlayerJoinCommand
-                {
-                    ClientId = Id,
-                    Nickname = $"Player #{Id}",
-                    Client = this
-                },
-                
-                PlayerMovementDataFromClient movementData => 
-                {
+                case PlayerJoinRequest joinRequest:
+                    command = new PlayerJoinCommand
+                    {
+                        ClientId = Id,
+                        Nickname = $"Player #{Id}",
+                        Client = this
+                    };
+                    break;
+
+                case PlayerMovementDataFromClient movementData:
+                    // 이제 코드 블록을 정상적으로 사용할 수 있습니다.
                     Console.WriteLine($"[클라이언트 {Id}] Movement 패킷 수신: {movementData.MovementData}");
-                    return new PlayerMovementCommand
+                    command = new PlayerMovementCommand
                     {
                         PlayerId = Id,
                         MovementData = movementData.MovementData,
                     };
-                },
-                
-                PlayerShootingFromClient shootingData => new PlayerShootingCommand
-                {
-                    ShooterId = Id,
-                    TargetId = shootingData.TargetId
-                },
-                
-                PlayerLeaveFromClient => new PlayerLeaveCommand
-                {
-                    PlayerId = Id,
-                    Client = this
-                },
-                
-                PlayerIsTargetingFromClient isTargetingData => new PlayerTargetingCommand
-                {
-                    ShooterId = Id,
-                    TargetId = isTargetingData.TargetId
-                },
-                
-                StartGameFromClient => new StartGameCommand
-                {
-                    PlayerId = Id
-                },
-                
-                PingPacket => new PingCommand
-                {
-                    Client = this
-                },
-                
-                SetAccuracyState accuracyState => new SetAccuracyCommand
-                {
-                    PlayerId = Id,
-                    AccuracyState = accuracyState.AccuracyState
-                },
-                
-                RouletteDone => new RouletteDoneCommand
-                {
-                    PlayerId = Id
-                },
-                
-                AugmentDoneFromClient augmentDone => new AugmentDoneCommand
-                {
-                    ClientId = Id,
-                    SelectedAugmentIndex = augmentDone.SelectedAugmentIndex
-                },
-                
-                ItemCreatingStateFromClient itemCreating => new ItemCreatingStateCommand
-                {
-                    PlayerId = Id,
-                    IsCreatingItem = itemCreating.IsCreatingItem
-                },
-                
-                UseItemFromClient useItem => new UseItemCommand
-                {
-                    PlayerId = Id,
-                    TargetPlayerId = useItem.TargetPlayerId
-                },
-                
-                _ => null
-            };
+                    break;
+
+                case PlayerShootingFromClient shootingData:
+                    command = new PlayerShootingCommand
+                    {
+                        ShooterId = Id,
+                        TargetId = shootingData.TargetId
+                    };
+                    break;
+
+                case PlayerLeaveFromClient:
+                    command = new PlayerLeaveCommand
+                    {
+                        PlayerId = Id,
+                        Client = this
+                    };
+                    break;
+
+                case PlayerIsTargetingFromClient isTargetingData:
+                    command = new PlayerTargetingCommand
+                    {
+                        ShooterId = Id,
+                        TargetId = isTargetingData.TargetId
+                    };
+                    break;
+
+                case StartGameFromClient:
+                    command = new StartGameCommand
+                    {
+                        PlayerId = Id
+                    };
+                    break;
+
+                case PingPacket:
+                    command = new PingCommand
+                    {
+                        Client = this
+                    };
+                    break;
+
+                case SetAccuracyState accuracyState:
+                    command = new SetAccuracyCommand
+                    {
+                        PlayerId = Id,
+                        AccuracyState = accuracyState.AccuracyState
+                    };
+                    break;
+
+                case RouletteDone:
+                    command = new RouletteDoneCommand
+                    {
+                        PlayerId = Id
+                    };
+                    break;
+
+                case AugmentDoneFromClient augmentDone:
+                    command = new AugmentDoneCommand
+                    {
+                        ClientId = Id,
+                        SelectedAugmentIndex = augmentDone.SelectedAugmentIndex
+                    };
+                    break;
+
+                case ItemCreatingStateFromClient itemCreating:
+                    command = new ItemCreatingStateCommand
+                    {
+                        PlayerId = Id,
+                        IsCreatingItem = itemCreating.IsCreatingItem
+                    };
+                    break;
+
+                case UseItemFromClient useItem:
+                    command = new UseItemCommand
+                    {
+                        PlayerId = Id,
+                        TargetPlayerId = useItem.TargetPlayerId
+                    };
+                    break;
+
+                // 처리되지 않은 패킷은 command가 null로 유지됩니다.
+            }
             
             if (command != null)
             {
