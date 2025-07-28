@@ -1,7 +1,10 @@
-public enum GameScreen
+namespace Game
 {
-    HUD,
-    Roulette,
-    Connection,
-    AugmentationSelection
+    public enum GameScreen
+    {
+        HUD,
+        Roulette,
+        Connection,
+        AugmentationSelection
+    }
 }
