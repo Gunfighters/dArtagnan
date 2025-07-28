@@ -13,9 +13,11 @@ public class PlayerPhysics : MonoBehaviour
     
     private Vector2 _targetPosition;
     private bool _isRemotePlayer;
+    private int _playerId;
     
     public PlayerMovementDataFromClient MovementData =>  new()
     {
+        PlayerId = _playerId,
         Direction = _direction.DirectionToInt(),
         MovementData =
         {
@@ -31,9 +33,10 @@ public class PlayerPhysics : MonoBehaviour
         _modelManager = GetComponent<ModelManager>();
     }
 
-    public void Initialize(bool isRemotePlayer)
+    public void Initialize(bool isRemotePlayer, int playerId)
     {
         _isRemotePlayer = isRemotePlayer;
+        _playerId = playerId;
         _targetPosition = _rb.position;
         
         if (_isRemotePlayer)

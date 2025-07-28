@@ -75,11 +75,7 @@ public class ClientConnection
                     Client = this
                 },
                 
-                PlayerMovementDataFromClient movementData => new PlayerMovementCommand
-                {
-                    PlayerId = Id,
-                    MovementData = movementData.MovementData,
-                },
+                // PlayerMovementDataFromClient는 UDP로 처리됨
                 
                 PlayerShootingFromClient shootingData => new PlayerShootingCommand
                 {

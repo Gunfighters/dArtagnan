@@ -211,6 +211,8 @@ public class Player : MonoBehaviour
         SetAccuracyState(info.AccuracyState);
         SetRange(info.Range);
         
+        Physics.Initialize(isRemotePlayer, info.PlayerId);
+        
         if (!isRemotePlayer)
         {
             Physics.SetDirection(info.MovementData.Direction.IntToDirection());

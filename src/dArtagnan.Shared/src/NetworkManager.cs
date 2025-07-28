@@ -7,7 +7,7 @@ namespace dArtagnan.Shared
 {
     public static class NetworkUtils
     {
-        // 패킷 전송
+        // TCP 패킷 전송
         public static async Task SendPacketAsync(NetworkStream stream, IPacket packet)
         {
             var data = MessagePackSerializer.Serialize(packet);
@@ -28,7 +28,7 @@ namespace dArtagnan.Shared
             stream.Flush();
         }
 
-        // 패킷 수신
+        // TCP 패킷 수신
         public static async Task<IPacket> ReceivePacketAsync(NetworkStream stream)
         {
             // 1. 패킷 크기(4바이트) 완전히 읽기
@@ -59,6 +59,18 @@ namespace dArtagnan.Shared
             }
 
             return MessagePackSerializer.Deserialize<IPacket>(packetBuffer);
+        }
+
+        // UDP 패킷 직렬화
+        public static byte[] SerializeUdpPacket(IPacket packet)
+        {
+            return MessagePackSerializer.Serialize(packet);
+        }
+
+        // UDP 패킷 역직렬화
+        public static IPacket DeserializeUdpPacket(byte[] data)
+        {
+            return MessagePackSerializer.Deserialize<IPacket>(data);
         }
     }
 }

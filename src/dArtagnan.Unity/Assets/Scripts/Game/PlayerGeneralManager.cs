@@ -58,7 +58,7 @@ namespace Game
             
             bool isRemotePlayer = info.PlayerId != _localPlayerId;
             p.Initialize(info, isRemotePlayer);
-            p.Physics.Initialize(isRemotePlayer);
+            p.Physics.Initialize(isRemotePlayer, info.PlayerId);
             
             Players.Add(info.PlayerId, p);
             

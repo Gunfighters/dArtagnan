@@ -16,6 +16,8 @@ public class GameManager
     // 방 정보
     public readonly ConcurrentDictionary<int, Player> Players = new();
     public readonly ConcurrentDictionary<int, ClientConnection> Clients = new();
+    public readonly ConcurrentDictionary<int, System.Net.IPEndPoint> ClientUdpEndpoints = new();
+    public System.Net.Sockets.UdpClient? UdpClient;  // TcpServer에서 설정
     public Player? Host;
     public GameState CurrentGameState = GameState.Waiting;
     public int Round = 0; 
@@ -158,6 +160,50 @@ public class GameManager
         if (tasks.Any())
         {
             await Task.WhenAll(tasks);
+        }
+    }
+
+    public async Task BroadcastUdpToAll(IPacket packet)
+    {
+        var data = NetworkUtils.SerializeUdpPacket(packet);
+        var tasks = ClientUdpEndpoints.Values
+            .Select(endpoint => SendUdpPacketToEndpoint(endpoint, data));
+
+        if (tasks.Any())
+        {
+            await Task.WhenAll(tasks);
+        }
+    }
+
+    public async Task BroadcastUdpToAllExcept(IPacket packet, int excludeClientId)
+    {
+        var data = NetworkUtils.SerializeUdpPacket(packet);
+        var tasks = ClientUdpEndpoints
+            .Where(kvp => kvp.Key != excludeClientId)
+            .Select(kvp => SendUdpPacketToEndpoint(kvp.Value, data));
+
+        if (tasks.Any())
+        {
+            await Task.WhenAll(tasks);
+        }
+    }
+
+    private async Task SendUdpPacketToEndpoint(System.Net.IPEndPoint endpoint, byte[] data)
+    {
+        try
+        {
+            if (UdpClient != null)
+            {
+                await UdpClient.SendAsync(data, data.Length, endpoint);
+            }
+            else
+            {
+                Console.WriteLine("UDP 클라이언트가 초기화되지 않았습니다.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"UDP 패킷 전송 실패 ({endpoint}): {ex.Message}");
         }
     }
 
