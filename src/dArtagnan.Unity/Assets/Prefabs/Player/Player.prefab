@@ -224,8 +224,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c2d6f9667d7214d14be7389103f103d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 6951937384970160707}
-  cooldownPieImage: {fileID: 8736752746109201607}
 --- !u!1 &3585156065324626547
 GameObject:
   m_ObjectHideFlags: 0
@@ -600,7 +598,12 @@ GameObject:
   - component: {fileID: -7853337695106768655}
   - component: {fileID: 292453355771749842}
   - component: {fileID: 6951937384970160707}
+  - component: {fileID: -6326594136527915992}
   - component: {fileID: -4597722617616241456}
+  - component: {fileID: -1047899260668075369}
+  - component: {fileID: -1816915608334622831}
+  - component: {fileID: -3292549176812869381}
+  - component: {fileID: -7527601815832208492}
   m_Layer: 3
   m_Name: Player
   m_TagString: PlayerObject
@@ -931,17 +934,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   nicknameText: {fileID: 8427718665256367766}
-  modelManager: {fileID: 6386919334395040828}
-  accuracyText: {fileID: 1300332755926592805}
-  reloadingTimePie: {fileID: 1863006141226761352}
-  TargetPlayer: {fileID: 0}
-  targetHighlightCircle: {fileID: 7484546077695317218}
-  HitMissText: {fileID: 8542910316852592879}
-  BalanceText: {fileID: 7726846922617288446}
-  HitTextColor: {r: 1, g: 0.39741528, b: 0, a: 1}
-  MissTextColor: {r: 0.69467115, g: 0, b: 1, a: 1}
-  hitMissShowingDuration: 0.3
-  AccuracyState: 0
+--- !u!114 &-6326594136527915992
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5225883545143339161}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0462a1efe21b43deb4571f221c15c77d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &-4597722617616241456
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -954,9 +958,62 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb7694ec8e974b5da0ab6ee1d17ef3ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  positionCorrectionThreshold: 50
-  lerpSpeed: 1.1
-  faceChangeThreshold: 10
+--- !u!114 &-1047899260668075369
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5225883545143339161}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69822046741a47c38ba0a099322f9802, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  reloadingTimePie: {fileID: 1863006141226761352}
+--- !u!114 &-1816915608334622831
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5225883545143339161}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b47db7adf4c34781af767535439f390a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetHighlightCircle: {fileID: 7484546077695317218}
+  hitMissText: {fileID: 8542910316852592879}
+  hitTextColor: {r: 1, g: 0.5421879, b: 0, a: 1}
+  missTextColor: {r: 0.46368885, g: 0, b: 1, a: 1}
+  hitMissShowingDuration: 0.3
+--- !u!114 &-3292549176812869381
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5225883545143339161}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0059f8db21654bc7a0a047a7a0920615, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  balanceText: {fileID: 7726846922617288446}
+--- !u!114 &-7527601815832208492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5225883545143339161}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed4b7fdd85db41eeb6f1aa3c81c0e732, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  accuracyText: {fileID: 1300332755926592805}
 --- !u!1 &5383444114266678679
 GameObject:
   m_ObjectHideFlags: 0

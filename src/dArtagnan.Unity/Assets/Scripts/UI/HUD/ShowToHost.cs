@@ -9,7 +9,7 @@ namespace UI.HUD
         public void Initialize()
         {
             LocalEventChannel.OnNewHost += (_, isHost) => gameObject.SetActive(isHost);
-            PacketChannel.On<WaitingStartFromServer>(_ => gameObject.SetActive(PlayerGeneralManager.LocalPlayer == PlayerGeneralManager.HostPlayer));
+            PacketChannel.On<WaitingStartFromServer>(_ => gameObject.SetActive(PlayerGeneralManager.LocalPlayerCore == PlayerGeneralManager.HostPlayerCore));
         }
     }
 }

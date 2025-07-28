@@ -8,6 +8,7 @@ using Assets.HeroEditor4D.Common.Scripts.Data;
 using Assets.HeroEditor4D.Common.Scripts.Enums;
 using Assets.HeroEditor4D.InventorySystem.Scripts.Data;
 using Cysharp.Threading.Tasks;
+using dArtagnan.Shared;
 using UnityEngine;
 
 public class ModelManager : MonoBehaviour
@@ -49,11 +50,11 @@ public class ModelManager : MonoBehaviour
         trajectory.SetPosition(1, transform.position);
     }
 
-    public void ResetModel(int accuracy)
+    public void Initialize(PlayerInformation info)
     {
         actualModel.SetExpression("Default");
         modelSilhouette.SetExpression("Default");
-        var gunSprite = GunCollection.GunSpriteByAccuracy(accuracy);
+        var gunSprite = GunCollection.GunSpriteByAccuracy(info.Accuracy);
         actualModel.Equip(gunSprite, GunCollection.Firearm1H.Contains(gunSprite) ? EquipmentPart.Firearm1H : EquipmentPart.Firearm2H);
         modelSilhouette.Equip(gunSprite, GunCollection.Firearm1H.Contains(gunSprite) ? EquipmentPart.Firearm1H : EquipmentPart.Firearm2H);
         InitializeFirearmMuzzle();

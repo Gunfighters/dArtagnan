@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using dArtagnan.Shared;
+using Game.Player;
+using Game.Player.Components;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -8,12 +10,12 @@ namespace Game
 {
     public class PlayerGeneralManager : MonoBehaviour, IChannelListener
     {
-        private static readonly Dictionary<int, Player> Players = new();
-        public static IEnumerable<Player> Survivors => Players.Values.Where(p => p.Alive);
+        private static readonly Dictionary<int, PlayerCore> Players = new();
+        public static IEnumerable<PlayerCore> Survivors => Players.Values.Where(p => p.Health.Alive);
         private static int _localPlayerId;
         private static int _hostId;
-        public static Player LocalPlayer => GetPlayer(_localPlayerId);
-        public static Player HostPlayer => GetPlayer(_hostId);
+        public static PlayerCore LocalPlayerCore => GetPlayer(_localPlayerId);
+        public static PlayerCore HostPlayerCore => GetPlayer(_hostId);
 
         public void Initialize()
         {
@@ -26,7 +28,7 @@ namespace Game
             PacketChannel.On<RoundStartFromServer>(e => ResetEveryone(e.PlayersInfo));
         }
         
-        public static Player GetPlayer(int id)
+        public static PlayerCore GetPlayer(int id)
         {
             return Players.GetValueOrDefault(id);
         }
@@ -43,22 +45,22 @@ namespace Game
         {
             _localPlayerId = e.PlayerId;
             if (e.PlayerId == _hostId)
-                LocalEventChannel.InvokeOnNewHost(HostPlayer, HostPlayer == LocalPlayer);
+                LocalEventChannel.InvokeOnNewHost(HostPlayerCore, HostPlayerCore == LocalPlayerCore);
         }
 
         private static void OnNewHost(NewHostBroadcast e)
         {
             _hostId = e.HostId;
-            LocalEventChannel.InvokeOnNewHost(HostPlayer, HostPlayer == LocalPlayer);
+            LocalEventChannel.InvokeOnNewHost(HostPlayerCore, HostPlayerCore == LocalPlayerCore);
         }
         
         private static void CreatePlayer(PlayerInformation info)
         {
             var p = PlayerPoolManager.Instance.Pool.Get();
             
-            bool isRemotePlayer = info.PlayerId != _localPlayerId;
+            var isRemotePlayer = info.PlayerId != _localPlayerId;
             p.Initialize(info, isRemotePlayer);
-            p.Physics.Initialize(isRemotePlayer);
+            p.Physics.Initialize(info, isRemotePlayer);
             
             Players.Add(info.PlayerId, p);
             
@@ -66,7 +68,7 @@ namespace Game
             {
                 LocalEventChannel.InvokeOnNewCameraTarget(p);
                 LocalEventChannel.InvokeOnLocalPlayerAlive(true);
-                LocalEventChannel.InvokeOnLocalPlayerBalanceUpdate(p.Balance);
+                LocalEventChannel.InvokeOnLocalPlayerBalanceUpdate(p.Balance.Balance);
             }
         }
 
