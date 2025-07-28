@@ -35,6 +35,15 @@ public class PlayerPhysics : MonoBehaviour
     {
         _isRemotePlayer = isRemotePlayer;
         _targetPosition = _rb.position;
+        
+        if (_isRemotePlayer)
+        {
+            _rb.isKinematic = true;
+        }
+        else
+        {
+            _rb.isKinematic = false;
+        }
     }
 
     private void Update()
