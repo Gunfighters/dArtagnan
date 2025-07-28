@@ -108,19 +108,20 @@ public class TcpServer
                 var clientId = movementData.PlayerId;
                 
                 // UDP 엔드포인트 등록 (첫 패킷 시)
+                // TODO: 그냥 맨처음에 tcp 연결할때도 udp패킷 하나보내서 엔드포인트 등록해버리면 될듯
+                // TODO: UDP는 엔드포인트가 자꾸 바뀌어서 처음에 등록하고 나서 바뀌는 경우가 있음 ㅋㅋㅋ
                 if (!gameManager.ClientUdpEndpoints.ContainsKey(clientId))
                 {
                     gameManager.ClientUdpEndpoints[clientId] = clientEndpoint;
                     Console.WriteLine($"[UDP] 클라이언트 {clientId} UDP 엔드포인트 등록: {clientEndpoint}");
                 }
                 
-                var command = new PlayerMovementCommand
+                // 커맨드큐를 거치지 않고 바로 브로드캐스팅
+                await gameManager.BroadcastUdpToAllExcept(new PlayerMovementDataBroadcast
                 {
                     PlayerId = clientId,
                     MovementData = movementData.MovementData,
-                };
-                
-                await gameManager.EnqueueCommandAsync(command);
+                }, clientId);
             }
         }
         catch (Exception ex)
