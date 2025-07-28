@@ -75,10 +75,14 @@ public class ClientConnection
                     Client = this
                 },
                 
-                PlayerMovementDataFromClient movementData => new PlayerMovementCommand
+                PlayerMovementDataFromClient movementData => 
                 {
-                    PlayerId = Id,
-                    MovementData = movementData.MovementData,
+                    Console.WriteLine($"[클라이언트 {Id}] Movement 패킷 수신: {movementData.MovementData}");
+                    return new PlayerMovementCommand
+                    {
+                        PlayerId = Id,
+                        MovementData = movementData.MovementData,
+                    };
                 },
                 
                 PlayerShootingFromClient shootingData => new PlayerShootingCommand
