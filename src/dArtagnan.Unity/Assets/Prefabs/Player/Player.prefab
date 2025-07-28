@@ -934,6 +934,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   nicknameText: {fileID: 8427718665256367766}
+  colorPool: {fileID: 11400000, guid: 34d95f020286b4dcfa425d5b6a55505d, type: 2}
 --- !u!114 &-6326594136527915992
 MonoBehaviour:
   m_ObjectHideFlags: 0
