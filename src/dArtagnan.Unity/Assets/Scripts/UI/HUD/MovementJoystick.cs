@@ -10,7 +10,7 @@ public class MovementJoystick : MonoBehaviour
     private Player LocalPlayer => PlayerGeneralManager.LocalPlayer;
     
     private float _lastSendTime = 0f;
-    private const float SEND_INTERVAL = 0.2f;
+    private const float SEND_INTERVAL = 0.1f;
 
     private void Awake() => _variableJoystick = GetComponent<VariableJoystick>();
 

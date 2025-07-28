@@ -13,7 +13,6 @@ public class PlayerPhysics : MonoBehaviour
     
     private Vector2 _targetPosition;
     private bool _isRemotePlayer;
-    [SerializeField] private float interpolationSpeed = 10f;
     
     public PlayerMovementDataFromClient MovementData =>  new()
     {
@@ -55,7 +54,17 @@ public class PlayerPhysics : MonoBehaviour
     {
         if (_isRemotePlayer)
         {
-            _rb.MovePosition(Vector2.Lerp(_rb.position, _targetPosition, interpolationSpeed * Time.fixedDeltaTime));
+            // 원격 플레이어: 플레이어 속도에 맞춰 목표 위치로 이동
+            Vector2 toTarget = (_targetPosition - _rb.position);
+            float distance = toTarget.magnitude;
+            
+            if (distance > 0.01f)
+            {
+                Vector2 moveDirection = toTarget.normalized;
+                float moveDistance = _speed * Time.fixedDeltaTime;
+                Vector2 newPosition = _rb.position + moveDirection * Mathf.Min(moveDistance, distance);
+                _rb.MovePosition(newPosition);
+            }
         }
         else
         {
