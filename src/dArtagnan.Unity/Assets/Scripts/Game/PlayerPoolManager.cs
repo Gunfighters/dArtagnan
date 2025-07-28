@@ -1,3 +1,5 @@
+using Game.Player;
+using Game.Player.Components;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -7,12 +9,12 @@ namespace Game
     {
         public static PlayerPoolManager Instance { get; private set; }
         public PlayerPoolConfig config;
-        public IObjectPool<Player> Pool;
+        public IObjectPool<PlayerCore> Pool;
 
         private void Awake()
         {
             Instance = this;
-            Pool = new ObjectPool<Player>(
+            Pool = new ObjectPool<PlayerCore>(
                 CreateGameObjectBase,
                 ActionOnGet,
                 ActionOnRelease,
@@ -21,27 +23,27 @@ namespace Game
             );
         }
 
-        private Player CreateGameObjectBase()
+        private PlayerCore CreateGameObjectBase()
         {
-            var gameObjectBase = GameObject.Instantiate(config.playerPrefab).GetComponent<Player>();
+            var gameObjectBase = GameObject.Instantiate(config.playerPrefab).GetComponent<PlayerCore>();
             gameObjectBase.transform.SetParent(transform);
             return gameObjectBase;
         }
 
-        private static void ActionOnGet(Player player)
+        private static void ActionOnGet(PlayerCore playerCore)
         {
-            player.gameObject.SetActive(true);
-            player.transform.localPosition = Vector3.zero;
+            playerCore.gameObject.SetActive(true);
+            playerCore.transform.localPosition = Vector3.zero;
         }
 
-        private static void ActionOnRelease(Player player)
+        private static void ActionOnRelease(PlayerCore playerCore)
         {
-            player.gameObject.SetActive(false);
+            playerCore.gameObject.SetActive(false);
         }
 
-        private static void ActionOnDestroy(Player player)
+        private static void ActionOnDestroy(PlayerCore playerCore)
         {
-            Destroy(player.gameObject);
+            Destroy(playerCore.gameObject);
         }
     }
 }

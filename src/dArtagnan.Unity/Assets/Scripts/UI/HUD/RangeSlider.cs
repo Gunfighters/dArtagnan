@@ -9,7 +9,7 @@ namespace UI.HUD
         private void Start()
         {
             var slider = GetComponent<Slider>();
-            slider.onValueChanged.AddListener(PlayerGeneralManager.LocalPlayer.SetRange);
+            slider.onValueChanged.AddListener(PlayerGeneralManager.LocalPlayerCore.Shoot.SetRange);
             slider.value = slider.value;
         }
     }

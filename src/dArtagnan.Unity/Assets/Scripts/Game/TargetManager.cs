@@ -1,12 +1,14 @@
 using System.Linq;
 using dArtagnan.Shared;
 using Game;
+using Game.Player;
+using Game.Player.Components;
 using UnityEngine;
 
 public class TargetManager : MonoBehaviour
 {
     private ShootJoystickController _shootingJoystick;
-    private static Player Aiming => PlayerGeneralManager.LocalPlayer;
+    private static PlayerCore Aiming => PlayerGeneralManager.LocalPlayerCore;
 
     private void Awake()
     {
@@ -16,29 +18,29 @@ public class TargetManager : MonoBehaviour
     private void Update()
     {
         if (Aiming is null) return;
-        if (!Aiming.Alive) return;
+        if (!Aiming.Health.Alive) return;
         var newTarget = GetAutoTarget();
-        var changed = Aiming.TargetPlayer != newTarget;
+        var changed = Aiming.Shoot.Target != newTarget;
         if (!changed) return;
-        Aiming.TargetPlayer?.HighlightAsTarget(false);
-        Aiming.TargetPlayer = newTarget;
-        Aiming.TargetPlayer?.HighlightAsTarget(true);
+        Aiming.Shoot.Target.Shoot?.HighlightAsTarget(false);
+        Aiming.Shoot.SetTarget(newTarget);
+        Aiming.Shoot.Target.Shoot?.HighlightAsTarget(true);
         PacketChannel.Raise(_shootingJoystick.Moving
             ? new PlayerIsTargetingFromClient { TargetId = newTarget?.ID ?? -1 }
             : new PlayerIsTargetingFromClient { TargetId = -1 });
     }
     
-    private Player GetAutoTarget()
+    private PlayerCore GetAutoTarget()
     {
-        Player best = null;
+        PlayerCore best = null;
         var targetPool =
             PlayerGeneralManager.Survivors.Where(target =>
                 target != Aiming
-                && Aiming!.CanShoot(target));
+                && Aiming!.Shoot.CanShoot(target));
         var aim = _shootingJoystick.Direction;
         if (aim == Vector2.zero) // 사거리 내 가장 가까운 적.
         {
-            var minDistance = Aiming.Range;
+            var minDistance = Aiming.Shoot.Range;
             foreach (var target in targetPool)
             {
                 if (Vector2.Distance(target.Physics.Position, Aiming.Physics.Position) < minDistance)
@@ -56,7 +58,7 @@ public class TargetManager : MonoBehaviour
         {
             var direction = target.Physics.Position - Aiming.Physics.Position;
             if (Vector2.Angle(aim, direction) < minAngle
-                && Aiming.CanShoot(target)
+                && Aiming.Shoot.CanShoot(target)
                )
             {
                 minAngle = Vector2.Angle(aim, direction);

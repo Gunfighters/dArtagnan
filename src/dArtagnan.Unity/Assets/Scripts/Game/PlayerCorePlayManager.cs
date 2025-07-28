@@ -19,7 +19,7 @@ namespace Game
         private static void OnPlayerMovementData(PlayerMovementDataBroadcast e)
         {
             var targetPlayer = PlayerGeneralManager.GetPlayer(e.PlayerId);
-            if (targetPlayer == PlayerGeneralManager.LocalPlayer) return;
+            if (targetPlayer == PlayerGeneralManager.LocalPlayerCore) return;
             
             targetPlayer.Physics.UpdateRemotePlayerMovement(e.MovementData);
             Debug.Log($"[패킷 수신] 플레이어 {e.PlayerId} 이동 데이터");
@@ -28,44 +28,44 @@ namespace Game
         private static void OnPlayerIsTargeting(PlayerIsTargetingBroadcast playerIsTargeting)
         {
             var aiming = PlayerGeneralManager.GetPlayer(playerIsTargeting.ShooterId);
-            if (aiming == PlayerGeneralManager.LocalPlayer) return;
-            aiming.Aim(playerIsTargeting.TargetId == -1 ? null : PlayerGeneralManager.GetPlayer(playerIsTargeting.TargetId));
+            if (aiming == PlayerGeneralManager.LocalPlayerCore) return;
+            aiming.Shoot.Aim(playerIsTargeting.TargetId == -1 ? null : PlayerGeneralManager.GetPlayer(playerIsTargeting.TargetId));
         }
         
         private static void OnPlayerShoot(PlayerShootingBroadcast e)
         {
             var shooter = PlayerGeneralManager.GetPlayer(e.ShooterId);
             var target = PlayerGeneralManager.GetPlayer(e.TargetId);
-            shooter.Fire(target);
-            shooter.UpdateRemainingReloadTime(shooter.TotalReloadTime);
+            shooter.Shoot.Fire(target);
+            shooter.Reload.UpdateRemainingReloadTime(shooter.Reload.TotalReloadTime);
             if (GameStateManager.GameState == GameState.Round)
             {
-                shooter.ShowHitOrMiss(e.Hit);
+                shooter.Shoot.ShowHitOrMiss(e.Hit);
             }
         }
 
         private static void OnUpdatePlayerAlive(UpdatePlayerAlive e)
         {
             var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
-            updated.SetAlive(e.Alive);
-            if (updated == PlayerGeneralManager.LocalPlayer)
+            updated.Health.SetAlive(e.Alive);
+            if (updated == PlayerGeneralManager.LocalPlayerCore)
             {
-                LocalEventChannel.InvokeOnLocalPlayerAlive(updated.Alive);
+                LocalEventChannel.InvokeOnLocalPlayerAlive(updated.Health.Alive);
             }
         }
         
         private static void OnAccuracyStateBroadcast(PlayerAccuracyStateBroadcast e)
         {
-            PlayerGeneralManager.GetPlayer(e.PlayerId).SetAccuracyState(e.AccuracyState);
+            PlayerGeneralManager.GetPlayer(e.PlayerId).Accuracy.SetAccuracyState(e.AccuracyState);
         }
 
         private static void OnBalanceUpdate(PlayerBalanceUpdateBroadcast e)
         {
             var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
-            updated.SetBalance(e.Balance);
-            if (updated == PlayerGeneralManager.LocalPlayer)
+            updated.Balance.SetBalance(e.Balance);
+            if (updated == PlayerGeneralManager.LocalPlayerCore)
             {
-                LocalEventChannel.InvokeOnLocalPlayerBalanceUpdate(updated.Balance);
+                LocalEventChannel.InvokeOnLocalPlayerBalanceUpdate(updated.Balance.Balance);
             }
         }
     }

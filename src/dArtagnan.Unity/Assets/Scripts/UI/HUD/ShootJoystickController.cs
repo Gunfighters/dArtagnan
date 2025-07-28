@@ -1,5 +1,7 @@
 using dArtagnan.Shared;
 using Game;
+using Game.Player;
+using Game.Player.Components;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -13,10 +15,10 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
     public Image JoystickAxis;
     public Image HandleOutline;
     public SpriteRenderer Icon;
-    public Player LocalPlayer => PlayerGeneralManager.LocalPlayer;
+    public PlayerCore LocalPlayerCore => PlayerGeneralManager.LocalPlayerCore;
 
-    private float RemainingReloadTime => LocalPlayer.RemainingReloadTime;
-    private float TotalReloadTime => LocalPlayer.TotalReloadTime;
+    private float RemainingReloadTime => LocalPlayerCore.Reload.RemainingReloadTime;
+    private float TotalReloadTime => LocalPlayerCore.Reload.TotalReloadTime;
     private bool Shootable => RemainingReloadTime <= 0;
     private bool _reloading = true;
 
@@ -31,10 +33,10 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
 
     private void Update()
     {
-        if (!LocalPlayer) return;
+        if (!LocalPlayerCore) return;
         // shootButton.interactable = controlledPlayerCooldown <= 0;
         HandleOutline.color =
-            Icon.color = Shootable ? LocalPlayer.TargetPlayer is null ? orange : Color.red : Color.grey;
+            Icon.color = Shootable ? LocalPlayerCore.Shoot.Target is null ? orange : Color.red : Color.grey;
         shootingJoystick.enabled = Shootable;
         cooldownImage.fillAmount = RemainingReloadTime <= 0 ? 1 : 1f - RemainingReloadTime / TotalReloadTime;
         if (_reloading && Shootable)
@@ -50,7 +52,7 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
 
         hasAimed |= Moving;
 
-        LocalPlayer.Aim(Moving ? LocalPlayer.TargetPlayer : null);
+        LocalPlayerCore.Shoot.Aim(Moving ? LocalPlayerCore.Shoot.Target : null);
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -68,7 +70,7 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
         JoystickAxis.enabled = false;
         _isPointerDown = false;
         hasAimed = false;
-        if (Shootable && PlayerGeneralManager.LocalPlayer.TargetPlayer && (_lastDirection != Vector2.zero || _lastDirection == Vector2.zero && !hasAimed))
-            PacketChannel.Raise(new PlayerShootingFromClient { TargetId = PlayerGeneralManager.LocalPlayer.TargetPlayer.ID });
+        if (Shootable && PlayerGeneralManager.LocalPlayerCore.Shoot.Target && (_lastDirection != Vector2.zero || _lastDirection == Vector2.zero && !hasAimed))
+            PacketChannel.Raise(new PlayerShootingFromClient { TargetId = PlayerGeneralManager.LocalPlayerCore.Shoot.Target.ID });
     }
 }

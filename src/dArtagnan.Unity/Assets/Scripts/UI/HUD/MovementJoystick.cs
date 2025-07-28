@@ -1,5 +1,7 @@
 using dArtagnan.Shared;
 using Game;
+using Game.Player;
+using Game.Player.Components;
 using UnityEngine;
 
 public class MovementJoystick : MonoBehaviour
@@ -7,7 +9,7 @@ public class MovementJoystick : MonoBehaviour
     private VariableJoystick _variableJoystick;
     private bool Moving => _variableJoystick.Direction != Vector2.zero;
     private Vector2 InputVectorSnapped => _variableJoystick.Direction.DirectionToInt().IntToDirection();
-    private Player LocalPlayer => PlayerGeneralManager.LocalPlayer;
+    private PlayerCore LocalPlayerCore => PlayerGeneralManager.LocalPlayerCore;
     
     private float _lastSendTime = 0f;
     private const float SEND_INTERVAL = 0.1f;
@@ -16,10 +18,10 @@ public class MovementJoystick : MonoBehaviour
 
     private void Update()
     {
-        if (LocalPlayer == null) return;
+        if (LocalPlayerCore == null) return;
         
         var newDirection = GetInputDirection();
-        var oldDirection = LocalPlayer.Physics.MovementData.Direction.IntToDirection();
+        var oldDirection = LocalPlayerCore.Physics.MovementData.Direction.IntToDirection();
         
         bool directionChanged = newDirection != oldDirection;
         bool isMoving = newDirection != Vector2.zero;
@@ -27,15 +29,15 @@ public class MovementJoystick : MonoBehaviour
         
         if (directionChanged)
         {
-            LocalPlayer.Physics.SetDirection(newDirection.normalized);
-            PacketChannel.Raise(LocalPlayer.Physics.MovementData);
+            LocalPlayerCore.Physics.SetDirection(newDirection.normalized);
+            PacketChannel.Raise(LocalPlayerCore.Physics.MovementData);
             _lastSendTime = Time.time;
             
             Debug.Log($"[패킷 송신] 방향 변경: {newDirection}");
         }
         else if (isMoving && timeToPing)
         {
-            PacketChannel.Raise(LocalPlayer.Physics.MovementData);
+            PacketChannel.Raise(LocalPlayerCore.Physics.MovementData);
             _lastSendTime = Time.time;
             
             Debug.Log($"[패킷 송신] 위치 업데이트: {newDirection}");

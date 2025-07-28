@@ -25,19 +25,19 @@ public class AccuracyStateTabMenuController : MonoBehaviour, IChannelListener
 
     private void OnGamePlaying(RoundStartFromServer e)
     {
-        SwitchUIOnly(e.PlayersInfo.Single(i => i.PlayerId == PlayerGeneralManager.LocalPlayer.ID).AccuracyState);
+        SwitchUIOnly(e.PlayersInfo.Single(i => i.PlayerId == PlayerGeneralManager.LocalPlayerCore.ID).AccuracyState);
     }
 
     private void OnStateBroadcast(PlayerAccuracyStateBroadcast e)
     {
-        if (PlayerGeneralManager.LocalPlayer.ID == e.PlayerId)
+        if (PlayerGeneralManager.LocalPlayerCore.ID == e.PlayerId)
             SwitchUIOnly(e.AccuracyState);
     }
 
     public void Switch(int newState)
     {
         SwitchUIOnly(newState);
-        PlayerGeneralManager.LocalPlayer?.SetAccuracyState(newState);
+        PlayerGeneralManager.LocalPlayerCore?.Accuracy.SetAccuracyState(newState);
         PacketChannel.Raise(new SetAccuracyState { AccuracyState = newState});
     }
 

@@ -1,12 +1,14 @@
 using System.Linq;
 using dArtagnan.Shared;
 using Game;
+using Game.Player;
+using Game.Player.Components;
 using UnityEngine;
 
 [RequireComponent(typeof(Camera))]
 public class CameraController : MonoBehaviour, IChannelListener
 {
-    public Player target;
+    public PlayerCore target;
     public SpriteRenderer groundRenderer;
     public Vector3 offset = new(0, 0, -10);
     public Camera cam;
@@ -28,7 +30,7 @@ public class CameraController : MonoBehaviour, IChannelListener
             LocalEventChannel.InvokeOnNewCameraTarget(PlayerGeneralManager.Survivors.First());
     }
 
-    private void Follow(Player newTarget)
+    private void Follow(PlayerCore newTarget)
     {
         target = newTarget;
     }
