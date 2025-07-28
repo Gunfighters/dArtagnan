@@ -32,15 +32,11 @@ public class MovementJoystick : MonoBehaviour
             LocalPlayerCore.Physics.SetDirection(newDirection.normalized);
             PacketChannel.Raise(LocalPlayerCore.Physics.MovementData);
             _lastSendTime = Time.time;
-            
-            Debug.Log($"[패킷 송신] 방향 변경: {newDirection}");
         }
         else if (isMoving && timeToPing)
         {
             PacketChannel.Raise(LocalPlayerCore.Physics.MovementData);
             _lastSendTime = Time.time;
-            
-            Debug.Log($"[패킷 송신] 위치 업데이트: {newDirection}");
         }
     }
 
