@@ -82,7 +82,7 @@ public class ClientConnection
 
                 case PlayerMovementDataFromClient movementData:
                     // 이제 코드 블록을 정상적으로 사용할 수 있습니다.
-                    Console.WriteLine($"[클라이언트 {Id}] Movement 패킷 수신: {movementData.MovementData}");
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}][클라이언트 {Id}] Movement 패킷 수신: {movementData.MovementData}");
                     command = new PlayerMovementCommand
                     {
                         PlayerId = Id,
