@@ -11,10 +11,13 @@ namespace Game.Player.Components
         private Vector2 _direction;
         public Vector2 Position => _rb.position;
         private float _speed;
-    
-        private Vector2 _targetPosition;
-        private bool _isRemotePlayer;
-    
+        private bool _needToCorrect;
+        private float _lastServerUpdateTimestamp;
+        [SerializeField] private float faceChangeThreshold;
+        [SerializeField] private float positionCorrectionThreshold;
+        [SerializeField] private float lerpSpeed;
+        private Vector2 _lastUpdatedPosition;
+
         public PlayerMovementDataFromClient MovementData =>  new()
         {
             Direction = _direction.DirectionToInt(),
@@ -32,13 +35,11 @@ namespace Game.Player.Components
             _modelManager = GetComponent<ModelManager>();
         }
 
-        public void Initialize(PlayerInformation info, bool isRemotePlayer)
+        public void Initialize(PlayerInformation info)
         {
-            _isRemotePlayer = isRemotePlayer;
-            _targetPosition = info.MovementData.Position.ToUnityVec();
+            transform.position = info.MovementData.Position.ToUnityVec();
             _speed = info.MovementData.Speed;
             _direction = info.MovementData.Direction.IntToDirection();
-            _rb.bodyType = _isRemotePlayer ? RigidbodyType2D.Kinematic : RigidbodyType2D.Dynamic;
         }
 
         private void Update()
@@ -56,33 +57,32 @@ namespace Game.Player.Components
 
         private void FixedUpdate()
         {
-            if (_isRemotePlayer)
-            {
-                // 원격 플레이어: 플레이어 속도에 맞춰 목표 위치로 이동
-                Vector2 toTarget = (_targetPosition - _rb.position);
-                float distance = toTarget.magnitude;
-            
-                if (distance > 0.01f)
-                {
-                    Vector2 moveDirection = toTarget.normalized;
-                    float moveDistance = _speed * Time.fixedDeltaTime;
-                    Vector2 newPosition = _rb.position + moveDirection * Mathf.Min(moveDistance, distance);
-                    _rb.MovePosition(newPosition);
-                }
-            }
-            else
-            {
-                _rb.MovePosition(_rb.position + _speed * Time.fixedDeltaTime * _direction);
-            }
+            _rb.MovePosition(NextPosition());
         }
-    
+        
+        private Vector2 NextPosition()
+        {
+            if (!_needToCorrect) return _rb.position + _speed * Time.fixedDeltaTime * _direction;
+            var elapsed = Time.time - _lastServerUpdateTimestamp;
+            var predictedPosition = _lastUpdatedPosition + _speed * elapsed * _direction;
+            var diff = Vector2.Distance(_rb.position, predictedPosition);
+            _needToCorrect = diff > 0.01f;
+            if (diff > positionCorrectionThreshold) return predictedPosition;
+            var correctionSpeed = _speed * lerpSpeed;
+            if (diff > faceChangeThreshold)
+            {
+                SetFaceDirection(predictedPosition - _rb.position);
+            }
+            var needToGo = (predictedPosition - _rb.position).normalized;
+            var actualDirection = needToGo.DirectionToInt().IntToDirection();
+            // TODO: 최단경로 알고리즘 이용하여 벽 피해가기.
+            return Vector2.MoveTowards(_rb.position, _rb.position + actualDirection * diff, correctionSpeed * Time.fixedDeltaTime);
+        }    
+        
         public void UpdateRemotePlayerMovement(MovementData data)
         {
-            if (!_isRemotePlayer) return;
-        
             SetDirection(data.Direction.IntToDirection());
             SetSpeed(data.Speed);
-            _targetPosition = data.Position.ToUnityVec();
         }
 
         public void SetSpeed(float speed)

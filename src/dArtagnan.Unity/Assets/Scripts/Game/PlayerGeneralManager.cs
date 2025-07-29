@@ -57,10 +57,7 @@ namespace Game
         private static void CreatePlayer(PlayerInformation info)
         {
             var p = PlayerPoolManager.Instance.Pool.Get();
-            
-            var isRemotePlayer = info.PlayerId != _localPlayerId;
-            p.Initialize(info, isRemotePlayer);
-            p.Physics.Initialize(info, isRemotePlayer);
+            p.Initialize(info);
             
             Players.Add(info.PlayerId, p);
             

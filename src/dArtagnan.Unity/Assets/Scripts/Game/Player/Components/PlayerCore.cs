@@ -44,14 +44,14 @@ namespace Game.Player.Components
             ModelManager.SetHatColor(color);
         }
 
-        public void Initialize(PlayerInformation info, bool isRemotePlayer = false)
+        public void Initialize(PlayerInformation info)
         {
             ID = info.PlayerId;
             SetNickname(info.Nickname);
             SetColor(MyColor);
             ModelManager.Initialize(info);
             Health.Initialize(info);
-            Physics.Initialize(info, isRemotePlayer);
+            Physics.Initialize(info);
             Shoot.Initialize(info);
             Accuracy.Initialize(info);
             Reload.Initialize(info);
