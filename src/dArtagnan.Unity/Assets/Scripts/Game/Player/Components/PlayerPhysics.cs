@@ -37,7 +37,7 @@ namespace Game.Player.Components
 
         public void Initialize(PlayerInformation info)
         {
-            _rb.MovePosition(info.MovementData.Position.ToUnityVec());
+            transform.position = info.MovementData.Position.ToUnityVec();
             _speed = info.MovementData.Speed;
             _direction = info.MovementData.Direction.IntToDirection();
         }
