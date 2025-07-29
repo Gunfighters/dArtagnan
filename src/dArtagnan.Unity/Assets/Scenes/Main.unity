@@ -11249,28 +11249,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &4591644298703939309
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5264102247595550634}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f75eb698e82f4a2abe274d20a0ae991e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  image: {fileID: 5264102247373044364}
-  stakeText: {fileID: 5264102247776579198}
-  imageList:
-  - {fileID: 21300000, guid: 82813c074e2854877b1382f0e987511b, type: 3}
-  - {fileID: 21300000, guid: 2340e003a4a6745a8929491f3b365cea, type: 3}
-  - {fileID: 21300000, guid: 928516686caa643f5b6615dc945cff34, type: 3}
-  - {fileID: 21300000, guid: 8222ee04859dd4fe5b07c16b5439f249, type: 3}
-  - {fileID: 21300000, guid: 61725b696bb9b4c73bb7f577825b65b2, type: 3}
-  - {fileID: 21300000, guid: 5b75302529d7945dc89003556f406c27, type: 3}
-  beatDuration: 0.5
 --- !u!222 &4682740662959742921
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -12030,7 +12008,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5264102247595550637}
-  - component: {fileID: 4591644298703939309}
+  - component: {fileID: 5264102247595550638}
   m_Layer: 5
   m_Name: StakeBoard
   m_TagString: Untagged
@@ -12059,6 +12037,22 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 300, y: 2}
   m_Pivot: {x: 0.5, y: 1}
+--- !u!114 &5264102247595550638
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5264102247595550634}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e9306efcbe2498583ccff16810cffee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  model: {fileID: 11400000, guid: 11bc6b84b88e241d087df0cb20bf1c47, type: 2}
+  image: {fileID: 5264102247373044364}
+  text: {fileID: 5264102247776579198}
+  beatDuration: 0.6
 --- !u!222 &5264102247776579185
 CanvasRenderer:
   m_ObjectHideFlags: 0
