@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: HUDModel
   m_EditorClassIdentifier: 
   controlling:
-    value: 1
+    value: 0
   spectating:
     value: 0
   waiting:
-    value: 1
+    value: 0
   playing:
     value: 0
   inRound:
     value: 0
   isHost:
-    value: 1
+    value: 0

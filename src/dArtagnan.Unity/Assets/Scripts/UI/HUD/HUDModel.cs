@@ -16,6 +16,12 @@ namespace UI.HUD
 
         private void OnEnable()
         {
+            controlling.Value =
+                spectating.Value =
+                    waiting.Value =
+                        playing.Value =
+                            inRound.Value =
+                                isHost.Value = false;
             PacketChannel.On<RoundStartFromServer>(_ =>
             {
                 inRound.Value = true;
