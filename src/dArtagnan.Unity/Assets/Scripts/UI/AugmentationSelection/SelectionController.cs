@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UI.AugmentationSelection;
 using UnityEngine;
-using Augmentation = Game.Augmentation.Augmentation;
 
 public class SelectionController : MonoBehaviour
 {
