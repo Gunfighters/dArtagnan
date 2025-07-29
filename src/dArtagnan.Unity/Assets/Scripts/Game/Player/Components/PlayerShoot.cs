@@ -39,18 +39,17 @@ namespace Game.Player.Components
             Range = newRange;
         }
 
-        public void SetTarget(PlayerCore target)
+        public void SetTarget([CanBeNull] PlayerCore target)
         {
             Target = target;
         }
 
-        public void Aim([CanBeNull] PlayerCore newTarget)
+        public void Aim([CanBeNull] PlayerCore target)
         {
-            Target = newTarget;
-            if (Target is null)
+            if (target is null)
                 _modelManager.HideTrajectory();
             else
-                _modelManager.ShowTrajectory(Target.transform);
+                _modelManager.ShowTrajectory(target.transform);
         }
 
         public void Fire(PlayerCore target)
