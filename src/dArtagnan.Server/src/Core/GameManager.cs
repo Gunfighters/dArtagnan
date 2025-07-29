@@ -140,6 +140,7 @@ public class GameManager
 
     public async Task BroadcastToAll(IPacket packet)
     {
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}][게임] {packet.GetType().Name} 패킷 브로드캐스트");
         var tasks = Clients.Values
             .Select(client => client.SendPacketAsync(packet)).ToList();
 
@@ -151,6 +152,7 @@ public class GameManager
 
     public async Task BroadcastToAllExcept(IPacket packet, int excludeClientId)
     {
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}][게임] {packet.GetType().Name} 패킷 브로드캐스트 (제외: {excludeClientId})");
         var tasks = Clients.Values
             .Where(client => client.Id != excludeClientId)
             .Select(client => client.SendPacketAsync(packet));

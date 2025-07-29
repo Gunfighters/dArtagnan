@@ -66,6 +66,7 @@ public class ClientConnection
     {
         try
         {
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}][클라이언트 {Id}] {packet.GetType().Name} 패킷 수신");
             IGameCommand? command = null; // command 변수를 미리 선언합니다.
 
             // switch '식'을 switch '문'으로 변경합니다.
@@ -81,8 +82,6 @@ public class ClientConnection
                     break;
 
                 case PlayerMovementDataFromClient movementData:
-                    // 이제 코드 블록을 정상적으로 사용할 수 있습니다.
-                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}][클라이언트 {Id}] Movement 패킷 수신: {movementData.MovementData}");
                     command = new PlayerMovementCommand
                     {
                         PlayerId = Id,
