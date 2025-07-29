@@ -8,8 +8,10 @@ namespace UI.Connection
     public class ConnectionView : MonoBehaviour
     {
         private ConnectionViewModel _viewModel;
+        
         [Header("References")]
         [SerializeField] private ConnectionModel model;
+        
         [Header("UI")]
         [SerializeField] private TMP_InputField ipEndpointInputField;
         [SerializeField] private Button connectButton;
