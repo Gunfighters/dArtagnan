@@ -9,7 +9,7 @@ namespace Game.Player.Components
     public class PlayerShoot : MonoBehaviour
     {
         private ModelManager _modelManager;
-        public PlayerCore Target { get; private set; }
+        [CanBeNull] public PlayerCore Target { get; private set; }
         [SerializeField] private SpriteRenderer targetHighlightCircle;
         public float Range { get; private set; }
         private Collider2D _collider2D;

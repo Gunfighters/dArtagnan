@@ -22,11 +22,11 @@ namespace Game
             var newTarget = GetAutoTarget();
             var changed = Aiming.Shoot.Target != newTarget;
             if (!changed) return;
-            Aiming.Shoot.Target.Shoot?.HighlightAsTarget(false);
+            Aiming.Shoot.Target?.Shoot.HighlightAsTarget(false);
             Aiming.Shoot.SetTarget(newTarget);
-            Aiming.Shoot.Target.Shoot?.HighlightAsTarget(true);
+            Aiming.Shoot.Target?.Shoot.HighlightAsTarget(true);
             PacketChannel.Raise(_shootingJoystick.Moving
-                ? new PlayerIsTargetingFromClient { TargetId = newTarget?.ID ?? -1 }
+                ? new PlayerIsTargetingFromClient { TargetId = Aiming.Shoot.Target?.ID ?? -1 }
                 : new PlayerIsTargetingFromClient { TargetId = -1 });
         }
     
@@ -49,7 +49,6 @@ namespace Game
                         best = target;
                     }
                 }
-
                 return best;
             }
 

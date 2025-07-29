@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UI.AugmentationSelection;
 using UnityEngine;
+using Augmentation = Game.Augmentation.Augmentation;
 
 public class SelectionController : MonoBehaviour
 {
@@ -9,7 +10,7 @@ public class SelectionController : MonoBehaviour
     {
         for (var i = 0; i < candidates.Count; i++)
         {
-            augmentations[i].Initialize(candidates[i]);
+            // augmentations[i].Initialize(candidates[i]);
         }
     }
 }
