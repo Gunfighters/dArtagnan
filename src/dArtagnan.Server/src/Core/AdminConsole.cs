@@ -20,6 +20,18 @@ public class AdminConsole
         Console.WriteLine();
         
         _ = Task.Run(HandleCommandsAsync);
+        //(개발용)
+        _ = Task.Run(PrintTimerAsync);
+    }
+
+    private async Task PrintTimerAsync()
+    {
+        while (true)
+        {
+            var time = DateTime.Now.ToString("HH:mm:ss.fff");
+            Console.WriteLine($"[{time}]");
+            await Task.Delay(50); // 0.05초 대기
+        }
     }
 
     /// <summary>
