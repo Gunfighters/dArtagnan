@@ -1,6 +1,6 @@
 using R3;
 
-namespace UI.HUD.Refactored
+namespace UI.HUD
 {
     public class HUDViewModel
     {

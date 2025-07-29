@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-namespace UI.HUD
+namespace UI.HUD.Playing
 {
     public class BalanceBar : MonoBehaviour, IChannelListener
     {

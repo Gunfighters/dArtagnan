@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
@@ -6,7 +5,7 @@ using Game;
 using TMPro;
 using UnityEngine;
 
-namespace UI.HUD
+namespace UI.HUD.Splashes
 {
     public class WinnerSplashRibbon : MonoBehaviour, IChannelListener
     {

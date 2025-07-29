@@ -1,6 +1,7 @@
 using System.Linq;
 using dArtagnan.Shared;
 using Game.Player.Components;
+using UI.HUD.Controls;
 using UnityEngine;
 
 namespace Game

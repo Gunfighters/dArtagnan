@@ -1,13 +1,15 @@
 using dArtagnan.Shared;
-using Game;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GameStartButton : MonoBehaviour
+namespace UI.HUD.IsHost
 {
-    private void Awake()
+    public class GameStartButton : MonoBehaviour
     {
-        var btn = GetComponent<Button>();
-        btn.onClick.AddListener(() => PacketChannel.Raise(new StartGameFromClient()));
+        private void Awake()
+        {
+            var btn = GetComponent<Button>();
+            btn.onClick.AddListener(() => PacketChannel.Raise(new StartGameFromClient()));
+        }
     }
 }

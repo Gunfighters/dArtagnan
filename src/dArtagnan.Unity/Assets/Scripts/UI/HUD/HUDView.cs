@@ -2,7 +2,7 @@ using Assets.HeroEditor4D.Common.Scripts.Common;
 using R3;
 using UnityEngine;
 
-namespace UI.HUD.Refactored
+namespace UI.HUD
 {
     public class HUDView : MonoBehaviour
     {

@@ -5,7 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UI.HUD
+namespace UI.HUD.InRound
 {
     public class StakeBoard : MonoBehaviour, IChannelListener
     {

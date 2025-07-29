@@ -2,7 +2,7 @@ using Game;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UI.HUD
+namespace UI.HUD.Controls.Sliders
 {
     public class RangeSlider : MonoBehaviour
     {

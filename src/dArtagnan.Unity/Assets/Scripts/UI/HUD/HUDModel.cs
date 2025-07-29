@@ -1,10 +1,8 @@
-using System;
 using dArtagnan.Shared;
-using Game;
 using R3;
 using UnityEngine;
 
-namespace UI.HUD.Refactored
+namespace UI.HUD
 {
     [CreateAssetMenu(fileName = "HUDModel", menuName = "d'Artagnan/HUD Model", order = 0)]
     public class HUDModel : ScriptableObject
