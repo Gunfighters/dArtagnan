@@ -20,8 +20,8 @@ public class AdminConsole
         Console.WriteLine();
         
         _ = Task.Run(HandleCommandsAsync);
-        //(개발용)
-        _ = Task.Run(PrintTimerAsync);
+        //(개발용) 타이머 출력 루프
+        //_ = Task.Run(PrintTimerAsync);
     }
 
     private async Task PrintTimerAsync()
