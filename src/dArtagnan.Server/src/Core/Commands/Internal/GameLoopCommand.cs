@@ -82,7 +82,12 @@ public class GameLoopCommand : IGameCommand
                 await GiveRandomItemToPlayer(gameManager, player);
             }
             
-
+            // 위치 업데이트
+            var newPosition = CalculateNewPosition(player.MovementData, deltaTime);
+            if (Vector2.Distance(newPosition, player.MovementData.Position) > 0.01f)
+            {
+                player.MovementData.Position = newPosition;
+            }
             
             // 재장전 시간 업데이트
             if (player.RemainingReloadTime > 0)
@@ -90,6 +95,17 @@ public class GameLoopCommand : IGameCommand
                 player.RemainingReloadTime = Math.Max(0, player.RemainingReloadTime - deltaTime);
             }
         }
+    }
+    
+    /// <summary>
+    /// 플레이어의 새로운 위치를 계산합니다
+    /// </summary>
+    private static Vector2 CalculateNewPosition(MovementData movementData, float deltaTime)
+    {
+        var vector = DirectionHelper.IntToDirection(movementData.Direction);
+        if (vector == Vector2.Zero) return movementData.Position;
+        
+        return movementData.Position + vector * movementData.Speed * deltaTime;
     }
 
     /// <summary>
