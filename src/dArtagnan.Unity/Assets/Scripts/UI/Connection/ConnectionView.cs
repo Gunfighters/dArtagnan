@@ -23,6 +23,7 @@ namespace UI.Connection
             connectButton.onClick.AddListener(_viewModel.Connect);
             setLocalHostButton.onClick.AddListener(_viewModel.SetEndpointToLocalhost);
             setAwsButton.onClick.AddListener(_viewModel.SetEndpointToAws);
+            ipEndpointInputField.OnValueChangedAsObservable().Subscribe(_viewModel.SetEndpoint);
         }
     }
 }
