@@ -20,16 +20,19 @@ namespace UI.HUD
             {
                 inRound.Value = true;
                 waiting.Value = false;
+                playing.Value = true;
             });
             PacketChannel.On<WaitingStartFromServer>(_ =>
             {
                 inRound.Value = false;
                 waiting.Value = true;
+                playing.Value = false;
             });
-            LocalEventChannel.OnLocalPlayerAlive += value =>
+            LocalEventChannel.OnLocalPlayerAlive += alive =>
             {
-                controlling.Value = value;
-                spectating.Value = !value;
+                controlling.Value = alive;
+                spectating.Value = !alive;
+                playing.Value = alive && inRound.Value;
             };
             LocalEventChannel.OnNewHost += (_, isLocalPlayerHost) =>
             {
