@@ -51,8 +51,6 @@ public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPoin
         }
 
         hasAimed |= Moving;
-
-        LocalPlayerCore.Shoot.Aim(Moving ? LocalPlayerCore.Shoot.Target : null);
     }
 
     public void OnPointerDown(PointerEventData eventData)

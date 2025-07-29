@@ -32,7 +32,6 @@ namespace Game.Player.Components
         public void Initialize(PlayerInformation info)
         {
             SetRange(info.Range);
-            SetTarget(PlayerGeneralManager.GetPlayer(info.PlayerId));
         }
 
         public void SetRange(float newRange)
