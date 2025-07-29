@@ -24,6 +24,7 @@ namespace UI.Roulette
 
         public void OnSpinDone()
         {
+            _model.nowSpin.Value = false;
             PacketChannel.Raise(new RouletteDone());
         }
     }
