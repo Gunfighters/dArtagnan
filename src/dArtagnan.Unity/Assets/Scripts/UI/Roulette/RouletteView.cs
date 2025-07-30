@@ -44,7 +44,7 @@ namespace UI.Roulette
         private void Spin(bool nowSpin)
         {
             if (!nowSpin) return;
-            var selected = _viewModel.Pool.CurrentValue.Single(i => i.isTarget);
+            var selected = _viewModel.Pool.CurrentValue.First(i => i.isTarget);
             var selectedIndex = _viewModel.Pool.CurrentValue.IndexOf(selected);
             var angle = SlotAngle * selectedIndex * -1;
             var leftOffset = (angle - HalfSlotAngleWithPadding) % 360;
