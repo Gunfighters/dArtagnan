@@ -11,7 +11,7 @@ namespace Game.Player.Components
         public string Nickname { get; private set; }
         public TextMeshProUGUI nicknameText;
         [SerializeField] private ColorPool colorPool;
-        public PlayerModel PlayerModel { get; private set; }
+        public PlayerModel Model { get; private set; }
         public PlayerHealth Health { get; private set; }
         public PlayerPhysics Physics { get; private set; }
         public PlayerShoot Shoot { get; private set; }
@@ -24,7 +24,7 @@ namespace Game.Player.Components
 
         private void Awake()
         {
-            PlayerModel = GetComponent<PlayerModel>();
+            Model = GetComponent<PlayerModel>();
             Health = GetComponent<PlayerHealth>();
             Physics = GetComponent<PlayerPhysics>();
             Shoot = GetComponent<PlayerShoot>();
@@ -43,7 +43,7 @@ namespace Game.Player.Components
         private void SetColor(Color color)
         {
             nicknameText.color = color;
-            PlayerModel.SetColor(color);
+            Model.SetColor(color);
         }
 
         public void Initialize(PlayerInformation info)
@@ -51,7 +51,7 @@ namespace Game.Player.Components
             ID = info.PlayerId;
             SetNickname(info.Nickname);
             SetColor(MyColor);
-            PlayerModel.Initialize(info);
+            Model.Initialize(info);
             Health.Initialize(info);
             Physics.Initialize(info);
             Shoot.Initialize(info);

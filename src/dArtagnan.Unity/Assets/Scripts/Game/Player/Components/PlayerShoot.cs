@@ -1,3 +1,4 @@
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using JetBrains.Annotations;
@@ -41,17 +42,11 @@ namespace Game.Player.Components
             Range = newRange;
         }
 
-        public void SetTarget([CanBeNull] PlayerCore target)
+        public void SetTarget([CanBeNull] PlayerCore newTarget)
         {
-            Target = target;
-        }
-
-        public void Aim([CanBeNull] PlayerCore target)
-        {
-            if (target is null)
-                _trajectory.Hide();
-            else
-                _trajectory.Aim(target.transform);
+            Target?.Shoot.HighlightAsTarget(false);
+            Target = newTarget;
+            Target?.Shoot.HighlightAsTarget(true);
         }
 
         public void Fire(PlayerCore target)
@@ -60,19 +55,16 @@ namespace Game.Player.Components
             _playerModel.Fire();
             _trajectory.Flash(target.transform);
         }
-        
-        public bool CanShoot(PlayerCore target)
+
+        private bool CanShoot(PlayerCore target)
         {
             if (Vector2.Distance(target.transform.position, transform.position) > Range) return false;
             _collider2D.Raycast(target.transform.position - transform.position, _contactFilter2D, _hits, Range);
-            // hits.Sort((x, y) => x.distance.CompareTo(y.distance));
-            // Debug.DrawLine(collider2D., hits[0].collider.transform.position, Color.red, 10);
-            // var size = Physics2D.Raycast(Position, target.Position - Position, Range,);
             System.Array.Sort(_hits, (x, y) => x.distance.CompareTo(y.distance));
             return _hits[0].transform == target.transform;
         }
-        
-        public void HighlightAsTarget(bool show)
+
+        private void HighlightAsTarget(bool show)
         {
             targetHighlightCircle.enabled = show;
         }
@@ -89,6 +81,28 @@ namespace Game.Player.Components
         {
             await UniTask.WaitForSeconds(1);
             hitMissText.enabled = false;
+        }
+
+        [CanBeNull]
+        public PlayerCore CalculateTarget(Vector2 aim)
+        {
+            var targetPool = PlayerGeneralManager
+                .Survivors
+                .Where(target => target.transform != transform)
+                .Where(CanShoot)
+                .ToArray();
+            if (!targetPool.Any()) return null;
+            if (aim == Vector2.zero)
+                return targetPool
+                    .Aggregate((a, b) =>
+                        Vector2.Distance(a.transform.position, transform.position)
+                        < Vector2.Distance(b.transform.position, transform.position)
+                            ? a : b);
+            return targetPool
+                .Aggregate((a, b) =>
+                    Vector2.Angle(aim, a.transform.position - transform.position)
+                    < Vector2.Angle(aim, b.transform.position - transform.position)
+                        ? a : b);
         }
     }
 }

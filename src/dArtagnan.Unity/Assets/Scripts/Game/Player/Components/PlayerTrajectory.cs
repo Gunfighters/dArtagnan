@@ -31,17 +31,6 @@ namespace Game.Player.Components
             _target = PlayerGeneralManager.GetPlayer(info.Targeting)?.transform;
         }
 
-        public void Aim(Transform newTarget)
-        {
-            _target = newTarget;
-            _lineRenderer.enabled = true;
-        }
-
-        public void Hide()
-        {
-            _lineRenderer.enabled = false;
-        }
-
         public void Flash(Transform newTarget)
         {
             _Flash(newTarget).Forget();
@@ -49,9 +38,11 @@ namespace Game.Player.Components
 
         private async UniTask _Flash(Transform newTarget)
         {
-            Aim(newTarget);
+            _target = newTarget;
+            _lineRenderer.enabled = true;
             await UniTask.WaitForSeconds(duration);
-            Hide();
+            _target = null;
+            _lineRenderer.enabled = false;
         }
     }
 }

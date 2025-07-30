@@ -9,39 +9,41 @@ namespace UI.HUD.Controls
 {
     public class ShootJoystickController : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
         public FixedJoystick shootingJoystick;
         public Image cooldownImage;
         public AudioSource reloadSound;
         public Image JoystickAxis;
         public Image HandleOutline;
         public Image Icon;
-        private PlayerCore LocalPlayerCore => PlayerGeneralManager.LocalPlayerCore;
+        private PlayerCore LocalPlayer => PlayerGeneralManager.LocalPlayerCore;
 
-        private float RemainingReloadTime => LocalPlayerCore.Reload.RemainingReloadTime;
-        private float TotalReloadTime => LocalPlayerCore.Reload.TotalReloadTime;
+        private float RemainingReloadTime => LocalPlayer.Reload.RemainingReloadTime;
+        private float TotalReloadTime => LocalPlayer.Reload.TotalReloadTime;
         private bool Shootable => RemainingReloadTime <= 0;
         private bool _reloading = true;
 
         private readonly Color _orange = new(1.0f, 0.64f, 0.0f);
-        public Vector2 Direction => shootingJoystick.Direction;
-    
-        public bool Moving => Direction != Vector2.zero;
-        
+
+        private bool _aiming = false;
+
         private void Update()
         {
-            if (!LocalPlayerCore) return;
-            if (Moving && Shootable && LocalPlayerCore.Shoot.Target)
+            if (!LocalPlayer) return;
+            var target = _aiming ? LocalPlayer.Shoot.CalculateTarget(shootingJoystick.Direction) : null;
+            if (target != LocalPlayer.Shoot.Target)
             {
-                LocalPlayerCore.Trajectory.Aim(LocalPlayerCore.Shoot.Target.transform);
+                LocalPlayer.Shoot.SetTarget(target);
+                PacketChannel.Raise(new PlayerIsTargetingFromClient { TargetId = target?.ID ?? -1 });
             }
+
+            Color color;
+            if (!Shootable)
+                color = Color.grey;
+            else if (LocalPlayer.Shoot.CalculateTarget(Vector2.zero) is null)
+                color = _orange;
             else
-            {
-                LocalPlayerCore.Trajectory.Hide();
-            }
-            // shootButton.interactable = controlledPlayerCooldown <= 0;
-            HandleOutline.color =
-                Icon.color = Shootable ? LocalPlayerCore.Shoot.Target is null ? _orange : Color.red : Color.grey;
+                color = Color.red;
+            HandleOutline.color = Icon.color = color;
             shootingJoystick.enabled = Shootable;
             cooldownImage.fillAmount = RemainingReloadTime <= 0 ? 1 : 1f - RemainingReloadTime / TotalReloadTime;
             if (_reloading && Shootable)
@@ -55,13 +57,14 @@ namespace UI.HUD.Controls
         {
             if (!Shootable) return;
             JoystickAxis.enabled = true;
+            _aiming = true;
         }
     
         public void OnPointerUp(PointerEventData eventData)
         {
             JoystickAxis.enabled = false;
-            if (!Shootable) return;
-            if (PlayerGeneralManager.LocalPlayerCore.Shoot.Target)
+            _aiming = false;
+            if (Shootable && PlayerGeneralManager.LocalPlayerCore.Shoot.Target)
                 PacketChannel.Raise(new PlayerShootingFromClient { TargetId = PlayerGeneralManager.LocalPlayerCore.Shoot.Target.ID });
         }
     }
