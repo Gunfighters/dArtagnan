@@ -1,22 +1,22 @@
 using dArtagnan.Shared;
 using Game;
 using R3;
-using UnityEngine;
+using UnityEditor;
 
 namespace UI.CanvasManager
 {
-    [CreateAssetMenu(fileName = "CanvasManagerModel", menuName = "d'Artagnan/Canvas Manager Model ", order = 0)]
-    public class CanvasManagerModel : ScriptableObject
+    [InitializeOnLoad]
+    public static class CanvasManagerModel
     {
-        public SerializableReactiveProperty<GameScreen> screen;
+        public static readonly ReactiveProperty<GameScreen> Screen = new();
 
-        private void OnEnable()
+        static CanvasManagerModel()
         {
-            PacketChannel.On<WaitingStartFromServer>(_ => screen.Value = GameScreen.HUD);
-            PacketChannel.On<RoundStartFromServer>(_ => screen.Value = GameScreen.HUD);
-            PacketChannel.On<YourAccuracyAndPool>(_ => screen.Value = GameScreen.Roulette);
-            PacketChannel.On<AugmentStartFromServer>(_ => screen.Value = GameScreen.AugmentationSelection);
-            screen.Value = GameScreen.Connection;
+            PacketChannel.On<WaitingStartFromServer>(_ => Screen.Value = GameScreen.HUD);
+            PacketChannel.On<RoundStartFromServer>(_ => Screen.Value = GameScreen.HUD);
+            PacketChannel.On<YourAccuracyAndPool>(_ => Screen.Value = GameScreen.Roulette);
+            PacketChannel.On<AugmentStartFromServer>(_ => Screen.Value = GameScreen.AugmentationSelection);
+            Screen.Value = GameScreen.Connection;
         }
     }
 }

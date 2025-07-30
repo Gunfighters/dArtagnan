@@ -1,5 +1,6 @@
+using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
-using R3;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,30 +9,23 @@ namespace UI.HUD.InRound.StakeBoard
 {
     public class StakeBoardView : MonoBehaviour
     {
-        private StakeBoardViewModel _viewModel;
-        
-        [Header("References")]
-        [SerializeField] private StakeBoardModel model;
-
         [Header("UI")]
-        [SerializeField] private Image image;
-        [SerializeField] private TextMeshProUGUI text;
-        [SerializeField] private float beatDuration;
+        public Image image;
+        public TextMeshProUGUI text;
+        public float beatDuration;
+        public List<StakeBoardIconMeta> iconPool;
 
         private void Awake()
         {
-            _viewModel = new StakeBoardViewModel(model);
-            _viewModel.Amount.Subscribe(a => text.text = $"${a}");
-            _viewModel.Amount.Subscribe(_ => Beat(beatDuration).Forget());
-            _viewModel.Icon.Subscribe(sprite => image.sprite = sprite);
+            StakeBoardPresenter.Initialize(this);
         }
 
-        private async UniTask Beat(float duration)
+        public async UniTask Beat()
         {
             float t = 0;
-            while (t < duration)
+            while (t < beatDuration)
             {
-                transform.localScale = Calc(duration, t) * Vector3.one;
+                transform.localScale = Calc(beatDuration, t) * Vector3.one;
                 t += Time.deltaTime;
                 await UniTask.WaitForEndOfFrame();
             }
@@ -41,6 +35,14 @@ namespace UI.HUD.InRound.StakeBoard
         private static float Calc(float duration, float t)
         {
             return -0.9f * t * (t - duration) + 1;
+        }
+
+        public Sprite PickIconByAmount(int amount)
+        {
+            return iconPool
+                .Where(meta => meta.threshold <= amount)
+                .Aggregate((a, b) => a.threshold > b.threshold ? a : b)
+                .icon;
         }
     }
 }

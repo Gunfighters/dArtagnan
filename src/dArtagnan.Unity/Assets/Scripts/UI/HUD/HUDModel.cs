@@ -1,48 +1,42 @@
 using dArtagnan.Shared;
 using R3;
-using UnityEngine;
+using UnityEditor;
 
 namespace UI.HUD
 {
-    [CreateAssetMenu(fileName = "HUDModel", menuName = "d'Artagnan/HUD Model", order = 0)]
-    public class HUDModel : ScriptableObject
+    [InitializeOnLoad]
+    public static class HUDModel
     {
-        public SerializableReactiveProperty<bool> controlling;
-        public SerializableReactiveProperty<bool> spectating;
-        public SerializableReactiveProperty<bool> waiting;
-        public SerializableReactiveProperty<bool> playing;
-        public SerializableReactiveProperty<bool> inRound;
-        public SerializableReactiveProperty<bool> isHost;
+        public static readonly ReactiveProperty<bool> Controlling = new();
+        public static readonly ReactiveProperty<bool> Spectating = new();
+        public static readonly ReactiveProperty<bool> Waiting = new();
+        public static readonly ReactiveProperty<bool> Playing = new();
+        public static readonly ReactiveProperty<bool> InRound = new();
+        public static readonly ReactiveProperty<bool> IsHost = new();
 
-        private void OnEnable()
+        static HUDModel()
         {
-            controlling.Value =
-                spectating.Value =
-                    waiting.Value =
-                        playing.Value =
-                            inRound.Value =
-                                isHost.Value = false;
             PacketChannel.On<RoundStartFromServer>(_ =>
             {
-                inRound.Value = true;
-                waiting.Value = false;
-                playing.Value = true;
+                InRound.Value = true;
+                Waiting.Value = false;
+                Playing.Value = true;
             });
             PacketChannel.On<WaitingStartFromServer>(_ =>
             {
-                inRound.Value = false;
-                waiting.Value = true;
-                playing.Value = false;
+                InRound.Value = false;
+                Waiting.Value = true;
+                Playing.Value = false;
             });
             LocalEventChannel.OnLocalPlayerAlive += alive =>
             {
-                controlling.Value = alive;
-                spectating.Value = !alive;
-                playing.Value = alive && inRound.Value;
+                Controlling.Value = alive;
+                Spectating.Value = !alive;
+                Playing.Value = alive && InRound.Value;
             };
             LocalEventChannel.OnNewHost += (_, isLocalPlayerHost) =>
             {
-                isHost.Value = isLocalPlayerHost;
+                IsHost.Value = isLocalPlayerHost;
             };
         }
     }

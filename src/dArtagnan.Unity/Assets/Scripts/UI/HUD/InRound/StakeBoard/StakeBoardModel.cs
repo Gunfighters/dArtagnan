@@ -1,38 +1,24 @@
-using System.Collections.Generic;
-using System.Linq;
 using dArtagnan.Shared;
 using R3;
-using UnityEngine;
+using UnityEditor;
 
 namespace UI.HUD.InRound.StakeBoard
 {
-    [CreateAssetMenu(fileName = "StakeBoard", menuName = "d'Artagnan/StakeBoard", order = 0)]
-    public class StakeBoardModel : ScriptableObject
+    [InitializeOnLoad]
+    public static class StakeBoardModel
     {
-        public SerializableReactiveProperty<int> amount;
-        public SerializableReactiveProperty<Sprite> icon;
-        public List<StakeBoardIconMeta> iconPool;
+        public static readonly ReactiveProperty<int> Amount = new();
 
-        private void OnEnable()
+        static StakeBoardModel()
         {
             PacketChannel.On<RoundStartFromServer>(e =>
             {
-                amount.Value = 0;
-                icon.Value = PickIconByAmount(0);
+                Amount.Value = 0;
             });
             PacketChannel.On<BettingDeductionBroadcast>(e =>
             {
-                amount.Value = e.TotalPrizeMoney;
-                icon.Value = PickIconByAmount(e.TotalPrizeMoney);
+                Amount.Value = e.TotalPrizeMoney;
             });
-        }
-
-        private Sprite PickIconByAmount(int a)
-        {
-            return iconPool
-                .Where(meta => meta.threshold <= a)
-                .Aggregate((a, b) => a.threshold > b.threshold ? a : b)
-                .icon;
         }
     }
 }

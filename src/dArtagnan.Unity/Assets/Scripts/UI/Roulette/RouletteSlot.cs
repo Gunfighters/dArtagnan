@@ -1,17 +1,26 @@
 using System.Linq;
+using Assets.HeroEditor4D.Common.Scripts.Collections;
 using TMPro;
-using UI.Roulette;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class RouletteSlot : MonoBehaviour
+namespace UI.Roulette
 {
-    [SerializeField] private Image ItemImage;
-    [SerializeField] private TextMeshProUGUI SlotText;
-
-    public void Setup(RouletteItem item)
+    public class RouletteSlot : MonoBehaviour
     {
-        ItemImage.sprite = item.icon.Sprites.Single(s => s.name == "Side");
-        SlotText.text = item.name;
+        [SerializeField] private Image itemImage;
+        [SerializeField] private TextMeshProUGUI slotText;
+        [SerializeField] private SpriteCollection gunCollection;
+        public bool IsTarget { get; private set; }
+
+        public void Setup(RouletteItem item)
+        {
+            itemImage.sprite = gunCollection
+                .GunSpriteByAccuracy(item.value)
+                .Sprites
+                .Single(s => s.name == "Side");
+            slotText.text = $"{item.value}%";
+            IsTarget = item.isTarget;
+        }
     }
 }

@@ -919,7 +919,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3774f76e7974c35835f0280defa30e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  model: {fileID: 11400000, guid: 8fb08cb96a1444dfa975ab458d30412f, type: 2}
+  config: {fileID: 11400000, guid: 6c934d44d01dd432aa117b578669fa39, type: 2}
   ipEndpointInputField: {fileID: 8340858011541542533}
   connectButton: {fileID: 7500095029105627043}
   setLocalHostButton: {fileID: 5735856977165715420}

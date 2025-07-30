@@ -4,53 +4,53 @@ using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using Game;
 using R3;
-using UnityEngine;
+using UnityEditor;
 
 namespace UI.HUD.Splashes
 {
-    [CreateAssetMenu(fileName = "SplashModel", menuName = "d'Artagnan/Splashes Model", order = 0)]
-    public class SplashModel : ScriptableObject
+    [InitializeOnLoad]
+    public static class SplashModel
     {
-        public SerializableReactiveProperty<int> roundIndex;
-        public SerializableReactiveProperty<bool> gameStart;
-        public SerializableReactiveProperty<bool> roundStart;
-        public SerializableReactiveProperty<bool> roundOver;
-        public SerializableReactiveProperty<bool> gameOver;
-        public float splashDuration;
-        public SerializableReactiveProperty<List<string>> winners;
-
-        private void OnEnable()
+        public static readonly ReactiveProperty<int> RoundIndex = new();
+        public static readonly ReactiveProperty<bool> GameStart = new();
+        public static readonly ReactiveProperty<bool> RoundStart = new();
+        public static readonly ReactiveProperty<bool> RoundOver = new();
+        public static readonly ReactiveProperty<bool> GameOver = new();
+        private const float SplashDuration = 2.5f;
+        public static readonly ReactiveProperty<List<string>> Winners = new();
+        
+        static SplashModel()
         {
             PacketChannel.On<RoundStartFromServer>(_ =>
             {
-                Flash(roundStart);
+                Flash(RoundStart);
             });
             PacketChannel.On<RoundWinnerBroadcast>(e =>
             {
                 SetWinners(e.PlayerIds);
-                Flash(roundOver);
+                Flash(RoundOver);
             });
             PacketChannel.On<GameWinnerBroadcast>(e =>
             {
                 SetWinners(e.PlayerIds);
-                Flash(gameOver);
+                Flash(GameOver);
             });
         }
 
-        private void SetWinners(List<int> ids)
+        private static void SetWinners(List<int> ids)
         {
-            winners.Value = ids.Select(PlayerGeneralManager.GetPlayer).Select(p => p.Nickname).ToList();
+            Winners.Value = ids.Select(PlayerGeneralManager.GetPlayer).Select(p => p.Nickname).ToList();
         }
 
-        private void Flash(SerializableReactiveProperty<bool> splash)
+        private static void Flash(ReactiveProperty<bool> splash)
         {
             splash.Value = true;
             ScheduleSplashRemoval(splash).Forget();
         }
 
-        private async UniTask ScheduleSplashRemoval(SerializableReactiveProperty<bool> splash)
+        private static async UniTask ScheduleSplashRemoval(ReactiveProperty<bool> splash)
         {
-            await UniTask.WaitForSeconds(splashDuration);
+            await UniTask.WaitForSeconds(SplashDuration);
             splash.Value = false;
         }
     }

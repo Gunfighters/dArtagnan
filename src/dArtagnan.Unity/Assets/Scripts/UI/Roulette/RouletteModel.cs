@@ -1,45 +1,47 @@
 using System.Collections.Generic;
 using System.Linq;
-using Assets.HeroEditor4D.Common.Scripts.Collections;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using R3;
-using UnityEngine;
+using UnityEditor;
 
 namespace UI.Roulette
 {
-    [CreateAssetMenu(fileName = "RouletteModel", menuName = "d'Artagnan/Roulette Model", order = 0)]
-    public class RouletteModel : ScriptableObject
+    [InitializeOnLoad]
+    public static class RouletteModel
     {
-        public SerializableReactiveProperty<List<RouletteItem>> pool;
-        public SerializableReactiveProperty<bool> nowSpin;
-        public SpriteCollection gunCollection;
-        public float autoSpinDelay;
+        public static readonly ReactiveProperty<List<RouletteItem>> Pool = new();
+        public static readonly ReactiveProperty<bool> NowSpin = new();
+        private const float AutoSpinDelay = 5;
 
-        private void OnEnable()
+        static RouletteModel()
         {
             PacketChannel.On<YourAccuracyAndPool>(OnYourAccuracyAndPool);
         }
 
-        private void OnYourAccuracyAndPool(YourAccuracyAndPool e)
+        private static void OnYourAccuracyAndPool(YourAccuracyAndPool e)
         {
-            nowSpin.Value = false;
-            pool.Value = e.AccuracyPool.Select(i =>
+            Reset();
+            Pool.Value = e.AccuracyPool.Select(i =>
                 new RouletteItem
                 {
-                    icon = gunCollection.GunSpriteByAccuracy(i),
                     isTarget = i == e.YourAccuracy,
-                    name = $"{i}%"
+                    value = i
                 }
             ).ToList();
-            ScheduleSpin(autoSpinDelay).Forget();
+            ScheduleAutoSpin(AutoSpinDelay).Forget();
         }
 
-        private async UniTask ScheduleSpin(float delay)
+        private static async UniTask ScheduleAutoSpin(float delay)
         {
             await UniTask.WaitForSeconds(delay);
-            if (nowSpin.Value) return;
-            nowSpin.Value = true;
+            if (NowSpin.Value) return;
+            NowSpin.Value = true;
+        }
+
+        public static void Reset()
+        {
+            NowSpin.Value = false;
         }
     }
 }

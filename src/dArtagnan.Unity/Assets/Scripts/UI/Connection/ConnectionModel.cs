@@ -1,13 +1,15 @@
 using R3;
-using UnityEngine;
 
 namespace UI.Connection
 {
-    [CreateAssetMenu(fileName = "ConnectionModel", menuName = "d'Artagnan/Connection Model", order = 0)]
-    public class ConnectionModel : ScriptableObject
+    public static class ConnectionModel
     {
-        public SerializableReactiveProperty<string> ipEndpoint;
-        public SerializableReactiveProperty<int> port;
-        public SerializableReactiveProperty<string> awsEndpoint;
+        public static readonly ReactiveProperty<string> IPEndpoint = new();
+        public static readonly ReactiveProperty<int> Port = new();
+
+        public static void Connect()
+        {
+            LocalEventChannel.InvokeOnEndpointSelected(IPEndpoint.CurrentValue, Port.CurrentValue);
+        }
     }
 }

@@ -4940,8 +4940,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc64f1c29794488db9e9613eb4327558, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ItemImage: {fileID: 6854203400832525549}
-  SlotText: {fileID: 7439257015353682913}
+  itemImage: {fileID: 6854203400832525549}
+  slotText: {fileID: 7439257015353682913}
+  gunCollection: {fileID: 11400000, guid: 91824a520d391974a88f36ad4936d63a, type: 2}
 --- !u!1 &8766053799390034717
 GameObject:
   m_ObjectHideFlags: 0
