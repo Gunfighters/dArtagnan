@@ -24,6 +24,7 @@ namespace UI.AugmentationSelection.Frame
             nameText.text = Augmentation.name;
             image.sprite = Augmentation.sprite;;
             description.text = Augmentation.description;
+            selectedToggle.isOn = false;
         }
 
         public void OnPointerEnter(PointerEventData eventData)
