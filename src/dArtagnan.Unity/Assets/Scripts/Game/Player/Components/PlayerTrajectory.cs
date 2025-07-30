@@ -21,8 +21,8 @@ namespace Game.Player.Components
         {
             if (_target)
             {
-                _lineRenderer.SetPosition(1, _target.position);
-                _lineRenderer.SetPosition(0, transform.position);
+                _lineRenderer.SetPosition(0, _target.position);
+                _lineRenderer.SetPosition(1, transform.position);
             }
         }
 
