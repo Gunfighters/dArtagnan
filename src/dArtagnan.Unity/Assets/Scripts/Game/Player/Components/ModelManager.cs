@@ -1,219 +1,178 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Assets.HeroEditor4D.Common.Scripts.CharacterScripts;
 using Assets.HeroEditor4D.Common.Scripts.Collections;
 using Assets.HeroEditor4D.Common.Scripts.Data;
 using Assets.HeroEditor4D.Common.Scripts.Enums;
-using Assets.HeroEditor4D.InventorySystem.Scripts.Data;
-using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using UnityEngine;
 
-public class ModelManager : MonoBehaviour
+namespace Game.Player.Components
 {
-    public Character4D actualModel;
-    public Character4D modelSilhouette;
-    public GameObject modelPrefab;
-    public CharacterState initialState;
-    public Vector2 direction;
-    public float spriteAlpha;
-    public AudioSource fireSound;
-    public FirearmCollection firearmCollection;
-    private readonly List<ParticleSystem> _instances = new();
-    private AudioClip ShotSoundClip;
-    private LineRenderer trajectory;
-    public float trajectoryDuration;
-    public float trajectoryOpacity;
-    private Color trajectoryColorOriginal;
-    private Transform trajectoryTarget;
-    private CharacterState currentState;
-    public SpriteCollection GunCollection;
+    public class ModelManager : MonoBehaviour
+    {
+        public Character4D actualModel;
+        public Character4D modelSilhouette;
+        public CharacterState initialState;
+        public Vector2 direction;
+        public float spriteAlpha;
+        public AudioSource fireSound;
+        public FirearmCollection firearmCollection;
+        private readonly List<ParticleSystem> _instances = new();
+        private AudioClip ShotSoundClip;
+        private CharacterState currentState;
+        public SpriteCollection GunCollection;
     
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    private void Start()
-    {
-        InitializeTrajectory();
-        // SetTransparent();
-        SetDirection(direction == Vector2.zero ? Vector2.down : direction);
-        SetState(initialState);
-        InitializeFirearmMuzzle();
-    }
-
-    private void Update()
-    {
-        if (trajectoryTarget)
+        // Start is called once before the first execution of Update after the MonoBehaviour is created
+        private void Start()
         {
-            trajectory.SetPosition(0, trajectoryTarget.position);
+            // SetTransparent();
+            SetDirection(direction == Vector2.zero ? Vector2.down : direction);
+            SetState(initialState);
+            InitializeFirearmMuzzle();
         }
-        trajectory.SetPosition(1, transform.position);
-    }
 
-    public void Initialize(PlayerInformation info)
-    {
-        actualModel.SetExpression("Default");
-        modelSilhouette.SetExpression("Default");
-        var gunSprite = GunCollection.GunSpriteByAccuracy(info.Accuracy);
-        actualModel.Equip(gunSprite, GunCollection.Firearm1H.Contains(gunSprite) ? EquipmentPart.Firearm1H : EquipmentPart.Firearm2H);
-        modelSilhouette.Equip(gunSprite, GunCollection.Firearm1H.Contains(gunSprite) ? EquipmentPart.Firearm1H : EquipmentPart.Firearm2H);
-        InitializeFirearmMuzzle();
-    }
+        public void Initialize(PlayerInformation info)
+        {
+            actualModel.SetExpression("Default");
+            modelSilhouette.SetExpression("Default");
+            var gunSprite = GunCollection.GunSpriteByAccuracy(info.Accuracy);
+            actualModel.Equip(gunSprite, GunCollection.Firearm1H.Contains(gunSprite) ? EquipmentPart.Firearm1H : EquipmentPart.Firearm2H);
+            modelSilhouette.Equip(gunSprite, GunCollection.Firearm1H.Contains(gunSprite) ? EquipmentPart.Firearm1H : EquipmentPart.Firearm2H);
+            InitializeFirearmMuzzle();
+        }
 
-    void InitializeTrajectory()
-    {
-        trajectory = GetComponent<LineRenderer>();
-        trajectory.enabled = false;
-        trajectory.SetPosition(0, Vector2.zero);
-        // trajectoryColorOriginal = trajectory.material.color;
-    }
-
-    public void SetHatColor(Color color)
-    {
-        actualModel.SetHatColor(color);
-        modelSilhouette.SetHatColor(color);
-    }
+        public void SetHatColor(Color color)
+        {
+            actualModel.SetHatColor(color);
+            modelSilhouette.SetHatColor(color);
+        }
     
-    void SetTransparent()
-    {
-        var sprites = modelSilhouette.GetComponentsInChildren<SpriteRenderer>(true);
-        foreach (var spriteRenderer in sprites)
+        void SetTransparent()
         {
-            var modified = spriteRenderer.color;
-            modified.a = spriteAlpha;
-            spriteRenderer.color = modified;
+            var sprites = modelSilhouette.GetComponentsInChildren<SpriteRenderer>(true);
+            foreach (var spriteRenderer in sprites)
+            {
+                var modified = spriteRenderer.color;
+                modified.a = spriteAlpha;
+                spriteRenderer.color = modified;
+            }
         }
-    }
 
-    void SetState(CharacterState state)
-    {
-        actualModel.SetState(state);
-        modelSilhouette.SetState(state);
-    }
+        void SetState(CharacterState state)
+        {
+            actualModel.SetState(state);
+            modelSilhouette.SetState(state);
+        }
 
-    public void SetDirection(Vector2 newDir)
-    {
-        if (newDir == Vector2.zero) return;
-        direction = SnapToCardinalDirection(newDir);
-        actualModel.SetDirection(direction);
-        modelSilhouette.SetDirection(direction);
-    }
+        public void SetDirection(Vector2 newDir)
+        {
+            if (newDir == Vector2.zero) return;
+            direction = SnapToCardinalDirection(newDir);
+            actualModel.SetDirection(direction);
+            modelSilhouette.SetDirection(direction);
+        }
 
-    public void Walk()
-    {
-        SetState(CharacterState.Walk);
-    }
+        public void Walk()
+        {
+            SetState(CharacterState.Walk);
+        }
 
-    public void Run()
-    {
-        SetState(CharacterState.Run);
-    }
+        public void Run()
+        {
+            SetState(CharacterState.Run);
+        }
 
-    public void Idle()
-    {
-        SetState(CharacterState.Idle);
-    }
+        public void Idle()
+        {
+            SetState(CharacterState.Idle);
+        }
 
-    public void Fire()
-    {
-        actualModel.AnimationManager.Fire();
-        modelSilhouette.AnimationManager.Fire();
-        CreateFirearmMuzzleAndPlayShotSound();
-    }
+        public void Fire()
+        {
+            actualModel.AnimationManager.Fire();
+            modelSilhouette.AnimationManager.Fire();
+            CreateFirearmMuzzleAndPlayShotSound();
+        }
     
-    public void Die()
-    {
-        actualModel.SetState(CharacterState.Death);
-        modelSilhouette.SetState(CharacterState.Death);
-    }
-
-    public void ShowTrajectory(Transform target, bool transparent = false)
-    {
-        trajectoryTarget = target;
-        trajectory.enabled = true;
-    }
-
-    public void HideTrajectory()
-    {
-        trajectory.enabled = false;
-    }
-
-    public async UniTask ScheduleHideTrajectory()
-    {
-        await UniTask.WaitForSeconds(trajectoryDuration);
-        HideTrajectory();
-    }
-
-    private FirearmParams GetFirearmParams()
-    {
-        if (actualModel.Parts[0].PrimaryWeapon is null)
+        public void Die()
         {
-            throw new Exception($"PrimaryWeapon not set");
-        }
-        var firearm =
-            actualModel.SpriteCollection.Firearm1H.SingleOrDefault(i =>
-                i.Sprites.Contains(actualModel.Parts[0].PrimaryWeapon))
-            ?? actualModel.SpriteCollection.Firearm2H.SingleOrDefault(i =>
-                i.Sprites.Contains(actualModel.Parts[0].PrimaryWeapon));
-        if (firearm is null)
-        {
-            throw new Exception($"Firearm sprite not found");
+            actualModel.SetState(CharacterState.Death);
+            modelSilhouette.SetState(CharacterState.Death);
         }
 
-        var fallback = firearm.Collection;
-        var foundParams = firearmCollection.FirearmParams.SingleOrDefault(i => i.Name == firearm.Name)
-                           ?? firearmCollection.FirearmParams.SingleOrDefault(i => i.Name == fallback)
-                           ?? firearmCollection.FirearmParams.SingleOrDefault(i => i.Name == "Basic");
-        if (foundParams is null)
+        private FirearmParams GetFirearmParams()
         {
-            throw new Exception($"Firearm params not found for {firearm.Name}.");
+            if (actualModel.Parts[0].PrimaryWeapon is null)
+            {
+                throw new Exception($"PrimaryWeapon not set");
+            }
+            var firearm =
+                actualModel.SpriteCollection.Firearm1H.SingleOrDefault(i =>
+                    i.Sprites.Contains(actualModel.Parts[0].PrimaryWeapon))
+                ?? actualModel.SpriteCollection.Firearm2H.SingleOrDefault(i =>
+                    i.Sprites.Contains(actualModel.Parts[0].PrimaryWeapon));
+            if (firearm is null)
+            {
+                throw new Exception($"Firearm sprite not found");
+            }
+
+            var fallback = firearm.Collection;
+            var foundParams = firearmCollection.FirearmParams.SingleOrDefault(i => i.Name == firearm.Name)
+                              ?? firearmCollection.FirearmParams.SingleOrDefault(i => i.Name == fallback)
+                              ?? firearmCollection.FirearmParams.SingleOrDefault(i => i.Name == "Basic");
+            if (foundParams is null)
+            {
+                throw new Exception($"Firearm params not found for {firearm.Name}.");
+            }
+            return foundParams;
         }
-        return foundParams;
-    }
 
-    private void CreateFirearmMuzzleAndPlayShotSound()
-    {
-        foreach (var muzzle in _instances.Where(i => i.gameObject.activeInHierarchy)) muzzle.Play(true);
-        fireSound.PlayOneShot(ShotSoundClip);
-    }
-
-    private void InitializeFirearmMuzzle()
-    {
-        var firearmParams = GetFirearmParams();
-        if (_instances.Count > 0)
+        private void CreateFirearmMuzzleAndPlayShotSound()
         {
-            _instances.ForEach(i => Destroy(i.gameObject));
-            _instances.Clear();
+            foreach (var muzzle in _instances.Where(i => i.gameObject.activeInHierarchy)) muzzle.Play(true);
+            fireSound.PlayOneShot(ShotSoundClip);
         }
 
-        for (var i = 0; i < 4; i++)
+        private void InitializeFirearmMuzzle()
         {
-            var anchor = actualModel.Parts[i].AnchorFireMuzzle;
-            var muzzle = Instantiate(firearmParams.FireMuzzlePrefab, anchor);
+            var firearmParams = GetFirearmParams();
+            if (_instances.Count > 0)
+            {
+                _instances.ForEach(i => Destroy(i.gameObject));
+                _instances.Clear();
+            }
 
-            _instances.Add(muzzle);
+            for (var i = 0; i < 4; i++)
+            {
+                var anchor = actualModel.Parts[i].AnchorFireMuzzle;
+                var muzzle = Instantiate(firearmParams.FireMuzzlePrefab, anchor);
+
+                _instances.Add(muzzle);
+            }
+            ShotSoundClip = firearmParams.ShotSound;
         }
-        ShotSoundClip = firearmParams.ShotSound;
-    }
 
-    public void EquipGun(ItemSprite item)
-    {
-        actualModel.Equip(item, EquipmentPart.Firearm1H);
-    }
+        public void EquipGun(ItemSprite item)
+        {
+            actualModel.Equip(item, EquipmentPart.Firearm1H);
+        }
     
-    static Vector3 SnapToCardinalDirection(Vector3 dir)
-    {
-        if (dir == Vector3.zero) return Vector3.zero;
-
-        var angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        if (angle < 0) angle += 360f;
-
-        return angle switch
+        static Vector3 SnapToCardinalDirection(Vector3 dir)
         {
-            >= 45f and < 135f => Vector3.up,
-            >= 135f and < 225f => Vector3.left,
-            >= 225f and < 315f => Vector3.down,
-            _ => Vector3.right
-        };
+            if (dir == Vector3.zero) return Vector3.zero;
+
+            var angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+            if (angle < 0) angle += 360f;
+
+            return angle switch
+            {
+                >= 45f and < 135f => Vector3.up,
+                >= 135f and < 225f => Vector3.left,
+                >= 225f and < 315f => Vector3.down,
+                _ => Vector3.right
+            };
+        }
     }
 }

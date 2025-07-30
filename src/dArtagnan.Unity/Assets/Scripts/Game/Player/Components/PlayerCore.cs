@@ -18,6 +18,7 @@ namespace Game.Player.Components
         public PlayerAccuracy Accuracy { get; private set; }
         public PlayerReload Reload { get; private set; }
         public PlayerBalance Balance { get; private set; }
+        public PlayerTrajectory Trajectory { get; private set; }
 
         public Color MyColor => colorPool.colors[ID - 1];
 
@@ -30,6 +31,7 @@ namespace Game.Player.Components
             Accuracy = GetComponent<PlayerAccuracy>();
             Reload = GetComponent<PlayerReload>();
             Balance = GetComponent<PlayerBalance>();
+            Trajectory = GetComponent<PlayerTrajectory>();
         }
 
         private void SetNickname(string newNickname)
@@ -56,6 +58,7 @@ namespace Game.Player.Components
             Accuracy.Initialize(info);
             Reload.Initialize(info);
             Balance.Initialize(info);
+            Trajectory.Initialize(info);
         }
     }
 }

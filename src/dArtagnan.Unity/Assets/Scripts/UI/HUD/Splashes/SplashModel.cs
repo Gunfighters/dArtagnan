@@ -17,7 +17,7 @@ namespace UI.HUD.Splashes
         public static readonly ReactiveProperty<bool> RoundOver = new();
         public static readonly ReactiveProperty<bool> GameOver = new();
         private const float SplashDuration = 2.5f;
-        public static readonly ReactiveProperty<List<string>> Winners = new();
+        public static readonly ReactiveProperty<List<string>> Winners = new(new List<string>());
         
         static SplashModel()
         {

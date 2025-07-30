@@ -28,9 +28,10 @@ namespace Game
             PacketChannel.On<RoundStartFromServer>(e => ResetEveryone(e.PlayersInfo));
         }
         
+        [CanBeNull]
         public static PlayerCore GetPlayer(int id)
         {
-            return Players.GetValueOrDefault(id);
+            return Players.GetValueOrDefault(id, null);
         }
 
         private static void OnJoin(PlayerJoinBroadcast e)

@@ -9,6 +9,7 @@ namespace Game.Player.Components
     public class PlayerShoot : MonoBehaviour
     {
         private ModelManager _modelManager;
+        private PlayerTrajectory _trajectory;
         [CanBeNull] public PlayerCore Target { get; private set; }
         [SerializeField] private SpriteRenderer targetHighlightCircle;
         public float Range { get; private set; }
@@ -23,6 +24,7 @@ namespace Game.Player.Components
         private void Awake()
         {
             _modelManager = GetComponent<ModelManager>();
+            _trajectory = GetComponent<PlayerTrajectory>();
             _collider2D = GetComponent<Collider2D>();
             _contactFilter2D.useLayerMask = true;
             _contactFilter2D.layerMask = LayerMask.GetMask("Player", "Obstacle");
@@ -47,17 +49,16 @@ namespace Game.Player.Components
         public void Aim([CanBeNull] PlayerCore target)
         {
             if (target is null)
-                _modelManager.HideTrajectory();
+                _trajectory.Hide();
             else
-                _modelManager.ShowTrajectory(target.transform);
+                _trajectory.Target(target.transform);
         }
 
         public void Fire(PlayerCore target)
         {
             _modelManager.SetDirection(target.transform.position - transform.position);
             _modelManager.Fire();
-            _modelManager.ShowTrajectory(target.transform);
-            _modelManager.ScheduleHideTrajectory().Forget();
+            _trajectory.Flash(target.transform);
         }
         
         public bool CanShoot(PlayerCore target)
