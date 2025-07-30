@@ -15,7 +15,7 @@ namespace UI.HUD.Controls
         public AudioSource reloadSound;
         public Image JoystickAxis;
         public Image HandleOutline;
-        public SpriteRenderer Icon;
+        public Image Icon;
         public PlayerCore LocalPlayerCore => PlayerGeneralManager.LocalPlayerCore;
 
         private float RemainingReloadTime => LocalPlayerCore.Reload.RemainingReloadTime;
