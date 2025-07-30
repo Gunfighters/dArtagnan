@@ -7,10 +7,10 @@ namespace Game.Player.Components
 {
     public class PlayerCore : MonoBehaviour
     {
-        public int ID { get; private set; }
-        public string Nickname { get; private set; }
         public TextMeshProUGUI nicknameText;
         [SerializeField] private ColorPool colorPool;
+        public int ID { get; private set; }
+        public string Nickname { get; private set; }
         public PlayerModel Model { get; private set; }
         public PlayerHealth Health { get; private set; }
         public PlayerPhysics Physics { get; private set; }
@@ -42,7 +42,6 @@ namespace Game.Player.Components
 
         private void SetColor(Color color)
         {
-            nicknameText.color = color;
             Model.SetColor(color);
         }
 
