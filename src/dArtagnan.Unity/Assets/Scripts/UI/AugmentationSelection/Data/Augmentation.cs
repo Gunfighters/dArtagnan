@@ -7,12 +7,14 @@ namespace UI.AugmentationSelection.Data
     public struct Augmentation
     {
         public int id;
+        public string name;
         public Sprite sprite;
         public string description;
 
-        public Augmentation(int id, Sprite sprite, string description)
+        public Augmentation(int id, string name, Sprite sprite, string description)
         {
             this.id = id;
+            this.name = name;
             this.sprite = sprite;
             this.description = description;
         }
