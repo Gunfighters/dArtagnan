@@ -14,32 +14,42 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   augmentations:
   - id: 1
+    name: Item #1
     sprite: {fileID: 21300000, guid: c1e3f83fb7eb942ee8baa3d7c3723eb1, type: 3}
-    description: Item #1
+    description: Bag
   - id: 2
+    name: Item #2
     sprite: {fileID: 21300000, guid: 7f5077902f34e4dcda6e69df4ced83a7, type: 3}
-    description: Item #2
+    description: Gloves
   - id: 3
+    name: Item #3
     sprite: {fileID: 21300000, guid: b7d7e36f0c41c4316a6ea75d0a9321a6, type: 3}
-    description: Item #3
+    description: Energy
   - id: 4
+    name: Item #4
     sprite: {fileID: 21300000, guid: 3fb23bf6552b44aafb168ed0584e1641, type: 3}
-    description: Item #4
+    description: Gold
   - id: 5
+    name: Item #5
     sprite: {fileID: 21300000, guid: 7f09d3082a97a42e5a902edd5a6e37a4, type: 3}
-    description: Item #5
+    description: Oil
   - id: 6
+    name: Item #6
     sprite: {fileID: 21300000, guid: cba6fba15682e49cdab63583abb7be7c, type: 3}
-    description: Item #6
+    description: Target
   - id: 7
+    name: Item #7
     sprite: {fileID: 21300000, guid: c28d54c4733dc4fc7bedc4189f66bfbc, type: 3}
-    description: Item #7
+    description: Shield
   - id: 8
+    name: Item #8
     sprite: {fileID: 21300000, guid: ea73c8c20afcd4bf4b8a82f0bedfe2ff, type: 3}
-    description: Item #8
+    description: Magnetic
   - id: 9
+    name: Item #9
     sprite: {fileID: 21300000, guid: f906e57fb43bb4c48b8705c36ff4bafa, type: 3}
-    description: Item #19
+    description: Crown
   - id: 10
+    name: Item #10
     sprite: {fileID: 21300000, guid: f51a90149e1314fec94565a904e11a20, type: 3}
-    description: Item #10
+    description: Ranking
