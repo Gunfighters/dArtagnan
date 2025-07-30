@@ -7,16 +7,15 @@ using Assets.HeroEditor4D.Common.Scripts.Data;
 using Assets.HeroEditor4D.Common.Scripts.Enums;
 using dArtagnan.Shared;
 using UnityEngine;
+using Utils;
 
 namespace Game.Player.Components
 {
     public class ModelManager : MonoBehaviour
     {
         public Character4D actualModel;
-        public Character4D modelSilhouette;
         public CharacterState initialState;
-        public Vector2 direction;
-        public float spriteAlpha;
+        private Vector2 _direction;
         public AudioSource fireSound;
         public FirearmCollection firearmCollection;
         private readonly List<ParticleSystem> _instances = new();
@@ -28,7 +27,7 @@ namespace Game.Player.Components
         private void Start()
         {
             // SetTransparent();
-            SetDirection(direction == Vector2.zero ? Vector2.down : direction);
+            SetDirection(_direction == Vector2.zero ? Vector2.down : _direction);
             SetState(initialState);
             InitializeFirearmMuzzle();
         }
@@ -36,42 +35,26 @@ namespace Game.Player.Components
         public void Initialize(PlayerInformation info)
         {
             actualModel.SetExpression("Default");
-            modelSilhouette.SetExpression("Default");
             var gunSprite = GunCollection.GunSpriteByAccuracy(info.Accuracy);
             actualModel.Equip(gunSprite, GunCollection.Firearm1H.Contains(gunSprite) ? EquipmentPart.Firearm1H : EquipmentPart.Firearm2H);
-            modelSilhouette.Equip(gunSprite, GunCollection.Firearm1H.Contains(gunSprite) ? EquipmentPart.Firearm1H : EquipmentPart.Firearm2H);
             InitializeFirearmMuzzle();
         }
 
         public void SetHatColor(Color color)
         {
             actualModel.SetHatColor(color);
-            modelSilhouette.SetHatColor(color);
-        }
-    
-        void SetTransparent()
-        {
-            var sprites = modelSilhouette.GetComponentsInChildren<SpriteRenderer>(true);
-            foreach (var spriteRenderer in sprites)
-            {
-                var modified = spriteRenderer.color;
-                modified.a = spriteAlpha;
-                spriteRenderer.color = modified;
-            }
         }
 
-        void SetState(CharacterState state)
+        private void SetState(CharacterState state)
         {
             actualModel.SetState(state);
-            modelSilhouette.SetState(state);
         }
 
         public void SetDirection(Vector2 newDir)
         {
             if (newDir == Vector2.zero) return;
-            direction = SnapToCardinalDirection(newDir);
-            actualModel.SetDirection(direction);
-            modelSilhouette.SetDirection(direction);
+            _direction = newDir.SnapToCardinalDirection();
+            actualModel.SetDirection(_direction);
         }
 
         public void Walk()
@@ -92,14 +75,12 @@ namespace Game.Player.Components
         public void Fire()
         {
             actualModel.AnimationManager.Fire();
-            modelSilhouette.AnimationManager.Fire();
             CreateFirearmMuzzleAndPlayShotSound();
         }
     
         public void Die()
         {
             actualModel.SetState(CharacterState.Death);
-            modelSilhouette.SetState(CharacterState.Death);
         }
 
         private FirearmParams GetFirearmParams()
@@ -157,22 +138,6 @@ namespace Game.Player.Components
         public void EquipGun(ItemSprite item)
         {
             actualModel.Equip(item, EquipmentPart.Firearm1H);
-        }
-    
-        static Vector3 SnapToCardinalDirection(Vector3 dir)
-        {
-            if (dir == Vector3.zero) return Vector3.zero;
-
-            var angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-            if (angle < 0) angle += 360f;
-
-            return angle switch
-            {
-                >= 45f and < 135f => Vector3.up,
-                >= 135f and < 225f => Vector3.left,
-                >= 225f and < 315f => Vector3.down,
-                _ => Vector3.right
-            };
         }
     }
 }
