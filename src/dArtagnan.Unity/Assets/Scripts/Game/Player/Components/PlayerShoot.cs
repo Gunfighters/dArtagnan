@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
@@ -9,18 +10,18 @@ namespace Game.Player.Components
 {
     public class PlayerShoot : MonoBehaviour
     {
-        private PlayerModel _playerModel;
-        private PlayerTrajectory _trajectory;
-        [CanBeNull] public PlayerCore Target { get; private set; }
         [SerializeField] private SpriteRenderer targetHighlightCircle;
-        public float Range { get; private set; }
-        private Collider2D _collider2D;
-        private readonly RaycastHit2D[] _hits = new RaycastHit2D[2];
-        private ContactFilter2D _contactFilter2D;
         [SerializeField] private TextMeshProUGUI hitMissText;
         [SerializeField] private Color hitTextColor;
         [SerializeField] private Color missTextColor;
         [SerializeField] private float hitMissShowingDuration;
+        private readonly RaycastHit2D[] _hits = new RaycastHit2D[2];
+        private Collider2D _collider2D;
+        private ContactFilter2D _contactFilter2D;
+        private PlayerModel _playerModel;
+        private PlayerTrajectory _trajectory;
+        [CanBeNull] public PlayerCore Target { get; private set; }
+        public float Range { get; private set; }
 
         private void Awake()
         {
@@ -30,6 +31,7 @@ namespace Game.Player.Components
             _contactFilter2D.useLayerMask = true;
             _contactFilter2D.layerMask = LayerMask.GetMask("Player", "Obstacle");
             HighlightAsTarget(false);
+            hitMissText.enabled = false;
         }
 
         public void Initialize(PlayerInformation info)
@@ -60,7 +62,7 @@ namespace Game.Player.Components
         {
             if (Vector2.Distance(target.transform.position, transform.position) > Range) return false;
             _collider2D.Raycast(target.transform.position - transform.position, _contactFilter2D, _hits, Range);
-            System.Array.Sort(_hits, (x, y) => x.distance.CompareTo(y.distance));
+            Array.Sort(_hits, (x, y) => x.distance.CompareTo(y.distance));
             return _hits[0].transform == target.transform;
         }
 
@@ -68,7 +70,7 @@ namespace Game.Player.Components
         {
             targetHighlightCircle.enabled = show;
         }
-        
+
         public void ShowHitOrMiss(bool hit)
         {
             hitMissText.text = hit ? "HIT!" : "MISS!";
@@ -97,12 +99,14 @@ namespace Game.Player.Components
                     .Aggregate((a, b) =>
                         Vector2.Distance(a.transform.position, transform.position)
                         < Vector2.Distance(b.transform.position, transform.position)
-                            ? a : b);
+                            ? a
+                            : b);
             return targetPool
                 .Aggregate((a, b) =>
                     Vector2.Angle(aim, a.transform.position - transform.position)
                     < Vector2.Angle(aim, b.transform.position - transform.position)
-                        ? a : b);
+                        ? a
+                        : b);
         }
     }
 }
