@@ -354,7 +354,7 @@ internal class Program
         }
     }
 
-    static async Task SendAugmentSelection(int index)
+    static async Task SendAugmentSelection(int id)
     {
         if (!isConnected || stream == null)
         {
@@ -362,19 +362,13 @@ internal class Program
             return;
         }
 
-        if (index < 0 || index > 2)
-        {
-            Console.WriteLine("증강 인덱스는 0, 1, 2 중 하나여야 합니다.");
-            return;
-        }
-
         try
         {
             await NetworkUtils.SendPacketAsync(stream, new AugmentDoneFromClient
             {
-                SelectedAugmentIndex = index
+                SelectedAugmentID = id
             });
-            Console.WriteLine($"증강 선택 패킷 전송: 인덱스 {index}");
+            Console.WriteLine($"증강 선택 패킷 전송: {id}번 선택");
         }
         catch (Exception ex)
         {

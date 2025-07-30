@@ -22,6 +22,7 @@ public class NetworkManager : MonoBehaviour, IChannelListener
         PacketChannel.On<StartGameFromClient>(Send);
         PacketChannel.On<SetAccuracyState>(Send);
         PacketChannel.On<RouletteDone>(Send);
+        PacketChannel.On<AugmentDoneFromClient>(Send);
         LocalEventChannel.OnEndpointSelected += Connect;
     }
 

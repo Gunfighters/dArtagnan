@@ -146,7 +146,7 @@ public class ClientConnection
                     command = new AugmentDoneCommand
                     {
                         ClientId = Id,
-                        SelectedAugmentIndex = augmentDone.SelectedAugmentIndex
+                        SelectedAugmentId = augmentDone.SelectedAugmentID
                     };
                     break;
 

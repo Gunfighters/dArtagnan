@@ -1,3 +1,6 @@
+using dArtagnan.Shared;
+using R3;
+using R3.Triggers;
 using TMPro;
 using UI.AugmentationSelection.Data;
 using UnityEngine;
@@ -13,18 +16,19 @@ namespace UI.AugmentationSelection.Frame
         [SerializeField] private Image image;
         [SerializeField] private TextMeshProUGUI description;
         [SerializeField] private AugmentationCollection augmentationCollection;
+        [SerializeField] private Toggle selectedToggle;
 
         public void Setup(int id)
         {
             Augmentation = augmentationCollection.GetAugmentationById(id);
             nameText.text = Augmentation.name;
-            image.sprite = Augmentation.sprite;
+            image.sprite = Augmentation.sprite;;
             description.text = Augmentation.description;
         }
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            transform.localScale *= 1.1f;
+            transform.localScale = Vector3.one * 1.05f;
         }
 
         public void OnPointerExit(PointerEventData eventData)
@@ -34,7 +38,8 @@ namespace UI.AugmentationSelection.Frame
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            
+            selectedToggle.isOn = true;
+            PacketChannel.Raise(new AugmentDoneFromClient { SelectedAugmentID = Augmentation.id });
         }
     }
 }

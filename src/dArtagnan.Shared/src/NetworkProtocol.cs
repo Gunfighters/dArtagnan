@@ -364,7 +364,7 @@ namespace dArtagnan.Shared
     [MessagePackObject]
     public struct AugmentDoneFromClient : IPacket
     {
-        [Key(0)] public int SelectedAugmentIndex; // 선택한 증강의 인덱스 (0, 1, 2)
+        [Key(0)] public int SelectedAugmentID; // 선택한 증강의 번호.
     }
 
     /// <summary>

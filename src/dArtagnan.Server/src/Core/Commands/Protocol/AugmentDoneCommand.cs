@@ -8,7 +8,7 @@ namespace dArtagnan.Server;
 public class AugmentDoneCommand : IGameCommand
 {
     required public int ClientId;
-    required public int SelectedAugmentIndex;
+    required public int SelectedAugmentId;
     
     public async Task ExecuteAsync(GameManager gameManager)
     {
@@ -41,13 +41,6 @@ public class AugmentDoneCommand : IGameCommand
             return;
         }
 
-        // 증강 인덱스 유효성 검증 (0, 1, 2)
-        if (SelectedAugmentIndex < 0 || SelectedAugmentIndex > 2)
-        {
-            Console.WriteLine($"[증강] {ClientId}번 플레이어 - 잘못된 증강 인덱스: {SelectedAugmentIndex}");
-            return;
-        }
-
         // 플레이어의 증강 옵션 가져오기
         if (!gameManager.playerAugmentOptions.TryGetValue(ClientId, out var augmentOptions))
         {
@@ -55,25 +48,22 @@ public class AugmentDoneCommand : IGameCommand
             return;
         }
 
-        // 선택된 증강 ID 가져오기
-        if (SelectedAugmentIndex >= augmentOptions.Count)
+        if (!augmentOptions.Contains(SelectedAugmentId))
         {
-            Console.WriteLine($"[증강] {ClientId}번 플레이어 - 증강 인덱스 범위 초과: {SelectedAugmentIndex}");
+            Console.WriteLine($"[증강] {ClientId}번 플레이어 - 제시되지 않은 증강을 선택: ${SelectedAugmentId}번 증강");
             return;
         }
-        
-        var selectedAugmentId = augmentOptions[SelectedAugmentIndex];
-        
+
         // 플레이어에게 증강 추가
-        player.Augments.Add(selectedAugmentId);
+        player.Augments.Add(SelectedAugmentId);
         
         // 증강 효과 적용
-        ApplyAugmentEffect(player, selectedAugmentId);
+        ApplyAugmentEffect(player, SelectedAugmentId);
         
         // 선택 완료 표시
         gameManager.augmentSelectionDonePlayers.Add(ClientId);
         
-        Console.WriteLine($"[증강] {ClientId}번 플레이어가 증강 {selectedAugmentId}를 획득했습니다");
+        Console.WriteLine($"[증강] {ClientId}번 플레이어가 증강 {SelectedAugmentId}를 획득했습니다");
 
         // 모든 플레이어가 증강을 선택했는지 확인
         var alivePlayers = gameManager.Players.Values.Where(p => !p.Bankrupt).ToList();
