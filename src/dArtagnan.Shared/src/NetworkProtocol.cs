@@ -27,8 +27,6 @@ namespace dArtagnan.Shared
     [Union(20, typeof(PongPacket))]
     [Union(21, typeof(SetAccuracyState))]
     [Union(22, typeof(PlayerAccuracyStateBroadcast))]
-    [Union(23, typeof(YourAccuracyAndPool))]
-    [Union(24, typeof(RouletteDone))]
     [Union(25, typeof(BettingDeductionBroadcast))]
     [Union(26, typeof(AugmentStartFromServer))]
     [Union(27, typeof(AugmentDoneFromClient))]
@@ -37,6 +35,10 @@ namespace dArtagnan.Shared
     [Union(30, typeof(ItemAcquiredBroadcast))]
     [Union(31, typeof(UseItemFromClient))]
     [Union(32, typeof(ItemUsedBroadcast))]
+    [Union(33, typeof(AccuracySelectionStartFromServer))]
+    [Union(34, typeof(PlayerTurnToSelectAccuracy))]
+    [Union(35, typeof(PlayerHasSelectedAccuracyFromServer))]
+    [Union(36, typeof(WantToSelectAccuracyFromClient))]
     public interface IPacket
     {
     }
@@ -113,6 +115,7 @@ namespace dArtagnan.Shared
     public struct PlayerMovementDataFromClient : IPacket
     {
         [Key(0)] public int Direction;
+
         // [Key(1)] public Vector2 Position;
         [Key(1)] public MovementData MovementData;
     }
@@ -208,7 +211,8 @@ namespace dArtagnan.Shared
     /// </summary>
     [MessagePackObject]
     public struct StartGameFromClient : IPacket
-    {}
+    {
+    }
 
     /// <summary>
     /// [서버 => 클라이언트]
@@ -233,6 +237,47 @@ namespace dArtagnan.Shared
         [Key(0)] public List<PlayerInformation> PlayersInfo;
         [Key(1)] public int Round;
         [Key(2)] public int BettingAmount;
+    }
+
+    /// <summary>
+    ///     [서버 => 클라이언트]
+    ///     명중률을 고르는 단계가 시작되었다. AccuracyPool에 있는 명중률을 사람들이 하나씩 고른다.
+    /// </summary>
+    [MessagePackObject]
+    public struct AccuracySelectionStartFromServer : IPacket
+    {
+        [Key(0)] public List<int> AccuracyPool;
+    }
+
+    /// <summary>
+    ///     [서버 => 클라이언트]
+    ///     PlayerId번 플레이어가 명중률을 고를 차례다.
+    /// </summary>
+    [MessagePackObject]
+    public struct PlayerTurnToSelectAccuracy : IPacket
+    {
+        [Key(0)] public int PlayerId;
+    }
+
+    /// <summary>
+    ///     [클라이언트 => 서버]
+    ///     AccuracyIndexDesired번 명중률을 고르고 싶다.
+    /// </summary>
+    [MessagePackObject]
+    public struct WantToSelectAccuracyFromClient : IPacket
+    {
+        [Key(0)] public int AccuracyIndexDesired;
+    }
+
+    /// <summary>
+    ///     [서버 => 클라리언트]
+    ///     PlayerId번 플레이어가 AccuracyIndex번 명중률을 골랐다(AccuracyIndex는 인덱스이지 명중률 값이 아니다).
+    /// </summary>
+    [MessagePackObject]
+    public struct PlayerHasSelectedAccuracyFromServer : IPacket
+    {
+        [Key(0)] public int PlayerId;
+        [Key(1)] public int AccuracyIndex;
     }
 
     /// <summary>
@@ -301,28 +346,6 @@ namespace dArtagnan.Shared
         [Key(1)] public int AccuracyState; // -1: 정확도 감소, 0: 정확도 유지, 1: 정확도 증가
     }
 
-    /// <summary>
-    /// [서버 => 클라이언트]
-    /// 너의 정확도는 YourAccuracy이다. 등장가능한 정확도 풀은 AccuracyPool과 같다.
-    /// </summary>
-    [MessagePackObject]
-    public struct YourAccuracyAndPool : IPacket
-    {
-        [Key(0)] public int YourAccuracy;
-        [Key(1)] public List<int> AccuracyPool;
-    }
-    
-    /// <summary>
-    /// [클라이언트 => 서버]
-    /// 룰렛을 돌려 나의 명중률을 확인하였다.
-    /// TrialCount는 현재 안쓰이는 변수이지만 빈 패킷끼리 구분을 못하는 버그 땜애 임시로 존재
-    /// </summary>
-    [MessagePackObject]
-    public struct RouletteDone : IPacket
-    {
-        [Key(0)] public int TrialCount;
-    }
-
     [MessagePackObject]
     public struct PingPacket : IPacket
     {
@@ -330,9 +353,9 @@ namespace dArtagnan.Shared
 
     [MessagePackObject]
     public struct PongPacket : IPacket
-    {  
+    {
     }
-    
+
     /// <summary>
     /// [서버 => 클라이언트]
     /// 10초마다 베팅금이 차감되었음을 알려주는 패킷
@@ -417,6 +440,7 @@ namespace dArtagnan.Shared
     public struct ItemUsedBroadcast : IPacket
     {
         [Key(0)] public int PlayerId; // 아이템을 사용한 플레이어
+
         [Key(1)] public int ItemId; // 사용한 아이템의 ID
         // [Key(2)] public int TargetPlayerId; // 아이템의 대상이 된 플레이어 ID. 없으면 -1
     }

@@ -6,11 +6,13 @@ namespace Game
     public class GameStateManager : MonoBehaviour, IChannelListener
     {
         public static GameState GameState { get; private set; }
+
         public void Initialize()
         {
             PacketChannel.On<RoundStartFromServer>(OnGamePlaying);
             PacketChannel.On<WaitingStartFromServer>(OnGameWaiting);
-            PacketChannel.On<YourAccuracyAndPool>(OnYourAccuracyAndPool);;
+            PacketChannel.On<AccuracySelectionStartFromServer>(OnAccuracySelection);
+            ;
         }
 
         private static void OnGamePlaying(RoundStartFromServer e)
@@ -23,9 +25,9 @@ namespace Game
             GameState = GameState.Waiting;
         }
 
-        private static void OnYourAccuracyAndPool(YourAccuracyAndPool e)
+        private static void OnAccuracySelection(AccuracySelectionStartFromServer e)
         {
-            GameState = GameState.Roulette;
+            GameState = GameState.AccuracySelection;
         }
     }
 }
