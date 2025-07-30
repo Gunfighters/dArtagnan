@@ -51,7 +51,7 @@ namespace Game.Player.Components
             if (target is null)
                 _trajectory.Hide();
             else
-                _trajectory.Target(target.transform);
+                _trajectory.Aim(target.transform);
         }
 
         public void Fire(PlayerCore target)

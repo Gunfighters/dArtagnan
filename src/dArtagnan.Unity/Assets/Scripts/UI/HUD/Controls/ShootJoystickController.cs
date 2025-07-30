@@ -35,6 +35,14 @@ namespace UI.HUD.Controls
         private void Update()
         {
             if (!LocalPlayerCore) return;
+            if (Moving && Shootable && LocalPlayerCore.Shoot.Target)
+            {
+                LocalPlayerCore.Trajectory.Aim(LocalPlayerCore.Shoot.Target.transform);
+            }
+            else
+            {
+                LocalPlayerCore.Trajectory.Hide();
+            }
             // shootButton.interactable = controlledPlayerCooldown <= 0;
             HandleOutline.color =
                 Icon.color = Shootable ? LocalPlayerCore.Shoot.Target is null ? orange : Color.red : Color.grey;
