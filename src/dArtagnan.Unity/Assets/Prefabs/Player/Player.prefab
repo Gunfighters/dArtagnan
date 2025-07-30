@@ -617,7 +617,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 027c860dc99d41dd9113db2d4b4f89e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GunCollection: {fileID: 11400000, guid: 91824a520d391974a88f36ad4936d63a, type: 2}
+  gunCollection: {fileID: 11400000, guid: 91824a520d391974a88f36ad4936d63a, type: 2}
   firearmCollection: {fileID: 11400000, guid: 28e732d5a6846604db331fadf9eec50e, type: 2}
 --- !u!82 &-7853337695106768655
 AudioSource:
@@ -1017,7 +1017,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: 3.13}
+  m_AnchoredPosition: {x: 0, y: 2.2}
   m_SizeDelta: {x: 4, y: 2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6566348092635724919
@@ -1035,7 +1035,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7003883383978397209}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
@@ -1075,8 +1075,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 1.5
-  m_fontSizeBase: 0.8
+  m_fontSize: 1
+  m_fontSizeBase: 1
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18

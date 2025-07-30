@@ -12,12 +12,12 @@ namespace Game.Player.Components
 {
     public class PlayerModel : MonoBehaviour
     {
-        private Character4D _actualModel;
-        private AudioSource _audioPlayer;
-        public SpriteCollection GunCollection;
+        public SpriteCollection gunCollection;
         public FirearmCollection firearmCollection;
         private readonly List<ParticleSystem> _instances = new();
-        private AudioClip ShotSoundClip;
+        private Character4D _actualModel;
+        private AudioSource _audioPlayer;
+        private AudioClip _shotSoundClip;
 
         private void Awake()
         {
@@ -29,8 +29,9 @@ namespace Game.Player.Components
         {
             SetDirection(info.MovementData.Direction.IntToDirection());
             _actualModel.SetExpression(info.Alive ? "Default" : "Death");
-            var gunSprite = GunCollection.GunSpriteByAccuracy(info.Accuracy);
-            _actualModel.Equip(gunSprite, GunCollection.Firearm1H.Contains(gunSprite) ? EquipmentPart.Firearm1H : EquipmentPart.Firearm2H);
+            var gunSprite = gunCollection.GunSpriteByAccuracy(info.Accuracy);
+            _actualModel.Equip(gunSprite,
+                gunCollection.Firearm1H.Contains(gunSprite) ? EquipmentPart.Firearm1H : EquipmentPart.Firearm2H);
             InitializeFirearmMuzzle();
         }
 
@@ -65,7 +66,7 @@ namespace Game.Player.Components
             _actualModel.AnimationManager.Fire();
             CreateFirearmMuzzleAndPlayShotSound();
         }
-    
+
         public void Die()
         {
             _actualModel.SetState(CharacterState.Death);
@@ -77,6 +78,7 @@ namespace Game.Player.Components
             {
                 throw new Exception($"PrimaryWeapon not set");
             }
+
             var firearm =
                 _actualModel.SpriteCollection.Firearm1H.SingleOrDefault(i =>
                     i.Sprites.Contains(_actualModel.Parts[0].PrimaryWeapon))
@@ -95,13 +97,14 @@ namespace Game.Player.Components
             {
                 throw new Exception($"Firearm params not found for {firearm.Name}.");
             }
+
             return foundParams;
         }
 
         private void CreateFirearmMuzzleAndPlayShotSound()
         {
             foreach (var muzzle in _instances.Where(i => i.gameObject.activeInHierarchy)) muzzle.Play(true);
-            _audioPlayer.PlayOneShot(ShotSoundClip);
+            _audioPlayer.PlayOneShot(_shotSoundClip);
         }
 
         private void InitializeFirearmMuzzle()
@@ -120,7 +123,8 @@ namespace Game.Player.Components
 
                 _instances.Add(muzzle);
             }
-            ShotSoundClip = firearmParams.ShotSound;
+
+            _shotSoundClip = firearmParams.ShotSound;
         }
     }
 }
