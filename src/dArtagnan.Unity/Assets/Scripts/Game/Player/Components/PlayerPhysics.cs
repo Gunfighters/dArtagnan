@@ -7,7 +7,7 @@ namespace Game.Player.Components
     public class PlayerPhysics : MonoBehaviour
     {
         private Rigidbody2D _rb;
-        private ModelManager _modelManager;
+        private PlayerModel _playerModel;
         private Vector2 _direction;
         public Vector2 Position => _rb.position;
         private float _speed;
@@ -32,7 +32,7 @@ namespace Game.Player.Components
         private void Awake()
         {
             _rb = GetComponent<Rigidbody2D>();
-            _modelManager = GetComponent<ModelManager>();
+            _playerModel = GetComponent<PlayerModel>();
         }
 
         public void Initialize(PlayerInformation info)
@@ -46,11 +46,11 @@ namespace Game.Player.Components
         {
             if (_direction == Vector2.zero)
             {
-                _modelManager.Idle();
+                _playerModel.Idle();
             }
             else
             {
-                _modelManager.Run();
+                _playerModel.Walk();
                 SetFaceDirection(_direction);
             }
         }
@@ -98,7 +98,7 @@ namespace Game.Player.Components
     
         private void SetFaceDirection(Vector2 direction)
         {
-            _modelManager.SetDirection(direction);
+            _playerModel.SetDirection(direction);
         }
     }
 }

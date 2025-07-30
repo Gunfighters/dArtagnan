@@ -8,7 +8,7 @@ namespace Game.Player.Components
 {
     public class PlayerShoot : MonoBehaviour
     {
-        private ModelManager _modelManager;
+        private PlayerModel _playerModel;
         private PlayerTrajectory _trajectory;
         [CanBeNull] public PlayerCore Target { get; private set; }
         [SerializeField] private SpriteRenderer targetHighlightCircle;
@@ -23,7 +23,7 @@ namespace Game.Player.Components
 
         private void Awake()
         {
-            _modelManager = GetComponent<ModelManager>();
+            _playerModel = GetComponent<PlayerModel>();
             _trajectory = GetComponent<PlayerTrajectory>();
             _collider2D = GetComponent<Collider2D>();
             _contactFilter2D.useLayerMask = true;
@@ -56,8 +56,8 @@ namespace Game.Player.Components
 
         public void Fire(PlayerCore target)
         {
-            _modelManager.SetDirection(target.transform.position - transform.position);
-            _modelManager.Fire();
+            _playerModel.SetDirection(target.transform.position - transform.position);
+            _playerModel.Fire();
             _trajectory.Flash(target.transform);
         }
         
