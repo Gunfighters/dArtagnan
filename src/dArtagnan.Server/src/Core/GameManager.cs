@@ -22,8 +22,8 @@ public class GameManager
     
     // 베팅금/판돈 시스템
     public int TotalPrizeMoney = 0; // 총 판돈
-    //public readonly int[] BettingAmounts = { 10, 20, 30, 40 }; // 라운드별 베팅금
-    public readonly int[] BettingAmounts = { 30, 20, 30, 40 }; // 라운드별 베팅금 //개발용
+    public readonly int[] BettingAmounts = { 10, 20, 30, 40 }; // 라운드별 베팅금
+    // public readonly int[] BettingAmounts = { 30, 20, 30, 40 }; // 라운드별 베팅금 //개발용
     public int BettingAmount = 0;
     public float BettingTimer = 0f; // 베팅금 차감 타이머 constants.BETTING_PERIOD 마다
     public const int MAX_ROUNDS = 4; // 최대 라운드 수
@@ -312,8 +312,8 @@ public class GameManager
             else
             {
                 // 라운드 종료 후 다음 라운드 진행 전에 증강 선택 단계 시작
-                //await StartAugmentSelection();
-                await StartNextRoundAsync(Round + 1);
+                await StartAugmentSelection();
+                // await StartNextRoundAsync(Round + 1);
             }
         }
     }
