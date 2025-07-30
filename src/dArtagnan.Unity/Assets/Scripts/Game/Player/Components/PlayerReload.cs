@@ -8,7 +8,7 @@ namespace Game.Player.Components
     {
         public float TotalReloadTime { get; private set; }
         public float RemainingReloadTime { get; private set; }
-        [SerializeField] private ReloadingTimePie reloadingTimePie;
+        [SerializeField] private ReloadingSlider reloadingSlider;
 
         public void Initialize(PlayerInformation info)
         {
@@ -24,7 +24,7 @@ namespace Game.Player.Components
         public void UpdateRemainingReloadTime(float reloadTime)
         {
             RemainingReloadTime = Mathf.Max(0, reloadTime);
-            reloadingTimePie.Fill(RemainingReloadTime / TotalReloadTime);
+            reloadingSlider.Fill(RemainingReloadTime / TotalReloadTime);
         }
     }
 }
