@@ -11,19 +11,18 @@ namespace UI.HUD.Splashes
     [InitializeOnLoad]
     public static class SplashModel
     {
-        private const float SplashDuration = 2.5f;
         public static readonly ReactiveProperty<int> RoundIndex = new();
         public static readonly ReactiveProperty<bool> GameStart = new();
         public static readonly ReactiveProperty<bool> RoundStart = new();
         public static readonly ReactiveProperty<bool> RoundOver = new();
         public static readonly ReactiveProperty<bool> GameOver = new();
+        private const float SplashDuration = 2.5f;
         public static readonly ReactiveProperty<List<string>> Winners = new(new List<string>());
-
+        
         static SplashModel()
         {
-            PacketChannel.On<RoundStartFromServer>(e =>
+            PacketChannel.On<RoundStartFromServer>(_ =>
             {
-                RoundIndex.Value = e.Round;
                 Flash(RoundStart);
             });
             PacketChannel.On<RoundWinnerBroadcast>(e =>

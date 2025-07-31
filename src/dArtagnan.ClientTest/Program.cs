@@ -26,11 +26,9 @@ internal class Program
     {
         try
         {
-            var playerDirection = new PlayerMovementDataFromClient
-                { Direction = direction, MovementData = { Direction = direction, Position = position, Speed = speed } };
+            var playerDirection = new PlayerMovementDataFromClient { Direction = direction, MovementData = { Direction = direction, Position = position, Speed = speed} };
             await NetworkUtils.SendPacketAsync(stream, playerDirection);
-            Console.WriteLine(
-                $"이동 데이터 패킷 전송: 방향 {playerDirection.Direction}, 위치 {playerDirection.MovementData.Position} 속도: {playerDirection.MovementData.Speed}");
+            Console.WriteLine($"이동 데이터 패킷 전송: 방향 {playerDirection.Direction}, 위치 {playerDirection.MovementData.Position} 속도: {playerDirection.MovementData.Speed}");
         }
         catch (Exception ex)
         {
@@ -48,6 +46,7 @@ internal class Program
         Console.WriteLine("  d/dir [i] - 플레이어 이동 방향 변경");
         Console.WriteLine("  sh/shoot [targetId] - 플레이어 공격");
         Console.WriteLine("  a/accuracy [state] - 정확도 상태 변경 (-1: 감소, 0: 유지, 1: 증가)");
+        Console.WriteLine("  ro/roulette [count] - 룰렛 돌리기 완료 패킷 전송 (기본: 1)");
         Console.WriteLine("  au/augment [index] - 증강 선택 (0, 1, 2 중 하나)");
         Console.WriteLine("  ic/item-create [true/false] - 아이템 제작 시작/취소 (기본: true)");
         Console.WriteLine("  iu/use-item [targetId] - 아이템 사용 (targetId는 선택적, 기본: -1)");
@@ -93,7 +92,7 @@ internal class Program
                     var nickname = parts.Length > 1 ? parts[1] : "TestPlayer";
                     await JoinGame(nickname);
                     break;
-
+                    
                 case "s":
                 case "start":
                     await StartGame();
@@ -110,9 +109,8 @@ internal class Program
                     {
                         Console.WriteLine("사용법: d/dir [i]");
                     }
-
                     break;
-
+                
                 case "sh":
                 case "shoot":
                     if (parts.Length >= 2)
@@ -124,7 +122,6 @@ internal class Program
                     {
                         Console.WriteLine("사용법: sh/shoot [targetId]");
                     }
-
                     break;
 
                 case "a":
@@ -138,7 +135,19 @@ internal class Program
                     {
                         Console.WriteLine("사용법: a/accuracy [state] (-1: 감소, 0: 유지, 1: 증가)");
                     }
+                    break;
 
+                case "ro":
+                case "roulette":
+                    if (parts.Length >= 2)
+                    {
+                        var count = int.Parse(parts[1]);
+                        await SendRoulette(count);
+                    }
+                    else
+                    {
+                        await SendRoulette(1);
+                    }
                     break;
 
                 case "au":
@@ -152,7 +161,6 @@ internal class Program
                     {
                         Console.WriteLine("사용법: au/augment [index] (0, 1, 2 중 하나)");
                     }
-
                     break;
 
                 case "ic":
@@ -166,7 +174,6 @@ internal class Program
                     {
                         await SendItemCreating(true); // 기본값: 제작 시작
                     }
-
                     break;
 
                 case "iu":
@@ -180,7 +187,6 @@ internal class Program
                     {
                         await SendUseItem(-1); // 기본값: 타겟 없음
                     }
-
                     break;
 
                 case "l":
@@ -217,15 +223,15 @@ internal class Program
 
             client = new TcpClient();
             await client.ConnectAsync(host, port);
-
+            
             // TCP NoDelay 설정 (Nagle's algorithm 비활성화)
             client.NoDelay = true;
-
+            
             stream = client.GetStream();
             isConnected = true;
 
             Console.WriteLine($"서버에 연결되었습니다: {host}:{port}");
-
+            
             // 연결 성공 후 자동으로 게임 참가
             await JoinGame("TestPlayer");
         }
@@ -242,7 +248,7 @@ internal class Program
             Console.WriteLine("먼저 서버에 연결해주세요.");
             return;
         }
-
+            
         stopwatch.Start();
 
         try
@@ -312,7 +318,7 @@ internal class Program
             {
                 AccuracyState = state
             });
-
+            
             string stateText = state switch
             {
                 -1 => "감소",
@@ -320,12 +326,31 @@ internal class Program
                 1 => "증가",
                 _ => "알 수 없음"
             };
-
+            
             Console.WriteLine($"정확도 상태 변경 패킷 전송: {state} ({stateText})");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"정확도 상태 패킷 전송 실패: {ex.Message}");
+        }
+    }
+
+    static async Task SendRoulette(int count)
+    {
+        if (!isConnected || stream == null)
+        {
+            Console.WriteLine("먼저 서버에 연결해주세요.");
+            return;
+        }
+
+        try
+        {
+            await NetworkUtils.SendPacketAsync(stream, new RouletteDone { TrialCount = count });
+            Console.WriteLine($"룰렛 돌리기 완료 패킷 전송: 횟수 {count}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"룰렛 돌리기 완료 패킷 전송 실패: {ex.Message}");
         }
     }
 
@@ -365,7 +390,7 @@ internal class Program
             {
                 IsCreatingItem = isCreating
             });
-
+            
             var action = isCreating ? "시작" : "취소";
             Console.WriteLine($"아이템 제작 {action} 패킷 전송");
         }
@@ -389,7 +414,7 @@ internal class Program
             {
                 TargetPlayerId = targetId
             });
-
+            
             var targetText = targetId == -1 ? "타겟 없음" : $"타겟 {targetId}";
             Console.WriteLine($"아이템 사용 패킷 전송: {targetText}");
         }
@@ -449,27 +474,24 @@ internal class Program
                 case YouAre youAre:
                     Console.WriteLine($"서버에서 플레이어 ID 할당: {youAre.PlayerId}");
                     break;
-
+                        
                 case PlayerJoinBroadcast joinBroadcast:
                     Console.WriteLine($"플레이어 {joinBroadcast.PlayerInfo.PlayerId} 참가!");
                     break;
-
+                        
                 case PlayerMovementDataBroadcast movementDataBroadcast:
-                    Console.WriteLine(
-                        $"{movementDataBroadcast.PlayerId}번 플레이어 이동 데이터 갱신: 방향 {movementDataBroadcast.MovementData.Direction}, 위치 {movementDataBroadcast.MovementData.Position} 속도 {movementDataBroadcast.MovementData.Speed}");
+                    Console.WriteLine($"{movementDataBroadcast.PlayerId}번 플레이어 이동 데이터 갱신: 방향 {movementDataBroadcast.MovementData.Direction}, 위치 {movementDataBroadcast.MovementData.Position} 속도 {movementDataBroadcast.MovementData.Speed}");
                     break;
-
+                        
                 case WaitingStartFromServer gameWaiting:
                     Console.WriteLine($"=== 현재 방 상태 ===");
                     foreach (var info in gameWaiting.PlayersInfo)
                     {
                         Console.WriteLine($"  플레이어 {info.PlayerId}: {info.Nickname}");
                         Console.WriteLine($"    소지금: {info.Balance}달러");
-                        Console.WriteLine(
-                            $"    위치: ({info.MovementData.Position.X:F2}, {info.MovementData.Position.Y:F2})");
+                        Console.WriteLine($"    위치: ({info.MovementData.Position.X:F2}, {info.MovementData.Position.Y:F2})");
                         Console.WriteLine($"    명중률: {info.Accuracy}%");
-                        Console.WriteLine(
-                            $"    정확도 상태: {info.AccuracyState} ({GetAccuracyStateText(info.AccuracyState)})");
+                        Console.WriteLine($"    정확도 상태: {info.AccuracyState} ({GetAccuracyStateText(info.AccuracyState)})");
                         Console.WriteLine($"    속도: {info.MovementData.Speed:F2}");
                         Console.WriteLine($"    재장전: {info.RemainingReloadTime:F2}/{info.TotalReloadTime:F2}초");
                         Console.WriteLine($"    생존: {(info.Alive ? "생존" : "사망")}");
@@ -477,16 +499,14 @@ internal class Program
                         {
                             Console.WriteLine($"    증강: [{string.Join(", ", info.Augments)}]");
                         }
-
                         Console.WriteLine($"    아이템: {(info.CurrentItem == -1 ? "없음" : $"ID {info.CurrentItem}")}");
                         if (info.IsCreatingItem)
                         {
                             Console.WriteLine($"    제작 중: {info.CreatingRemainingTime:F1}초 남음");
                         }
                     }
-
                     break;
-
+                        
                 case RoundStartFromServer gamePlaying:
                     Console.WriteLine($"=== 게임 진행 중 (라운드 {gamePlaying.Round}) ===");
                     Console.WriteLine($"베팅금: {gamePlaying.BettingAmount}달러/10초");
@@ -494,11 +514,9 @@ internal class Program
                     {
                         Console.WriteLine($"  플레이어 {info.PlayerId}: {info.Nickname}");
                         Console.WriteLine($"    소지금: {info.Balance}달러");
-                        Console.WriteLine(
-                            $"    위치: ({info.MovementData.Position.X:F2}, {info.MovementData.Position.Y:F2})");
+                        Console.WriteLine($"    위치: ({info.MovementData.Position.X:F2}, {info.MovementData.Position.Y:F2})");
                         Console.WriteLine($"    명중률: {info.Accuracy}%");
-                        Console.WriteLine(
-                            $"    정확도 상태: {info.AccuracyState} ({GetAccuracyStateText(info.AccuracyState)})");
+                        Console.WriteLine($"    정확도 상태: {info.AccuracyState} ({GetAccuracyStateText(info.AccuracyState)})");
                         Console.WriteLine($"    속도: {info.MovementData.Speed:F2}");
                         Console.WriteLine($"    재장전: {info.RemainingReloadTime:F2}/{info.TotalReloadTime:F2}초");
                         Console.WriteLine($"    생존: {(info.Alive ? "생존" : "사망")}");
@@ -506,68 +524,73 @@ internal class Program
                         {
                             Console.WriteLine($"    증강: [{string.Join(", ", info.Augments)}]");
                         }
-
                         Console.WriteLine($"    아이템: {(info.CurrentItem == -1 ? "없음" : $"ID {info.CurrentItem}")}");
                         if (info.IsCreatingItem)
                         {
                             Console.WriteLine($"    제작 중: {info.CreatingRemainingTime:F1}초 남음");
                         }
                     }
-
                     break;
-
+                        
                 case PlayerShootingBroadcast shooting:
                     var hitMsg = shooting.Hit ? "명중!" : "빗나감";
                     Console.WriteLine($"플레이어 {shooting.ShooterId}가 플레이어 {shooting.TargetId}를 공격 - {hitMsg}");
                     break;
-
+                        
                 case UpdatePlayerAlive aliveUpdate:
                     var statusMsg = aliveUpdate.Alive ? "부활" : "사망";
                     Console.WriteLine($"플레이어 {aliveUpdate.PlayerId} {statusMsg}");
                     break;
-
+                    
                 case NewHostBroadcast newHost:
                     Console.WriteLine($"새로운 방장: {newHost.HostId}");
                     break;
-
+                        
                 case PlayerLeaveBroadcast leaveBroadcast:
                     Console.WriteLine($"플레이어 {leaveBroadcast.PlayerId}가 게임을 떠났습니다");
                     break;
-
+                        
                 case PlayerAccuracyStateBroadcast accuracyStateBroadcast:
-                    Console.WriteLine(
-                        $"플레이어 {accuracyStateBroadcast.PlayerId}의 정확도 상태 변경: {accuracyStateBroadcast.AccuracyState} ({GetAccuracyStateText(accuracyStateBroadcast.AccuracyState)})");
+                    Console.WriteLine($"플레이어 {accuracyStateBroadcast.PlayerId}의 정확도 상태 변경: {accuracyStateBroadcast.AccuracyState} ({GetAccuracyStateText(accuracyStateBroadcast.AccuracyState)})");
                     break;
-
+                        
+                case YourAccuracyAndPool yourAccuracyAndPool:
+                    Console.WriteLine($"=== 룰렛 정보 받음 ===");
+                    Console.WriteLine($"당신의 정확도: {yourAccuracyAndPool.YourAccuracy}%");
+                    Console.WriteLine($"정확도 풀: [{string.Join(", ", yourAccuracyAndPool.AccuracyPool)}]");
+                    Console.WriteLine($"자동으로 룰렛 돌리기 완료 패킷 전송...");
+                    
+                    // 자동으로 룰렛 돌리기 완료 패킷 전송
+                    await SendRoulette(1);
+                    break;
+                
                 case BettingDeductionBroadcast bettingDeduction:
                     Console.WriteLine($"🎯 [베팅금 차감] {bettingDeduction.DeductedAmount}달러씩 차감됨");
                     Console.WriteLine($"💰 현재 총 판돈: {bettingDeduction.TotalPrizeMoney}달러");
                     break;
-
+                    
                 case PlayerBalanceUpdateBroadcast balanceUpdate:
                     Console.WriteLine($"💳 플레이어 {balanceUpdate.PlayerId}의 소지금 업데이트: {balanceUpdate.Balance}달러");
                     break;
-
+                    
                 case RoundWinnerBroadcast roundWinner:
                     if (roundWinner.PlayerIds != null && roundWinner.PlayerIds.Count > 0)
                     {
-                        var winnerText = roundWinner.PlayerIds.Count == 1
+                        var winnerText = roundWinner.PlayerIds.Count == 1 
                             ? $"플레이어 {roundWinner.PlayerIds[0]}"
                             : $"플레이어 [{string.Join(", ", roundWinner.PlayerIds)}]";
-                        Console.WriteLine(
-                            $"🏆 [라운드 {roundWinner.Round} 승리] {winnerText}가 {roundWinner.PrizeMoney}달러 획득!");
+                        Console.WriteLine($"🏆 [라운드 {roundWinner.Round} 승리] {winnerText}가 {roundWinner.PrizeMoney}달러 획득!");
                     }
                     else
                     {
                         Console.WriteLine($"🏆 [라운드 {roundWinner.Round}] 승리자 없음!");
                     }
-
                     break;
-
+                    
                 case GameWinnerBroadcast gameWinner:
                     if (gameWinner.PlayerIds != null && gameWinner.PlayerIds.Count > 0)
                     {
-                        var winnerText = gameWinner.PlayerIds.Count == 1
+                        var winnerText = gameWinner.PlayerIds.Count == 1 
                             ? $"플레이어 {gameWinner.PlayerIds[0]}"
                             : $"플레이어 [{string.Join(", ", gameWinner.PlayerIds)}]";
                         Console.WriteLine($"🎊 [게임 최종 승리] {winnerText}가 게임에서 승리했습니다!");
@@ -576,7 +599,6 @@ internal class Program
                     {
                         Console.WriteLine($"🎊 [게임 종료] 승리자 없음!");
                     }
-
                     break;
 
                 case AugmentStartFromServer augmentStart:
@@ -585,7 +607,6 @@ internal class Program
                     {
                         Console.WriteLine($"  {i}: 증강 ID {augmentStart.AugmentOptions[i]}");
                     }
-
                     Console.WriteLine($"명령어 'au [0|1|2]'로 증강을 선택하세요.");
                     break;
 
@@ -595,14 +616,13 @@ internal class Program
                     break;
 
                 case ItemAcquiredBroadcast itemAcquired:
-                    Console.WriteLine(
-                        $"📦 [아이템 획득] 플레이어 {itemAcquired.PlayerId}가 아이템 ID {itemAcquired.ItemId}를 획득했습니다!");
+                    Console.WriteLine($"📦 [아이템 획득] 플레이어 {itemAcquired.PlayerId}가 아이템 ID {itemAcquired.ItemId}를 획득했습니다!");
                     break;
 
                 case ItemUsedBroadcast itemUsed:
                     Console.WriteLine($"⚡ [아이템 사용] 플레이어 {itemUsed.PlayerId}가 아이템 ID {itemUsed.ItemId}를 사용했습니다");
                     break;
-
+                        
                 default:
                     Console.WriteLine($"처리되지 않은 패킷 타입: {packet}");
                     break;

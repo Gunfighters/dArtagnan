@@ -29,24 +29,6 @@ namespace Assets.HeroEditor4D.Common.Scripts.Collections
             return icon?.Sprite;
         }
 
-        public Sprite GetIconByName(string iconName)
-        {
-            var icon = iconName == null ? null : Icons.SingleOrDefault(i => i.Name == iconName);
-            if (icon == null && iconName != null) Debug.LogWarning("Icon not found: " + iconName);
-            return icon?.Sprite;
-        }
-
-        public Sprite GunIconByAccuracy(int accuracy)
-        {
-            return accuracy switch
-            {
-                <= 25 => GetIconByName("Anaconda"),
-                <= 50 => GetIconByName("DesertEagle"),
-                <= 75 => GetIconByName("AK47"),
-                _ => GetIconByName("Widowmaker")
-            };
-        }
-
 #if UNITY_EDITOR
 
         public void Refresh()

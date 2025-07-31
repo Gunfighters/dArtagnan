@@ -1,25 +1,18 @@
 ﻿using System.Net.Sockets;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
+using Game;
 using Networking;
 using UnityEngine;
 
 public class NetworkManager : MonoBehaviour, IChannelListener
 {
-    [Header("Config")] [SerializeField] private NetworkManagerConfig config;
-
-    private readonly Channel<IPacket> _channel = Channel.CreateSingleConsumerUnbounded<IPacket>();
+    [Header("Config")]
+    [SerializeField] private NetworkManagerConfig config;
 
     private TcpClient _client;
     private NetworkStream _stream;
-
-    private void Update()
-    {
-        if (_channel.Reader.TryRead(out var packet))
-        {
-            PacketChannel.Raise(packet);
-        }
-    }
+    private readonly Channel<IPacket> _channel = Channel.CreateSingleConsumerUnbounded<IPacket>();
 
     public void Initialize()
     {
@@ -28,9 +21,17 @@ public class NetworkManager : MonoBehaviour, IChannelListener
         PacketChannel.On<PlayerIsTargetingFromClient>(Send);
         PacketChannel.On<StartGameFromClient>(Send);
         PacketChannel.On<SetAccuracyState>(Send);
+        PacketChannel.On<RouletteDone>(Send);
         PacketChannel.On<AugmentDoneFromClient>(Send);
-        PacketChannel.On<WantToSelectAccuracyFromClient>(Send);
         LocalEventChannel.OnEndpointSelected += Connect;
+    }
+
+    private void Update()
+    {
+        if (_channel.Reader.TryRead(out var packet))
+        {
+            PacketChannel.Raise(packet);
+        }
     }
 
     private void Connect(string host, int port)

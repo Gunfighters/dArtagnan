@@ -1,5 +1,6 @@
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using dArtagnan.Server.Core.Commands.Protocol;
 using dArtagnan.Shared;
 
 namespace dArtagnan.Server;
@@ -9,20 +10,20 @@ namespace dArtagnan.Server;
 /// </summary>
 public class ClientConnection
 {
-    private readonly GameManager gameManager;
-    public readonly int Id;
-    public readonly string IpAddress;
     private readonly NetworkStream stream;
     private readonly TcpClient tcpClient;
+    private readonly GameManager gameManager;
     private bool isRunning = true;
+    public readonly int Id;
+    public readonly string IpAddress;
 
     public ClientConnection(int id, TcpClient client, GameManager gameManager)
     {
         Id = id;
         tcpClient = client;
-
+        
         tcpClient.NoDelay = true;
-
+        
         IpAddress = client.Client.RemoteEndPoint!.ToString()!.Split(":")[0];
         stream = client.GetStream();
         this.gameManager = gameManager;
@@ -36,11 +37,11 @@ public class ClientConnection
         try
         {
             Console.WriteLine($"[클라이언트 {Id}] 연결됨. 패킷 수신 시작.");
-
+                
             while (isRunning)
             {
                 var packet = await NetworkUtils.ReceivePacketAsync(stream);
-
+                        
                 await RoutePacket(packet);
             }
         }
@@ -55,7 +56,7 @@ public class ClientConnection
                     Client = this,
                     IsNormalDisconnect = false
                 };
-
+                
                 await gameManager.EnqueueCommandAsync(removeCommand);
             }
         }
@@ -134,11 +135,10 @@ public class ClientConnection
                     };
                     break;
 
-                case WantToSelectAccuracyFromClient e:
-                    command = new SelectAccuracyCommand
+                case RouletteDone:
+                    command = new RouletteDoneCommand
                     {
-                        PlayerId = Id,
-                        AccuracyIndex = e.AccuracyIndexDesired
+                        PlayerId = Id
                     };
                     break;
 
@@ -168,7 +168,7 @@ public class ClientConnection
 
                 // 처리되지 않은 패킷은 command가 null로 유지됩니다.
             }
-
+            
             if (command != null)
             {
                 await gameManager.EnqueueCommandAsync(command);
@@ -194,7 +194,7 @@ public class ClientConnection
         catch (Exception ex)
         {
             Console.WriteLine($"[클라이언트 {Id}] 패킷 전송 실패: {ex.Message}");
-
+            
             var removeCommand = new RemoveClientCommand
             {
                 ClientId = Id,

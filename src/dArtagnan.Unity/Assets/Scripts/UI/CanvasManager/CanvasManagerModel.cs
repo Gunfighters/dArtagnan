@@ -14,7 +14,7 @@ namespace UI.CanvasManager
         {
             PacketChannel.On<WaitingStartFromServer>(_ => Screen.Value = GameScreen.HUD);
             PacketChannel.On<RoundStartFromServer>(_ => Screen.Value = GameScreen.HUD);
-            PacketChannel.On<AccuracySelectionStartFromServer>(_ => Screen.Value = GameScreen.AccuracySelection);
+            PacketChannel.On<YourAccuracyAndPool>(_ => Screen.Value = GameScreen.Roulette);
             PacketChannel.On<AugmentStartFromServer>(_ => Screen.Value = GameScreen.AugmentationSelection);
             Screen.Value = GameScreen.Connection;
         }
