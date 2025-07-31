@@ -39,8 +39,26 @@ namespace UI.AugmentationSelection.Frame
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            selectedToggle.isOn = true;
+            if (AugmentationSelectionModel.IsSelectionComplete.Value) return;
+            
+            AugmentationSelectionModel.SelectAugmentation(Augmentation.id);
             PacketChannel.Raise(new AugmentDoneFromClient { SelectedAugmentID = Augmentation.id });
+        }
+        
+        public void UpdateSelection(bool isSelected)
+        {
+            selectedToggle.isOn = isSelected;
+        }
+        
+        public void SetInteractable(bool interactable)
+        {
+            var canvasGroup = GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+            {
+                canvasGroup = gameObject.AddComponent<CanvasGroup>();
+            }
+            canvasGroup.interactable = interactable;
+            canvasGroup.alpha = interactable ? 1f : 0.4f;
         }
     }
 }

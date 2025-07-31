@@ -521,7 +521,6 @@ MonoBehaviour:
   description: {fileID: 4754362941540957674}
   augmentationCollection: {fileID: 11400000, guid: c00c456915984484eb58398a0a1eaf8f, type: 2}
   selectedToggle: {fileID: 8234761283222303117}
-  getText: {fileID: 8509970190327083146}
 --- !u!1 &8509970190327083144
 GameObject:
   m_ObjectHideFlags: 0
