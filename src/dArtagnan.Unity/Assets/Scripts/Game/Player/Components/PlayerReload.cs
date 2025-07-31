@@ -26,5 +26,10 @@ namespace Game.Player.Components
             RemainingReloadTime = Mathf.Max(0, reloadTime);
             reloadingSlider.Fill(RemainingReloadTime / TotalReloadTime);
         }
+
+        public void OnDeath()
+        {
+            RemainingReloadTime = TotalReloadTime;
+        }
     }
 }

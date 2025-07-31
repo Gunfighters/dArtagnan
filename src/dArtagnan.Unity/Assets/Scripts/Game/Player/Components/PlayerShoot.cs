@@ -18,15 +18,13 @@ namespace Game.Player.Components
         private readonly RaycastHit2D[] _hits = new RaycastHit2D[2];
         private Collider2D _collider2D;
         private ContactFilter2D _contactFilter2D;
-        private PlayerModel _playerModel;
-        private PlayerTrajectory _trajectory;
+        private PlayerCore _core;
         [CanBeNull] public PlayerCore Target { get; private set; }
         public float Range { get; private set; }
 
         private void Awake()
         {
-            _playerModel = GetComponent<PlayerModel>();
-            _trajectory = GetComponent<PlayerTrajectory>();
+            _core = GetComponent<PlayerCore>();
             _collider2D = GetComponent<Collider2D>();
             _contactFilter2D.useLayerMask = true;
             _contactFilter2D.layerMask = LayerMask.GetMask("Player", "Obstacle");
@@ -46,16 +44,14 @@ namespace Game.Player.Components
 
         public void SetTarget([CanBeNull] PlayerCore newTarget)
         {
-            Target?.Shoot.HighlightAsTarget(false);
             Target = newTarget;
-            Target?.Shoot.HighlightAsTarget(true);
         }
 
         public void Fire(PlayerCore target)
         {
-            _playerModel.SetDirection(target.transform.position - transform.position);
-            _playerModel.Fire();
-            _trajectory.Flash(target.transform);
+            _core.Model.SetDirection(target.transform.position - transform.position);
+            _core.Model.Fire();
+            _core.Trajectory.Flash(target.transform);
         }
 
         private bool CanShoot(PlayerCore target)
@@ -66,7 +62,7 @@ namespace Game.Player.Components
             return _hits[0].transform == target.transform;
         }
 
-        private void HighlightAsTarget(bool show)
+        public void HighlightAsTarget(bool show)
         {
             targetHighlightCircle.enabled = show;
         }

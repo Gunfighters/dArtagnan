@@ -15,6 +15,8 @@ namespace Game
             PacketChannel.On<PlayerBalanceUpdateBroadcast>(OnBalanceUpdate);
             PacketChannel.On<PlayerCreatingStateBroadcast>(OnCreatingState);
             PacketChannel.On<UpdatePlayerAccuracyBroadcast>(OnAccuracyUpdate);
+            PacketChannel.On<ItemAcquiredBroadcast>(OnItemAcquired);
+            ;
         }
 
         private static void OnPlayerMovementData(PlayerMovementDataBroadcast e)
@@ -59,6 +61,12 @@ namespace Game
         {
             var creating = PlayerGeneralManager.GetPlayer(e.PlayerId);
             creating!.Dig.ToggleDigging(e.IsCreatingItem);
+        }
+
+        private static void OnItemAcquired(ItemAcquiredBroadcast e)
+        {
+            var acquiring = PlayerGeneralManager.GetPlayer(e.PlayerId);
+            Debug.Log($"Player #{acquiring.ID} get Item: {e.ItemId}");
         }
 
         private static void OnAccuracyStateBroadcast(PlayerAccuracyStateBroadcast e)
