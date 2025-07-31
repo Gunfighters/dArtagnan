@@ -7,7 +7,6 @@ namespace Game.Player.Components
 {
     public class PlayerCore : MonoBehaviour
     {
-        public TextMeshProUGUI nicknameText;
         [SerializeField] private ColorPool colorPool;
         public int ID { get; private set; }
         public string Nickname { get; private set; }
@@ -37,7 +36,6 @@ namespace Game.Player.Components
         private void SetNickname(string newNickname)
         {
             Nickname = newNickname;
-            nicknameText.text = Nickname;
         }
 
         private void SetColor(Color color)
