@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Assets.HeroEditor4D.Common.Scripts.CharacterScripts;
 using Assets.HeroEditor4D.Common.Scripts.Collections;
+using Assets.HeroEditor4D.Common.Scripts.Data;
 using Assets.HeroEditor4D.Common.Scripts.Enums;
+using Assets.HeroEditor4D.InventorySystem.Scripts.Data;
 using dArtagnan.Shared;
 using UnityEngine;
 using Utils;
@@ -12,26 +14,33 @@ namespace Game.Player.Components
 {
     public class PlayerModel : MonoBehaviour
     {
-        public SpriteCollection gunCollection;
+        public SpriteCollection spriteCollection;
         public FirearmCollection firearmCollection;
         private readonly List<ParticleSystem> _instances = new();
         private Character4D _actualModel;
         private AudioSource _audioPlayer;
         private AudioClip _shotSoundClip;
+        private ItemSprite _equipped;
+        private ItemSprite _shovelSprite;
+        private ItemSprite _gunSprite;
+        private EquipmentPart _equipmentPartType;
 
         private void Awake()
         {
             _audioPlayer = GetComponent<AudioSource>();
             _actualModel = GetComponentInChildren<Character4D>();
+            _shovelSprite = spriteCollection.MeleeWeapon2H.Find(item => item.Name == "Shovel");
         }
 
         public void Initialize(PlayerInformation info)
         {
             SetDirection(info.MovementData.Direction.IntToDirection());
             _actualModel.SetExpression(info.Alive ? "Default" : "Death");
-            var gunSprite = gunCollection.GunSpriteByAccuracy(info.Accuracy);
-            _actualModel.Equip(gunSprite,
-                gunCollection.Firearm1H.Contains(gunSprite) ? EquipmentPart.Firearm1H : EquipmentPart.Firearm2H);
+            _gunSprite = spriteCollection.GunSpriteByAccuracy(info.Accuracy);
+            _equipmentPartType = spriteCollection.Firearm1H.Contains(_gunSprite)
+                ? EquipmentPart.Firearm1H
+                : EquipmentPart.Firearm2H;
+            _actualModel.Equip(_gunSprite, _equipmentPartType);
             InitializeFirearmMuzzle();
         }
 
@@ -63,6 +72,13 @@ namespace Game.Player.Components
 
         public void Fire()
         {
+            if (_equipped != _gunSprite)
+            {
+                _equipped = _gunSprite;
+                _actualModel.UnEquip(EquipmentPart.MeleeWeapon2H);
+                _actualModel.Equip(_equipped, _equipmentPartType);
+            }
+
             _actualModel.AnimationManager.Fire();
             CreateFirearmMuzzleAndPlayShotSound();
         }
@@ -70,6 +86,20 @@ namespace Game.Player.Components
         public void Die()
         {
             _actualModel.SetState(CharacterState.Death);
+        }
+
+        public void Dig()
+        {
+            if (_equipped != _shovelSprite)
+            {
+                _actualModel.UnEquip(EquipmentPart.Firearm1H);
+                _actualModel.UnEquip(EquipmentPart.Firearm2H);
+                _actualModel.Equip(_shovelSprite, EquipmentPart.MeleeWeapon2H);
+                _shovelSprite = _equipped;
+            }
+
+            SetDirection(Vector2.down);
+            _actualModel.AnimationManager.Jab();
         }
 
         private FirearmParams GetFirearmParams()
