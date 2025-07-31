@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 079a629eb46c452db05a22768b60d3ab, type: 3}
   m_Name: NetworkManagerConfig
   m_EditorClassIdentifier: 
-  awsHost: 54.180.85.77
+  awsHost: 13.125.222.113
   customHost: localhost
   useCustomHost: 0
   port: 7777
