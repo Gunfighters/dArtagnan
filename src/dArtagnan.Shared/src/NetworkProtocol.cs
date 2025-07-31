@@ -27,6 +27,7 @@ namespace dArtagnan.Shared
     [Union(20, typeof(PongPacket))]
     [Union(21, typeof(SetAccuracyState))]
     [Union(22, typeof(PlayerAccuracyStateBroadcast))]
+    [Union(33, typeof(UpdatePlayerAccuracyBroadcast))]
     [Union(23, typeof(YourAccuracyAndPool))]
     [Union(24, typeof(RouletteDone))]
     [Union(25, typeof(BettingDeductionBroadcast))]
@@ -113,6 +114,7 @@ namespace dArtagnan.Shared
     public struct PlayerMovementDataFromClient : IPacket
     {
         [Key(0)] public int Direction;
+
         // [Key(1)] public Vector2 Position;
         [Key(1)] public MovementData MovementData;
     }
@@ -208,7 +210,8 @@ namespace dArtagnan.Shared
     /// </summary>
     [MessagePackObject]
     public struct StartGameFromClient : IPacket
-    {}
+    {
+    }
 
     /// <summary>
     /// [서버 => 클라이언트]
@@ -303,6 +306,17 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [서버 => 클라이언트]
+    /// PlayerId번 플레이어의 정확도가 Accuracy로 업데이트 되었다.
+    /// </summary>
+    [MessagePackObject]
+    public struct UpdatePlayerAccuracyBroadcast : IPacket
+    {
+        [Key(0)] public int PlayerId;
+        [Key(1)] public int Accuracy;
+    }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
     /// 너의 정확도는 YourAccuracy이다. 등장가능한 정확도 풀은 AccuracyPool과 같다.
     /// </summary>
     [MessagePackObject]
@@ -311,7 +325,7 @@ namespace dArtagnan.Shared
         [Key(0)] public int YourAccuracy;
         [Key(1)] public List<int> AccuracyPool;
     }
-    
+
     /// <summary>
     /// [클라이언트 => 서버]
     /// 룰렛을 돌려 나의 명중률을 확인하였다.
@@ -330,9 +344,9 @@ namespace dArtagnan.Shared
 
     [MessagePackObject]
     public struct PongPacket : IPacket
-    {  
+    {
     }
-    
+
     /// <summary>
     /// [서버 => 클라이언트]
     /// 10초마다 베팅금이 차감되었음을 알려주는 패킷
@@ -417,6 +431,7 @@ namespace dArtagnan.Shared
     public struct ItemUsedBroadcast : IPacket
     {
         [Key(0)] public int PlayerId; // 아이템을 사용한 플레이어
+
         [Key(1)] public int ItemId; // 사용한 아이템의 ID
         // [Key(2)] public int TargetPlayerId; // 아이템의 대상이 된 플레이어 ID. 없으면 -1
     }
