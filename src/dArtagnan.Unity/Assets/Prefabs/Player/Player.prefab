@@ -726,7 +726,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   faceChangeThreshold: 0
-  positionCorrectionThreshold: 0
+  positionCorrectionThreshold: 4
   lerpSpeed: 1
 --- !u!114 &-1047899260668075369
 MonoBehaviour:
