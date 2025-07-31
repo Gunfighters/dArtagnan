@@ -2,15 +2,16 @@ using dArtagnan.Shared;
 using Game;
 using R3;
 using UnityEditor;
+using UnityEngine;
 
 namespace UI.CanvasManager
 {
-    [InitializeOnLoad]
     public static class CanvasManagerModel
     {
         public static readonly ReactiveProperty<GameScreen> Screen = new();
 
-        static CanvasManagerModel()
+        [RuntimeInitializeOnLoadMethod]
+        public static void Initialize()
         {
             PacketChannel.On<WaitingStartFromServer>(_ => Screen.Value = GameScreen.HUD);
             PacketChannel.On<RoundStartFromServer>(_ => Screen.Value = GameScreen.HUD);
