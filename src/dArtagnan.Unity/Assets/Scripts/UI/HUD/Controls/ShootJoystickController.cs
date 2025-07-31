@@ -32,9 +32,9 @@ namespace UI.HUD.Controls
             var target = _aiming ? LocalPlayer.Shoot.CalculateTarget(shootingJoystick.Direction) : null;
             if (target != LocalPlayer.Shoot.Target)
             {
-                target?.Shoot.HighlightAsTarget(false);
+                LocalPlayer.Shoot.Target?.Shoot.HighlightAsTarget(false);
                 LocalPlayer.Shoot.SetTarget(target);
-                target?.Shoot.HighlightAsTarget(true);
+                LocalPlayer.Shoot.Target?.Shoot.HighlightAsTarget(true);
                 PacketChannel.Raise(new PlayerIsTargetingFromClient { TargetId = target?.ID ?? -1 });
             }
 
