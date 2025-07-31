@@ -4,17 +4,18 @@ using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using R3;
 using UnityEditor;
+using UnityEngine;
 
 namespace UI.Roulette
 {
-    [InitializeOnLoad]
     public static class RouletteModel
     {
         public static readonly ReactiveProperty<List<RouletteItem>> Pool = new();
         public static readonly ReactiveProperty<bool> NowSpin = new();
         private const float AutoSpinDelay = 5;
 
-        static RouletteModel()
+        [RuntimeInitializeOnLoadMethod]
+        public static void Initialize()
         {
             PacketChannel.On<YourAccuracyAndPool>(OnYourAccuracyAndPool);
         }
