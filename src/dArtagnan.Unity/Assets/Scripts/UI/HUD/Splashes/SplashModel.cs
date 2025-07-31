@@ -5,10 +5,10 @@ using dArtagnan.Shared;
 using Game;
 using R3;
 using UnityEditor;
+using UnityEngine;
 
 namespace UI.HUD.Splashes
 {
-    [InitializeOnLoad]
     public static class SplashModel
     {
         public static readonly ReactiveProperty<int> RoundIndex = new();
@@ -18,8 +18,9 @@ namespace UI.HUD.Splashes
         public static readonly ReactiveProperty<bool> GameOver = new();
         private const float SplashDuration = 2.5f;
         public static readonly ReactiveProperty<List<string>> Winners = new(new List<string>());
-        
-        static SplashModel()
+
+        [RuntimeInitializeOnLoadMethod]
+        public static void Initialize()
         {
             PacketChannel.On<RoundStartFromServer>(e =>
             {

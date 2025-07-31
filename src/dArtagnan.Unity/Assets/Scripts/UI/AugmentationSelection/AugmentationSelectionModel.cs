@@ -1,16 +1,16 @@
 using System.Collections.Generic;
 using dArtagnan.Shared;
 using R3;
-using UnityEditor;
+using UnityEngine;
 
 namespace UI.AugmentationSelection
 {
-    [InitializeOnLoad]
     public static class AugmentationSelectionModel
     {
         public static readonly ReactiveProperty<List<int>> Options = new();
 
-        static AugmentationSelectionModel()
+        [RuntimeInitializeOnLoadMethod]
+        public static void Initialize()
         {
             PacketChannel.On<AugmentStartFromServer>(OnAugmentationStartFromServer);
         }

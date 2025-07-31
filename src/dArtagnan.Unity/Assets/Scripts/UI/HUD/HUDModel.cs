@@ -1,10 +1,10 @@
 using dArtagnan.Shared;
 using R3;
 using UnityEditor;
+using UnityEngine;
 
 namespace UI.HUD
 {
-    [InitializeOnLoad]
     public static class HUDModel
     {
         public static readonly ReactiveProperty<bool> Controlling = new();
@@ -14,7 +14,8 @@ namespace UI.HUD
         public static readonly ReactiveProperty<bool> InRound = new();
         public static readonly ReactiveProperty<bool> IsHost = new();
 
-        static HUDModel()
+        [RuntimeInitializeOnLoadMethod]
+        public static void Initialize()
         {
             PacketChannel.On<RoundStartFromServer>(_ =>
             {
@@ -34,10 +35,7 @@ namespace UI.HUD
                 Spectating.Value = !alive;
                 Playing.Value = alive && InRound.Value;
             };
-            LocalEventChannel.OnNewHost += (_, isLocalPlayerHost) =>
-            {
-                IsHost.Value = isLocalPlayerHost;
-            };
+            LocalEventChannel.OnNewHost += (_, isLocalPlayerHost) => { IsHost.Value = isLocalPlayerHost; };
         }
     }
 }
