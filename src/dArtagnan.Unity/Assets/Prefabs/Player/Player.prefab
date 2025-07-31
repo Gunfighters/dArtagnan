@@ -368,7 +368,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6522294780396654097}
-  - component: {fileID: 2961222792628523754}
+  - component: {fileID: 8544715843768236244}
   - component: {fileID: 6538588046089182224}
   - component: {fileID: 6386919334395040828}
   - component: {fileID: -7853337695106768655}
@@ -406,8 +406,8 @@ Transform:
   - {fileID: 1636141463575991809}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!70 &2961222792628523754
-CapsuleCollider2D:
+--- !u!58 &8544715843768236244
+CircleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -440,9 +440,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.0070469663, y: 0.2670926}
-  m_Size: {x: 1.0274866, y: 1.0341834}
-  m_Direction: 0
+  m_Offset: {x: 0, y: 0.1}
+  m_Radius: 0.15
 --- !u!50 &6538588046089182224
 Rigidbody2D:
   serializedVersion: 5
@@ -758,7 +757,6 @@ MonoBehaviour:
   hitTextColor: {r: 1, g: 0.5421879, b: 0, a: 1}
   missTextColor: {r: 0.46368885, g: 0, b: 1, a: 1}
   hitMissShowingDuration: 0.3
-  arrow: {fileID: 0}
 --- !u!114 &-3292549176812869381
 MonoBehaviour:
   m_ObjectHideFlags: 0
