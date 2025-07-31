@@ -12,20 +12,45 @@ public class GameLoopCommand : IGameCommand
 
     public async Task ExecuteAsync(GameManager gameManager)
     {
-        // 게임이 플레이 중일 때만 타이머 업데이트
-        if (gameManager.CurrentGameState == GameState.Round)
+        switch (gameManager.CurrentGameState)
         {
-            // 베팅금 타이머 업데이트 (10초마다 차감)
-            gameManager.BettingTimer += DeltaTime;
-            if (gameManager.BettingTimer >= Constants.BETTING_PERIOD)
-            {
-                await DeductBettingMoney(gameManager);
-                gameManager.BettingTimer -= Constants.BETTING_PERIOD;
-            }
-        }
+            case GameState.Waiting:
+                // 대기 상태: 정확도, 아이템 제작, 위치, 재장전 업데이트
+                await UpdatePlayerAccuracyStates(gameManager, DeltaTime);
+                await UpdatePlayerCreatingStates(gameManager, DeltaTime);
+                UpdatePlayerMovementStates(gameManager, DeltaTime);
+                UpdatePlayerReloadStates(gameManager, DeltaTime);
+                break;
 
-        // 플레이어 상태 업데이트 (게임 상태와 무관하게 실행)
-        await UpdatePlayerStates(gameManager, DeltaTime);
+            case GameState.Round:
+                // 라운드 상태: 베팅금 차감 + 모든 플레이어 상태 업데이트
+                await UpdateBettingTimer(gameManager);
+                await UpdatePlayerAccuracyStates(gameManager, DeltaTime);
+                await UpdatePlayerCreatingStates(gameManager, DeltaTime);
+                UpdatePlayerMovementStates(gameManager, DeltaTime);
+                UpdatePlayerReloadStates(gameManager, DeltaTime);
+                break;
+
+            case GameState.Roulette:
+            case GameState.Augment:
+                // 룰렛/증강 상태: 위치, 재장전만 업데이트
+                UpdatePlayerMovementStates(gameManager, DeltaTime);
+                UpdatePlayerReloadStates(gameManager, DeltaTime);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// 라운드 상태에서 베팅금 타이머 업데이트
+    /// </summary>
+    private async Task UpdateBettingTimer(GameManager gameManager)
+    {
+        gameManager.BettingTimer += DeltaTime;
+        if (gameManager.BettingTimer >= Constants.BETTING_PERIOD)
+        {
+            await DeductBettingMoney(gameManager);
+            gameManager.BettingTimer -= Constants.BETTING_PERIOD;
+        }
     }
 
     /// <summary>
@@ -65,15 +90,14 @@ public class GameLoopCommand : IGameCommand
     }
 
     /// <summary>
-    /// 모든 플레이어의 상태를 업데이트합니다
+    /// 플레이어들의 정확도를 업데이트합니다
     /// </summary>
-    private async Task UpdatePlayerStates(GameManager gameManager, float deltaTime)
+    private async Task UpdatePlayerAccuracyStates(GameManager gameManager, float deltaTime)
     {
         foreach (var player in gameManager.Players.Values)
         {
             if (!player.Alive) continue;
 
-            // 정확도 업데이트 1초마다 1% 증감
             if (player.UpdateAccuracy(deltaTime))
             {
                 await gameManager.BroadcastToAll(new UpdatePlayerAccuracyBroadcast
@@ -82,22 +106,52 @@ public class GameLoopCommand : IGameCommand
                     Accuracy = player.Accuracy
                 });
             }
+        }
+    }
 
-            // 아이템 제작 타이머 업데이트
+    /// <summary>
+    /// 플레이어들의 아이템 제작 타이머를 업데이트합니다
+    /// </summary>
+    private async Task UpdatePlayerCreatingStates(GameManager gameManager, float deltaTime)
+    {
+        foreach (var player in gameManager.Players.Values)
+        {
+            if (!player.Alive) continue;
+
             if (player.UpdateCreating(deltaTime))
             {
                 // 아이템 제작 완료 시 랜덤 아이템 지급
                 await GiveRandomItemToPlayer(gameManager, player);
             }
+        }
+    }
 
-            // 위치 업데이트
+    /// <summary>
+    /// 플레이어들의 위치를 업데이트합니다
+    /// </summary>
+    private void UpdatePlayerMovementStates(GameManager gameManager, float deltaTime)
+    {
+        foreach (var player in gameManager.Players.Values)
+        {
+            if (!player.Alive) continue;
+
             var newPosition = CalculateNewPosition(player.MovementData, deltaTime);
             if (Vector2.Distance(newPosition, player.MovementData.Position) > 0.01f)
             {
                 player.MovementData.Position = newPosition;
             }
+        }
+    }
 
-            // 재장전 시간 업데이트
+    /// <summary>
+    /// 플레이어들의 재장전 시간을 업데이트합니다
+    /// </summary>
+    private void UpdatePlayerReloadStates(GameManager gameManager, float deltaTime)
+    {
+        foreach (var player in gameManager.Players.Values)
+        {
+            if (!player.Alive) continue;
+
             if (player.RemainingReloadTime > 0)
             {
                 player.RemainingReloadTime = Math.Max(0, player.RemainingReloadTime - deltaTime);
