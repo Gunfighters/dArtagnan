@@ -7,8 +7,7 @@ using UnityEngine;
 
 public class NetworkManager : MonoBehaviour, IChannelListener
 {
-    [Header("Config")]
-    [SerializeField] private NetworkManagerConfig config;
+    [Header("Config")] [SerializeField] private NetworkManagerConfig config;
 
     private TcpClient _client;
     private NetworkStream _stream;
@@ -23,6 +22,7 @@ public class NetworkManager : MonoBehaviour, IChannelListener
         PacketChannel.On<SetAccuracyState>(Send);
         PacketChannel.On<RouletteDone>(Send);
         PacketChannel.On<AugmentDoneFromClient>(Send);
+        PacketChannel.On<ItemCreatingStateFromClient>(Send);
         LocalEventChannel.OnEndpointSelected += Connect;
     }
 

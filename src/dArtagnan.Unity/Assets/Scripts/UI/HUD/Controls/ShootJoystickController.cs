@@ -32,7 +32,9 @@ namespace UI.HUD.Controls
             var target = _aiming ? LocalPlayer.Shoot.CalculateTarget(shootingJoystick.Direction) : null;
             if (target != LocalPlayer.Shoot.Target)
             {
+                target?.Shoot.HighlightAsTarget(false);
                 LocalPlayer.Shoot.SetTarget(target);
+                target?.Shoot.HighlightAsTarget(true);
                 PacketChannel.Raise(new PlayerIsTargetingFromClient { TargetId = target?.ID ?? -1 });
             }
 
@@ -59,13 +61,14 @@ namespace UI.HUD.Controls
             JoystickAxis.enabled = true;
             _aiming = true;
         }
-    
+
         public void OnPointerUp(PointerEventData eventData)
         {
             JoystickAxis.enabled = false;
             _aiming = false;
             if (Shootable && PlayerGeneralManager.LocalPlayerCore.Shoot.Target)
-                PacketChannel.Raise(new PlayerShootingFromClient { TargetId = PlayerGeneralManager.LocalPlayerCore.Shoot.Target.ID });
+                PacketChannel.Raise(new PlayerShootingFromClient
+                    { TargetId = PlayerGeneralManager.LocalPlayerCore.Shoot.Target.ID });
         }
     }
 }

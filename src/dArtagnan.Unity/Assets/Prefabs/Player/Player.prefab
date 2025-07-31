@@ -381,6 +381,7 @@ GameObject:
   - component: {fileID: -3292549176812869381}
   - component: {fileID: -7527601815832208492}
   - component: {fileID: 7208056811964790072}
+  - component: {fileID: 6927892192493784594}
   m_Layer: 3
   m_Name: Player
   m_TagString: PlayerObject
@@ -481,7 +482,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 027c860dc99d41dd9113db2d4b4f89e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gunCollection: {fileID: 11400000, guid: 91824a520d391974a88f36ad4936d63a, type: 2}
+  spriteCollection: {fileID: 11400000, guid: 91824a520d391974a88f36ad4936d63a, type: 2}
   firearmCollection: {fileID: 11400000, guid: 28e732d5a6846604db331fadf9eec50e, type: 2}
 --- !u!82 &-7853337695106768655
 AudioSource:
@@ -680,7 +681,7 @@ LineRenderer:
     numCapVertices: 0
     alignment: 0
     textureMode: 0
-    textureScale: {x: 0.6, y: 6}
+    textureScale: {x: 0, y: 6}
     shadowBias: 0.5
     generateLightingData: 0
   m_MaskInteraction: 0
@@ -699,7 +700,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20909caaa4ec41dc9b49832144beb1c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nicknameText: {fileID: 0}
   colorPool: {fileID: 11400000, guid: 34d95f020286b4dcfa425d5b6a55505d, type: 2}
 --- !u!114 &-6326594136527915992
 MonoBehaviour:
@@ -796,7 +796,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04bbbd5db0ce458ba5a42f51185ad58f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  duration: 0.5
+  duration: 0.2
+--- !u!114 &6927892192493784594
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5225883545143339161}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de77f0fe36584bcb82eb1edfc652d6b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5383444114266678679
 GameObject:
   m_ObjectHideFlags: 0

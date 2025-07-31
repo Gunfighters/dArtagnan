@@ -16,13 +16,13 @@ public class Player(int id, string nickname, Vector2 position)
     public MovementData MovementData = new() { Direction = 0, Position = position, Speed = Constants.MOVEMENT_SPEED };
     public int Balance = 200;
     public bool Bankrupt => Balance <= 0;
-    public int AccuracyState = 0;   // 정확도 상태: -1(감소), 0(유지), 1(증가)
-    public List<int> Augments = [];  // 보유한 증강 ID 리스트
-    public int CurrentItem = -1;     // 현재 소지한 아이템 ID (-1이면 없음)
-    public bool IsCreatingItem = false;  // 아이템 제작 중인지 여부
+    public int AccuracyState = 0; // 정확도 상태: -1(감소), 0(유지), 1(증가)
+    public List<int> Augments = []; // 보유한 증강 ID 리스트
+    public int CurrentItem = -1; // 현재 소지한 아이템 ID (-1이면 없음)
+    public bool IsCreatingItem = false; // 아이템 제작 중인지 여부
     public float CreatingRemainingTime = 0f; // 아이템 제작 남은 시간
-    private float accuracyTimer = 0f;    // 정확도 업데이트를 위한 타이머
-    private const float ACCURACY_UPDATE_INTERVAL = 1.0f;    // 정확도 업데이트 간격 (1초)
+    private float accuracyTimer = 0f; // 정확도 업데이트를 위한 타이머
+    private const float ACCURACY_UPDATE_INTERVAL = 1.0f; // 정확도 업데이트 간격 (1초)
 
     public void ResetForInitialGame(int accuracy)
     {
@@ -97,7 +97,7 @@ public class Player(int id, string nickname, Vector2 position)
         Balance -= actual;
         return actual;
     }
-    
+
     /// <summary>
     /// 정확도 상태를 설정합니다.
     /// </summary>
@@ -107,7 +107,7 @@ public class Player(int id, string nickname, Vector2 position)
         AccuracyState = accuracyState;
         Console.WriteLine($"[정확도] 플레이어 {Id}의 정확도 상태 변경: {accuracyState} (현재 정확도: {Accuracy}%)");
     }
-    
+
     /// <summary>
     /// 정확도를 업데이트합니다. 게임 루프에서 호출됩니다.
     /// </summary>
@@ -115,19 +115,19 @@ public class Player(int id, string nickname, Vector2 position)
     public bool UpdateAccuracy(float deltaTime)
     {
         if (AccuracyState == 0) return false; // 유지 상태면 처리하지 않음
-        
+
         accuracyTimer += deltaTime;
-        
+
         // 1초마다 정확도 업데이트
         if (accuracyTimer >= ACCURACY_UPDATE_INTERVAL)
         {
             accuracyTimer = 0f;
-            
+
             int newAccuracy = Accuracy + AccuracyState;
-            
+
             // 정확도 범위 제한
             newAccuracy = Math.Clamp(newAccuracy, Constants.MIN_ACCURACY, Constants.MAX_ACCURACY);
-            
+
             if (newAccuracy != Accuracy)
             {
                 Accuracy = newAccuracy;
@@ -135,7 +135,7 @@ public class Player(int id, string nickname, Vector2 position)
                 return true; // 정확도가 실제로 변경됨
             }
         }
-        
+
         return false; // 정확도 변경 없음
     }
 
@@ -167,9 +167,9 @@ public class Player(int id, string nickname, Vector2 position)
     public bool UpdateCreating(float deltaTime)
     {
         if (!IsCreatingItem) return false;
-        
+
         CreatingRemainingTime -= deltaTime;
-        
+
         if (CreatingRemainingTime <= 0f)
         {
             IsCreatingItem = false;
@@ -177,7 +177,7 @@ public class Player(int id, string nickname, Vector2 position)
             Console.WriteLine($"[아이템] 플레이어 {Id}의 아이템 제작 완료!");
             return true;
         }
-        
+
         return false;
     }
 
@@ -198,7 +198,7 @@ public class Player(int id, string nickname, Vector2 position)
     public int UseItem()
     {
         if (CurrentItem == -1) return -1;
-        
+
         int usedItem = CurrentItem;
         CurrentItem = -1;
         Console.WriteLine($"[아이템] 플레이어 {Id}가 아이템 {usedItem} 사용");

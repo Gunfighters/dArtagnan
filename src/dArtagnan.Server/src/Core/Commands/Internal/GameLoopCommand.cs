@@ -9,7 +9,7 @@ namespace dArtagnan.Server;
 public class GameLoopCommand : IGameCommand
 {
     required public float DeltaTime;
-    
+
     public async Task ExecuteAsync(GameManager gameManager)
     {
         // 게임이 플레이 중일 때만 타이머 업데이트
@@ -23,55 +23,56 @@ public class GameLoopCommand : IGameCommand
                 gameManager.BettingTimer -= Constants.BETTING_PERIOD;
             }
         }
-        
+
         // 플레이어 상태 업데이트 (게임 상태와 무관하게 실행)
         await UpdatePlayerStates(gameManager, DeltaTime);
     }
-    
+
     /// <summary>
     /// 10초마다 호출되는 베팅금 차감 메서드
     /// </summary>
     private async Task DeductBettingMoney(GameManager gameManager)
     {
-        if (gameManager.CurrentGameState != GameState.Round || gameManager.Round <= 0 || gameManager.Round > GameManager.MAX_ROUNDS)
+        if (gameManager.CurrentGameState != GameState.Round || gameManager.Round <= 0 ||
+            gameManager.Round > GameManager.MAX_ROUNDS)
             return;
-        
+
         var totalDeducted = 0;
-        
+
         Console.WriteLine($"[베팅] 라운드 {gameManager.Round}: {gameManager.BettingAmount}달러씩 차감 시작");
-        
+
         foreach (var player in gameManager.Players.Values.Where(p => p.Alive))
         {
             var deducted = await gameManager.WithdrawFromPlayerAsync(player, gameManager.BettingAmount);
             totalDeducted += deducted;
-            
+
             Console.WriteLine($"[베팅] {player.Nickname}: {deducted}달러 차감 (잔액: {player.Balance}달러)");
         }
-        
+
         // 총 판돈에 추가
         gameManager.TotalPrizeMoney += totalDeducted;
         Console.WriteLine($"[베팅] 총 {totalDeducted}달러 차감, 현재 판돈: {gameManager.TotalPrizeMoney}달러");
-        
+
         // 베팅금 차감 브로드캐스트
-        await gameManager.BroadcastToAll(new BettingDeductionBroadcast 
-        { 
+        await gameManager.BroadcastToAll(new BettingDeductionBroadcast
+        {
             DeductedAmount = gameManager.BettingAmount,
             TotalPrizeMoney = gameManager.TotalPrizeMoney
         });
-        
+
         // 베팅금 차감 후 게임/라운드 종료 조건 체크
         await gameManager.CheckAndHandleGameEndAsync();
     }
-    
+
     /// <summary>
     /// 모든 플레이어의 상태를 업데이트합니다
     /// </summary>
-    private async Task  UpdatePlayerStates(GameManager gameManager, float deltaTime)
+    private async Task UpdatePlayerStates(GameManager gameManager, float deltaTime)
     {
         foreach (var player in gameManager.Players.Values)
         {
             if (!player.Alive) continue;
-            
+
             // 정확도 업데이트 1초마다 1% 증감
             if (player.UpdateAccuracy(deltaTime))
             {
@@ -81,21 +82,21 @@ public class GameLoopCommand : IGameCommand
                     Accuracy = player.Accuracy
                 });
             }
-            
+
             // 아이템 제작 타이머 업데이트
             if (player.UpdateCreating(deltaTime))
             {
                 // 아이템 제작 완료 시 랜덤 아이템 지급
                 await GiveRandomItemToPlayer(gameManager, player);
             }
-            
+
             // 위치 업데이트
             var newPosition = CalculateNewPosition(player.MovementData, deltaTime);
             if (Vector2.Distance(newPosition, player.MovementData.Position) > 0.01f)
             {
                 player.MovementData.Position = newPosition;
             }
-            
+
             // 재장전 시간 업데이트
             if (player.RemainingReloadTime > 0)
             {
@@ -103,7 +104,7 @@ public class GameLoopCommand : IGameCommand
             }
         }
     }
-    
+
     /// <summary>
     /// 플레이어의 새로운 위치를 계산합니다
     /// </summary>
@@ -111,7 +112,7 @@ public class GameLoopCommand : IGameCommand
     {
         var vector = DirectionHelper.IntToDirection(movementData.Direction);
         if (vector == Vector2.Zero) return movementData.Position;
-        
+
         return movementData.Position + vector * movementData.Speed * deltaTime;
     }
 
@@ -122,9 +123,9 @@ public class GameLoopCommand : IGameCommand
     {
         // 임시로 아이템 ID 1~5 중 랜덤 선택 (나중에 아이템 시스템 확장 시 수정)
         int randomItemId = Random.Shared.Next(1, 6);
-        
+
         player.AcquireItem(randomItemId);
-        
+
         // 아이템 획득 브로드캐스트
         await gameManager.BroadcastToAll(new ItemAcquiredBroadcast
         {
@@ -132,4 +133,4 @@ public class GameLoopCommand : IGameCommand
             ItemId = randomItemId
         });
     }
-} 
+}

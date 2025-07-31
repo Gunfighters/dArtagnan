@@ -7,7 +7,6 @@ namespace Game.Player.Components
     public class PlayerPhysics : MonoBehaviour
     {
         private Rigidbody2D _rb;
-        private PlayerModel _playerModel;
         private Vector2 _direction;
         public Vector2 Position => _rb.position;
         private float _speed;
@@ -17,7 +16,7 @@ namespace Game.Player.Components
         [SerializeField] private float positionCorrectionThreshold;
         [SerializeField] private float lerpSpeed;
         private Vector2 _lastUpdatedPosition;
-        private PlayerHealth _playerHealth;
+        private PlayerCore _core;
 
         public PlayerMovementDataFromClient MovementData => new()
         {
@@ -33,8 +32,7 @@ namespace Game.Player.Components
         private void Awake()
         {
             _rb = GetComponent<Rigidbody2D>();
-            _playerModel = GetComponent<PlayerModel>();
-            _playerHealth = GetComponent<PlayerHealth>();
+            _core = GetComponent<PlayerCore>();
         }
 
         public void Initialize(PlayerInformation info)
@@ -46,21 +44,23 @@ namespace Game.Player.Components
 
         private void Update()
         {
-            if (!_playerHealth.Alive) return;
+            if (!_core.Health.Alive) return;
+            if (_core.Dig.Digging) return;
             if (_direction == Vector2.zero)
             {
-                _playerModel.Idle();
+                _core.Model.Idle();
             }
             else
             {
-                _playerModel.Walk();
+                _core.Model.Walk();
                 SetFaceDirection(_direction);
             }
         }
 
         private void FixedUpdate()
         {
-            if (!_playerHealth.Alive) return;
+            if (!_core.Health.Alive) return;
+            if (_core.Dig.Digging) return;
             _rb.MovePosition(NextPosition());
         }
 
@@ -109,7 +109,7 @@ namespace Game.Player.Components
 
         private void SetFaceDirection(Vector2 direction)
         {
-            _playerModel.SetDirection(direction);
+            _core.Model.SetDirection(direction);
         }
     }
 }

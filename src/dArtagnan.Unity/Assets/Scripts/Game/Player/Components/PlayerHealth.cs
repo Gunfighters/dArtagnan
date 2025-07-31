@@ -6,11 +6,11 @@ namespace Game.Player.Components
     public class PlayerHealth : MonoBehaviour
     {
         public bool Alive { get; private set; }
-        private PlayerModel _playerModel;
+        private PlayerCore _core;
 
         private void Awake()
         {
-            _playerModel = GetComponent<PlayerModel>();
+            _core = GetComponent<PlayerCore>();
         }
 
         public void Initialize(PlayerInformation info)
@@ -22,9 +22,12 @@ namespace Game.Player.Components
         {
             Alive = newAlive;
             if (Alive)
-                _playerModel.Idle();
+                _core.Model.Idle();
             else
-                _playerModel.Die();
+            {
+                _core.Model.Die();
+                _core.Reload.OnDeath();
+            }
         }
     }
 }

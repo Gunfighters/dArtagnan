@@ -19,6 +19,8 @@ namespace Game.Player.Components
         public PlayerBalance Balance { get; private set; }
         public PlayerTrajectory Trajectory { get; private set; }
 
+        public PlayerDig Dig { get; private set; }
+
         public Color MyColor => colorPool.colors[ID - 1];
 
         private void Awake()
@@ -31,6 +33,7 @@ namespace Game.Player.Components
             Reload = GetComponent<PlayerReload>();
             Balance = GetComponent<PlayerBalance>();
             Trajectory = GetComponent<PlayerTrajectory>();
+            Dig = GetComponent<PlayerDig>();
         }
 
         private void SetNickname(string newNickname)
@@ -56,6 +59,7 @@ namespace Game.Player.Components
             Reload.Initialize(info);
             Balance.Initialize(info);
             Trajectory.Initialize(info);
+            Dig.Initialize(info);
         }
     }
 }
