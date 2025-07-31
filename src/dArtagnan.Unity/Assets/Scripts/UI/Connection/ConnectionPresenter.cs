@@ -26,6 +26,9 @@ namespace UI.Connection
             ConnectionModel
                 .IPEndpoint
                 .Subscribe(value => view.ipEndpointInputField.text = value);
+            ConnectionModel
+                .IsConnecting
+                .Subscribe(connecting => view.connectButton.interactable = !connecting);
         }
     }
 }
