@@ -21,8 +21,9 @@ namespace UI.HUD.Splashes
         
         static SplashModel()
         {
-            PacketChannel.On<RoundStartFromServer>(_ =>
+            PacketChannel.On<RoundStartFromServer>(e =>
             {
+                RoundIndex.Value = e.Round;
                 Flash(RoundStart);
             });
             PacketChannel.On<RoundWinnerBroadcast>(e =>
