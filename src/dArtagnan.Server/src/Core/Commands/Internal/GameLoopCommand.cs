@@ -72,8 +72,15 @@ public class GameLoopCommand : IGameCommand
         {
             if (!player.Alive) continue;
             
-            // 정확도 업데이트 (매초마다 1% 증감)
-            player.UpdateAccuracy(deltaTime);
+            // 정확도 업데이트 1초마다 1% 증감
+            if (player.UpdateAccuracy(deltaTime))
+            {
+                await gameManager.BroadcastToAll(new UpdatePlayerAccuracyBroadcast
+                {
+                    PlayerId = player.Id,
+                    Accuracy = player.Accuracy
+                });
+            }
             
             // 아이템 제작 타이머 업데이트
             if (player.UpdateCreating(deltaTime))

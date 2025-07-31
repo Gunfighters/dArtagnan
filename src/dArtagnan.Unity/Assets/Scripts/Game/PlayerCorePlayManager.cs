@@ -14,6 +14,7 @@ namespace Game
             PacketChannel.On<UpdatePlayerAlive>(OnUpdatePlayerAlive);
             PacketChannel.On<PlayerAccuracyStateBroadcast>(OnAccuracyStateBroadcast);
             PacketChannel.On<PlayerBalanceUpdateBroadcast>(OnBalanceUpdate);
+            PacketChannel.On<UpdatePlayerAccuracyBroadcast>(OnAccuracyUpdate);
         }
 
         private static void OnPlayerMovementData(PlayerMovementDataBroadcast e)
@@ -67,6 +68,12 @@ namespace Game
             {
                 LocalEventChannel.InvokeOnLocalPlayerBalanceUpdate(updated.Balance.Balance);
             }
+        }
+        
+        private static void OnAccuracyUpdate(UpdatePlayerAccuracyBroadcast e)
+        {
+            var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
+            updated!.Accuracy.SetAccuracy(e.Accuracy);
         }
     }
 }

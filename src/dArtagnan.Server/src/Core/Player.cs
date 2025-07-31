@@ -112,9 +112,9 @@ public class Player(int id, string nickname, Vector2 position)
     /// 정확도를 업데이트합니다. 게임 루프에서 호출됩니다.
     /// </summary>
     /// <param name="deltaTime">프레임 시간</param>
-    public void UpdateAccuracy(float deltaTime)
+    public bool UpdateAccuracy(float deltaTime)
     {
-        if (AccuracyState == 0) return; // 유지 상태면 처리하지 않음
+        if (AccuracyState == 0) return false; // 유지 상태면 처리하지 않음
         
         accuracyTimer += deltaTime;
         
@@ -132,8 +132,11 @@ public class Player(int id, string nickname, Vector2 position)
             {
                 Accuracy = newAccuracy;
                 Console.WriteLine($"[정확도] 플레이어 {Id}의 정확도 변경: {Accuracy}% (상태: {AccuracyState})");
+                return true; // 정확도가 실제로 변경됨
             }
         }
+        
+        return false; // 정확도 변경 없음
     }
 
     /// <summary>

@@ -27,6 +27,7 @@ namespace dArtagnan.Shared
     [Union(20, typeof(PongPacket))]
     [Union(21, typeof(SetAccuracyState))]
     [Union(22, typeof(PlayerAccuracyStateBroadcast))]
+    [Union(33, typeof(UpdatePlayerAccuracyBroadcast))]
     [Union(23, typeof(YourAccuracyAndPool))]
     [Union(24, typeof(RouletteDone))]
     [Union(25, typeof(BettingDeductionBroadcast))]
@@ -299,6 +300,17 @@ namespace dArtagnan.Shared
     {
         [Key(0)] public int PlayerId;
         [Key(1)] public int AccuracyState; // -1: 정확도 감소, 0: 정확도 유지, 1: 정확도 증가
+    }
+    
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// PlayerId번 플레이어의 정확도가 Accuracy로 업데이트 되었다.
+    /// </summary>
+    [MessagePackObject]
+    public struct UpdatePlayerAccuracyBroadcast : IPacket
+    {
+        [Key(0)] public int PlayerId;
+        [Key(1)] public int Accuracy;
     }
 
     /// <summary>
