@@ -3,14 +3,13 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using R3;
-using UnityEditor;
 using UnityEngine;
 
 namespace UI.Roulette
 {
     public static class RouletteModel
     {
-        public static readonly ReactiveProperty<List<RouletteItem>> Pool = new();
+        public static readonly ReactiveProperty<List<RouletteItem>> Pool = new(new List<RouletteItem>());
         public static readonly ReactiveProperty<bool> NowSpin = new();
         private const float AutoSpinDelay = 5;
 
