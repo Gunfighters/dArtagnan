@@ -1,3 +1,4 @@
+using System;
 using dArtagnan.Shared;
 using UnityEngine;
 using Utils;
@@ -20,10 +21,10 @@ namespace Game.Player.Components
 
         public PlayerMovementDataFromClient MovementData => new()
         {
-            Direction = _direction.DirectionToInt(),
+            Direction = _core.Dig.Digging ? 0 : _direction.DirectionToInt(),
             MovementData =
             {
-                Direction = _direction.DirectionToInt(),
+                Direction = _core.Dig.Digging ? 0 : _direction.DirectionToInt(),
                 Position = Position.ToSystemVec(),
                 Speed = _speed
             },
@@ -110,6 +111,11 @@ namespace Game.Player.Components
         private void SetFaceDirection(Vector2 direction)
         {
             _core.Model.SetDirection(direction);
+        }
+
+        public void Stop()
+        {
+            SetDirection(Vector2.zero);
         }
     }
 }

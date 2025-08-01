@@ -26,8 +26,11 @@ namespace Game
 
             PacketChannel.On<WaitingStartFromServer>(e => ResetEveryone(e.PlayersInfo));
             PacketChannel.On<RoundStartFromServer>(e => ResetEveryone(e.PlayersInfo));
+
+            PacketChannel.On<YourAccuracyAndPool>(_ => StopLocalPlayerAndUpdateToServer());
+            PacketChannel.On<AugmentStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
         }
-        
+
         [CanBeNull]
         public static PlayerCore GetPlayer(int id)
         {
@@ -54,14 +57,14 @@ namespace Game
             _hostId = e.HostId;
             LocalEventChannel.InvokeOnNewHost(HostPlayerCore, HostPlayerCore == LocalPlayerCore);
         }
-        
+
         private static void CreatePlayer(PlayerInformation info)
         {
             var p = PlayerPoolManager.Instance.Pool.Get();
             p.Initialize(info);
-            
+
             Players.Add(info.PlayerId, p);
-            
+
             if (info.PlayerId == _localPlayerId)
             {
                 LocalEventChannel.InvokeOnNewCameraTarget(p);
@@ -93,6 +96,12 @@ namespace Game
             {
                 RemovePlayer(p.ID);
             }
+        }
+
+        private static void StopLocalPlayerAndUpdateToServer()
+        {
+            LocalPlayerCore.Physics.Stop();
+            PacketChannel.Raise(LocalPlayerCore.Physics.MovementData);
         }
     }
 }

@@ -10,7 +10,7 @@ public class Player(int id, string nickname, Vector2 position)
     public int Accuracy;
     public float Range = Constants.DEFAULT_RANGE;
     public float TotalReloadTime = Constants.DEFAULT_RELOAD_TIME;
-    public float RemainingReloadTime = Constants.DEFAULT_RELOAD_TIME / 2;
+    public float RemainingReloadTime = Constants.DEFAULT_RELOAD_TIME;
     public bool Alive = true;
     public Player? Target;
     public MovementData MovementData = new() { Direction = 0, Position = position, Speed = Constants.MOVEMENT_SPEED };
@@ -26,7 +26,7 @@ public class Player(int id, string nickname, Vector2 position)
 
     public void ResetForInitialGame(int accuracy)
     {
-        TotalReloadTime = Constants.DEFAULT_RELOAD_TIME;
+        TotalReloadTime = accuracy / 100f * 1.5f * Constants.DEFAULT_RELOAD_TIME;
         Range = Constants.DEFAULT_RANGE;
         Balance = 200;
         AccuracyState = 0;
@@ -43,7 +43,7 @@ public class Player(int id, string nickname, Vector2 position)
         Alive = true;
         Target = null;
         MovementData = new MovementData { Direction = 0, Position = Vector2.Zero, Speed = Constants.MOVEMENT_SPEED };
-        RemainingReloadTime = TotalReloadTime / 2;
+        RemainingReloadTime = TotalReloadTime;
         AccuracyState = 0;
         IsCreatingItem = false;
         CreatingRemainingTime = 0f;

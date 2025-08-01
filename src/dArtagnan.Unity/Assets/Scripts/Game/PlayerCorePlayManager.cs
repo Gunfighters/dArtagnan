@@ -16,7 +16,6 @@ namespace Game
             PacketChannel.On<PlayerCreatingStateBroadcast>(OnCreatingState);
             PacketChannel.On<UpdatePlayerAccuracyBroadcast>(OnAccuracyUpdate);
             PacketChannel.On<ItemAcquiredBroadcast>(OnItemAcquired);
-            ;
         }
 
         private static void OnPlayerMovementData(PlayerMovementDataBroadcast e)

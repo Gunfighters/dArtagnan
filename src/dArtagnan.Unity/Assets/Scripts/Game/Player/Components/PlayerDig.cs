@@ -5,20 +5,20 @@ namespace Game.Player.Components
 {
     public class PlayerDig : MonoBehaviour
     {
-        private PlayerModel _playerModel;
+        private PlayerCore _core;
         public bool Digging { get; private set; }
 
         private void Awake()
         {
-            _playerModel = GetComponent<PlayerModel>();
+            _core = GetComponent<PlayerCore>();
         }
 
         private void SetMotion(bool dig)
         {
             if (dig)
-                _playerModel.Dig();
+                _core.Model.Dig();
             else
-                _playerModel.Idle();
+                _core.Model.Idle();
         }
 
         public void Initialize(PlayerInformation info)
