@@ -25,6 +25,12 @@ namespace Game.Player.Components
         public void SetAccuracyState(int newAccuracyState)
         {
             AccuracyState = newAccuracyState;
+            accuracyText.color = AccuracyState switch
+            {
+                1 => new Color32(250, 85, 50, 255),
+                -1 => new Color32(75, 150, 220, 255),
+                _ => Color.white
+            };
         }
     }
 }

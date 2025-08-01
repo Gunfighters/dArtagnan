@@ -24,29 +24,46 @@ public class Player(int id, string nickname, Vector2 position)
     private float accuracyTimer = 0f; // 정확도 업데이트를 위한 타이머
     private const float ACCURACY_UPDATE_INTERVAL = 1.0f; // 정확도 업데이트 간격 (1초)
 
-    public void ResetForInitialGame(int accuracy)
+    /// <summary>
+    /// 대기 상태로 플레이어를 초기화 (게임 완전 초기화)
+    /// </summary>
+    public void InitToWaiting(int accuracy)
     {
+        // 기본 능력치 초기화
+        Accuracy = accuracy;
         TotalReloadTime = accuracy == 0
             ? Constants.DEFAULT_RELOAD_TIME
             : accuracy / 100f * 1.5f * Constants.DEFAULT_RELOAD_TIME;
         Range = Constants.DEFAULT_RANGE;
+        
+        // 경제 시스템 초기화
         Balance = 200;
+        
+        // 게임 시스템 초기화
         AccuracyState = 0;
         Augments.Clear();
         CurrentItem = -1;
-        IsCreatingItem = false;
-        CreatingRemainingTime = 0f;
-        accuracyTimer = 0f;
-        Accuracy = accuracy;
+        
+        // 라운드 상태도 함께 초기화
+        InitToRound();
     }
 
-    public void ResetForNextRound()
+    /// <summary>
+    /// 라운드 상태로 플레이어를 초기화
+    /// </summary>
+    public void InitToRound()
     {
+        // 생존 상태
         Alive = true;
         Target = null;
+        
+        // 이동 상태 (위치는 GameManager에서 별도 설정)
         MovementData = new MovementData { Direction = 0, Position = Vector2.Zero, Speed = Constants.MOVEMENT_SPEED };
+        
+        // 전투 상태
         RemainingReloadTime = TotalReloadTime;
-        AccuracyState = 0;
+        
+        // 아이템 제작 상태
         IsCreatingItem = false;
         CreatingRemainingTime = 0f;
         accuracyTimer = 0f;

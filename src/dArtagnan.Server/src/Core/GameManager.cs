@@ -311,9 +311,7 @@ public class GameManager
             }
             else
             {
-                // 라운드 종료 후 다음 라운드 진행 전에 증강 선택 단계 시작
                 await StartAugmentSelection();
-                // await StartNextRoundAsync(Round + 1);
             }
         }
     }
@@ -335,16 +333,57 @@ public class GameManager
         return Round >= MAX_ROUNDS || Players.Values.Count(p => !p.Bankrupt) <= 1;
     }
 
-    public void ResetRespawnAll(bool includeBankrupts)
+    /// <summary>
+    /// 대기 상태로 게임 전체를 초기화 (모든 플레이어 + 게임 상태)
+    /// </summary>
+    public void InitToWaiting()
     {
-        var pool = includeBankrupts ? Players.Values : Players.Values.Where(p => !p.Bankrupt).ToList();
-        var size = pool.Count;
-        for (var index = 0; index < size; index++)
+        // 모든 플레이어 대기 상태로 초기화 및 배치
+        var allPlayers = Players.Values.ToList();
+        for (var index = 0; index < allPlayers.Count; index++)
         {
-            var player = pool.ElementAt(index);
-            player.ResetForNextRound();
+            var player = allPlayers[index];
+            player.InitToWaiting(Player.GenerateRandomAccuracy());
             player.MovementData.Position = Player.GetSpawnPosition(index);
         }
+        
+        // 게임 상태 초기화
+        Round = 0;
+        TotalPrizeMoney = 0;
+        BettingTimer = 0f;
+        
+        // 시스템 상태 초기화
+        rouletteDonePlayers.Clear();
+        playerAugmentOptions.Clear();
+        augmentSelectionDonePlayers.Clear();
+        
+        // 게임 상태 변경
+        CurrentGameState = GameState.Waiting;
+    }
+
+    /// <summary>
+    /// 라운드 상태로 초기화 (파산하지 않은 플레이어 + 라운드 상태)
+    /// </summary>
+    public void InitToRound(int newRound)
+    {
+        Round = newRound;
+        BettingAmount = BettingAmounts[newRound - 1];
+        
+        // 파산하지 않은 플레이어만 라운드 상태로 초기화 및 배치
+        var alivePlayers = Players.Values.Where(p => !p.Bankrupt).ToList();
+        for (var index = 0; index < alivePlayers.Count; index++)
+        {
+            var player = alivePlayers[index];
+            player.InitToRound();
+            player.MovementData.Position = Player.GetSpawnPosition(index);
+        }
+        
+        // 베팅 시스템 초기화
+        BettingTimer = 0f;
+        TotalPrizeMoney = 0;
+
+        // 게임 상태 변경
+        CurrentGameState = GameState.Round;
     }
 
     /// <summary>
@@ -352,16 +391,11 @@ public class GameManager
     /// </summary>
     public async Task StartNextRoundAsync(int newRound)
     {
-        ResetRespawnAll(false);
-        Round = newRound;
-        BettingAmount = BettingAmounts[Round-1];
-        BettingTimer = 0f;
-        TotalPrizeMoney = 0;
+        var oldState = CurrentGameState;
+        
+        InitToRound(newRound);
         
         Console.WriteLine($"[라운드 {newRound}] 라운드 시작! 현재 베팅금: {BettingAmount}달러");
-        
-        var oldState = CurrentGameState;
-        CurrentGameState = GameState.Round;
         Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {CurrentGameState}");
         
         await BroadcastToAll(new RoundStartFromServer { 
@@ -378,21 +412,8 @@ public class GameManager
     {
         var oldState = CurrentGameState;
         
-        // 게임 완전 초기화
-        foreach (var p in Players.Values)
-        {
-            p.ResetForInitialGame(0);
-        }
-        ResetRespawnAll(true);
-        Round = 0;
-        rouletteDonePlayers.Clear();
+        InitToWaiting();
         
-        // 베팅 시스템 초기화
-        TotalPrizeMoney = 0;
-        BettingTimer = 0f;
-        
-        // 대기 상태로 전환
-        CurrentGameState = GameState.Waiting;
         Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {CurrentGameState}");
         
         await BroadcastToAll(new WaitingStartFromServer { PlayersInfo = PlayersInRoom() });

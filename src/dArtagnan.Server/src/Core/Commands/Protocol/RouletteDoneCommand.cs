@@ -24,32 +24,7 @@ public class RouletteDoneCommand : IGameCommand
         if (gameManager.rouletteDonePlayers.Count >= gameManager.Players.Count)
         {
             Console.WriteLine("[룰렛] 모든 플레이어 룰렛 완료 - 첫 라운드 시작!");
-            await StartFirstRound(gameManager);
+            await gameManager.StartNextRoundAsync(1);
         }
-    }
-
-    /// <summary>
-    /// 첫 라운드를 시작
-    /// </summary>
-    private static async Task StartFirstRound(GameManager gameManager)
-    {
-        // === 라운드 상태 설정 ===
-        gameManager.Round = 1;
-        gameManager.BettingTimer = 0f;
-        gameManager.CurrentGameState = GameState.Round;
-        gameManager.BettingAmount = gameManager.BettingAmounts[gameManager.Round - 1];
-        
-        Console.WriteLine($"[게임] 게임 상태 변경: RouletteSpinning -> Playing");
-        Console.WriteLine($"[라운드 1] 첫 라운드 시작! 베팅금: {gameManager.BettingAmount}달러/{Constants.BETTING_PERIOD}초");
-        
-        gameManager.ResetRespawnAll(true);
-        
-        // === 게임 시작 브로드캐스트 ===
-        await gameManager.BroadcastToAll(new RoundStartFromServer
-        { 
-            PlayersInfo = gameManager.PlayersInRoom(), 
-            Round = gameManager.Round,
-            BettingAmount = gameManager.BettingAmount
-        });
     }
 } 

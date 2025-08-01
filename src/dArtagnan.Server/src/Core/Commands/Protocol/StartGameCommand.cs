@@ -30,12 +30,16 @@ public class StartGameCommand : IGameCommand
 
         Console.WriteLine($"[게임] 게임 시작! (참가자: {gameManager.Players.Count}명)");
 
-        // === 게임 전체 상태 초기화 (한 번에) ===
-        InitializeGameState(gameManager);
+        // === 대기 상태로 완전 초기화 ===
+        gameManager.InitToWaiting();
         
-        // === 플레이어들 초기화 & 정확도 설정 ===
+        // === 룰렛 관련 세세한 처리 ===
         var accuracyPool = GenerateAccuracyPool();
-        await InitializeAllPlayers(gameManager, accuracyPool);
+        AssignAccuracyToPlayers(gameManager, accuracyPool);
+        
+        // 룰렛 상태로 변경
+        gameManager.CurrentGameState = GameState.Roulette;
+        Console.WriteLine($"[게임] 게임 상태 변경: Waiting -> RouletteSpinning");
         
         // === 룰렛 시작 브로드캐스트 ===
         await BroadcastRouletteStart(gameManager, accuracyPool);
@@ -43,20 +47,7 @@ public class StartGameCommand : IGameCommand
 
 
 
-    /// <summary>
-    /// 게임 전체 상태를 초기화합니다
-    /// </summary>
-    private static void InitializeGameState(GameManager gameManager)
-    {
-        gameManager.Round = 0;
-        gameManager.TotalPrizeMoney = 0;
-        gameManager.BettingTimer = 0f;
-        gameManager.BettingAmount = 0;
-        gameManager.rouletteDonePlayers.Clear();
-        gameManager.CurrentGameState = GameState.Roulette;
-        
-        Console.WriteLine($"[게임] 게임 상태 초기화 완료 -> RouletteSpinning");
-    }
+
 
     /// <summary>
     /// 랜덤 정확도 풀을 생성합니다
@@ -72,21 +63,23 @@ public class StartGameCommand : IGameCommand
     }
 
     /// <summary>
-    /// 모든 플레이어를 게임용으로 초기화합니다
+    /// 플레이어들에게 정확도를 할당합니다
     /// </summary>
-    private static Task InitializeAllPlayers(GameManager gameManager, List<int> accuracyPool)
+    private static void AssignAccuracyToPlayers(GameManager gameManager, List<int> accuracyPool)
     {
-        // 각 플레이어 초기화 & 정확도 할당
         foreach (var player in gameManager.Players.Values)
         {
             var randomAccuracy = accuracyPool[Random.Shared.Next(0, accuracyPool.Count)];
-            player.ResetForInitialGame(randomAccuracy);
-            Console.WriteLine($"[초기화] {player.Nickname}: {player.Accuracy}% (잔액: {player.Balance}달러)");
+            player.Accuracy = randomAccuracy;
+            
+            // 정확도에 따른 재장전 시간 재계산
+            player.TotalReloadTime = randomAccuracy == 0
+                ? Constants.DEFAULT_RELOAD_TIME
+                : randomAccuracy / 100f * 1.5f * Constants.DEFAULT_RELOAD_TIME;
+            player.RemainingReloadTime = player.TotalReloadTime;
+            
+            Console.WriteLine($"[정확도] {player.Nickname}: {player.Accuracy}% (재장전: {player.TotalReloadTime:F2}초)");
         }
-        
-        // 위치 재배치 (한 번만)
-        gameManager.ResetRespawnAll(true);
-        return Task.CompletedTask;
     }
 
     /// <summary>
