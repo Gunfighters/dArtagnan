@@ -26,7 +26,9 @@ public class Player(int id, string nickname, Vector2 position)
 
     public void ResetForInitialGame(int accuracy)
     {
-        TotalReloadTime = accuracy / 100f * 1.5f * Constants.DEFAULT_RELOAD_TIME;
+        TotalReloadTime = accuracy == 0
+            ? Constants.DEFAULT_RELOAD_TIME
+            : accuracy / 100f * 1.5f * Constants.DEFAULT_RELOAD_TIME;
         Range = Constants.DEFAULT_RANGE;
         Balance = 200;
         AccuracyState = 0;
