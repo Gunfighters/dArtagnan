@@ -72,10 +72,10 @@ public class StartGameCommand : IGameCommand
             var randomAccuracy = accuracyPool[Random.Shared.Next(0, accuracyPool.Count)];
             player.Accuracy = randomAccuracy;
             
-            // 정확도에 따른 재장전 시간 재계산
+            // 현재정확도에 반비례한 재장전 시간 계산
             player.TotalReloadTime = randomAccuracy == 0
                 ? Constants.DEFAULT_RELOAD_TIME
-                : randomAccuracy / 100f * 1.5f * Constants.DEFAULT_RELOAD_TIME;
+                : (0.1f + (float)Math.Sqrt(randomAccuracy) / 10f * 0.9f) * Constants.DEFAULT_RELOAD_TIME;
             player.RemainingReloadTime = player.TotalReloadTime;
             
             Console.WriteLine($"[정확도] {player.Nickname}: {player.Accuracy}% (재장전: {player.TotalReloadTime:F2}초)");

@@ -153,11 +153,13 @@ public class GameManager
             var nextHost = Players.Values.FirstOrDefault(p => p.Alive);
             await SetHost(nextHost);
         }
-
-        if (Players.IsEmpty)
+        
+        // 실제 플레이어(봇이 아닌)가 없으면 게임을 대기 상태로 초기화
+        var realPlayers = Players.Values.Where(p => p is not Bot).ToList();
+        if (realPlayers.Count == 0)
         {
+            Console.WriteLine("[게임] 실제 플레이어가 모두 나가서 게임을 대기 상태로 초기화합니다");
             await ResetGameToWaiting();
-        }
     }
 
     public Player? GetPlayerById(int clientId)

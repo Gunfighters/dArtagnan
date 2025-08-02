@@ -36,7 +36,10 @@ public class PlayerShootingCommand : IGameCommand
         // 명중 여부 계산
         bool hit = Random.Shared.NextDouble() * 100 < shooter.Accuracy;
         
-        // 재장전 시간 설정
+        // 정확도의 제곱근에 비례하여 재장전 시간 계산
+        shooter.TotalReloadTime = shooter.Accuracy == 0
+            ? Constants.DEFAULT_RELOAD_TIME
+            : (0.1f + (float)Math.Sqrt(shooter.Accuracy) / 10f * 0.9f) * Constants.DEFAULT_RELOAD_TIME;
         shooter.RemainingReloadTime = shooter.TotalReloadTime;
         
         Console.WriteLine($"[전투] 플레이어 {shooter.Id} -> {target.Id} 사격: {(hit ? "명중" : "빗나감")}");

@@ -39,14 +39,14 @@ namespace dArtagnan.Shared
     /// </summary>
     public static class Constants
     {
-        public const int MAX_PLAYER_COUNT = 6;
-        public const float DEFAULT_RELOAD_TIME = 10.0f;
+        public const int MAX_PLAYER_COUNT = 7;
+        public const float DEFAULT_RELOAD_TIME = 13.0f;
         public const float MOVEMENT_SPEED = 1.5f;
         public const int MIN_ACCURACY = 1;
         public const int MAX_ACCURACY = 100;
-        public const float DEFAULT_RANGE = 3f;
-        public const float SPAWN_RADIUS = 1.0f;
-        public const float BETTING_PERIOD = 3.0f;
+        public const float DEFAULT_RANGE = 5f;
+        public const float SPAWN_RADIUS = 1.5f;
+        public const float BETTING_PERIOD = 10.0f;
         public const float CREATING_DURATION = 3.0f; 
     }
 } 
