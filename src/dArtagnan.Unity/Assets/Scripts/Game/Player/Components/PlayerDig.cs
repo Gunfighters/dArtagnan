@@ -1,10 +1,12 @@
 using dArtagnan.Shared;
+using Game.Player.UI;
 using UnityEngine;
 
 namespace Game.Player.Components
 {
     public class PlayerDig : MonoBehaviour
     {
+        [SerializeField] private CraftSlider slider;
         private PlayerCore _core;
         public bool Digging { get; private set; }
 
@@ -29,6 +31,8 @@ namespace Game.Player.Components
         public void ToggleDigging(bool dig)
         {
             Digging = dig;
+            slider.SetProgress(0);
+            slider.gameObject.SetActive(dig);
             SetMotion(Digging);
         }
     }
