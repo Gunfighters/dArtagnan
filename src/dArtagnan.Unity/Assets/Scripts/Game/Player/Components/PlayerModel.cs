@@ -67,6 +67,13 @@ namespace Game.Player.Components
 
         public void Idle()
         {
+            if (_equipped != _gunSprite)
+            {
+                _equipped = _gunSprite;
+                _actualModel.UnEquip(EquipmentPart.MeleeWeapon2H);
+                _actualModel.Equip(_equipped, _equipmentPartType);
+            }
+
             SetState(CharacterState.Idle);
         }
 
@@ -95,11 +102,11 @@ namespace Game.Player.Components
                 _actualModel.UnEquip(EquipmentPart.Firearm1H);
                 _actualModel.UnEquip(EquipmentPart.Firearm2H);
                 _actualModel.Equip(_shovelSprite, EquipmentPart.MeleeWeapon2H);
-                _shovelSprite = _equipped;
+                _equipped = _shovelSprite;
             }
 
             SetDirection(Vector2.down);
-            _actualModel.AnimationManager.Jab();
+            _actualModel.AnimationManager.Dig();
         }
 
         private FirearmParams GetFirearmParams()

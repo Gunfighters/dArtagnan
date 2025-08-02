@@ -81,6 +81,11 @@ namespace Assets.HeroEditor4D.Common.Scripts.CharacterScripts
             IsAction = true;
         }
 
+        public void Dig()
+        {
+            SetState(CharacterState.Dig);
+        }
+
         /// <summary>
         ///     Play Slash1H animation.
         /// </summary>

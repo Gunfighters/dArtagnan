@@ -1,4 +1,5 @@
-﻿using System.Net.Sockets;
+﻿using System;
+using System.Net.Sockets;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using Game;
@@ -23,6 +24,7 @@ public class NetworkManager : MonoBehaviour, IChannelListener
         PacketChannel.On<RouletteDone>(Send);
         PacketChannel.On<AugmentDoneFromClient>(Send);
         PacketChannel.On<ItemCreatingStateFromClient>(Send);
+        PacketChannel.On<UseItemFromClient>(Send);
         LocalEventChannel.OnEndpointSelected += Connect;
     }
 

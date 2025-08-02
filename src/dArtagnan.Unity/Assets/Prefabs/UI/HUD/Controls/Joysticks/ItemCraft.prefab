@@ -319,3 +319,4 @@ MonoBehaviour:
   craftIcon: {fileID: 588379323953124720}
   currentItemIcon: {fileID: 4292480122063640091}
   filler: {fileID: 2539552712166219437}
+  itemCollection: {fileID: 11400000, guid: 4ada8f966af1b4fb3afb897f98bf5079, type: 2}

@@ -64,8 +64,9 @@ namespace Game
 
         private static void OnItemAcquired(ItemAcquiredBroadcast e)
         {
-            var acquiring = PlayerGeneralManager.GetPlayer(e.PlayerId);
+            var acquiring = PlayerGeneralManager.GetPlayer(e.PlayerId)!;
             Debug.Log($"Player #{acquiring.ID} get Item: {e.ItemId}");
+            acquiring!.Dig.ToggleDigging(false);
         }
 
         private static void OnAccuracyStateBroadcast(PlayerAccuracyStateBroadcast e)

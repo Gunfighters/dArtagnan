@@ -81,6 +81,11 @@ namespace Assets.HeroEditor4D.Common.Scripts.ExampleScripts
 
         private void Actions()
         {
+            if (Input.GetKeyDown(KeyCode.M))
+            {
+                Character.AnimationManager.Dig();
+            }
+
             if (Input.GetKeyDown(KeyCode.S))
             {
                 switch (Character.WeaponType)

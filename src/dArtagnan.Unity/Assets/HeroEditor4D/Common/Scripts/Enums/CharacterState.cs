@@ -12,6 +12,7 @@
         ShieldBlock = 10,
         WeaponBlock = 11,
         Evasion = 12,
-        Dance = 13
+        Dance = 13,
+        Dig = 14
     }
 }
