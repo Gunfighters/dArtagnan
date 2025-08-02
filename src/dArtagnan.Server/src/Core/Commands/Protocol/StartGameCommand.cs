@@ -30,8 +30,8 @@ public class StartGameCommand : IGameCommand
 
         Console.WriteLine($"[게임] 게임 시작! (참가자: {gameManager.Players.Count}명)");
 
-        // === 대기 상태로 완전 초기화 ===
-        gameManager.InitToWaiting();
+        // === 봇 생성 로직 ===
+        await CreateBots(gameManager);
         
         // === 룰렛 관련 세세한 처리 ===
         var accuracyPool = GenerateAccuracyPool();
@@ -72,10 +72,10 @@ public class StartGameCommand : IGameCommand
             var randomAccuracy = accuracyPool[Random.Shared.Next(0, accuracyPool.Count)];
             player.Accuracy = randomAccuracy;
             
-            // 정확도에 따른 재장전 시간 재계산
+            // 현재정확도에 반비례한 재장전 시간 계산
             player.TotalReloadTime = randomAccuracy == 0
                 ? Constants.DEFAULT_RELOAD_TIME
-                : randomAccuracy / 100f * 1.5f * Constants.DEFAULT_RELOAD_TIME;
+                : (0.1f + (float)Math.Sqrt(randomAccuracy) / 10f * 0.9f) * Constants.DEFAULT_RELOAD_TIME;
             player.RemainingReloadTime = player.TotalReloadTime;
             
             Console.WriteLine($"[정확도] {player.Nickname}: {player.Accuracy}% (재장전: {player.TotalReloadTime:F2}초)");
@@ -88,7 +88,7 @@ public class StartGameCommand : IGameCommand
     private static async Task BroadcastRouletteStart(GameManager gameManager, List<int> accuracyPool)
     {
         var broadcastTasks = gameManager.Players.Values
-            .Select(player => gameManager.Clients[player.Id].SendPacketAsync(new YourAccuracyAndPool
+            .Select(player => gameManager.SendToPlayer(player.Id, new YourAccuracyAndPool
             { 
                 AccuracyPool = accuracyPool, 
                 YourAccuracy = player.Accuracy 
@@ -96,5 +96,33 @@ public class StartGameCommand : IGameCommand
             
         await Task.WhenAll(broadcastTasks);
         Console.WriteLine($"[룰렛] 모든 플레이어에게 룰렛 시작 알림 전송 완료");
+    }
+
+    /// <summary>
+    /// 최대인원이 될 때까지 봇을 생성합니다
+    /// </summary>
+    private static async Task CreateBots(GameManager gameManager)
+    {
+        var currentPlayerCount = gameManager.Players.Count;
+        var botsNeeded = Constants.MAX_PLAYER_COUNT - currentPlayerCount;
+
+        if (botsNeeded <= 0)
+        {
+            Console.WriteLine($"[봇] 플레이어가 충분합니다. 봇 생성 없음 (현재: {currentPlayerCount}명)");
+            return;
+        }
+
+        Console.WriteLine($"[봇] {botsNeeded}명의 봇을 생성합니다 (현재 플레이어: {currentPlayerCount}명)");
+
+        for (int i = 0; i < botsNeeded; i++)
+        {
+            var botId = gameManager.GetNextAvailableId();
+            var botNickname = $"Bot{i + 1}";
+            var spawnPosition = Player.GetSpawnPosition(currentPlayerCount + i);
+
+            await gameManager.AddBot(botId, botNickname, spawnPosition);
+        }
+
+        Console.WriteLine($"[봇] 총 {botsNeeded}명의 봇 생성 완료. 전체 참가자: {gameManager.Players.Count}명");
     }
 } 

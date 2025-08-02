@@ -3,26 +3,35 @@ using dArtagnan.Shared;
 
 namespace dArtagnan.Server;
 
-public class Player(int id, string nickname, Vector2 position)
+public class Player
 {
-    public readonly int Id = id;
-    public readonly string Nickname = nickname;
+    public readonly int Id;
+    public readonly string Nickname;
     public int Accuracy;
-    public float Range = Constants.DEFAULT_RANGE;
-    public float TotalReloadTime = Constants.DEFAULT_RELOAD_TIME;
-    public float RemainingReloadTime = Constants.DEFAULT_RELOAD_TIME;
-    public bool Alive = true;
+    public float Range;
+    public float TotalReloadTime;
+    public float RemainingReloadTime;
+    public bool Alive;
     public Player? Target;
-    public MovementData MovementData = new() { Direction = 0, Position = position, Speed = Constants.MOVEMENT_SPEED };
-    public int Balance = 200;
+    public MovementData MovementData;
+    public int Balance;
     public bool Bankrupt => Balance <= 0;
-    public int AccuracyState = 0; // 정확도 상태: -1(감소), 0(유지), 1(증가)
-    public List<int> Augments = []; // 보유한 증강 ID 리스트
-    public int CurrentItem = -1; // 현재 소지한 아이템 ID (-1이면 없음)
-    public bool IsCreatingItem = false; // 아이템 제작 중인지 여부
-    public float CreatingRemainingTime = 0f; // 아이템 제작 남은 시간
-    private float accuracyTimer = 0f; // 정확도 업데이트를 위한 타이머
+    public int AccuracyState; // 정확도 상태: -1(감소), 0(유지), 1(증가)
+    public List<int> Augments; // 보유한 증강 ID 리스트
+    public int CurrentItem; // 현재 소지한 아이템 ID (-1이면 없음)
+    public bool IsCreatingItem; // 아이템 제작 중인지 여부
+    public float CreatingRemainingTime; // 아이템 제작 남은 시간
+    private float accuracyTimer; // 정확도 업데이트를 위한 타이머
     private const float ACCURACY_UPDATE_INTERVAL = 1.0f; // 정확도 업데이트 간격 (1초)
+
+    public Player(int id, string nickname, Vector2 position)
+    {
+        Id = id;
+        Nickname = nickname;
+        MovementData = new MovementData { Direction = 0, Position = position, Speed = Constants.MOVEMENT_SPEED };
+        Augments = [];
+        InitToWaiting(GenerateRandomAccuracy());
+    }
 
     /// <summary>
     /// 대기 상태로 플레이어를 초기화 (게임 완전 초기화)
@@ -31,10 +40,13 @@ public class Player(int id, string nickname, Vector2 position)
     {
         // 기본 능력치 초기화
         Accuracy = accuracy;
-        TotalReloadTime = accuracy == 0
-            ? Constants.DEFAULT_RELOAD_TIME
-            : accuracy / 100f * 1.5f * Constants.DEFAULT_RELOAD_TIME;
         Range = Constants.DEFAULT_RANGE;
+        TotalReloadTime = Constants.DEFAULT_RELOAD_TIME;
+        RemainingReloadTime = Constants.DEFAULT_RELOAD_TIME;
+        
+        // 생존 상태 초기화
+        Alive = true;
+        Target = null;
         
         // 경제 시스템 초기화
         Balance = 200;
@@ -43,6 +55,11 @@ public class Player(int id, string nickname, Vector2 position)
         AccuracyState = 0;
         Augments.Clear();
         CurrentItem = -1;
+        
+        // 아이템 제작 상태 초기화
+        IsCreatingItem = false;
+        CreatingRemainingTime = 0f;
+        accuracyTimer = 0f;
         
         // 라운드 상태도 함께 초기화
         InitToRound();

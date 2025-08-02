@@ -23,12 +23,13 @@ public class GameLoopCommand : IGameCommand
                 break;
 
             case GameState.Round:
-                // 라운드 상태: 베팅금 차감 + 모든 플레이어 상태 업데이트
+                // 라운드 상태: 베팅금 차감 + 모든 플레이어 상태 업데이트 + 봇 AI 업데이트
                 await UpdateBettingTimer(gameManager);
                 await UpdatePlayerAccuracyStates(gameManager, DeltaTime);
                 await UpdatePlayerCreatingStates(gameManager, DeltaTime);
                 UpdatePlayerMovementStates(gameManager, DeltaTime);
                 UpdatePlayerReloadStates(gameManager, DeltaTime);
+                UpdateBotAI(gameManager, DeltaTime);
                 break;
 
             case GameState.Roulette:
@@ -187,4 +188,18 @@ public class GameLoopCommand : IGameCommand
             ItemId = randomItemId
         });
     }
+
+    /// <summary>
+    /// 봇들의 AI를 업데이트합니다
+    /// </summary>
+    private void UpdateBotAI(GameManager gameManager, float deltaTime)
+    {
+        var bots = gameManager.Players.Values.OfType<Bot>().ToList();
+        foreach (var bot in bots)
+        {
+            bot.UpdateAI(deltaTime);
+        }
+    }
+
+
 }

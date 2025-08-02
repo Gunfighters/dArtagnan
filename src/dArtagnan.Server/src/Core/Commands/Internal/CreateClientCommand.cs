@@ -14,7 +14,7 @@ public class CreateClientCommand : IGameCommand
         try
         {
             // thread-safe한 ID 할당
-            int clientId = GetNextAvailableId(gameManager);
+            int clientId = gameManager.GetNextAvailableId();
             
             // ClientConnection 생성
             var client = new ClientConnection(clientId, TcpClient, gameManager);
@@ -30,15 +30,5 @@ public class CreateClientCommand : IGameCommand
         }
         
         return Task.CompletedTask;
-    }
-    
-    private static int GetNextAvailableId(GameManager gameManager)
-    {
-        int id = 1;
-        while (gameManager.Clients.ContainsKey(id))
-        {
-            id++;
-        }
-        return id;
     }
 } 
