@@ -78,26 +78,26 @@ public class AugmentDoneCommand : IGameCommand
     private void ApplyAugmentEffect(Player player, int augmentId)
     {
         // 예시 증강들
-        switch (augmentId)
-        {
-            case 1: // 정확도 +10
-                player.Accuracy = Math.Min(100, player.Accuracy + 10);
-                break;
-            case 2: // 사거리 +1
-                player.Range += 1f;
-                break;
-            case 3: // 재장전 시간 -2초
-                player.TotalReloadTime = Math.Max(3f, player.TotalReloadTime - 2f);
-                break;
-            case 4: // 정확도 +15
-                player.Accuracy = Math.Min(100, player.Accuracy + 15);
-                break;
-            case 5: // 사거리 +1.5
-                player.Range += 1.5f;
-                break;
-            default:
-                Console.WriteLine($"[증강] 알 수 없는 증강 ID: {augmentId}");
-                break;
-        }
+        // switch (augmentId)
+        // {
+        //     case 1: // 정확도 +10
+        //         player.Accuracy = Math.Min(100, player.Accuracy + 10);
+        //         break;
+        //     case 2: // 사거리 +1
+        //         player.Range += 1f;
+        //         break;
+        //     case 3: // 재장전 시간 -2초
+        //         player.TotalReloadTime = Math.Max(3f, player.TotalReloadTime - 2f);
+        //         break;
+        //     case 4: // 정확도 +15
+        //         player.Accuracy = Math.Min(100, player.Accuracy + 15);
+        //         break;
+        //     case 5: // 사거리 +1.5
+        //         player.Range += 1.5f;
+        //         break;
+        //     default:
+        //         Console.WriteLine($"[증강] 알 수 없는 증강 ID: {augmentId}");
+        //         break;
+        // }
     }
 } 
