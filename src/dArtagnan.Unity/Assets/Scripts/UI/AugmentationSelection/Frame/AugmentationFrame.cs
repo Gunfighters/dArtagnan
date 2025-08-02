@@ -1,6 +1,3 @@
-using dArtagnan.Shared;
-using R3;
-using R3.Triggers;
 using TMPro;
 using UI.AugmentationSelection.Data;
 using UnityEngine;
@@ -18,11 +15,21 @@ namespace UI.AugmentationSelection.Frame
         [SerializeField] private AugmentationCollection augmentationCollection;
         [SerializeField] private Toggle selectedToggle;
 
+        private void Awake()
+        {
+            selectedToggle.onValueChanged.AddListener(value =>
+            {
+                if (value)
+                    AugmentationSelectionModel.SelectAugmentation(Augmentation.id);
+            });
+        }
+
         public void Setup(int id)
         {
             Augmentation = augmentationCollection.GetAugmentationById(id);
             nameText.text = Augmentation.name;
-            image.sprite = Augmentation.sprite;;
+            image.sprite = Augmentation.sprite;
+            ;
             description.text = Augmentation.description;
             selectedToggle.isOn = false;
         }
@@ -40,16 +47,14 @@ namespace UI.AugmentationSelection.Frame
         public void OnPointerClick(PointerEventData eventData)
         {
             if (AugmentationSelectionModel.IsSelectionComplete.Value) return;
-            
             AugmentationSelectionModel.SelectAugmentation(Augmentation.id);
-            PacketChannel.Raise(new AugmentDoneFromClient { SelectedAugmentID = Augmentation.id });
         }
-        
+
         public void UpdateSelection(bool isSelected)
         {
             selectedToggle.isOn = isSelected;
         }
-        
+
         public void SetInteractable(bool interactable)
         {
             var canvasGroup = GetComponent<CanvasGroup>();
@@ -57,6 +62,7 @@ namespace UI.AugmentationSelection.Frame
             {
                 canvasGroup = gameObject.AddComponent<CanvasGroup>();
             }
+
             canvasGroup.interactable = interactable;
             canvasGroup.alpha = interactable ? 1f : 0.4f;
         }

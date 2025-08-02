@@ -23,13 +23,14 @@ namespace UI.AugmentationSelection
             SelectedAugmentId.Value = -1;
             IsSelectionComplete.Value = false;
         }
-        
+
         public static void SelectAugmentation(int augmentId)
         {
             if (IsSelectionComplete.Value) return;
-            
+
             SelectedAugmentId.Value = augmentId;
             IsSelectionComplete.Value = true;
+            PacketChannel.Raise(new AugmentDoneFromClient { SelectedAugmentID = augmentId });
         }
     }
 }

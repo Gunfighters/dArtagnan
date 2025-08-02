@@ -34,6 +34,7 @@ namespace Game.Player.Components
 
         public void Initialize(PlayerInformation info)
         {
+            SetState(info.Alive ? CharacterState.Idle : CharacterState.Death);
             SetDirection(info.MovementData.Direction.IntToDirection());
             _actualModel.SetExpression(info.Alive ? "Default" : "Dead");
             _gunSprite = spriteCollection.GunSpriteByAccuracy(info.Accuracy);

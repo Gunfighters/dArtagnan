@@ -24,12 +24,10 @@ namespace Game.Player.Components
             if (Alive)
                 _core.Model.Idle();
             else
-            {
                 _core.Model.Die();
-                _core.Reload.OnHealth(Alive);
-                _core.Accuracy.OnHealth(Alive);
-                _core.Balance.OnHealth(Alive);
-            }
+            _core.Reload.OnHealth(Alive);
+            _core.Accuracy.OnHealth(Alive);
+            _core.Balance.OnHealth(Alive);
         }
     }
 }

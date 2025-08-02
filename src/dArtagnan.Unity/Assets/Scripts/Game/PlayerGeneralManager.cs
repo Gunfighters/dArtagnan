@@ -64,13 +64,14 @@ namespace Game
             p.Initialize(info);
 
             Players.Add(info.PlayerId, p);
+        }
 
-            if (info.PlayerId == _localPlayerId)
-            {
-                LocalEventChannel.InvokeOnNewCameraTarget(p);
-                LocalEventChannel.InvokeOnLocalPlayerAlive(true);
-                LocalEventChannel.InvokeOnLocalPlayerBalanceUpdate(p.Balance.Balance);
-            }
+        private static void OnLocalPlayerSet()
+        {
+            if (LocalPlayerCore.Health.Alive)
+                LocalEventChannel.InvokeOnNewCameraTarget(LocalPlayerCore);
+            LocalEventChannel.InvokeOnLocalPlayerAlive(LocalPlayerCore.Health.Alive);
+            LocalEventChannel.InvokeOnLocalPlayerBalanceUpdate(LocalPlayerCore.Balance.Balance);
         }
 
         private static void RemovePlayer(int playerId)
@@ -88,6 +89,8 @@ namespace Game
             {
                 CreatePlayer(info);
             }
+
+            OnLocalPlayerSet();
         }
 
         private static void RemovePlayerAll()
