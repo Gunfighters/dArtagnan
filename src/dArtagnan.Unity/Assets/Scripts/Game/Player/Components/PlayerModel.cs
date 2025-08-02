@@ -35,7 +35,7 @@ namespace Game.Player.Components
         public void Initialize(PlayerInformation info)
         {
             SetDirection(info.MovementData.Direction.IntToDirection());
-            _actualModel.SetExpression(info.Alive ? "Default" : "Death");
+            _actualModel.SetExpression(info.Alive ? "Default" : "Dead");
             _gunSprite = spriteCollection.GunSpriteByAccuracy(info.Accuracy);
             _equipmentPartType = spriteCollection.Firearm1H.Contains(_gunSprite)
                 ? EquipmentPart.Firearm1H
