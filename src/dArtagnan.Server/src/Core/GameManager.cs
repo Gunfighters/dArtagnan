@@ -160,6 +160,7 @@ public class GameManager
         {
             Console.WriteLine("[게임] 실제 플레이어가 모두 나가서 게임을 대기 상태로 초기화합니다");
             await ResetGameToWaiting();
+        }
     }
 
     public Player? GetPlayerById(int clientId)
@@ -394,11 +395,8 @@ public class GameManager
     /// <summary>
     /// 대기 상태로 게임 전체를 초기화 (모든 플레이어 + 게임 상태)
     /// </summary>
-    public async Task InitToWaiting()
+    public void InitToWaiting()
     {
-        // 먼저 모든 봇들을 제거
-        await RemoveAllBots();
-        
         // 실제 플레이어들만 대기 상태로 초기화 및 배치
         var realPlayers = Players.Values.Where(p => p is not Bot).ToList();
         for (var index = 0; index < realPlayers.Count; index++)
@@ -501,11 +499,13 @@ public class GameManager
     {
         var oldState = CurrentGameState;
         
-        await InitToWaiting();
+        InitToWaiting();
         
         Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {CurrentGameState}");
         
         await BroadcastToAll(new WaitingStartFromServer { PlayersInfo = PlayersInRoom() });
+        
+        await RemoveAllBots();
     }
 
     /// <summary>

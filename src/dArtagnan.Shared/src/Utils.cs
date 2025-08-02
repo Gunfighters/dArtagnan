@@ -46,7 +46,7 @@ namespace dArtagnan.Shared
         public const int MAX_ACCURACY = 100;
         public const float DEFAULT_RANGE = 5f;
         public const float SPAWN_RADIUS = 1.5f;
-        public const float BETTING_PERIOD = 10.0f;
+        public const float BETTING_PERIOD = 3.0f;
         public const float CREATING_DURATION = 3.0f; 
     }
 } 
