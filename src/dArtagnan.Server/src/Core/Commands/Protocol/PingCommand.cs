@@ -11,6 +11,6 @@ public class PingCommand : IGameCommand
     
     public async Task ExecuteAsync(GameManager gameManager)
     {
-        await Client.SendPacketAsync(new PongPacket());
+        await gameManager.SendToPlayer(Client.Id, new PongPacket());
     }
 } 

@@ -71,7 +71,16 @@ public class GameManager
             }
         }
     }
-    
+
+    internal int GetNextAvailableId()
+    {
+        int id = 1;
+        while (Clients.ContainsKey(id) || Players.ContainsKey(id))
+        {
+            id++;
+        }
+        return id;
+    }
 
 
     private async Task SetHost(Player? player)
@@ -93,6 +102,25 @@ public class GameManager
             await SetHost(player);
         }
         return player;
+    }
+
+    /// <summary>
+    /// 봇을 생성하고 게임에 추가합니다
+    /// </summary>
+    public async Task<Bot> AddBot(int botId, string nickname, Vector2 position)
+    {
+        var bot = new Bot(botId, nickname, position, this);
+        Players.TryAdd(bot.Id, bot);
+        
+        Console.WriteLine($"[봇] {nickname} 생성 완료 (ID: {botId}, 위치: {position})");
+        
+        // 다른 플레이어들에게 봇 참가 알림
+        await BroadcastToAll(new PlayerJoinBroadcast 
+        { 
+            PlayerInfo = bot.PlayerInformation 
+        });
+        
+        return bot;
     }
 
     /// <summary>
@@ -141,12 +169,20 @@ public class GameManager
     public async Task BroadcastToAll(IPacket packet)
     {
         Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}][게임] {packet.GetType().Name} 패킷 브로드캐스트");
-        var tasks = Clients.Values
+        
+        // 실제 클라이언트에게 패킷 전송
+        var clientTasks = Clients.Values
             .Select(client => client.SendPacketAsync(packet)).ToList();
 
-        if (tasks.Count != 0)
+        // 봇들에게는 AI 처리 로직 실행
+        var botTasks = Players.Values.OfType<Bot>()
+            .Select(bot => bot.HandlePacketAsync(packet)).ToList();
+
+        // 모든 작업을 병렬로 실행
+        var allTasks = clientTasks.Concat(botTasks);
+        if (allTasks.Any())
         {
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(allTasks);
         }
     }
 
@@ -160,6 +196,30 @@ public class GameManager
         if (tasks.Any())
         {
             await Task.WhenAll(tasks);
+        }
+    }
+
+    /// <summary>
+    /// 특정 플레이어에게만 패킷을 전송합니다 (봇인 경우 AI 로직 실행)
+    /// </summary>
+    public async Task SendToPlayer(int playerId, IPacket packet)
+    {
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}][게임] {packet.GetType().Name} 패킷을 플레이어 {playerId}에게 전송");
+        
+        // 플레이어가 봇인지 확인
+        if (Players.TryGetValue(playerId, out var player) && player is Bot bot)
+        {
+            // 봇인 경우 AI 처리 로직 실행
+            await bot.HandlePacketAsync(packet);
+        }
+        else if (Clients.TryGetValue(playerId, out var client))
+        {
+            // 실제 클라이언트인 경우 패킷 전송
+            await client.SendPacketAsync(packet);
+        }
+        else
+        {
+            Console.WriteLine($"[게임] 플레이어 {playerId}를 찾을 수 없습니다");
         }
     }
 
@@ -187,21 +247,17 @@ public class GameManager
         
         foreach (var player in alivePlayers)
         {
-            var client = Clients.GetValueOrDefault(player.Id);
-            if (client != null)
+            var augmentOptions = GenerateAugmentOptions();
+            
+            // 플레이어별 증강 옵션 저장
+            playerAugmentOptions[player.Id] = augmentOptions;
+            
+            await SendToPlayer(player.Id, new AugmentStartFromServer
             {
-                var augmentOptions = GenerateAugmentOptions();
-                
-                // 플레이어별 증강 옵션 저장
-                playerAugmentOptions[player.Id] = augmentOptions;
-                
-                await client.SendPacketAsync(new AugmentStartFromServer
-                {
-                    AugmentOptions = augmentOptions
-                });
-                
-                Console.WriteLine($"[증강] {player.Id}번 플레이어에게 증강 선택 옵션 전송: [{string.Join(", ", augmentOptions)}]");
-            }
+                AugmentOptions = augmentOptions
+            });
+            
+            Console.WriteLine($"[증강] {player.Id}번 플레이어에게 증강 선택 옵션 전송: [{string.Join(", ", augmentOptions)}]");
         }
     }
 
@@ -336,13 +392,16 @@ public class GameManager
     /// <summary>
     /// 대기 상태로 게임 전체를 초기화 (모든 플레이어 + 게임 상태)
     /// </summary>
-    public void InitToWaiting()
+    public async Task InitToWaiting()
     {
-        // 모든 플레이어 대기 상태로 초기화 및 배치
-        var allPlayers = Players.Values.ToList();
-        for (var index = 0; index < allPlayers.Count; index++)
+        // 먼저 모든 봇들을 제거
+        await RemoveAllBots();
+        
+        // 실제 플레이어들만 대기 상태로 초기화 및 배치
+        var realPlayers = Players.Values.Where(p => p is not Bot).ToList();
+        for (var index = 0; index < realPlayers.Count; index++)
         {
-            var player = allPlayers[index];
+            var player = realPlayers[index];
             player.InitToWaiting(Player.GenerateRandomAccuracy());
             player.MovementData.Position = Player.GetSpawnPosition(index);
         }
@@ -359,6 +418,34 @@ public class GameManager
         
         // 게임 상태 변경
         CurrentGameState = GameState.Waiting;
+    }
+
+    /// <summary>
+    /// 모든 봇을 제거합니다
+    /// </summary>
+    private async Task RemoveAllBots()
+    {
+        var botsToRemove = Players.Values.OfType<Bot>().ToList();
+        if (botsToRemove.Count == 0)
+        {
+            return;
+        }
+
+        Console.WriteLine($"[봇] {botsToRemove.Count}명의 봇을 제거합니다");
+
+        foreach (var bot in botsToRemove)
+        {
+            Players.TryRemove(bot.Id, out _);
+            Console.WriteLine($"[봇] {bot.Nickname} 제거 완료 (ID: {bot.Id})");
+            
+            // 다른 플레이어들에게 봇 퇴장 알림
+            await BroadcastToAll(new PlayerLeaveBroadcast
+            {
+                PlayerId = bot.Id,
+            });
+        }
+
+        Console.WriteLine($"[봇] 모든 봇 제거 완료. 남은 참가자: {Players.Count}명");
     }
 
     /// <summary>
@@ -412,7 +499,7 @@ public class GameManager
     {
         var oldState = CurrentGameState;
         
-        InitToWaiting();
+        await InitToWaiting();
         
         Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {CurrentGameState}");
         

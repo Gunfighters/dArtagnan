@@ -34,7 +34,7 @@ public class PlayerJoinCommand : IGameCommand
         Console.WriteLine($"[게임] 새 플레이어 생성: {player.Id} ({player.Nickname})");
         
         // 클라이언트에게 플레이어 ID 전송
-        await Client.SendPacketAsync(new YouAre
+        await gameManager.SendToPlayer(ClientId, new YouAre
         {
             PlayerId = player.Id
         });
@@ -44,7 +44,7 @@ public class PlayerJoinCommand : IGameCommand
         { 
             PlayersInfo = gameManager.PlayersInRoom() 
         };
-        await Client.SendPacketAsync(waitingPacket);
+        await gameManager.SendToPlayer(ClientId, waitingPacket);
         
         // 다른 플레이어들에게 새 플레이어 참가 알림
         await gameManager.BroadcastToAll(new PlayerJoinBroadcast 
