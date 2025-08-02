@@ -145,12 +145,8 @@ public class Bot : Player
     /// </summary>
     private async Task HandleAugmentSelection(int augmentId)
     {
-        // 약간의 지연 후 증강 선택 (0.5~2초 랜덤)
-        await Task.Delay(random.Next(500, 2000));
-        
         Console.WriteLine($"[봇 AI] {Nickname}이 증강 {augmentId}를 자동 선택합니다");
         
-        // AugmentDoneCommand 직접 실행
         await gameManager.EnqueueCommandAsync(new AugmentDoneCommand 
         { 
             ClientId = Id,
