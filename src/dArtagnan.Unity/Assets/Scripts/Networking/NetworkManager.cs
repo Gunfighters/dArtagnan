@@ -48,7 +48,17 @@ public class NetworkManager : MonoBehaviour, IChannelListener
         Debug.Log($"Connecting to: {host}:{port}");
         _client = new TcpClient();
         _client.NoDelay = true;
-        await _client.ConnectAsync(host, port).AsUniTask();
+        try
+        {
+            await _client.ConnectAsync(host, port).AsUniTask();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+            LocalEventChannel.InvokeOnConnectionFailure();
+            return;
+        }
+
         _stream = _client.GetStream();
         await NetworkUtils.SendPacketAsync(_stream, new PingPacket());
         await NetworkUtils.SendPacketAsync(_stream, new PlayerJoinRequest());
@@ -56,15 +66,32 @@ public class NetworkManager : MonoBehaviour, IChannelListener
 
     private void Send<T>(T payload) where T : IPacket
     {
-        NetworkUtils.SendPacketSync(_stream, payload);
+        try
+        {
+            NetworkUtils.SendPacketSync(_stream, payload);
+        }
+        catch (Exception e)
+        {
+            LocalEventChannel.InvokeOnConnectionFailure();
+        }
     }
 
     private async UniTask StartListeningLoop()
     {
         while (true)
         {
-            var received = await NetworkUtils.ReceivePacketAsync(_stream);
-            _channel.Writer.TryWrite(received);
+            IPacket packet;
+            try
+            {
+                packet = await NetworkUtils.ReceivePacketAsync(_stream);
+            }
+            catch (Exception e)
+            {
+                LocalEventChannel.InvokeOnConnectionFailure();
+                break;
+            }
+
+            _channel.Writer.TryWrite(packet);
         }
     }
 }

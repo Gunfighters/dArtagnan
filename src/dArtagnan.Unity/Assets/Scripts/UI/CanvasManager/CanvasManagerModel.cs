@@ -13,6 +13,8 @@ namespace UI.CanvasManager
         [RuntimeInitializeOnLoadMethod]
         public static void Initialize()
         {
+            LocalEventChannel.OnConnectionFailure += () => Screen.Value = GameScreen.NetworkFailure;
+            LocalEventChannel.BackToConnection += () => Screen.Value = GameScreen.Connection;
             PacketChannel.On<WaitingStartFromServer>(_ => Screen.Value = GameScreen.HUD);
             PacketChannel.On<RoundStartFromServer>(_ => Screen.Value = GameScreen.HUD);
             PacketChannel.On<YourAccuracyAndPool>(_ => Screen.Value = GameScreen.Roulette);

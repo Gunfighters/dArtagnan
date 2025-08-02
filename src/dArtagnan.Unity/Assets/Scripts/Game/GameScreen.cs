@@ -5,6 +5,7 @@ namespace Game
         HUD,
         Roulette,
         Connection,
-        AugmentationSelection
+        AugmentationSelection,
+        NetworkFailure
     }
 }
