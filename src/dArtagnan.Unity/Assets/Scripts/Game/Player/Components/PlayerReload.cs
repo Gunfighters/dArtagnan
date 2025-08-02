@@ -14,6 +14,7 @@ namespace Game.Player.Components
         {
             TotalReloadTime = info.TotalReloadTime;
             UpdateRemainingReloadTime(info.RemainingReloadTime);
+            OnHealth(info.Alive);
         }
 
         private void Update()
@@ -27,9 +28,9 @@ namespace Game.Player.Components
             reloadingSlider.Fill(RemainingReloadTime / TotalReloadTime);
         }
 
-        public void OnDeath()
+        public void OnHealth(bool alive)
         {
-            RemainingReloadTime = TotalReloadTime;
+            reloadingSlider.gameObject.SetActive(alive);
         }
     }
 }

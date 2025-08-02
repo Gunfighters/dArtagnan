@@ -26,7 +26,9 @@ namespace Game.Player.Components
             else
             {
                 _core.Model.Die();
-                _core.Reload.OnDeath();
+                _core.Reload.OnHealth(Alive);
+                _core.Accuracy.OnHealth(Alive);
+                _core.Balance.OnHealth(Alive);
             }
         }
     }
