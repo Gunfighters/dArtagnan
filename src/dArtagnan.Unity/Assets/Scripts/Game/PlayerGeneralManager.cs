@@ -27,6 +27,8 @@ namespace Game
             PacketChannel.On<WaitingStartFromServer>(e => ResetEveryone(e.PlayersInfo));
             PacketChannel.On<RoundStartFromServer>(e => ResetEveryone(e.PlayersInfo));
 
+            PacketChannel.On<WaitingStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
+            PacketChannel.On<RoundStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
             PacketChannel.On<YourAccuracyAndPool>(_ => StopLocalPlayerAndUpdateToServer());
             PacketChannel.On<AugmentStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
         }
@@ -68,8 +70,10 @@ namespace Game
 
         private static void OnLocalPlayerSet()
         {
-            if (LocalPlayerCore.Health.Alive)
-                LocalEventChannel.InvokeOnNewCameraTarget(LocalPlayerCore);
+            LocalEventChannel.InvokeOnNewCameraTarget(
+                LocalPlayerCore.Health.Alive
+                    ? LocalPlayerCore
+                    : Players.Values.First(p => p.Health.Alive));
             LocalEventChannel.InvokeOnLocalPlayerAlive(LocalPlayerCore.Health.Alive);
             LocalEventChannel.InvokeOnLocalPlayerBalanceUpdate(LocalPlayerCore.Balance.Balance);
         }
