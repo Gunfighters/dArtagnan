@@ -19,7 +19,7 @@ namespace Game.Player.UI
             _slider.value = _slider.maxValue * progress;
             fill.color = progress switch
             {
-                < 0.5f => Color.grey,
+                < 0.8f => Color.grey,
                 < 1f => Color.yellow,
                 1f => Color.red,
                 _ => Color.white

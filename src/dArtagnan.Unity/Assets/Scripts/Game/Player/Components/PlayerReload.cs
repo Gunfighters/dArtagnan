@@ -9,6 +9,7 @@ namespace Game.Player.Components
         public float TotalReloadTime { get; private set; }
         public float RemainingReloadTime { get; private set; }
         [SerializeField] private ReloadingSlider reloadingSlider;
+        [SerializeField] private SpriteRenderer gunIcon;
 
         public void Initialize(PlayerInformation info)
         {
@@ -25,6 +26,8 @@ namespace Game.Player.Components
         public void UpdateRemainingReloadTime(float reloadTime)
         {
             RemainingReloadTime = Mathf.Max(0, reloadTime);
+            gunIcon.gameObject.SetActive(RemainingReloadTime == 0);
+            reloadingSlider.gameObject.SetActive(RemainingReloadTime > 0);
             reloadingSlider.Fill(RemainingReloadTime / TotalReloadTime);
         }
 

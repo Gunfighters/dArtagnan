@@ -24,6 +24,8 @@ namespace Game.Player.Components
         private ItemSprite _shovelSprite;
         private ItemSprite _gunSprite;
         private EquipmentPart _equipmentPartType;
+        [SerializeField] private SpriteRenderer gunIcon;
+        [SerializeField] private IconCollection iconCollection;
 
         private void Awake()
         {
@@ -42,6 +44,7 @@ namespace Game.Player.Components
                 ? EquipmentPart.Firearm1H
                 : EquipmentPart.Firearm2H;
             _actualModel.Equip(_gunSprite, _equipmentPartType);
+            gunIcon.sprite = iconCollection.GetIcon(_gunSprite.Id);
             InitializeFirearmMuzzle();
         }
 
