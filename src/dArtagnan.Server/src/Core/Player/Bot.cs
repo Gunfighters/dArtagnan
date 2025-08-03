@@ -1,16 +1,20 @@
 using System.Numerics;
+using System.Threading.Tasks;
 using dArtagnan.Shared;
 
 namespace dArtagnan.Server;
 
 /// <summary>
 /// AI 봇 클래스 - Player를 상속받아 게임에 참여하는 봇입니다
-/// 멈춰있으면서 10초마다 정확도 상태를 변경하고, 쿨타임마다 사격합니다
+/// 멈춰있으면서 5초마다 정확도 상태 변경과 사격을 각각 일정 확률로 시도합니다
 /// </summary>
 public class Bot : Player
 {
     private float accuracyStateTimer = 0f;
-    private const float ACCURACY_STATE_CHANGE_INTERVAL = 10.0f; // 10초마다 정확도 상태 변경
+    private float shootingTimer = 0f;
+    private const float ACTION_INTERVAL = 1.0f; // 1초마다 행동 시도
+    private const float ACCURACY_ACTION_CHANCE = 0.15f; // 15% 확률로 정확도 상태 변경
+    private const float SHOOTING_ACTION_CHANCE = 0.2f; // 20% 확률로 사격 시도
     private Random random = new Random();
     private readonly GameManager gameManager;
     
@@ -23,26 +27,33 @@ public class Bot : Player
     /// <summary>
     /// 봇의 AI 로직을 업데이트합니다 (GameLoop에서 호출)
     /// </summary>
-    public void UpdateAI(float deltaTime)
+    public async Task UpdateAI(float deltaTime)
     {
         if (!Alive) return;
 
         // 정확도 상태 변경 타이머 업데이트
         UpdateAccuracyStateTimer(deltaTime);
         
-        // 사격 로직 업데이트
-        UpdateShootingLogic();
+        // 사격 타이머 업데이트  
+        await UpdateShootingTimerAsync(deltaTime);
     }
 
     /// <summary>
-    /// 10초마다 정확도 상태를 랜덤으로 변경합니다
+    /// 5초마다 정확도 상태를 랜덤으로 변경합니다 (70% 확률)
     /// </summary>
     private void UpdateAccuracyStateTimer(float deltaTime)
     {
         accuracyStateTimer += deltaTime;
         
-        if (accuracyStateTimer >= ACCURACY_STATE_CHANGE_INTERVAL)
+        if (accuracyStateTimer >= ACTION_INTERVAL)
         {
+            // 70% 확률로 정확도 상태 변경, 아니면 건너뛰기
+            if (random.NextDouble() > ACCURACY_ACTION_CHANCE)
+            {
+                accuracyStateTimer = 0f;
+                return;
+            }
+
             // -1(감소), 0(유지), 1(증가) 중 랜덤 선택
             var newAccuracyState = random.Next(-1, 2);
             AccuracyState = newAccuracyState;
@@ -64,36 +75,55 @@ public class Bot : Player
     }
 
     /// <summary>
-    /// 쿨타임이 끝나면 사거리 내 타겟을 찾아 사격합니다
+    /// 5초마다 사거리 내 타겟을 찾아 사격합니다 (80% 확률)
     /// </summary>
-    private void UpdateShootingLogic()
+    private async Task UpdateShootingTimerAsync(float deltaTime)
     {
-        // 쿨타임이 남아있으면 사격 불가
-        if (RemainingReloadTime > 0) return;
+        shootingTimer += deltaTime;
         
-        // 사거리 내에 있는 살아있는 다른 플레이어들을 찾습니다
-        var potentialTargets = gameManager.Players.Values
-            .Where(p => p.Id != Id && p.Alive)
-            .Where(p => Vector2.Distance(MovementData.Position, p.MovementData.Position) <= Range)
-            .ToList();
-
-        if (potentialTargets.Count == 0) return;
-
-        // 랜덤하게 타겟 선택
-        var target = potentialTargets[random.Next(potentialTargets.Count)];
-        Target = target;
-
-        Console.WriteLine($"[봇 AI] {Nickname}이 {target.Nickname}을 타겟으로 사격 시도");
-
-        // 사격 명령 실행 (PlayerShootingCommand와 동일한 로직)
-        _ = Task.Run(async () =>
+        if (shootingTimer >= ACTION_INTERVAL)
         {
+            // 80% 확률로 사격 시도, 아니면 건너뛰기
+            if (random.NextDouble() > SHOOTING_ACTION_CHANCE)
+            {
+                shootingTimer = 0f;
+                return;
+            }
+
+            // 쿨타임이 남아있으면 사격 불가
+            if (RemainingReloadTime > 0)
+            {
+                shootingTimer = 0f;
+                return;
+            }
+            
+            // 사거리 내에 있는 살아있는 다른 플레이어들을 찾습니다
+            var potentialTargets = gameManager.Players.Values
+                .Where(p => p.Id != Id && p.Alive)
+                .Where(p => Vector2.Distance(MovementData.Position, p.MovementData.Position) <= Range)
+                .ToList();
+
+            if (potentialTargets.Count == 0)
+            {
+                shootingTimer = 0f;
+                return;
+            }
+
+            // 랜덤하게 타겟 선택
+            var target = potentialTargets[random.Next(potentialTargets.Count)];
+            Target = target;
+
+            Console.WriteLine($"[봇 AI] {Nickname}이 {target.Nickname}을 타겟으로 사격 시도");
+
+            // 사격 명령 실행 (PlayerShootingCommand와 동일한 로직)
             await gameManager.EnqueueCommandAsync(new PlayerShootingCommand 
             { 
                 ShooterId = Id,
                 TargetId = target.Id
             });
-        });
+            
+            shootingTimer = 0f;
+        }
     }
 
     /// <summary>
@@ -128,9 +158,6 @@ public class Bot : Player
     /// </summary>
     private async Task HandleRouletteCompletion()
     {
-        // 약간의 지연 후 룰렛 완료 (0.5~2초 랜덤)
-        await Task.Delay(random.Next(500, 2000));
-        
         Console.WriteLine($"[봇 AI] {Nickname}이 룰렛을 자동 완료합니다");
         
         // RouletteDoneCommand 직접 실행
