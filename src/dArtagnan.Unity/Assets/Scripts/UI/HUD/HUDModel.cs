@@ -1,4 +1,5 @@
 using dArtagnan.Shared;
+using Game;
 using R3;
 using UnityEditor;
 using UnityEngine;
@@ -21,7 +22,7 @@ namespace UI.HUD
             {
                 InRound.Value = true;
                 Waiting.Value = false;
-                Playing.Value = true;
+                Playing.Value = PlayerGeneralManager.LocalPlayerCore.Health.Alive;
             });
             PacketChannel.On<WaitingStartFromServer>(_ =>
             {
