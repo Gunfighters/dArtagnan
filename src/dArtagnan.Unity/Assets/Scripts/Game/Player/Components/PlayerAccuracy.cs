@@ -14,7 +14,6 @@ namespace Game.Player.Components
         {
             SetAccuracy(info.Accuracy);
             SetAccuracyState(info.AccuracyState);
-            OnHealth(info.Alive);
         }
 
         public void SetAccuracy(int newAccuracy)
@@ -32,11 +31,6 @@ namespace Game.Player.Components
                 -1 => new Color32(75, 150, 220, 255),
                 _ => Color.white
             };
-        }
-
-        public void OnHealth(bool alive)
-        {
-            accuracyText.gameObject.SetActive(alive);
         }
     }
 }

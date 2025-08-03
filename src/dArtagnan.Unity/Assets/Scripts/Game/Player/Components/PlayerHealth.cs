@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using UnityEngine;
 
@@ -7,6 +8,7 @@ namespace Game.Player.Components
     {
         public bool Alive { get; private set; }
         private PlayerCore _core;
+        [SerializeField] private Canvas infoUICanvas;
 
         private void Awake()
         {
@@ -15,6 +17,7 @@ namespace Game.Player.Components
 
         public void Initialize(PlayerInformation info)
         {
+            gameObject.SetActive(info.Alive);
             SetAlive(info.Alive);
         }
 
@@ -24,10 +27,18 @@ namespace Game.Player.Components
             if (Alive)
                 _core.Model.Idle();
             else
+            {
                 _core.Model.Die();
-            _core.Reload.OnHealth(Alive);
-            _core.Accuracy.OnHealth(Alive);
-            _core.Balance.OnHealth(Alive);
+                ScheduleDeactivation().Forget();
+            }
+
+            infoUICanvas.gameObject.SetActive(Alive);
+        }
+
+        private async UniTask ScheduleDeactivation()
+        {
+            await UniTask.WaitForSeconds(2);
+            gameObject.SetActive(Alive);
         }
     }
 }

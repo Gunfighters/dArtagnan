@@ -13,7 +13,6 @@ namespace Game.Player.Components
         public void Initialize(PlayerInformation info)
         {
             SetBalance(info.Balance);
-            OnHealth(info.Alive);
         }
 
         public void SetBalance(int newBalance)
@@ -29,11 +28,6 @@ namespace Game.Player.Components
         {
             await UniTask.WaitForSeconds(0.5f);
             balanceText.color = Color.white;
-        }
-
-        public void OnHealth(bool alive)
-        {
-            balanceText.gameObject.SetActive(alive);
         }
     }
 }

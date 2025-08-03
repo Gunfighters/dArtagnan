@@ -15,7 +15,6 @@ namespace Game.Player.Components
         {
             TotalReloadTime = info.TotalReloadTime;
             UpdateRemainingReloadTime(info.RemainingReloadTime);
-            OnHealth(info.Alive);
         }
 
         private void Update()
@@ -29,11 +28,6 @@ namespace Game.Player.Components
             gunIcon.gameObject.SetActive(RemainingReloadTime == 0);
             reloadingSlider.gameObject.SetActive(RemainingReloadTime > 0);
             reloadingSlider.Fill(RemainingReloadTime / TotalReloadTime);
-        }
-
-        public void OnHealth(bool alive)
-        {
-            reloadingSlider.gameObject.SetActive(alive);
         }
     }
 }
