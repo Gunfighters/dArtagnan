@@ -27,7 +27,7 @@ public class CameraController : MonoBehaviour, IChannelListener
     private void OnUpdatePlayerAlive(UpdatePlayerAlive e)
     {
         if (!e.Alive && e.PlayerId == target.ID)
-            LocalEventChannel.InvokeOnNewCameraTarget(PlayerGeneralManager.Survivors.First());
+            LocalEventChannel.InvokeOnNewCameraTarget(PlayerGeneralManager.Survivors.First(p => p != target));
     }
 
     private void Follow(PlayerCore newTarget)
@@ -53,8 +53,8 @@ public class CameraController : MonoBehaviour, IChannelListener
 
     private void LimitCameraArea()
     {
-        transform.position = Vector3.Lerp(transform.position, 
-            target.transform.position + offset, 
+        transform.position = Vector3.Lerp(transform.position,
+            target.transform.position + offset,
             Time.deltaTime * cameraMoveSpeed);
         var lx = mapSize.x - width;
         var clampX = Mathf.Clamp(transform.position.x, -lx + center.x, lx + center.x);
@@ -64,7 +64,7 @@ public class CameraController : MonoBehaviour, IChannelListener
 
         transform.position = new Vector3(clampX, clampY, -10f);
     }
-    
+
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
