@@ -10,7 +10,7 @@ namespace Game
         {
             PacketChannel.On<RoundStartFromServer>(OnGamePlaying);
             PacketChannel.On<WaitingStartFromServer>(OnGameWaiting);
-            PacketChannel.On<YourAccuracyAndPool>(OnYourAccuracyAndPool);;
+            PacketChannel.On<RouletteStartFromServer>(OnYourAccuracyAndPool);;
         }
 
         private static void OnGamePlaying(RoundStartFromServer e)
@@ -23,7 +23,7 @@ namespace Game
             GameState = GameState.Waiting;
         }
 
-        private static void OnYourAccuracyAndPool(YourAccuracyAndPool e)
+        private static void OnYourAccuracyAndPool(RouletteStartFromServer e)
         {
             GameState = GameState.Roulette;
         }

@@ -104,7 +104,7 @@ public class Bot : Player
         // 대부분의 패킷은 무시하지만, 선택이 필요한 패킷들은 자동으로 처리
         switch (packet)
         {
-            case YourAccuracyAndPool accuracyPacket:
+            case RouletteStartFromServer accuracyPacket:
                 // 룰렛 완료 자동 처리
                 await HandleRouletteCompletion();
                 break;

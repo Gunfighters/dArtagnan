@@ -60,7 +60,7 @@ public class GameLoopCommand : IGameCommand
     private async Task DeductBettingMoney(GameManager gameManager)
     {
         if (gameManager.CurrentGameState != GameState.Round || gameManager.Round <= 0 ||
-            gameManager.Round > GameManager.MAX_ROUNDS)
+            gameManager.Round > Constants.MAX_ROUNDS)
             return;
 
         var totalDeducted = 0;

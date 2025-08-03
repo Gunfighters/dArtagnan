@@ -554,7 +554,7 @@ internal class Program
                     Console.WriteLine($"플레이어 {accuracyStateBroadcast.PlayerId}의 정확도 상태 변경: {accuracyStateBroadcast.AccuracyState} ({GetAccuracyStateText(accuracyStateBroadcast.AccuracyState)})");
                     break;
                         
-                case YourAccuracyAndPool yourAccuracyAndPool:
+                case RouletteStartFromServer yourAccuracyAndPool:
                     Console.WriteLine($"=== 룰렛 정보 받음 ===");
                     Console.WriteLine($"당신의 정확도: {yourAccuracyAndPool.YourAccuracy}%");
                     Console.WriteLine($"정확도 풀: [{string.Join(", ", yourAccuracyAndPool.AccuracyPool)}]");

@@ -17,7 +17,7 @@ namespace UI.CanvasManager
             LocalEventChannel.BackToConnection += () => Screen.Value = GameScreen.Connection;
             PacketChannel.On<WaitingStartFromServer>(_ => Screen.Value = GameScreen.HUD);
             PacketChannel.On<RoundStartFromServer>(_ => Screen.Value = GameScreen.HUD);
-            PacketChannel.On<YourAccuracyAndPool>(_ => Screen.Value = GameScreen.Roulette);
+            PacketChannel.On<RouletteStartFromServer>(_ => Screen.Value = GameScreen.Roulette);
             PacketChannel.On<AugmentStartFromServer>(_ => Screen.Value = GameScreen.AugmentationSelection);
             Screen.Value = GameScreen.Connection;
         }

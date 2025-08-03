@@ -179,7 +179,7 @@ public class AdminConsole
         
         if (gameManager.CurrentGameState == GameState.Round)
         {
-            Console.WriteLine($"현재 라운드: {gameManager.Round}/{GameManager.MAX_ROUNDS}");
+            Console.WriteLine($"현재 라운드: {gameManager.Round}/{Constants.MAX_ROUNDS}");
             Console.WriteLine($"베팅금: {gameManager.BettingAmount}달러");
             Console.WriteLine($"현재 판돈: {gameManager.TotalPrizeMoney}달러");
         }
@@ -309,7 +309,7 @@ public class AdminConsole
     {
         Console.WriteLine($"=== 게임 상세 정보 ===");
         Console.WriteLine($"게임 상태: {gameManager.CurrentGameState}");
-        Console.WriteLine($"현재 라운드: {gameManager.Round}/{GameManager.MAX_ROUNDS}");
+        Console.WriteLine($"현재 라운드: {gameManager.Round}/{Constants.MAX_ROUNDS}");
         
         if (gameManager.CurrentGameState == GameState.Round)
         {

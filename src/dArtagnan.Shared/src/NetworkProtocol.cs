@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using MessagePack;
@@ -28,7 +29,7 @@ namespace dArtagnan.Shared
     [Union(21, typeof(SetAccuracyState))]
     [Union(22, typeof(PlayerAccuracyStateBroadcast))]
     [Union(33, typeof(UpdatePlayerAccuracyBroadcast))]
-    [Union(23, typeof(YourAccuracyAndPool))]
+    [Union(23, typeof(RouletteStartFromServer))]
     [Union(24, typeof(RouletteDone))]
     [Union(25, typeof(BettingDeductionBroadcast))]
     [Union(26, typeof(AugmentStartFromServer))]
@@ -320,7 +321,7 @@ namespace dArtagnan.Shared
     /// 너의 정확도는 YourAccuracy이다. 등장가능한 정확도 풀은 AccuracyPool과 같다.
     /// </summary>
     [MessagePackObject]
-    public struct YourAccuracyAndPool : IPacket
+    public struct RouletteStartFromServer : IPacket
     {
         [Key(0)] public int YourAccuracy;
         [Key(1)] public List<int> AccuracyPool;

@@ -22,7 +22,6 @@ public class Player
     public bool IsCreatingItem; // 아이템 제작 중인지 여부
     public float CreatingRemainingTime; // 아이템 제작 남은 시간
     private float accuracyTimer; // 정확도 업데이트를 위한 타이머
-    private const float ACCURACY_UPDATE_INTERVAL = 1.0f; // 정확도 업데이트 간격 (1초)
 
     public Player(int id, string nickname, Vector2 position)
     {
@@ -30,16 +29,16 @@ public class Player
         Nickname = nickname;
         MovementData = new MovementData { Direction = 0, Position = position, Speed = Constants.MOVEMENT_SPEED };
         Augments = [];
-        InitToWaiting(GenerateRandomAccuracy());
+        InitToWaiting();
     }
 
     /// <summary>
     /// 대기 상태로 플레이어를 초기화 (게임 완전 초기화)
     /// </summary>
-    public void InitToWaiting(int accuracy)
+    public void InitToWaiting()
     {
         // 기본 능력치 초기화
-        Accuracy = accuracy;
+        Accuracy = Random.Shared.Next(Constants.ROULETTE_MIN_ACCURACY, Constants.ROULETTE_MAX_ACCURACY + 1);
         Range = Constants.DEFAULT_RANGE;
         TotalReloadTime = Constants.DEFAULT_RELOAD_TIME;
         RemainingReloadTime = Constants.DEFAULT_RELOAD_TIME;
@@ -79,6 +78,7 @@ public class Player
         
         // 전투 상태
         RemainingReloadTime = TotalReloadTime;
+        AccuracyState = 0;
         
         // 아이템 제작 상태
         IsCreatingItem = false;
@@ -104,11 +104,6 @@ public class Player
         IsCreatingItem = IsCreatingItem,
         CreatingRemainingTime = CreatingRemainingTime,
     };
-
-    public static int GenerateRandomAccuracy()
-    {
-        return Random.Shared.Next(Constants.MIN_ACCURACY, Constants.MAX_ACCURACY + 1);
-    }
 
     /// <summary>
     /// index에 따른 원형 배치 위치.
@@ -155,14 +150,14 @@ public class Player
         accuracyTimer += deltaTime;
 
         // 1초마다 정확도 업데이트
-        if (accuracyTimer >= ACCURACY_UPDATE_INTERVAL)
+        if (accuracyTimer >= Constants.ACCURACY_UPDATE_INTERVAL)
         {
             accuracyTimer = 0f;
 
             int newAccuracy = Accuracy + AccuracyState;
 
             // 정확도 범위 제한
-            newAccuracy = Math.Clamp(newAccuracy, Constants.MIN_ACCURACY, Constants.MAX_ACCURACY);
+            newAccuracy = Math.Clamp(newAccuracy, 1, 100);
 
             if (newAccuracy != Accuracy)
             {

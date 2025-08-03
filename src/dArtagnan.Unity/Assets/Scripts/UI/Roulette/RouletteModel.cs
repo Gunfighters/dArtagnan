@@ -16,10 +16,10 @@ namespace UI.Roulette
         [RuntimeInitializeOnLoadMethod]
         public static void Initialize()
         {
-            PacketChannel.On<YourAccuracyAndPool>(OnYourAccuracyAndPool);
+            PacketChannel.On<RouletteStartFromServer>(OnYourAccuracyAndPool);
         }
 
-        private static void OnYourAccuracyAndPool(YourAccuracyAndPool e)
+        private static void OnYourAccuracyAndPool(RouletteStartFromServer e)
         {
             Reset();
             Pool.Value = e.AccuracyPool.Select(i =>

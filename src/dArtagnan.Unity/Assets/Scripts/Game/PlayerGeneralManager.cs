@@ -29,7 +29,7 @@ namespace Game
 
             PacketChannel.On<WaitingStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
             PacketChannel.On<RoundStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
-            PacketChannel.On<YourAccuracyAndPool>(_ => StopLocalPlayerAndUpdateToServer());
+            PacketChannel.On<RouletteStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
             PacketChannel.On<AugmentStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
         }
 

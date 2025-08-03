@@ -26,7 +26,6 @@ public class GameManager
     // public readonly int[] BettingAmounts = { 30, 20, 30, 40 }; // 라운드별 베팅금 //개발용
     public int BettingAmount = 0;
     public float BettingTimer = 0f; // 베팅금 차감 타이머 constants.BETTING_PERIOD 마다
-    public const int MAX_ROUNDS = 4; // 최대 라운드 수
     
     // 증강 시스템
     public HashSet<Player> rouletteDonePlayers = [];
@@ -159,7 +158,7 @@ public class GameManager
         if (realPlayers.Count == 0)
         {
             Console.WriteLine("[게임] 실제 플레이어가 모두 나가서 게임을 대기 상태로 초기화합니다");
-            await ResetGameToWaiting();
+            await StartWaitingStateAsync();
         }
     }
 
@@ -234,7 +233,7 @@ public class GameManager
     /// <summary>
     /// 증강 선택을 시작합니다
     /// </summary>
-    public async Task StartAugmentSelection()
+    public async Task StartAugmentStateAsync()
     {
         Console.WriteLine("[증강] 증강 선택 단계 시작");
         
@@ -366,11 +365,11 @@ public class GameManager
             {
                 await AnnounceGameWinner();
                 //await Task.Delay(2500);
-                await ResetGameToWaiting();
+                await StartWaitingStateAsync();
             }
             else
             {
-                await StartAugmentSelection();
+                await StartAugmentStateAsync();
             }
         }
     }
@@ -389,7 +388,7 @@ public class GameManager
     public bool ShouldEndGame()
     {
         // 4라운드 완료시 게임 종료 또는 파산하지 않은 플레이어가 1명 이하일 때
-        return Round >= MAX_ROUNDS || Players.Values.Count(p => !p.Bankrupt) <= 1;
+        return Round >= Constants.MAX_ROUNDS || Players.Values.Count(p => !p.Bankrupt) <= 1;
     }
 
     /// <summary>
@@ -402,7 +401,7 @@ public class GameManager
         for (var index = 0; index < realPlayers.Count; index++)
         {
             var player = realPlayers[index];
-            player.InitToWaiting(Player.GenerateRandomAccuracy());
+            player.InitToWaiting();
             player.MovementData.Position = Player.GetSpawnPosition(index);
         }
         
@@ -455,6 +454,7 @@ public class GameManager
     {
         Round = newRound;
         BettingAmount = BettingAmounts[newRound - 1];
+        rouletteDonePlayers.Clear();
         
         // 파산하지 않은 플레이어만 라운드 상태로 초기화 및 배치
         var alivePlayers = Players.Values.Where(p => !p.Bankrupt).ToList();
@@ -476,7 +476,7 @@ public class GameManager
     /// <summary>
     /// 다음 라운드를 시작합니다
     /// </summary>
-    public async Task StartNextRoundAsync(int newRound)
+    public async Task StartRoundStateAsync(int newRound)
     {
         var oldState = CurrentGameState;
         
@@ -495,7 +495,7 @@ public class GameManager
     /// <summary>
     /// 게임을 완전히 초기화하고 대기 상태로 돌아갑니다
     /// </summary>
-    private async Task ResetGameToWaiting()
+    public async Task StartWaitingStateAsync()
     {
         var oldState = CurrentGameState;
         
@@ -506,6 +506,80 @@ public class GameManager
         await BroadcastToAll(new WaitingStartFromServer { PlayersInfo = PlayersInRoom() });
         
         await RemoveAllBots();
+    }
+
+    /// <summary>
+    /// 룰렛을 시작합니다 (정확도 배정 및 룰렛 상태로 전환)
+    /// </summary>
+    public async Task StartRouletteStateAsync()
+    {
+        var oldState = CurrentGameState;
+        
+        // 정확도 풀 생성 및 플레이어 배정
+        var accuracyPool = GenerateAccuracyPool();
+        AssignAccuracyToPlayers(accuracyPool);
+        
+        // 룰렛 상태로 변경
+        CurrentGameState = GameState.Roulette;
+        
+        Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {CurrentGameState}");
+        
+        // 모든 플레이어에게 룰렛 시작 브로드캐스트
+        await BroadcastRouletteStart(accuracyPool);
+    }
+
+    /// <summary>
+    /// 랜덤 정확도 풀을 생성합니다
+    /// </summary>
+    private List<int> GenerateAccuracyPool()
+    {
+        List<int> accuracyPool = [];
+        for (var i = 0; i < 8; i++)
+        {
+            accuracyPool.Add(Random.Shared.Next(Constants.ROULETTE_MIN_ACCURACY, Constants.ROULETTE_MAX_ACCURACY + 1));
+        }
+        return accuracyPool;
+    }
+
+    /// <summary>
+    /// 플레이어들에게 정확도를 할당합니다
+    /// </summary>
+    private void AssignAccuracyToPlayers(List<int> accuracyPool)
+    {
+        var availableAccuracies = new List<int>(accuracyPool);
+        
+        foreach (var player in Players.Values)
+        {
+            var randomIndex = Random.Shared.Next(0, availableAccuracies.Count);
+            var randomAccuracy = availableAccuracies[randomIndex];
+            availableAccuracies.RemoveAt(randomIndex); // 중복방지
+            
+            player.Accuracy = randomAccuracy;
+            
+            // 현재정확도에 반비례한 재장전 시간 계산
+            player.TotalReloadTime = randomAccuracy == 0
+                ? Constants.DEFAULT_RELOAD_TIME
+                : (0.1f + (float)Math.Sqrt(randomAccuracy) / 10f * 0.9f) * Constants.DEFAULT_RELOAD_TIME;
+            player.RemainingReloadTime = player.TotalReloadTime;
+            
+            Console.WriteLine($"[정확도] {player.Nickname}: {player.Accuracy}% (재장전: {player.TotalReloadTime:F2}초)");
+        }
+    }
+
+    /// <summary>
+    /// 모든 클라이언트에게 룰렛 시작을 알립니다
+    /// </summary>
+    private async Task BroadcastRouletteStart(List<int> accuracyPool)
+    {
+        var broadcastTasks = Players.Values
+            .Select(player => SendToPlayer(player.Id, new RouletteStartFromServer
+            { 
+                AccuracyPool = accuracyPool, 
+                YourAccuracy = player.Accuracy
+            }));
+            
+        await Task.WhenAll(broadcastTasks);
+        Console.WriteLine($"[룰렛] 모든 플레이어에게 룰렛 시작 알림 전송 완료");
     }
 
     /// <summary>
