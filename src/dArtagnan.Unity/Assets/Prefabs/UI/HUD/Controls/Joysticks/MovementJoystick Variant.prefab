@@ -173,7 +173,7 @@ MonoBehaviour:
   background: {fileID: 6711660828812020662}
   handle: {fileID: 9099515540821649499}
   moveThreshold: 1
-  joystickType: 1
+  joystickType: 2
 --- !u!114 &8543020454543511162
 MonoBehaviour:
   m_ObjectHideFlags: 0
