@@ -17,11 +17,14 @@ public class RouletteDoneCommand : IGameCommand
         
         // 이미 완료한 플레이어인지 확인
         if (!gameManager.rouletteDonePlayers.Add(player)) return;
+
+        // 파산한 플레이어인지 확인
+        if (player.Bankrupt) return;
         
-        Console.WriteLine($"[룰렛] 플레이어 {PlayerId} 룰렛 완료 ({gameManager.rouletteDonePlayers.Count}/{gameManager.Players.Count})");
+        Console.WriteLine($"[룰렛] 플레이어 {PlayerId} 룰렛 완료 ({gameManager.rouletteDonePlayers.Count}/{gameManager.Players.Values.Count(p => !p.Bankrupt)})");
         
         // 모든 플레이어가 룰렛을 완료했는지 확인
-        if (gameManager.rouletteDonePlayers.Count >= gameManager.Players.Count)
+        if (gameManager.rouletteDonePlayers.Count >= gameManager.Players.Values.Count(p => !p.Bankrupt))
         {
             Console.WriteLine($"[룰렛] 모든 플레이어 룰렛 완료 - 라운드 {gameManager.Round + 1} 시작!");
             await gameManager.StartRoundStateAsync(gameManager.Round + 1);

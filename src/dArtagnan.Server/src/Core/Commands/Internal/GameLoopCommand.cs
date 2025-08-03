@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Threading.Tasks;
 using dArtagnan.Shared;
 
 namespace dArtagnan.Server;
@@ -192,12 +193,12 @@ public class GameLoopCommand : IGameCommand
     /// <summary>
     /// 봇들의 AI를 업데이트합니다
     /// </summary>
-    private void UpdateBotAI(GameManager gameManager, float deltaTime)
+    private async Task UpdateBotAI(GameManager gameManager, float deltaTime)
     {
         var bots = gameManager.Players.Values.OfType<Bot>().ToList();
         foreach (var bot in bots)
         {
-            bot.UpdateAI(deltaTime);
+            await bot.UpdateAI(deltaTime);
         }
     }
 

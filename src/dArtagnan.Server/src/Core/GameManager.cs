@@ -23,7 +23,6 @@ public class GameManager
     // 베팅금/판돈 시스템
     public int TotalPrizeMoney = 0; // 총 판돈
     public readonly int[] BettingAmounts = { 10, 20, 30, 40 }; // 라운드별 베팅금
-    // public readonly int[] BettingAmounts = { 30, 20, 30, 40 }; // 라운드별 베팅금 //개발용
     public int BettingAmount = 0;
     public float BettingTimer = 0f; // 베팅금 차감 타이머 constants.BETTING_PERIOD 마다
     
@@ -454,7 +453,6 @@ public class GameManager
     {
         Round = newRound;
         BettingAmount = BettingAmounts[newRound - 1];
-        rouletteDonePlayers.Clear();
         
         // 파산하지 않은 플레이어만 라운드 상태로 초기화 및 배치
         var alivePlayers = Players.Values.Where(p => !p.Bankrupt).ToList();
@@ -514,6 +512,8 @@ public class GameManager
     public async Task StartRouletteStateAsync()
     {
         var oldState = CurrentGameState;
+
+        InitToRoulette();
         
         // 정확도 풀 생성 및 플레이어 배정
         var accuracyPool = GenerateAccuracyPool();
@@ -526,6 +526,11 @@ public class GameManager
         
         // 모든 플레이어에게 룰렛 시작 브로드캐스트
         await BroadcastRouletteStart(accuracyPool);
+    }
+
+    public void InitToRoulette()
+    {
+        rouletteDonePlayers.Clear();
     }
 
     /// <summary>

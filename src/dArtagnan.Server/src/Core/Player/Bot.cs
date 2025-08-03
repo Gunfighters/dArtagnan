@@ -32,7 +32,7 @@ public class Bot : Player
         if (!Alive) return;
 
         // 정확도 상태 변경 타이머 업데이트
-        UpdateAccuracyStateTimer(deltaTime);
+        await UpdateAccuracyStateTimer(deltaTime);
         
         // 사격 타이머 업데이트  
         await UpdateShootingTimerAsync(deltaTime);
@@ -41,7 +41,7 @@ public class Bot : Player
     /// <summary>
     /// 5초마다 정확도 상태를 랜덤으로 변경합니다 (70% 확률)
     /// </summary>
-    private void UpdateAccuracyStateTimer(float deltaTime)
+    private async Task UpdateAccuracyStateTimer(float deltaTime)
     {
         accuracyStateTimer += deltaTime;
         
@@ -61,13 +61,10 @@ public class Bot : Player
             Console.WriteLine($"[봇 AI] {Nickname}의 정확도 상태 변경: {AccuracyState}");
             
             // 정확도 상태 변경 명령 실행
-            _ = Task.Run(async () =>
-            {
-                await gameManager.EnqueueCommandAsync(new SetAccuracyCommand 
-                { 
-                    PlayerId = Id,
-                    AccuracyState = AccuracyState
-                });
+            await gameManager.EnqueueCommandAsync(new SetAccuracyCommand 
+            { 
+                PlayerId = Id,
+                AccuracyState = AccuracyState
             });
             
             accuracyStateTimer = 0f;
@@ -115,7 +112,7 @@ public class Bot : Player
 
             Console.WriteLine($"[봇 AI] {Nickname}이 {target.Nickname}을 타겟으로 사격 시도");
 
-            // 사격 명령 실행 (PlayerShootingCommand와 동일한 로직)
+            // 사격 명령 실행
             await gameManager.EnqueueCommandAsync(new PlayerShootingCommand 
             { 
                 ShooterId = Id,
