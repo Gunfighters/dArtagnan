@@ -187,7 +187,7 @@ public class AdminConsole
         Console.WriteLine();
         Console.WriteLine($"■ 참가자 현황");
         Console.WriteLine($"  총 접속자: {gameManager.Clients.Count + gameManager.Players.Values.OfType<Bot>().Count()}명");
-        Console.WriteLine($"  실제 클라이언트: {gameManager.Clients.Count}명");
+        Console.WriteLine($"  연결된 TCP 클라이언트: {gameManager.Clients.Count}명");
         Console.WriteLine($"  봇: {gameManager.Players.Values.OfType<Bot>().Count()}명");
         Console.WriteLine($"  총 플레이어: {gameManager.Players.Count}명");
         

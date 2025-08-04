@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Linq;
 using System.Net.Sockets;
 using System.Numerics;
 using dArtagnan.Shared;
@@ -50,6 +51,7 @@ internal class Program
         Console.WriteLine("  au/augment [index] - 증강 선택 (0, 1, 2 중 하나)");
         Console.WriteLine("  ic/item-create [true/false] - 아이템 제작 시작/취소 (기본: true)");
         Console.WriteLine("  iu/use-item [targetId] - 아이템 사용 (targetId는 선택적, 기본: -1)");
+        Console.WriteLine("  chat/msg [message] - 채팅 메시지 전송");
         Console.WriteLine("  l/leave - 게임 나가기");
         Console.WriteLine("  q/quit - 종료");
         Console.WriteLine("=====================================");
@@ -186,6 +188,19 @@ internal class Program
                     else
                     {
                         await SendUseItem(-1); // 기본값: 타겟 없음
+                    }
+                    break;
+
+                case "chat":
+                case "msg":
+                    if (parts.Length >= 2)
+                    {
+                        var message = string.Join(" ", parts.Skip(1)); // 첫 번째 단어(명령어) 제외하고 나머지를 메시지로 합치기
+                        await SendChat(message);
+                    }
+                    else
+                    {
+                        Console.WriteLine("사용법: chat/msg [message]");
                     }
                     break;
 
@@ -443,6 +458,34 @@ internal class Program
         }
     }
 
+    static async Task SendChat(string message)
+    {
+        if (!isConnected || stream == null)
+        {
+            Console.WriteLine("먼저 서버에 연결해주세요.");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(message))
+        {
+            Console.WriteLine("메시지를 입력해주세요.");
+            return;
+        }
+
+        try
+        {
+            await NetworkUtils.SendPacketAsync(stream, new ChatFromClient
+            {
+                Message = message
+            });
+            Console.WriteLine($"채팅 메시지 전송: {message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"채팅 메시지 전송 실패: {ex.Message}");
+        }
+    }
+
     static async Task ReceiveLoop()
     {
         while (isRunning) // isConnected 대신 isRunning을 사용하도록 변경
@@ -621,6 +664,17 @@ internal class Program
 
                 case ItemUsedBroadcast itemUsed:
                     Console.WriteLine($"⚡ [아이템 사용] 플레이어 {itemUsed.PlayerId}가 아이템 ID {itemUsed.ItemId}를 사용했습니다");
+                    break;
+
+                case ChatBroadcast chatBroadcast:
+                    if (chatBroadcast.PlayerId == -1)
+                    {
+                        Console.WriteLine($"💬 [시스템] {chatBroadcast.Message}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"💬 [플레이어 {chatBroadcast.PlayerId}] {chatBroadcast.Message}");
+                    }
                     break;
                         
                 default:

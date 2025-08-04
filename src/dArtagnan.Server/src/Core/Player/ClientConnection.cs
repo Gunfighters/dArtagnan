@@ -166,6 +166,14 @@ public class ClientConnection
                     };
                     break;
 
+                case ChatFromClient chatMessage:
+                    command = new ChatFromClientCommand
+                    {
+                        PlayerId = Id,
+                        Message = chatMessage.Message
+                    };
+                    break;
+
                 // 처리되지 않은 패킷은 command가 null로 유지됩니다.
             }
             

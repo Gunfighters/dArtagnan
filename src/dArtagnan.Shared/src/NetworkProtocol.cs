@@ -40,8 +40,8 @@ namespace dArtagnan.Shared
     [Union(30, typeof(ItemAcquiredBroadcast))]
     [Union(31, typeof(UseItemFromClient))]
     [Union(32, typeof(ItemUsedBroadcast))]
-    [Union(35, typeof(ChatMessageFromClient))]
-    [Union(36, typeof(ChatMessageBroadcast))]
+    [Union(35, typeof(ChatFromClient))]
+    [Union(36, typeof(ChatBroadcast))]
     public interface IPacket
     {
     }
@@ -452,13 +452,13 @@ namespace dArtagnan.Shared
     }
 
     [MessagePackObject]
-    public struct ChatMessageFromClient : IPacket
+    public struct ChatFromClient : IPacket
     {
         [Key(0)] public string Message;
     }
 
     [MessagePackObject]
-    public struct ChatMessageBroadcast : IPacket
+    public struct ChatBroadcast : IPacket
     {
         [Key(0)] public int PlayerId;               //system message일 경우 -1
         [Key(1)] public string Message;
