@@ -29,6 +29,7 @@ namespace dArtagnan.Shared
     [Union(21, typeof(SetAccuracyState))]
     [Union(22, typeof(PlayerAccuracyStateBroadcast))]
     [Union(33, typeof(UpdatePlayerAccuracyBroadcast))]
+    [Union(34, typeof(UpdatePlayerRangeBroadcast))]
     [Union(23, typeof(RouletteStartFromServer))]
     [Union(24, typeof(RouletteDone))]
     [Union(25, typeof(BettingDeductionBroadcast))]
@@ -336,6 +337,17 @@ namespace dArtagnan.Shared
     public struct RouletteDone : IPacket
     {
         [Key(0)] public int TrialCount;
+    }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// PlayerId번 플레이어의 사거리가 Range로 업데이트 되었다.
+    /// </summary>
+    [MessagePackObject]
+    public struct UpdatePlayerRangeBroadcast : IPacket
+    {
+        [Key(0)] public int PlayerId;
+        [Key(1)] public float Range;
     }
 
     [MessagePackObject]

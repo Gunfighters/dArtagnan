@@ -19,6 +19,7 @@ namespace Game.Player.Components
         private Collider2D _collider2D;
         private ContactFilter2D _contactFilter2D;
         private PlayerCore _core;
+        public Transform _rangeCircleTransform;
         [CanBeNull] public PlayerCore Target { get; private set; }
         public float Range { get; private set; }
 
@@ -40,6 +41,7 @@ namespace Game.Player.Components
         public void SetRange(float newRange)
         {
             Range = newRange;
+            _rangeCircleTransform.localScale = new Vector3(Range * 2, Range * 2, 1);
         }
 
         public void SetTarget([CanBeNull] PlayerCore newTarget)

@@ -70,7 +70,7 @@ public class NetworkManager : MonoBehaviour, IChannelListener
         {
             NetworkUtils.SendPacketSync(_stream, payload);
         }
-        catch (Exception e)
+        catch
         {
             LocalEventChannel.InvokeOnConnectionFailure();
         }
@@ -85,7 +85,7 @@ public class NetworkManager : MonoBehaviour, IChannelListener
             {
                 packet = await NetworkUtils.ReceivePacketAsync(_stream);
             }
-            catch (Exception e)
+            catch
             {
                 LocalEventChannel.InvokeOnConnectionFailure();
                 break;

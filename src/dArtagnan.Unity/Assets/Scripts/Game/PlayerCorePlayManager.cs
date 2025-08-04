@@ -16,6 +16,7 @@ namespace Game
             PacketChannel.On<PlayerCreatingStateBroadcast>(OnCreatingState);
             PacketChannel.On<UpdatePlayerAccuracyBroadcast>(OnAccuracyUpdate);
             PacketChannel.On<ItemAcquiredBroadcast>(OnItemAcquired);
+            PacketChannel.On<UpdatePlayerRangeBroadcast>(OnRangeUpdate);
         }
 
         private static void OnPlayerMovementData(PlayerMovementDataBroadcast e)
@@ -88,6 +89,12 @@ namespace Game
         {
             var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
             updated!.Accuracy.SetAccuracy(e.Accuracy);
+        }
+
+        private static void OnRangeUpdate(UpdatePlayerRangeBroadcast e)
+        {
+            var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
+            updated!.Shoot.SetRange(e.Range);
         }
     }
 }
