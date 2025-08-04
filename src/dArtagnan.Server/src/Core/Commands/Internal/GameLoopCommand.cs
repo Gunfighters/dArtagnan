@@ -17,7 +17,7 @@ public class GameLoopCommand : IGameCommand
         {
             case GameState.Waiting:
                 // 대기 상태: 정확도, 아이템 제작, 위치, 재장전 업데이트
-                await UpdatePlayerAccuracyStates(gameManager, DeltaTime);
+                await UpdateByAccuracyState(gameManager, DeltaTime);
                 await UpdatePlayerCreatingStates(gameManager, DeltaTime);
                 UpdatePlayerMovementStates(gameManager, DeltaTime);
                 UpdatePlayerReloadStates(gameManager, DeltaTime);
@@ -26,11 +26,11 @@ public class GameLoopCommand : IGameCommand
             case GameState.Round:
                 // 라운드 상태: 베팅금 차감 + 모든 플레이어 상태 업데이트 + 봇 AI 업데이트
                 await UpdateBettingTimer(gameManager);
-                await UpdatePlayerAccuracyStates(gameManager, DeltaTime);
+                await UpdateByAccuracyState(gameManager, DeltaTime);
                 await UpdatePlayerCreatingStates(gameManager, DeltaTime);
                 UpdatePlayerMovementStates(gameManager, DeltaTime);
                 UpdatePlayerReloadStates(gameManager, DeltaTime);
-                UpdateBotAI(gameManager, DeltaTime);
+                await UpdateBotAI(gameManager, DeltaTime);
                 break;
 
             case GameState.Roulette:
@@ -94,18 +94,24 @@ public class GameLoopCommand : IGameCommand
     /// <summary>
     /// 플레이어들의 정확도를 업데이트합니다
     /// </summary>
-    private async Task UpdatePlayerAccuracyStates(GameManager gameManager, float deltaTime)
+    private async Task UpdateByAccuracyState(GameManager gameManager, float deltaTime)
     {
         foreach (var player in gameManager.Players.Values)
         {
             if (!player.Alive) continue;
 
-            if (player.UpdateAccuracy(deltaTime))
+            if (player.UpdateByAccuracyState(deltaTime))
             {
                 await gameManager.BroadcastToAll(new UpdatePlayerAccuracyBroadcast
                 {
                     PlayerId = player.Id,
                     Accuracy = player.Accuracy
+                });
+                
+                await gameManager.BroadcastToAll(new UpdatePlayerRangeBroadcast
+                {
+                    PlayerId = player.Id,
+                    Range = player.Range
                 });
             }
         }

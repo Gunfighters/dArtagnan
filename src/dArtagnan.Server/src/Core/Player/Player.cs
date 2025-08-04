@@ -143,7 +143,7 @@ public class Player
     /// 정확도를 업데이트합니다. 게임 루프에서 호출됩니다.
     /// </summary>
     /// <param name="deltaTime">프레임 시간</param>
-    public bool UpdateAccuracy(float deltaTime)
+    public bool UpdateByAccuracyState(float deltaTime)
     {
         if (AccuracyState == 0) return false; // 유지 상태면 처리하지 않음
 
@@ -157,17 +157,21 @@ public class Player
             int newAccuracy = Accuracy + AccuracyState;
 
             // 정확도 범위 제한
-            newAccuracy = Math.Clamp(newAccuracy, 1, 100);
+            newAccuracy = Math.Clamp(newAccuracy, 1, 100);  
 
             if (newAccuracy != Accuracy)
             {
+                float t = Math.Clamp(newAccuracy / (float)Constants.ROULETTE_MAX_ACCURACY, 0f, 1f);
+                Range = Constants.MAX_RANGE + t * (Constants.MIN_RANGE - Constants.MAX_RANGE);
+                Console.WriteLine($"[정확도] 플레이어 {Id}의 사거리 변경: {Range}");
+
                 Accuracy = newAccuracy;
                 Console.WriteLine($"[정확도] 플레이어 {Id}의 정확도 변경: {Accuracy}% (상태: {AccuracyState})");
-                return true; // 정확도가 실제로 변경됨
+                return true; // 브로드 캐스트 필요
             }
         }
 
-        return false; // 정확도 변경 없음
+        return false; // 브로드 캐스트 필요 없음
     }
 
     /// <summary>

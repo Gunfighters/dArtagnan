@@ -44,9 +44,11 @@ namespace dArtagnan.Shared
         public const float DEFAULT_RELOAD_TIME = 13.0f;
         public const float ACCURACY_UPDATE_INTERVAL = 1.0f;
         public const float MOVEMENT_SPEED = 1.5f;
-        public const int ROULETTE_MIN_ACCURACY = 30;
-        public const int ROULETTE_MAX_ACCURACY = 70;
-        public const float DEFAULT_RANGE = 5f;
+        public const int ROULETTE_MIN_ACCURACY = 25;
+        public const int ROULETTE_MAX_ACCURACY = 75;
+        public const float DEFAULT_RANGE = 2f;
+        public const float MAX_RANGE = 2.8f;  // 정확도가 낮을 때의 최대 사거리
+        public const float MIN_RANGE = 1.2f;  // 정확도가 높을 때의 최소 사거리
         public const float SPAWN_RADIUS = 1.5f;
         public const float BETTING_PERIOD = 3.0f;
         public const float CREATING_DURATION = 3.0f; 
