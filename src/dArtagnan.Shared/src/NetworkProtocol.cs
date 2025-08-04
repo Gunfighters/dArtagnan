@@ -40,6 +40,8 @@ namespace dArtagnan.Shared
     [Union(30, typeof(ItemAcquiredBroadcast))]
     [Union(31, typeof(UseItemFromClient))]
     [Union(32, typeof(ItemUsedBroadcast))]
+    [Union(35, typeof(ChatMessageFromClient))]
+    [Union(36, typeof(ChatMessageBroadcast))]
     public interface IPacket
     {
     }
@@ -447,5 +449,18 @@ namespace dArtagnan.Shared
 
         [Key(1)] public int ItemId; // 사용한 아이템의 ID
         // [Key(2)] public int TargetPlayerId; // 아이템의 대상이 된 플레이어 ID. 없으면 -1
+    }
+
+    [MessagePackObject]
+    public struct ChatMessageFromClient : IPacket
+    {
+        [Key(0)] public string Message;
+    }
+
+    [MessagePackObject]
+    public struct ChatMessageBroadcast : IPacket
+    {
+        [Key(0)] public int PlayerId;               //system message일 경우 -1
+        [Key(1)] public string Message;
     }
 }
