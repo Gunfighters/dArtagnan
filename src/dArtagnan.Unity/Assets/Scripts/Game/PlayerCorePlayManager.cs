@@ -7,19 +7,19 @@ namespace Game
     {
         public void Initialize()
         {
-            PacketChannel.On<PlayerMovementDataBroadcast>(OnPlayerMovementData);
+            PacketChannel.On<MovementDataBroadcast>(OnPlayerMovementData);
             PacketChannel.On<PlayerIsTargetingBroadcast>(OnPlayerIsTargeting);
-            PacketChannel.On<PlayerShootingBroadcast>(OnPlayerShoot);
+            PacketChannel.On<ShootingBroadcast>(OnPlayerShoot);
             PacketChannel.On<UpdatePlayerAlive>(OnUpdatePlayerAlive);
-            PacketChannel.On<PlayerAccuracyStateBroadcast>(OnAccuracyStateBroadcast);
-            PacketChannel.On<PlayerBalanceUpdateBroadcast>(OnBalanceUpdate);
-            PacketChannel.On<PlayerCreatingStateBroadcast>(OnCreatingState);
-            PacketChannel.On<UpdatePlayerAccuracyBroadcast>(OnAccuracyUpdate);
+            PacketChannel.On<UpdateAccuracyStateBroadcast>(OnAccuracyStateBroadcast);
+            PacketChannel.On<BalanceUpdateBroadcast>(OnBalanceUpdate);
+            PacketChannel.On<UpdateCreatingStateBroadcast>(OnCreatingState);
+            PacketChannel.On<UpdateAccuracyBroadcast>(OnAccuracyUpdate);
             PacketChannel.On<ItemAcquiredBroadcast>(OnItemAcquired);
-            PacketChannel.On<UpdatePlayerRangeBroadcast>(OnRangeUpdate);
+            PacketChannel.On<UpdateRangeBroadcast>(OnRangeUpdate);
         }
 
-        private static void OnPlayerMovementData(PlayerMovementDataBroadcast e)
+        private static void OnPlayerMovementData(MovementDataBroadcast e)
         {
             var targetPlayer = PlayerGeneralManager.GetPlayer(e.PlayerId);
             if (targetPlayer == PlayerGeneralManager.LocalPlayerCore) return;
@@ -35,7 +35,7 @@ namespace Game
             aiming!.Shoot.SetTarget(PlayerGeneralManager.GetPlayer(playerIsTargeting.TargetId));
         }
 
-        private static void OnPlayerShoot(PlayerShootingBroadcast e)
+        private static void OnPlayerShoot(ShootingBroadcast e)
         {
             var shooter = PlayerGeneralManager.GetPlayer(e.ShooterId);
             var target = PlayerGeneralManager.GetPlayer(e.TargetId);
@@ -57,7 +57,7 @@ namespace Game
             }
         }
 
-        private static void OnCreatingState(PlayerCreatingStateBroadcast e)
+        private static void OnCreatingState(UpdateCreatingStateBroadcast e)
         {
             var creating = PlayerGeneralManager.GetPlayer(e.PlayerId);
             creating!.Dig.ToggleDigging(e.IsCreatingItem);
@@ -70,12 +70,12 @@ namespace Game
             acquiring!.Dig.ToggleDigging(false);
         }
 
-        private static void OnAccuracyStateBroadcast(PlayerAccuracyStateBroadcast e)
+        private static void OnAccuracyStateBroadcast(UpdateAccuracyStateBroadcast e)
         {
             PlayerGeneralManager.GetPlayer(e.PlayerId)!.Accuracy.SetAccuracyState(e.AccuracyState);
         }
 
-        private static void OnBalanceUpdate(PlayerBalanceUpdateBroadcast e)
+        private static void OnBalanceUpdate(BalanceUpdateBroadcast e)
         {
             var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
             updated!.Balance.SetBalance(e.Balance);
@@ -85,13 +85,13 @@ namespace Game
             }
         }
 
-        private static void OnAccuracyUpdate(UpdatePlayerAccuracyBroadcast e)
+        private static void OnAccuracyUpdate(UpdateAccuracyBroadcast e)
         {
             var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
             updated!.Accuracy.SetAccuracy(e.Accuracy);
         }
 
-        private static void OnRangeUpdate(UpdatePlayerRangeBroadcast e)
+        private static void OnRangeUpdate(UpdateRangeBroadcast e)
         {
             var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
             updated!.Shoot.SetRange(e.Range);

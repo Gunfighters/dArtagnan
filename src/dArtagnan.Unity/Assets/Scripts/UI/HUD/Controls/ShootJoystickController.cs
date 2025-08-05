@@ -67,7 +67,7 @@ namespace UI.HUD.Controls
             JoystickAxis.enabled = false;
             _aiming = false;
             if (Shootable && PlayerGeneralManager.LocalPlayerCore.Shoot.Target)
-                PacketChannel.Raise(new PlayerShootingFromClient
+                PacketChannel.Raise(new ShootingFromClient
                     { TargetId = PlayerGeneralManager.LocalPlayerCore.Shoot.Target.ID });
         }
     }

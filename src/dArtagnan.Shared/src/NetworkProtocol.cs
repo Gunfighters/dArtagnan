@@ -1,76 +1,77 @@
-using System;
 using System.Collections.Generic;
 using System.Numerics;
 using MessagePack;
 
 namespace dArtagnan.Shared
 {
-    [Union(0, typeof(PlayerJoinRequest))]
-    [Union(1, typeof(YouAre))]
-    [Union(2, typeof(PlayerJoinBroadcast))]
-    [Union(3, typeof(PlayerMovementDataFromClient))]
-    [Union(4, typeof(PlayerMovementDataBroadcast))]
-    [Union(5, typeof(PlayerShootingFromClient))]
-    [Union(6, typeof(PlayerShootingBroadcast))]
-    [Union(7, typeof(UpdatePlayerAlive))]
-    [Union(8, typeof(PlayerLeaveFromClient))]
-    [Union(9, typeof(PlayerLeaveBroadcast))]
-    [Union(10, typeof(RoundStartFromServer))]
+    // 연결 및 세션 관리
+    [Union(0, typeof(JoinRequest))]
+    [Union(1, typeof(YouAreFromServer))]
+    [Union(2, typeof(JoinBroadcast))]
+    [Union(3, typeof(LeaveFromClient))]
+    [Union(4, typeof(LeaveBroadcast))]
+    [Union(5, typeof(PingPacket))]
+    [Union(6, typeof(PongPacket))]
+    
+    // 이동 및 위치
+    [Union(7, typeof(MovementDataFromClient))]
+    [Union(8, typeof(MovementDataBroadcast))]
+    
+    // 전투 시스템
+    [Union(9, typeof(ShootingFromClient))]
+    [Union(10, typeof(ShootingBroadcast))]
     [Union(11, typeof(PlayerIsTargetingFromClient))]
     [Union(12, typeof(PlayerIsTargetingBroadcast))]
-    [Union(13, typeof(StartGameFromClient))]
-    [Union(14, typeof(NewHostBroadcast))]
-    [Union(15, typeof(RoundWinnerBroadcast))]
-    [Union(16, typeof(GameWinnerBroadcast))]
-    [Union(17, typeof(WaitingStartFromServer))]
-    [Union(18, typeof(PlayerBalanceUpdateBroadcast))]
-    [Union(19, typeof(PingPacket))]
-    [Union(20, typeof(PongPacket))]
-    [Union(21, typeof(SetAccuracyState))]
-    [Union(22, typeof(PlayerAccuracyStateBroadcast))]
-    [Union(33, typeof(UpdatePlayerAccuracyBroadcast))]
-    [Union(34, typeof(UpdatePlayerRangeBroadcast))]
-    [Union(23, typeof(RouletteStartFromServer))]
-    [Union(24, typeof(RouletteDone))]
+    [Union(13, typeof(UpdatePlayerAlive))]
+    
+    // 게임 상태 관리
+    [Union(14, typeof(StartGameFromClient))]
+    [Union(15, typeof(WaitingStartFromServer))]
+    [Union(16, typeof(RoundStartFromServer))]
+    [Union(17, typeof(NewHostBroadcast))]
+    [Union(18, typeof(RoundWinnerBroadcast))]
+    [Union(19, typeof(GameWinnerBroadcast))]
+    
+    // 플레이어 스탯 및 경제
+    [Union(20, typeof(BalanceUpdateBroadcast))]
+    [Union(21, typeof(UpdateAccuracyStateFromClient))]
+    [Union(22, typeof(UpdateAccuracyStateBroadcast))]
+    [Union(23, typeof(UpdateAccuracyBroadcast))]
+    [Union(24, typeof(UpdateRangeBroadcast))]
     [Union(25, typeof(BettingDeductionBroadcast))]
-    [Union(26, typeof(AugmentStartFromServer))]
-    [Union(27, typeof(AugmentDoneFromClient))]
-    [Union(28, typeof(ItemCreatingStateFromClient))]
-    [Union(29, typeof(PlayerCreatingStateBroadcast))]
-    [Union(30, typeof(ItemAcquiredBroadcast))]
-    [Union(31, typeof(UseItemFromClient))]
-    [Union(32, typeof(ItemUsedBroadcast))]
-    [Union(35, typeof(ChatFromClient))]
-    [Union(36, typeof(ChatBroadcast))]
-    [Union(37, typeof(UpdatePlayerCurrentEnergyBroadcast))]
-    [Union(38, typeof(UpdatePlayerMaxEnergyBroadcast))]
-    [Union(39, typeof(UpdatePlayerMinEnergyToShootBroadcast))]
+    
+    // 에너지 시스템
+    [Union(26, typeof(UpdateCurrentEnergyBroadcast))]
+    [Union(27, typeof(UpdateMaxEnergyBroadcast))]
+    [Union(28, typeof(UpdateMinEnergyToShootBroadcast))]
+    
+    // 룰렛 시스템
+    [Union(29, typeof(RouletteStartFromServer))]
+    [Union(30, typeof(RouletteDoneFromClient))]
+    
+    // 증강 시스템
+    [Union(31, typeof(AugmentStartFromServer))]
+    [Union(32, typeof(AugmentDoneFromClient))]
+    
+    // 아이템 시스템
+    [Union(33, typeof(UpdateItemCreatingStateFromClient))]
+    [Union(34, typeof(UpdateCreatingStateBroadcast))]
+    [Union(35, typeof(ItemAcquiredBroadcast))]
+    [Union(36, typeof(UseItemFromClient))]
+    [Union(37, typeof(ItemUsedBroadcast))]
+    
+    // 채팅 시스템
+    [Union(38, typeof(ChatFromClient))]
+    [Union(39, typeof(ChatBroadcast))]
+    
     public interface IPacket
     {
     }
 
+    #region 공통 데이터 구조
+    
     /// <summary>
-    /// [클라이언트 => 서버]
-    /// 플레이어가 게임에 접속하고 싶을 때 보내는 패킷.
-    /// </summary>
-    [MessagePackObject]
-    public struct PlayerJoinRequest : IPacket
-    {
-    }
-
-    /// <summary>
-    /// [서버 => 클라이언트]
-    /// 플레이어가 자신의 번호가 몇 번인지를 알 수 있도록 보내주는 패킷.
-    /// </summary>
-    [MessagePackObject]
-    public struct YouAre : IPacket
-    {
-        [Key(0)] public int PlayerId;
-    }
-
-    /// <summary>
-    /// [서버 => 클라이언트]
-    /// 특정 플레이어의 정보를 담은 패킷.
+    /// 특정 플레이어의 정보를 담은 구조체
     /// </summary>
     [MessagePackObject]
     public struct PlayerInformation
@@ -81,7 +82,7 @@ namespace dArtagnan.Shared
         [Key(3)] public EnergyData EnergyData;
         [Key(4)] public int MinEnergyToShoot; // 사격하기 위한 최소 필요 에너지 (정확도에 비례)
         [Key(5)] public bool Alive;
-        [Key(6)] public int Targeting; // 겨누는 플레이어의 번호. 겨누는 플레이어가 없을 경우 -1이다.
+        [Key(6)] public int Targeting; // 겨누는 플레이어의 번호. 겨누는 플레이어가 없을 경우 -1
         [Key(7)] public float Range;
         [Key(8)] public MovementData MovementData;
         [Key(9)] public int Balance;
@@ -93,7 +94,7 @@ namespace dArtagnan.Shared
     }
 
     /// <summary>
-    /// 이동 정보. 단독으로는 쓰이지 않고 다른 패킷에 담겨서 쓰인다. 방향과 위치와 속도를 담고 있다.
+    /// 이동 정보. 단독으로는 쓰이지 않고 다른 패킷에 담겨서 쓰인다
     /// </summary>
     [MessagePackObject]
     public struct MovementData
@@ -104,7 +105,7 @@ namespace dArtagnan.Shared
     }
 
     /// <summary>
-    /// 에너지 정보. 연속적으로 시뮬레이션 가능한 에너지 데이터.
+    /// 에너지 정보. 연속적으로 시뮬레이션 가능한 에너지 데이터
     /// </summary>
     [MessagePackObject]
     public struct EnergyData
@@ -112,97 +113,133 @@ namespace dArtagnan.Shared
         [Key(0)] public int MaxEnergy; // 최대 에너지 (정수)
         [Key(1)] public float CurrentEnergy; // 현재 에너지 (소수점 단위)
     }
+    
+    #endregion
+    
+    #region 연결 및 세션 관리 패킷들
+
+    /// <summary>
+    /// [클라이언트 => 서버]
+    /// 플레이어가 게임에 접속하고 싶을 때 보내는 패킷
+    /// </summary>
+    [MessagePackObject]
+    public struct JoinRequest : IPacket
+    {
+    }
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// 특정 플레이어가 접속했음을 알려주는 패킷.
+    /// 플레이어가 자신의 번호가 몇 번인지를 알 수 있도록 보내주는 패킷
     /// </summary>
     [MessagePackObject]
-    public struct PlayerJoinBroadcast : IPacket
+    public struct YouAreFromServer : IPacket
+    {
+        [Key(0)] public int PlayerId;
+    }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// 특정 플레이어가 접속했음을 알려주는 패킷
+    /// </summary>
+    [MessagePackObject]
+    public struct JoinBroadcast : IPacket
     {
         [Key(0)] public PlayerInformation PlayerInfo;
     }
 
     /// <summary>
     /// [클라이언트 => 서버]
-    /// 플레이어가 자신의 이동 방향, 위치를 서버에 보내줄 때 쓰는 패킷.
+    /// 플레이어 퇴장 통보
     /// </summary>
     [MessagePackObject]
-    public struct PlayerMovementDataFromClient : IPacket
+    public struct LeaveFromClient : IPacket
+    {
+    }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// 플레이어 퇴장 브로드캐스트
+    /// </summary>
+    [MessagePackObject]
+    public struct LeaveBroadcast : IPacket
+    {
+        [Key(0)] public int PlayerId;
+    }
+    
+    /// <summary>
+    /// [클라이언트 => 서버]
+    /// 연결 상태 확인을 위한 핑 패킷
+    /// </summary>
+    [MessagePackObject]
+    public struct PingPacket : IPacket
+    {
+    }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// 핑에 대한 응답 패킷
+    /// </summary>
+    [MessagePackObject]
+    public struct PongPacket : IPacket
+    {
+    }
+    
+    #endregion
+    
+    #region 이동 및 위치 패킷들
+
+    /// <summary>
+    /// [클라이언트 => 서버]
+    /// 플레이어가 자신의 이동 방향, 위치를 서버에 보내줄 때 쓰는 패킷
+    /// </summary>
+    [MessagePackObject]
+    public struct MovementDataFromClient : IPacket
     {
         [Key(0)] public int Direction;
-
-        // [Key(1)] public Vector2 Position;
         [Key(1)] public MovementData MovementData;
     }
 
     /// <summary>
     /// [서버 => 브로드캐스트]
-    /// 특정 플레이어의 이동 정보를 브로드캐스트.
+    /// 특정 플레이어의 이동 정보를 브로드캐스트
     /// </summary>
     [MessagePackObject]
-    public struct PlayerMovementDataBroadcast : IPacket
+    public struct MovementDataBroadcast : IPacket
     {
         [Key(0)] public int PlayerId;
         [Key(1)] public MovementData MovementData;
     }
+    
+    #endregion
+    
+    #region 전투 시스템 패킷들
 
     /// <summary>
     /// [클라이언트 => 서버]
-    /// 플레이어가 TargetId번을 쏘겠다고 요청.
+    /// 플레이어가 TargetId번을 쏘겠다고 요청
     /// </summary>
     [MessagePackObject]
-    public struct PlayerShootingFromClient : IPacket
+    public struct ShootingFromClient : IPacket
     {
         [Key(0)] public int TargetId;
     }
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// ShooterId번이 TargetId번을 사격했으며 그 결과는 Hit이고 사격자의 현재 스태미나는 ShooterCurrentStamina이다.
+    /// ShooterId번이 TargetId번을 사격했으며 그 결과와 사격자의 현재 에너지를 알려줌
     /// </summary>
     [MessagePackObject]
-    public struct PlayerShootingBroadcast : IPacket
+    public struct ShootingBroadcast : IPacket
     {
         [Key(0)] public int ShooterId;
         [Key(1)] public int TargetId;
         [Key(2)] public bool Hit;
         [Key(3)] public int ShooterCurrentEnergy;
     }
-
-    /// <summary>
-    /// [서버 => 클라이언트]
-    /// PlayerId번 플레이어의 생존 여부를 보낸다.
-    /// </summary>
-    [MessagePackObject]
-    public struct UpdatePlayerAlive : IPacket
-    {
-        [Key(0)] public int PlayerId;
-        [Key(1)] public bool Alive;
-    }
-
+    
     /// <summary>
     /// [클라이언트 => 서버]
-    /// 플레이어 퇴장 통보.
-    /// </summary>
-    [MessagePackObject]
-    public struct PlayerLeaveFromClient : IPacket
-    {
-    }
-
-    /// <summary>
-    /// [서버 => 클라이언트]
-    /// 플레이어 퇴장 브로드캐스트.
-    /// </summary>
-    [MessagePackObject]
-    public struct PlayerLeaveBroadcast : IPacket
-    {
-        [Key(0)] public int PlayerId;
-    }
-
-    /// <summary>
-    /// [클라이언트 => 서버]
-    /// TargetId번 플레이어를 겨누고 있음.
+    /// TargetId번 플레이어를 겨누고 있음
     /// </summary>
     [MessagePackObject]
     public struct PlayerIsTargetingFromClient : IPacket
@@ -212,7 +249,7 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// ShooterId번 플레이어가 TargetId번 플레이어를 겨누고 있음.
+    /// ShooterId번 플레이어가 TargetId번 플레이어를 겨누고 있음
     /// </summary>
     [MessagePackObject]
     public struct PlayerIsTargetingBroadcast : IPacket
@@ -222,8 +259,23 @@ namespace dArtagnan.Shared
     }
 
     /// <summary>
+    /// [서버 => 클라이언트]
+    /// PlayerId번 플레이어의 생존 여부를 보낸다
+    /// </summary>
+    [MessagePackObject]
+    public struct UpdatePlayerAlive : IPacket
+    {
+        [Key(0)] public int PlayerId;
+        [Key(1)] public bool Alive;
+    }
+    
+    #endregion
+    
+    #region 게임 상태 관리 패킷들
+
+    /// <summary>
     /// [클라이언트 => 서버]
-    /// 게임을 시작하겠다는 패킷. 방장만 전송 가능.
+    /// 게임을 시작하겠다는 패킷. 방장만 전송 가능
     /// </summary>
     [MessagePackObject]
     public struct StartGameFromClient : IPacket
@@ -232,8 +284,8 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// 'Waiting' 상태를 시작한다 플레이어들의 상태는 PlayersInfo와 같고 Round번째 라운드를 진행 중이다.
-    /// 클라이언트가 방에 처음 입장하거나 게임이 종료된 후 게임이 대기 상태로 돌아갈때 만 보내진다.
+    /// 'Waiting' 상태를 시작한다. 플레이어들의 상태는 PlayersInfo와 같다
+    /// 클라이언트가 방에 처음 입장하거나 게임이 종료된 후 대기 상태로 돌아갈 때만 보내진다
     /// </summary>
     [MessagePackObject]
     public struct WaitingStartFromServer : IPacket
@@ -243,9 +295,9 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// 'Round' 상태를 시작한다 플레이어들의 상태는 PlayersInfo와 같고 Round번째 라운드를 진행 중이다.
-    /// 게임이 시작되거나 각 라운드가 시작될 때만 보내진다.
-    /// 클라: BettingAmount는 이번 라운드의 10초마다 차감되는 베팅금이다.
+    /// 'Round' 상태를 시작한다. 플레이어들의 상태는 PlayersInfo와 같고 Round번째 라운드를 진행 중이다
+    /// 게임이 시작되거나 각 라운드가 시작될 때만 보내진다
+    /// BettingAmount는 이번 라운드의 10초마다 차감되는 베팅금이다
     /// </summary>
     [MessagePackObject]
     public struct RoundStartFromServer : IPacket
@@ -257,7 +309,7 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// HostId번 플레이어가 새로 방장이 되었다.
+    /// HostId번 플레이어가 새로 방장이 되었다
     /// </summary>
     [MessagePackObject]
     public struct NewHostBroadcast : IPacket
@@ -267,8 +319,8 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// PlayerId번 플레이어들이 라운드에서 승리했다.
-    /// 클라: 이패킷 받으면 단순히 게임승리 UI만 띄우면 됨.
+    /// PlayerId번 플레이어들이 라운드에서 승리했다
+    /// 이 패킷을 받으면 단순히 게임승리 UI만 띄우면 된다
     /// </summary>
     [MessagePackObject]
     public struct RoundWinnerBroadcast : IPacket
@@ -280,21 +332,25 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// PlayerId번 플레이어들이 게임 전체에서 승리했다.
-    /// 클라: 이패킷 받으면 단순히 게임승리 UI만 띄우면 됨.
+    /// PlayerId번 플레이어들이 게임 전체에서 승리했다
+    /// 이 패킷을 받으면 단순히 게임승리 UI만 띄우면 된다
     /// </summary>
     [MessagePackObject]
     public struct GameWinnerBroadcast : IPacket
     {
-        [Key(0)] public List<int> PlayerIds; // 게임 최종 승자들. 승자가 없으면 빈 리스트.
+        [Key(0)] public List<int> PlayerIds; // 게임 최종 승자들. 승자가 없으면 빈 리스트
     }
+    
+    #endregion
+    
+    #region 플레이어 스탯 및 경제 패킷들
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// PlayerId번 플레이어의 소지금이 Balance로 바뀌었다.
+    /// PlayerId번 플레이어의 소지금이 Balance로 바뀌었다
     /// </summary>
     [MessagePackObject]
-    public struct PlayerBalanceUpdateBroadcast : IPacket
+    public struct BalanceUpdateBroadcast : IPacket
     {
         [Key(0)] public int PlayerId;
         [Key(1)] public int Balance;
@@ -302,20 +358,20 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [클라이언트 => 서버]
-    /// 플레이어의 정확도 증감 상태를 변경하겠다고 요청.
+    /// 플레이어의 정확도 증감 상태를 변경하겠다고 요청
     /// </summary>
     [MessagePackObject]
-    public struct SetAccuracyState : IPacket
+    public struct UpdateAccuracyStateFromClient : IPacket
     {
         [Key(0)] public int AccuracyState; // -1: 정확도 감소, 0: 정확도 유지, 1: 정확도 증가
     }
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// PlayerId번 플레이어의 정확도 상태가 AccuracyState로 변경되었다.
+    /// PlayerId번 플레이어의 정확도 상태가 AccuracyState로 변경되었다
     /// </summary>
     [MessagePackObject]
-    public struct PlayerAccuracyStateBroadcast : IPacket
+    public struct UpdateAccuracyStateBroadcast : IPacket
     {
         [Key(0)] public int PlayerId;
         [Key(1)] public int AccuracyState; // -1: 정확도 감소, 0: 정확도 유지, 1: 정확도 증가
@@ -323,10 +379,10 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// PlayerId번 플레이어의 정확도가 Accuracy로 업데이트 되었다.
+    /// PlayerId번 플레이어의 정확도가 Accuracy로 업데이트 되었다
     /// </summary>
     [MessagePackObject]
-    public struct UpdatePlayerAccuracyBroadcast : IPacket
+    public struct UpdateAccuracyBroadcast : IPacket
     {
         [Key(0)] public int PlayerId;
         [Key(1)] public int Accuracy;
@@ -334,7 +390,72 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// 너의 정확도는 YourAccuracy이다. 등장가능한 정확도 풀은 AccuracyPool과 같다.
+    /// PlayerId번 플레이어의 사거리가 Range로 업데이트 되었다
+    /// </summary>
+    [MessagePackObject]
+    public struct UpdateRangeBroadcast : IPacket
+    {
+        [Key(0)] public int PlayerId;
+        [Key(1)] public float Range;
+    }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// 10초마다 베팅금이 차감되었음을 알려주는 패킷
+    /// 이 패킷을 받으면 판돈을 TotalPrizeMoney로 업데이트하고
+    /// 모든 플레이어의 잔액을 DeductedAmount만큼 감소시킨다
+    /// </summary>
+    [MessagePackObject]
+    public struct BettingDeductionBroadcast : IPacket
+    {
+        [Key(0)] public int DeductedAmount; // 차감된 베팅금
+        [Key(1)] public int TotalPrizeMoney; // 업데이트된 총 판돈
+    }
+    
+    #endregion
+    
+    #region 에너지 시스템 패킷들
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// PlayerId번 플레이어의 현재 에너지가 업데이트 되었다
+    /// </summary>
+    [MessagePackObject]
+    public struct UpdateCurrentEnergyBroadcast : IPacket
+    {
+        [Key(0)] public int PlayerId;
+        [Key(1)] public float CurrentEnergy;
+    }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// PlayerId번 플레이어의 최대 에너지가 업데이트 되었다
+    /// </summary>
+    [MessagePackObject]
+    public struct UpdateMaxEnergyBroadcast : IPacket
+    {
+        [Key(0)] public int PlayerId;
+        [Key(1)] public int MaxEnergy;
+    }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// PlayerId번 플레이어의 사격 최소 필요 에너지가 업데이트 되었다
+    /// </summary>
+    [MessagePackObject]
+    public struct UpdateMinEnergyToShootBroadcast : IPacket
+    {
+        [Key(0)] public int PlayerId;
+        [Key(1)] public int MinEnergyToShoot;
+    }
+    
+    #endregion
+    
+    #region 룰렛 시스템 패킷들
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// 너의 정확도는 YourAccuracy이다. 등장가능한 정확도 풀은 AccuracyPool과 같다
     /// </summary>
     [MessagePackObject]
     public struct RouletteStartFromServer : IPacket
@@ -345,53 +466,23 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [클라이언트 => 서버]
-    /// 룰렛을 돌려 나의 명중률을 확인하였다.
-    /// TrialCount는 현재 안쓰이는 변수이지만 빈 패킷끼리 구분을 못하는 버그 땜애 임시로 존재
+    /// 룰렛을 돌려 나의 명중률을 확인하였다
+    /// TrialCount는 현재 안쓰이는 변수이지만 빈 패킷끼리 구분을 못하는 버그 때문에 임시로 존재
     /// </summary>
     [MessagePackObject]
-    public struct RouletteDone : IPacket
+    public struct RouletteDoneFromClient : IPacket
     {
         [Key(0)] public int TrialCount;
     }
-
-    /// <summary>
-    /// [서버 => 클라이언트]
-    /// PlayerId번 플레이어의 사거리가 Range로 업데이트 되었다.
-    /// </summary>
-    [MessagePackObject]
-    public struct UpdatePlayerRangeBroadcast : IPacket
-    {
-        [Key(0)] public int PlayerId;
-        [Key(1)] public float Range;
-    }
-
-    [MessagePackObject]
-    public struct PingPacket : IPacket
-    {
-    }
-
-    [MessagePackObject]
-    public struct PongPacket : IPacket
-    {
-    }
-
-    /// <summary>
-    /// [서버 => 클라이언트]
-    /// 10초마다 베팅금이 차감되었음을 알려주는 패킷
-    /// 클라: 이패킷 받으면 판돈을 TotalPrizeMoney 로 업데이트하고
-    /// 모든 플레이어의 잔액을 DeductedAmount만큼 감소시킨다.
-    /// </summary>
-    [MessagePackObject]
-    public struct BettingDeductionBroadcast : IPacket
-    {
-        [Key(0)] public int DeductedAmount; // 차감된 베팅금
-        [Key(1)] public int TotalPrizeMoney; // 업데이트된 총 판돈
-    }
+    
+    #endregion
+    
+    #region 증강 시스템 패킷들
 
     /// <summary>
     /// [서버 => 클라이언트]
     /// 라운드 종료 후 증강 선택을 시작할 때 보내는 패킷
-    /// 3개의 증강 옵션을 제공한다.
+    /// 3개의 증강 옵션을 제공한다
     /// </summary>
     [MessagePackObject]
     public struct AugmentStartFromServer : IPacket
@@ -406,15 +497,19 @@ namespace dArtagnan.Shared
     [MessagePackObject]
     public struct AugmentDoneFromClient : IPacket
     {
-        [Key(0)] public int SelectedAugmentID; // 선택한 증강의 번호.
+        [Key(0)] public int SelectedAugmentID; // 선택한 증강의 번호
     }
+    
+    #endregion
+    
+    #region 아이템 시스템 패킷들
 
     /// <summary>
     /// [클라이언트 => 서버]
     /// 아이템 제작 상태를 변경하겠다는 패킷
     /// </summary>
     [MessagePackObject]
-    public struct ItemCreatingStateFromClient : IPacket
+    public struct UpdateItemCreatingStateFromClient : IPacket
     {
         [Key(0)] public bool IsCreatingItem; // true: 제작 시작, false: 제작 취소
     }
@@ -424,7 +519,7 @@ namespace dArtagnan.Shared
     /// PlayerId번 플레이어의 아이템 제작 상태가 변경되었음을 알리는 패킷
     /// </summary>
     [MessagePackObject]
-    public struct PlayerCreatingStateBroadcast : IPacket
+    public struct UpdateCreatingStateBroadcast : IPacket
     {
         [Key(0)] public int PlayerId;
         [Key(1)] public bool IsCreatingItem; // 아이템 제작 중인지 여부
@@ -459,54 +554,33 @@ namespace dArtagnan.Shared
     public struct ItemUsedBroadcast : IPacket
     {
         [Key(0)] public int PlayerId; // 아이템을 사용한 플레이어
-
         [Key(1)] public int ItemId; // 사용한 아이템의 ID
-        // [Key(2)] public int TargetPlayerId; // 아이템의 대상이 된 플레이어 ID. 없으면 -1
     }
+    
+    #endregion
+    
+    #region 채팅 시스템 패킷들
 
+    /// <summary>
+    /// [클라이언트 => 서버]
+    /// 채팅 메시지를 보내는 패킷
+    /// </summary>
     [MessagePackObject]
     public struct ChatFromClient : IPacket
     {
         [Key(0)] public string Message;
     }
 
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// 채팅 메시지 브로드캐스트
+    /// </summary>
     [MessagePackObject]
     public struct ChatBroadcast : IPacket
     {
-        [Key(0)] public int PlayerId;               //system message일 경우 -1
+        [Key(0)] public int PlayerId; // 시스템 메시지일 경우 -1
         [Key(1)] public string Message;
     }
-
-    /// <summary>
-    /// [서버 => 클라이언트]
-    /// PlayerId번 플레이어의 현재 에너지가 업데이트 되었다.
-    /// </summary>
-    [MessagePackObject]
-    public struct UpdatePlayerCurrentEnergyBroadcast : IPacket
-    {
-        [Key(0)] public int PlayerId;
-        [Key(1)] public float CurrentEnergy;
-    }
-
-    /// <summary>
-    /// [서버 => 클라이언트]
-    /// PlayerId번 플레이어의 최대 에너지가 업데이트 되었다.
-    /// </summary>
-    [MessagePackObject]
-    public struct UpdatePlayerMaxEnergyBroadcast : IPacket
-    {
-        [Key(0)] public int PlayerId;
-        [Key(1)] public int MaxEnergy;
-    }
-
-    /// <summary>
-    /// [서버 => 클라이언트]
-    /// PlayerId번 플레이어의 사격 최소 필요 에너지가 업데이트 되었다.
-    /// </summary>
-    [MessagePackObject]
-    public struct UpdatePlayerMinEnergyToShootBroadcast : IPacket
-    {
-        [Key(0)] public int PlayerId;
-        [Key(1)] public int MinEnergyToShoot;
-    }
+    
+    #endregion
 }

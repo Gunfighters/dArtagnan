@@ -50,7 +50,7 @@ public class PlayerShootingCommand : IGameCommand
         Console.WriteLine($"[전투] 플레이어 {ShooterId} 사격: {energyUsed:F1} 에너지 모두 소모");
 
         // 현재 에너지 브로드캐스트
-        await gameManager.BroadcastToAll(new UpdatePlayerCurrentEnergyBroadcast
+        await gameManager.BroadcastToAll(new UpdateCurrentEnergyBroadcast
         {
             PlayerId = ShooterId,
             CurrentEnergy = shooter.EnergyData.CurrentEnergy
@@ -62,7 +62,7 @@ public class PlayerShootingCommand : IGameCommand
         Console.WriteLine($"[전투] 플레이어 {shooter.Id} -> {target.Id} 사격: {(hit ? "명중" : "빗나감")}");
         
         // 사격 결과 브로드캐스트
-        await gameManager.BroadcastToAll(new PlayerShootingBroadcast
+        await gameManager.BroadcastToAll(new ShootingBroadcast
         {
             ShooterId = ShooterId,
             TargetId = TargetId,

@@ -113,7 +113,7 @@ public class GameManager
         Console.WriteLine($"[봇] {nickname} 생성 완료 (ID: {botId}, 위치: {position})");
         
         // 다른 플레이어들에게 봇 참가 알림
-        await BroadcastToAll(new PlayerJoinBroadcast 
+        await BroadcastToAll(new JoinBroadcast 
         { 
             PlayerInfo = bot.PlayerInformation 
         });
@@ -132,7 +132,7 @@ public class GameManager
         {
             Console.WriteLine($"[게임] 플레이어 {player.Id}({player.Nickname}) 퇴장 처리");
                 
-            await BroadcastToAllExcept(new PlayerLeaveBroadcast
+            await BroadcastToAllExcept(new LeaveBroadcast
             {
                 PlayerId = player.Id
             }, clientId);
@@ -291,7 +291,7 @@ public class GameManager
         var actualWithdrawn = player.Withdraw(amount);
         
         // 잔액 업데이트 브로드캐스트
-        await BroadcastToAll(new PlayerBalanceUpdateBroadcast
+        await BroadcastToAll(new BalanceUpdateBroadcast
         {
             PlayerId = player.Id,
             Balance = player.Balance
@@ -322,12 +322,12 @@ public class GameManager
         to.Balance += actualTransferred;
         
         // 양쪽 플레이어 잔액 업데이트 브로드캐스트
-        await BroadcastToAll(new PlayerBalanceUpdateBroadcast
+        await BroadcastToAll(new BalanceUpdateBroadcast
         {
             PlayerId = from.Id,
             Balance = from.Balance
         });
-        await BroadcastToAll(new PlayerBalanceUpdateBroadcast
+        await BroadcastToAll(new BalanceUpdateBroadcast
         {
             PlayerId = to.Id,
             Balance = to.Balance
@@ -437,7 +437,7 @@ public class GameManager
             Console.WriteLine($"[봇] {bot.Nickname} 제거 완료 (ID: {bot.Id})");
             
             // 다른 플레이어들에게 봇 퇴장 알림
-            await BroadcastToAll(new PlayerLeaveBroadcast
+            await BroadcastToAll(new LeaveBroadcast
             {
                 PlayerId = bot.Id,
             });
@@ -603,7 +603,7 @@ public class GameManager
             winnerIds.Add(winner.Id);
             
             // 승리자 잔액 업데이트 브로드캐스트
-            await BroadcastToAll(new PlayerBalanceUpdateBroadcast
+            await BroadcastToAll(new BalanceUpdateBroadcast
             {
                 PlayerId = winner.Id,
                 Balance = winner.Balance

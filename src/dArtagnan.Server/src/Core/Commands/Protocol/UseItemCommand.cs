@@ -30,7 +30,7 @@ public class UseItemCommand : IGameCommand
         }
 
         // 현재 에너지만 브로드캐스트 (효율적)
-        await gameManager.BroadcastToAll(new UpdatePlayerCurrentEnergyBroadcast
+        await gameManager.BroadcastToAll(new UpdateCurrentEnergyBroadcast
         {
             PlayerId = PlayerId,
             CurrentEnergy = player.EnergyData.CurrentEnergy

@@ -27,7 +27,7 @@ internal class Program
     {
         try
         {
-            var playerDirection = new PlayerMovementDataFromClient { Direction = direction, MovementData = { Direction = direction, Position = position, Speed = speed} };
+            var playerDirection = new MovementDataFromClient { Direction = direction, MovementData = { Direction = direction, Position = position, Speed = speed} };
             await NetworkUtils.SendPacketAsync(stream, playerDirection);
             Console.WriteLine($"이동 데이터 패킷 전송: 방향 {playerDirection.Direction}, 위치 {playerDirection.MovementData.Position} 속도: {playerDirection.MovementData.Speed}");
         }
@@ -268,7 +268,7 @@ internal class Program
 
         try
         {
-            var joinPacket = new PlayerJoinRequest();
+            var joinPacket = new JoinRequest();
             await NetworkUtils.SendPacketAsync(stream, joinPacket);
             Console.WriteLine($"게임 참가 요청을 보냈습니다: {nickname}");
         }
@@ -301,7 +301,7 @@ internal class Program
 
         try
         {
-            await NetworkUtils.SendPacketAsync(stream, new PlayerShootingFromClient
+            await NetworkUtils.SendPacketAsync(stream, new ShootingFromClient
             {
                 TargetId = targetId
             });
@@ -329,7 +329,7 @@ internal class Program
 
         try
         {
-            await NetworkUtils.SendPacketAsync(stream, new SetAccuracyState
+            await NetworkUtils.SendPacketAsync(stream, new UpdateAccuracyStateFromClient
             {
                 AccuracyState = state
             });
@@ -360,7 +360,7 @@ internal class Program
 
         try
         {
-            await NetworkUtils.SendPacketAsync(stream, new RouletteDone { TrialCount = count });
+            await NetworkUtils.SendPacketAsync(stream, new RouletteDoneFromClient { TrialCount = count });
             Console.WriteLine($"룰렛 돌리기 완료 패킷 전송: 횟수 {count}");
         }
         catch (Exception ex)
@@ -401,7 +401,7 @@ internal class Program
 
         try
         {
-            await NetworkUtils.SendPacketAsync(stream, new ItemCreatingStateFromClient
+            await NetworkUtils.SendPacketAsync(stream, new UpdateItemCreatingStateFromClient
             {
                 IsCreatingItem = isCreating
             });
@@ -449,7 +449,7 @@ internal class Program
 
         try
         {
-            await NetworkUtils.SendPacketAsync(stream, new PlayerLeaveFromClient());
+            await NetworkUtils.SendPacketAsync(stream, new LeaveFromClient());
             Console.WriteLine("게임 나가기 패킷 전송");
         }
         catch (Exception ex)
@@ -514,15 +514,15 @@ internal class Program
         {
             switch (packet)
             {
-                case YouAre youAre:
+                case YouAreFromServer youAre:
                     Console.WriteLine($"서버에서 플레이어 ID 할당: {youAre.PlayerId}");
                     break;
                         
-                case PlayerJoinBroadcast joinBroadcast:
+                case JoinBroadcast joinBroadcast:
                     Console.WriteLine($"플레이어 {joinBroadcast.PlayerInfo.PlayerId} 참가!");
                     break;
                         
-                case PlayerMovementDataBroadcast movementDataBroadcast:
+                case MovementDataBroadcast movementDataBroadcast:
                     Console.WriteLine($"{movementDataBroadcast.PlayerId}번 플레이어 이동 데이터 갱신: 방향 {movementDataBroadcast.MovementData.Direction}, 위치 {movementDataBroadcast.MovementData.Position} 속도 {movementDataBroadcast.MovementData.Speed}");
                     break;
                         
@@ -575,7 +575,7 @@ internal class Program
                     }
                     break;
                         
-                case PlayerShootingBroadcast shooting:
+                case ShootingBroadcast shooting:
                     var hitMsg = shooting.Hit ? "명중!" : "빗나감";
                     Console.WriteLine($"플레이어 {shooting.ShooterId}가 플레이어 {shooting.TargetId}를 공격 - {hitMsg} (사격자 현재 에너지: {shooting.ShooterCurrentEnergy})");
                     break;
@@ -589,11 +589,11 @@ internal class Program
                     Console.WriteLine($"새로운 방장: {newHost.HostId}");
                     break;
                         
-                case PlayerLeaveBroadcast leaveBroadcast:
+                case LeaveBroadcast leaveBroadcast:
                     Console.WriteLine($"플레이어 {leaveBroadcast.PlayerId}가 게임을 떠났습니다");
                     break;
                         
-                case PlayerAccuracyStateBroadcast accuracyStateBroadcast:
+                case UpdateAccuracyStateBroadcast accuracyStateBroadcast:
                     Console.WriteLine($"플레이어 {accuracyStateBroadcast.PlayerId}의 정확도 상태 변경: {accuracyStateBroadcast.AccuracyState} ({GetAccuracyStateText(accuracyStateBroadcast.AccuracyState)})");
                     break;
                         
@@ -612,7 +612,7 @@ internal class Program
                     Console.WriteLine($"💰 현재 총 판돈: {bettingDeduction.TotalPrizeMoney}달러");
                     break;
                     
-                case PlayerBalanceUpdateBroadcast balanceUpdate:
+                case BalanceUpdateBroadcast balanceUpdate:
                     Console.WriteLine($"💳 플레이어 {balanceUpdate.PlayerId}의 소지금 업데이트: {balanceUpdate.Balance}달러");
                     break;
                     
@@ -653,7 +653,7 @@ internal class Program
                     Console.WriteLine($"명령어 'au [ID]'로 증강을 선택하세요.");
                     break;
 
-                case PlayerCreatingStateBroadcast creatingState:
+                case UpdateCreatingStateBroadcast creatingState:
                     var stateText = creatingState.IsCreatingItem ? "시작" : "중단";
                     Console.WriteLine($"🔨 [아이템 제작] 플레이어 {creatingState.PlayerId}가 아이템 제작을 {stateText}했습니다");
                     break;
@@ -677,23 +677,23 @@ internal class Program
                     }
                     break;
 
-                case UpdatePlayerCurrentEnergyBroadcast energyUpdate:
+                case UpdateCurrentEnergyBroadcast energyUpdate:
                     Console.WriteLine($"⚡ [에너지 업데이트] 플레이어 {energyUpdate.PlayerId}의 현재 에너지: {energyUpdate.CurrentEnergy:F1}");
                     break;
 
-                case UpdatePlayerAccuracyBroadcast accuracyUpdate:
+                case UpdateAccuracyBroadcast accuracyUpdate:
                     Console.WriteLine($"🎯 [정확도 업데이트] 플레이어 {accuracyUpdate.PlayerId}의 정확도: {accuracyUpdate.Accuracy}%");
                     break;
 
-                case UpdatePlayerRangeBroadcast rangeUpdate:
+                case UpdateRangeBroadcast rangeUpdate:
                     Console.WriteLine($"📏 [사거리 업데이트] 플레이어 {rangeUpdate.PlayerId}의 사거리: {rangeUpdate.Range:F2}");
                     break;
 
-                case UpdatePlayerMaxEnergyBroadcast maxEnergyUpdate:
+                case UpdateMaxEnergyBroadcast maxEnergyUpdate:
                     Console.WriteLine($"🔋 [최대 에너지 업데이트] 플레이어 {maxEnergyUpdate.PlayerId}의 최대 에너지: {maxEnergyUpdate.MaxEnergy}");
                     break;
 
-                case UpdatePlayerMinEnergyToShootBroadcast minEnergyUpdate:
+                case UpdateMinEnergyToShootBroadcast minEnergyUpdate:
                     Console.WriteLine($"💥 [사격 최소 필요 에너지 업데이트] 플레이어 {minEnergyUpdate.PlayerId}의 사격 최소 필요 에너지: {minEnergyUpdate.MinEnergyToShoot}");
                     break;
                         

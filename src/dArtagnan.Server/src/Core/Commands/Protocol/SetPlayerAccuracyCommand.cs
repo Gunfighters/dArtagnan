@@ -26,7 +26,7 @@ public class SetAccuracyCommand : IGameCommand
         player.SetAccuracyState(AccuracyState);
         
         // 모든 플레이어들에게 정확도 상태 변경 브로드캐스트
-        await gameManager.BroadcastToAll(new PlayerAccuracyStateBroadcast
+        await gameManager.BroadcastToAll(new UpdateAccuracyStateBroadcast
         {
             PlayerId = PlayerId,
             AccuracyState = AccuracyState

@@ -33,7 +33,7 @@ public class ItemCreatingStateCommand : IGameCommand
             }
 
             // 현재 에너지만 브로드캐스트
-            await gameManager.BroadcastToAll(new UpdatePlayerCurrentEnergyBroadcast
+            await gameManager.BroadcastToAll(new UpdateCurrentEnergyBroadcast
             {
                 PlayerId = PlayerId,
                 CurrentEnergy = player.EnergyData.CurrentEnergy
@@ -54,7 +54,7 @@ public class ItemCreatingStateCommand : IGameCommand
         }
 
         // 모든 플레이어들에게 제작 상태 변경 브로드캐스트
-        await gameManager.BroadcastToAll(new PlayerCreatingStateBroadcast
+        await gameManager.BroadcastToAll(new UpdateCreatingStateBroadcast
         {
             PlayerId = PlayerId,
             IsCreatingItem = player.IsCreatingItem

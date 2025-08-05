@@ -99,13 +99,13 @@ public class GameLoopCommand : IGameCommand
 
             if (player.UpdateByAccuracyState(deltaTime))
             {
-                await gameManager.BroadcastToAll(new UpdatePlayerAccuracyBroadcast
+                await gameManager.BroadcastToAll(new UpdateAccuracyBroadcast
                 {
                     PlayerId = player.Id,
                     Accuracy = player.Accuracy
                 });
                 
-                await gameManager.BroadcastToAll(new UpdatePlayerRangeBroadcast
+                await gameManager.BroadcastToAll(new UpdateRangeBroadcast
                 {
                     PlayerId = player.Id,
                     Range = player.Range
