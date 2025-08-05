@@ -72,7 +72,7 @@ public class ClientConnection
             // switch '식'을 switch '문'으로 변경합니다.
             switch (packet)
             {
-                case PlayerJoinRequest joinRequest:
+                case JoinRequest joinRequest:
                     command = new PlayerJoinCommand
                     {
                         ClientId = Id,
@@ -81,7 +81,7 @@ public class ClientConnection
                     };
                     break;
 
-                case PlayerMovementDataFromClient movementData:
+                case MovementDataFromClient movementData:
                     command = new PlayerMovementCommand
                     {
                         PlayerId = Id,
@@ -89,7 +89,7 @@ public class ClientConnection
                     };
                     break;
 
-                case PlayerShootingFromClient shootingData:
+                case ShootingFromClient shootingData:
                     command = new PlayerShootingCommand
                     {
                         ShooterId = Id,
@@ -97,7 +97,7 @@ public class ClientConnection
                     };
                     break;
 
-                case PlayerLeaveFromClient:
+                case LeaveFromClient:
                     command = new PlayerLeaveCommand
                     {
                         PlayerId = Id,
@@ -127,7 +127,7 @@ public class ClientConnection
                     };
                     break;
 
-                case SetAccuracyState accuracyState:
+                case UpdateAccuracyStateFromClient accuracyState:
                     command = new SetAccuracyCommand
                     {
                         PlayerId = Id,
@@ -135,7 +135,7 @@ public class ClientConnection
                     };
                     break;
 
-                case RouletteDone:
+                case RouletteDoneFromClient:
                     command = new RouletteDoneCommand
                     {
                         PlayerId = Id
@@ -150,7 +150,7 @@ public class ClientConnection
                     };
                     break;
 
-                case ItemCreatingStateFromClient itemCreating:
+                case UpdateItemCreatingStateFromClient itemCreating:
                     command = new ItemCreatingStateCommand
                     {
                         PlayerId = Id,

@@ -43,7 +43,7 @@ namespace UI.HUD.Controls.ItemCraft
             if (hasItem && canUseItem)
                 PacketChannel.Raise(new UseItemFromClient());
             if (!hasItem)
-                PacketChannel.Raise(new ItemCreatingStateFromClient { IsCreatingItem = false });
+                PacketChannel.Raise(new UpdateItemCreatingStateFromClient { IsCreatingItem = false });
             canUseItem = hasItem;
         }
 
@@ -51,7 +51,7 @@ namespace UI.HUD.Controls.ItemCraft
         {
             if (!hasItem)
             {
-                PacketChannel.Raise(new ItemCreatingStateFromClient { IsCreatingItem = true });
+                PacketChannel.Raise(new UpdateItemCreatingStateFromClient { IsCreatingItem = true });
                 canUseItem = false;
             }
         }

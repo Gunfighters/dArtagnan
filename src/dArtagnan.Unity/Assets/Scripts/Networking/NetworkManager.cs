@@ -16,14 +16,14 @@ public class NetworkManager : MonoBehaviour, IChannelListener
 
     public void Initialize()
     {
-        PacketChannel.On<PlayerMovementDataFromClient>(Send);
-        PacketChannel.On<PlayerShootingFromClient>(Send);
+        PacketChannel.On<MovementDataFromClient>(Send);
+        PacketChannel.On<ShootingFromClient>(Send);
         PacketChannel.On<PlayerIsTargetingFromClient>(Send);
         PacketChannel.On<StartGameFromClient>(Send);
-        PacketChannel.On<SetAccuracyState>(Send);
-        PacketChannel.On<RouletteDone>(Send);
+        PacketChannel.On<UpdateAccuracyStateFromClient>(Send);
+        PacketChannel.On<RouletteDoneFromClient>(Send);
         PacketChannel.On<AugmentDoneFromClient>(Send);
-        PacketChannel.On<ItemCreatingStateFromClient>(Send);
+        PacketChannel.On<UpdateItemCreatingStateFromClient>(Send);
         PacketChannel.On<UseItemFromClient>(Send);
         LocalEventChannel.OnEndpointSelected += Connect;
     }
@@ -61,7 +61,7 @@ public class NetworkManager : MonoBehaviour, IChannelListener
 
         _stream = _client.GetStream();
         await NetworkUtils.SendPacketAsync(_stream, new PingPacket());
-        await NetworkUtils.SendPacketAsync(_stream, new PlayerJoinRequest());
+        await NetworkUtils.SendPacketAsync(_stream, new JoinRequest());
     }
 
     private void Send<T>(T payload) where T : IPacket

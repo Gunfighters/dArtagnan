@@ -30,7 +30,7 @@ public class PlayerMovementCommand : IGameCommand
         );
         
         // 모든 플레이어에게 이동 정보 브로드캐스트
-        await gameManager.BroadcastToAll(new PlayerMovementDataBroadcast
+        await gameManager.BroadcastToAll(new MovementDataBroadcast
         {
             PlayerId = PlayerId,
             MovementData = player.MovementData,

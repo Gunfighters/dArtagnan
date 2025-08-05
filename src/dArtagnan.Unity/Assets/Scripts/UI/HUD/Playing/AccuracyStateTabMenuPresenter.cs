@@ -23,7 +23,7 @@ namespace UI.HUD.Playing
             view.OnSwitch += newState =>
             {
                 PlayerGeneralManager.LocalPlayerCore?.Accuracy.SetAccuracyState(newState);
-                PacketChannel.Raise(new SetAccuracyState { AccuracyState = newState });
+                PacketChannel.Raise(new UpdateAccuracyStateFromClient { AccuracyState = newState });
             };
         }
     }

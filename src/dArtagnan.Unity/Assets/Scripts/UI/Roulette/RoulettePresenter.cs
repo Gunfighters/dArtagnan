@@ -12,7 +12,7 @@ namespace UI.Roulette
             view.spinButton.OnClickAsObservable().Subscribe(_ => RouletteModel.NowSpin.Value = true);
             view.OnSpinDone += () =>
             {
-                PacketChannel.Raise(new RouletteDone());
+                PacketChannel.Raise(new RouletteDoneFromClient());
                 RouletteModel.Reset();
             };
         }

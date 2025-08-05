@@ -9,8 +9,8 @@ public class Player
     public readonly string Nickname;
     public int Accuracy;
     public float Range;
-    public float TotalReloadTime;
-    public float RemainingReloadTime;
+    public EnergyData EnergyData; // 에너지 데이터
+    public int MinEnergyToShoot; // 사격하기 위한 최소 필요 에너지
     public bool Alive;
     public Player? Target;
     public MovementData MovementData;
@@ -40,8 +40,12 @@ public class Player
         // 기본 능력치 초기화
         Accuracy = Random.Shared.Next(Constants.ROULETTE_MIN_ACCURACY, Constants.ROULETTE_MAX_ACCURACY + 1);
         Range = Constants.DEFAULT_RANGE;
-        TotalReloadTime = Constants.DEFAULT_RELOAD_TIME;
-        RemainingReloadTime = Constants.DEFAULT_RELOAD_TIME;
+        EnergyData = new EnergyData
+        {
+            MaxEnergy = Constants.DEFAULT_MAX_ENERGY,
+            CurrentEnergy = 0
+        };
+        UpdateMinEnergyToShoot();
         
         // 생존 상태 초기화
         Alive = true;
@@ -77,7 +81,11 @@ public class Player
         MovementData = new MovementData { Direction = 0, Position = Vector2.Zero, Speed = Constants.MOVEMENT_SPEED };
         
         // 전투 상태
-        RemainingReloadTime = TotalReloadTime;
+        EnergyData = new EnergyData
+        {
+            MaxEnergy = Constants.DEFAULT_MAX_ENERGY,
+            CurrentEnergy = 0
+        };
         AccuracyState = 0;
         
         // 아이템 제작 상태
@@ -92,8 +100,8 @@ public class Player
         Accuracy = Accuracy,
         Alive = Alive,
         Nickname = Nickname,
-        RemainingReloadTime = RemainingReloadTime,
-        TotalReloadTime = TotalReloadTime,
+        EnergyData = EnergyData,
+        MinEnergyToShoot = MinEnergyToShoot,
         Targeting = Target?.Id ?? -1,
         Range = Range,
         MovementData = MovementData,
@@ -166,6 +174,7 @@ public class Player
                 Console.WriteLine($"[정확도] 플레이어 {Id}의 사거리 변경: {Range}");
 
                 Accuracy = newAccuracy;
+                bool energyStatsChanged = UpdateMinEnergyToShoot(); // 정확도 변경 시 사격 최소 필요 에너지 업데이트
                 Console.WriteLine($"[정확도] 플레이어 {Id}의 정확도 변경: {Accuracy}% (상태: {AccuracyState})");
                 return true; // 브로드 캐스트 필요
             }
@@ -238,5 +247,100 @@ public class Player
         CurrentItem = -1;
         Console.WriteLine($"[아이템] 플레이어 {Id}가 아이템 {usedItem} 사용");
         return usedItem;
+    }
+
+    /// <summary>
+    /// 에너지를 소모합니다. 에너지 소모 시에는 클라이언트 동기화를 위해 브로드캐스트가 필요합니다.
+    /// </summary>
+    /// <param name="amount">소모할 에너지 양</param>
+    /// <returns>에너지가 충분하면 true, 부족하면 false</returns>
+    public bool ConsumeEnergy(int amount)
+    {
+        if (EnergyData.CurrentEnergy < amount) return false;
+        
+        EnergyData = new EnergyData
+        {
+            MaxEnergy = EnergyData.MaxEnergy,
+            CurrentEnergy = EnergyData.CurrentEnergy - amount
+        };
+        Console.WriteLine($"[에너지] 플레이어 {Id}가 에너지 {amount} 소모 (현재: {EnergyData.CurrentEnergy:F1}/{EnergyData.MaxEnergy})");
+        return true;
+    }
+
+    /// <summary>
+    /// 에너지 회복을 연속적으로 업데이트합니다. 게임 루프에서 호출됩니다.
+    /// 클라이언트에서도 동일하게 시뮬레이션하므로 브로드캐스트는 하지 않습니다.
+    /// </summary>
+    /// <param name="deltaTime">프레임 시간</param>
+    public void UpdateEnergyRecovery(float deltaTime)
+    {
+        if (EnergyData.CurrentEnergy >= EnergyData.MaxEnergy) return;
+
+        float oldEnergy = EnergyData.CurrentEnergy;
+        float newEnergy = Math.Min(EnergyData.MaxEnergy, EnergyData.CurrentEnergy + Constants.ENERGY_RECOVERY_RATE * deltaTime);
+        
+        if (Math.Abs(newEnergy - oldEnergy) > 0.001f) // 미세한 변화도 감지
+        {
+            EnergyData = new EnergyData
+            {
+                MaxEnergy = EnergyData.MaxEnergy,
+                CurrentEnergy = newEnergy
+            };
+            
+            // 정수 단위로 넘어갈 때만 로그 출력
+            if ((int)newEnergy > (int)oldEnergy)
+            {
+                Console.WriteLine($"[에너지] 플레이어 {Id}의 에너지 회복: {EnergyData.CurrentEnergy:F1}/{EnergyData.MaxEnergy}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// 정확도에 따른 사격 최소 필요 에너지를 업데이트합니다.
+    /// 정확도 1~100%에 비례하여 최소 필요 에너지 (정비례)
+    /// </summary>
+    /// <returns>최소 필요 에너지가 변경되었으면 true</returns>
+    public bool UpdateMinEnergyToShoot()
+    {
+        int oldMinEnergy = MinEnergyToShoot;
+        
+        // 정확도를 1~100 범위로 클램프하고, 1~DEFAULT_MAX_ENERGY 에너지로 매핑
+        int clampedAccuracy = Math.Clamp(Accuracy, 1, 100);
+        MinEnergyToShoot = Math.Max(1, (int)Math.Round(clampedAccuracy / 100.0f * Constants.DEFAULT_MAX_ENERGY));
+        
+        if (oldMinEnergy != MinEnergyToShoot)
+        {
+            Console.WriteLine($"[에너지] 플레이어 {Id}의 사격 최소 필요 에너지 업데이트: {oldMinEnergy} → {MinEnergyToShoot} (정확도: {Accuracy}%)");
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// 에너지 스탯이 변경되었는지 확인합니다.
+    /// </summary>
+    /// <param name="oldMinEnergyToShoot">이전 사격 최소 필요 에너지</param>
+    /// <returns>변경되었으면 true</returns>
+    public bool HasEnergyStatsChanged(int oldMinEnergyToShoot)
+    {
+        return MinEnergyToShoot != oldMinEnergyToShoot;
+    }
+
+    /// <summary>
+    /// 최대 에너지를 업데이트합니다.
+    /// </summary>
+    /// <param name="newMaxEnergy">새로운 최대 에너지</param>
+    /// <returns>최대 에너지가 변경되었으면 true</returns>
+    public bool UpdateMaxEnergy(int newMaxEnergy)
+    {
+        if (EnergyData.MaxEnergy == newMaxEnergy) return false;
+        
+        EnergyData = new EnergyData
+        {
+            MaxEnergy = newMaxEnergy,
+            CurrentEnergy = Math.Min(EnergyData.CurrentEnergy, newMaxEnergy) // 현재 에너지가 최대를 넘지 않도록
+        };
+        Console.WriteLine($"[에너지] 플레이어 {Id}의 최대 에너지 변경: {newMaxEnergy}");
+        return true;
     }
 }

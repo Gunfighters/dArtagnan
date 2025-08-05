@@ -25,10 +25,10 @@ namespace Game
         [RuntimeInitializeOnLoadMethod]
         private static void Initialize()
         {
-            PacketChannel.On<PlayerJoinBroadcast>(OnJoin);
-            PacketChannel.On<YouAre>(OnYouAre);
+            PacketChannel.On<JoinBroadcast>(OnJoin);
+            PacketChannel.On<YouAreFromServer>(OnYouAre);
             PacketChannel.On<NewHostBroadcast>(OnNewHost);
-            PacketChannel.On<PlayerLeaveBroadcast>(e => RemovePlayer(e.PlayerId));
+            PacketChannel.On<LeaveBroadcast>(e => RemovePlayer(e.PlayerId));
 
             PacketChannel.On<WaitingStartFromServer>(e => ResetEveryone(e.PlayersInfo));
             PacketChannel.On<RoundStartFromServer>(e => ResetEveryone(e.PlayersInfo));
@@ -45,7 +45,7 @@ namespace Game
             return Players.GetValueOrDefault(id, null);
         }
 
-        private static void OnJoin(PlayerJoinBroadcast e)
+        private static void OnJoin(JoinBroadcast e)
         {
             if (e.PlayerInfo.PlayerId != _localPlayerId)
             {
@@ -53,7 +53,7 @@ namespace Game
             }
         }
 
-        private static void OnYouAre(YouAre e)
+        private static void OnYouAre(YouAreFromServer e)
         {
             _localPlayerId = e.PlayerId;
             if (e.PlayerId == _hostId)

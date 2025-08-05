@@ -113,7 +113,7 @@ public class GameManager
         Console.WriteLine($"[봇] {nickname} 생성 완료 (ID: {botId}, 위치: {position})");
         
         // 다른 플레이어들에게 봇 참가 알림
-        await BroadcastToAll(new PlayerJoinBroadcast 
+        await BroadcastToAll(new JoinBroadcast 
         { 
             PlayerInfo = bot.PlayerInformation 
         });
@@ -132,7 +132,7 @@ public class GameManager
         {
             Console.WriteLine($"[게임] 플레이어 {player.Id}({player.Nickname}) 퇴장 처리");
                 
-            await BroadcastToAllExcept(new PlayerLeaveBroadcast
+            await BroadcastToAllExcept(new LeaveBroadcast
             {
                 PlayerId = player.Id
             }, clientId);
@@ -291,7 +291,7 @@ public class GameManager
         var actualWithdrawn = player.Withdraw(amount);
         
         // 잔액 업데이트 브로드캐스트
-        await BroadcastToAll(new PlayerBalanceUpdateBroadcast
+        await BroadcastToAll(new BalanceUpdateBroadcast
         {
             PlayerId = player.Id,
             Balance = player.Balance
@@ -322,12 +322,12 @@ public class GameManager
         to.Balance += actualTransferred;
         
         // 양쪽 플레이어 잔액 업데이트 브로드캐스트
-        await BroadcastToAll(new PlayerBalanceUpdateBroadcast
+        await BroadcastToAll(new BalanceUpdateBroadcast
         {
             PlayerId = from.Id,
             Balance = from.Balance
         });
-        await BroadcastToAll(new PlayerBalanceUpdateBroadcast
+        await BroadcastToAll(new BalanceUpdateBroadcast
         {
             PlayerId = to.Id,
             Balance = to.Balance
@@ -437,7 +437,7 @@ public class GameManager
             Console.WriteLine($"[봇] {bot.Nickname} 제거 완료 (ID: {bot.Id})");
             
             // 다른 플레이어들에게 봇 퇴장 알림
-            await BroadcastToAll(new PlayerLeaveBroadcast
+            await BroadcastToAll(new LeaveBroadcast
             {
                 PlayerId = bot.Id,
             });
@@ -561,17 +561,14 @@ public class GameManager
             
             player.Accuracy = randomAccuracy;
             
-            // 현재정확도에 반비례한 재장전 시간 계산
-            player.TotalReloadTime = randomAccuracy == 0
-                ? Constants.DEFAULT_RELOAD_TIME
-                : (0.1f + (float)Math.Sqrt(randomAccuracy) / 10f * 0.9f) * Constants.DEFAULT_RELOAD_TIME;
-            player.RemainingReloadTime = player.TotalReloadTime;
+            // 정확도 변경 시 사격 최소 필요 에너지 업데이트
+            player.UpdateMinEnergyToShoot();
 
             // 현재정확도에 반비례한 사거리 계산
             float t = Math.Clamp(randomAccuracy / (float)Constants.ROULETTE_MAX_ACCURACY, 0f, 1f);
             player.Range = Constants.MAX_RANGE + t * (Constants.MIN_RANGE - Constants.MAX_RANGE);
             
-            Console.WriteLine($"[정확도] {player.Nickname}: {player.Accuracy}% (재장전: {player.TotalReloadTime:F2}초)");
+            Console.WriteLine($"[정확도] {player.Nickname}: {player.Accuracy}% (사거리: {player.Range:F2}, 최소필요에너지: {player.MinEnergyToShoot})");
         }
     }
 
@@ -606,7 +603,7 @@ public class GameManager
             winnerIds.Add(winner.Id);
             
             // 승리자 잔액 업데이트 브로드캐스트
-            await BroadcastToAll(new PlayerBalanceUpdateBroadcast
+            await BroadcastToAll(new BalanceUpdateBroadcast
             {
                 PlayerId = winner.Id,
                 Balance = winner.Balance

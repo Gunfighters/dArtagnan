@@ -19,7 +19,7 @@ namespace Game.Player.Components
         private Vector2 _lastUpdatedPosition;
         private PlayerCore _core;
 
-        public PlayerMovementDataFromClient MovementData => new()
+        public MovementDataFromClient MovementData => new()
         {
             Direction = _core.Dig.Digging ? 0 : _direction.DirectionToInt(),
             MovementData =

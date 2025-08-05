@@ -14,7 +14,7 @@ namespace UI.HUD.Playing
         private static void Initialize()
         {
             PacketChannel.On<RoundStartFromServer>(OnGamePlaying);
-            PacketChannel.On<PlayerAccuracyStateBroadcast>(OnStateBroadcast);
+            PacketChannel.On<UpdateAccuracyStateBroadcast>(OnStateBroadcast);
         }
 
         private static void OnGamePlaying(RoundStartFromServer e)
@@ -24,7 +24,7 @@ namespace UI.HUD.Playing
                 .AccuracyState;
         }
 
-        private static void OnStateBroadcast(PlayerAccuracyStateBroadcast e)
+        private static void OnStateBroadcast(UpdateAccuracyStateBroadcast e)
         {
             if (PlayerGeneralManager.LocalPlayerCore.ID == e.PlayerId)
                 State.Value = e.AccuracyState;

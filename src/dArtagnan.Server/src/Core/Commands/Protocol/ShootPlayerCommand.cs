@@ -13,9 +13,9 @@ public class PlayerShootingCommand : IGameCommand
     public async Task ExecuteAsync(GameManager gameManager)
     {
         var shooter = gameManager.GetPlayerById(ShooterId);
-        if (shooter == null || !shooter.Alive || shooter.RemainingReloadTime > 0)
+        if (shooter == null || !shooter.Alive)
         {
-            Console.WriteLine($"[전투] 플레이어 {ShooterId} 사격 불가 (사망 또는 재장전 중)");
+            Console.WriteLine($"[전투] 플레이어 {ShooterId} 사격 불가 (사망)");
             return;
         }
 
@@ -32,25 +32,42 @@ public class PlayerShootingCommand : IGameCommand
             Console.WriteLine($"[전투] 유효하지 않은 타겟: {TargetId}");
             return;
         }
+        
+        // 에너지 체크 - 최소 필요 에너지가 있는지 확인
+        if (shooter.EnergyData.CurrentEnergy < shooter.MinEnergyToShoot)
+        {
+            Console.WriteLine($"[전투] 플레이어 {ShooterId} 사격 불가 (에너지 부족: {shooter.EnergyData.CurrentEnergy:F1}/{shooter.EnergyData.MaxEnergy}, 필요: {shooter.MinEnergyToShoot})");
+            return;
+        }
+
+        // 사격 시 모든 현재 에너지를 소모
+        float energyUsed = shooter.EnergyData.CurrentEnergy;
+        shooter.EnergyData = new EnergyData
+        {
+            MaxEnergy = shooter.EnergyData.MaxEnergy,
+            CurrentEnergy = 0
+        };
+        Console.WriteLine($"[전투] 플레이어 {ShooterId} 사격: {energyUsed:F1} 에너지 모두 소모");
+
+        // 현재 에너지 브로드캐스트
+        await gameManager.BroadcastToAll(new UpdateCurrentEnergyBroadcast
+        {
+            PlayerId = ShooterId,
+            CurrentEnergy = shooter.EnergyData.CurrentEnergy
+        });
             
         // 명중 여부 계산
         bool hit = Random.Shared.NextDouble() * 100 < shooter.Accuracy;
         
-        // 정확도의 제곱근에 비례하여 재장전 시간 계산
-        shooter.TotalReloadTime = shooter.Accuracy == 0
-            ? Constants.DEFAULT_RELOAD_TIME
-            : (0.1f + (float)Math.Sqrt(shooter.Accuracy) / 10f * 0.9f) * Constants.DEFAULT_RELOAD_TIME;
-        shooter.RemainingReloadTime = shooter.TotalReloadTime;
-        
         Console.WriteLine($"[전투] 플레이어 {shooter.Id} -> {target.Id} 사격: {(hit ? "명중" : "빗나감")}");
         
         // 사격 결과 브로드캐스트
-        await gameManager.BroadcastToAll(new PlayerShootingBroadcast
+        await gameManager.BroadcastToAll(new ShootingBroadcast
         {
             ShooterId = ShooterId,
             TargetId = TargetId,
             Hit = hit,
-            ShooterRemainingReloadingTime = shooter.RemainingReloadTime
+            ShooterCurrentEnergy = (int)shooter.EnergyData.CurrentEnergy
         });
         
         // 명중 시 피해 처리
