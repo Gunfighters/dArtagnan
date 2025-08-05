@@ -27,9 +27,11 @@ namespace UI.HUD.Spectating.Carousel
                     .InvokeOnNewCameraTarget(
                         PlayerGeneralManager
                             .Survivors
+                            .Reverse()
                             .SkipWhile(s => s != SpectatingCarouselModel.SpectateTarget.Value)
-                            .DefaultIfEmpty(PlayerGeneralManager.Survivors.Last())
-                            .LastOrDefault()));
+                            .Skip(1)
+                            .DefaultIfEmpty(PlayerGeneralManager.Survivors.Reverse().First())
+                            .FirstOrDefault()));
         }
     }
 }
