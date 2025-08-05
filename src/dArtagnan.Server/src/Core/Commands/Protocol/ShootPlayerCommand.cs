@@ -73,11 +73,20 @@ public class PlayerShootingCommand : IGameCommand
         // 명중 시 피해 처리
         if (hit && gameManager.CurrentGameState != GameState.Waiting)
         {
-            // 타겟의 돈 일부를 사격자에게 이전
-            await gameManager.TransferMoneyBetweenPlayersAsync(target, shooter, gameManager.BettingAmount);
-            
-            // 타겟 사망 처리
-            await KillPlayer(target, gameManager);
+            // 피해 가드 체크
+            if (target.ConsumeDamageShield())
+            {
+                Console.WriteLine($"[전투] 플레이어 {target.Id}의 피해 가드가 공격을 막음!");
+                // 가드로 막았으므로 피해 없음
+            }
+            else
+            {
+                // 타겟의 돈 일부를 사격자에게 이전
+                await gameManager.TransferMoneyBetweenPlayersAsync(target, shooter, gameManager.BettingAmount);
+                
+                // 타겟 사망 처리
+                await KillPlayer(target, gameManager);
+            }
         }
     }
     

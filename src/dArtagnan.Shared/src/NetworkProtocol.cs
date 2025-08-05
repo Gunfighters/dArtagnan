@@ -91,6 +91,8 @@ namespace dArtagnan.Shared
         [Key(12)] public int CurrentItem; // 현재 소지한 아이템 ID. 없으면 -1
         [Key(13)] public bool IsCreatingItem; // 아이템 제작 중인지 여부
         [Key(14)] public float CreatingRemainingTime; // 아이템 제작 남은 시간
+        [Key(15)] public float SpeedMultiplier; // 현재 속도 배율
+        [Key(16)] public bool HasDamageShield; // 피해 가드 보유 여부
     }
 
     /// <summary>

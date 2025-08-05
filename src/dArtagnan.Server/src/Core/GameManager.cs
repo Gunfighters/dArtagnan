@@ -637,4 +637,25 @@ public class GameManager
         
         await BroadcastToAll(new GameWinnerBroadcast { PlayerIds = winners });
     }
+
+    /// <summary>
+    /// 가중치 기반으로 랜덤 아이템을 선택합니다
+    /// </summary>
+    public static ItemId GetRandomItemByWeight()
+    {
+        var totalWeight = ItemConstants.Items.Values.Sum(item => item.Weight);
+        var randomValue = System.Random.Shared.Next(totalWeight);
+            
+        var currentWeight = 0;
+        foreach (var item in ItemConstants.Items.Values)
+        {
+            currentWeight += item.Weight;
+            if (randomValue < currentWeight)
+            {
+                return item.Id;
+            }
+        }
+            
+        return ItemId.SpeedBoost; // 기본값
+    }
 }
