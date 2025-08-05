@@ -8,7 +8,9 @@ namespace UI.HUD.Spectating.Carousel
     {
         public static void Initialize(SpectatingCarouselView view)
         {
-            SpectatingCarouselModel.SpectateTarget.Subscribe(target => view.nicknameSlot.text = target.Nickname);
+            SpectatingCarouselModel
+                .SpectateTarget
+                .Subscribe(target => view.nicknameSlot.text = target.Nickname);
             view
                 .leftButton
                 .onClick

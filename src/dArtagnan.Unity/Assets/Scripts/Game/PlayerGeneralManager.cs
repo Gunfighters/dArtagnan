@@ -1,23 +1,29 @@
 using System.Collections.Generic;
 using System.Linq;
 using dArtagnan.Shared;
-using Game.Player;
 using Game.Player.Components;
 using JetBrains.Annotations;
 using UnityEngine;
+using ObservableCollections;
 
 namespace Game
 {
-    public class PlayerGeneralManager : MonoBehaviour, IChannelListener
+    public static class PlayerGeneralManager
     {
-        private static readonly Dictionary<int, PlayerCore> Players = new();
-        public static IEnumerable<PlayerCore> Survivors => Players.Values.Where(p => p.Health.Alive);
+        public static readonly ObservableDictionary<int, PlayerCore> Players = new();
+
+        public static IEnumerable<PlayerCore> Survivors =>
+            Players
+                .Where(pair => pair.Value.Health.Alive)
+                .Select(pair => pair.Value);
+
         private static int _localPlayerId;
         private static int _hostId;
         public static PlayerCore LocalPlayerCore => GetPlayer(_localPlayerId);
         public static PlayerCore HostPlayerCore => GetPlayer(_hostId);
 
-        public void Initialize()
+        [RuntimeInitializeOnLoadMethod]
+        private static void Initialize()
         {
             PacketChannel.On<PlayerJoinBroadcast>(OnJoin);
             PacketChannel.On<YouAre>(OnYouAre);
@@ -73,7 +79,7 @@ namespace Game
             LocalEventChannel.InvokeOnNewCameraTarget(
                 LocalPlayerCore.Health.Alive
                     ? LocalPlayerCore
-                    : Players.Values.First(p => p.Health.Alive));
+                    : Players.First(p => p.Value.Health.Alive).Value);
             LocalEventChannel.InvokeOnLocalPlayerAlive(LocalPlayerCore.Health.Alive);
             LocalEventChannel.InvokeOnLocalPlayerBalanceUpdate(LocalPlayerCore.Balance.Balance);
         }
@@ -99,9 +105,9 @@ namespace Game
 
         private static void RemovePlayerAll()
         {
-            foreach (var p in Players.Values.ToList())
+            foreach (var p in Players.ToArray())
             {
-                RemovePlayer(p.ID);
+                RemovePlayer(p.Value.ID);
             }
         }
 
