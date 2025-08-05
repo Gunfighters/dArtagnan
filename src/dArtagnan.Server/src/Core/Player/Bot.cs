@@ -87,8 +87,8 @@ public class Bot : Player
                 return;
             }
 
-            // 쿨타임이 남아있으면 사격 불가
-            if (RemainingReloadTime > 0)
+            // 에너지가 부족하면 사격 불가
+            if (EnergyData.CurrentEnergy < MinEnergyToShoot)
             {
                 shootingTimer = 0f;
                 return;

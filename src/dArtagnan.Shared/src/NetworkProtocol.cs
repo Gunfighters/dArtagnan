@@ -42,6 +42,9 @@ namespace dArtagnan.Shared
     [Union(32, typeof(ItemUsedBroadcast))]
     [Union(35, typeof(ChatFromClient))]
     [Union(36, typeof(ChatBroadcast))]
+    [Union(37, typeof(UpdatePlayerCurrentEnergyBroadcast))]
+    [Union(38, typeof(UpdatePlayerMaxEnergyBroadcast))]
+    [Union(39, typeof(UpdatePlayerMinEnergyToShootBroadcast))]
     public interface IPacket
     {
     }
@@ -75,8 +78,8 @@ namespace dArtagnan.Shared
         [Key(0)] public int PlayerId;
         [Key(1)] public string Nickname;
         [Key(2)] public int Accuracy;
-        [Key(3)] public float TotalReloadTime;
-        [Key(4)] public float RemainingReloadTime;
+        [Key(3)] public EnergyData EnergyData;
+        [Key(4)] public int MinEnergyToShoot; // 사격하기 위한 최소 필요 에너지 (정확도에 비례)
         [Key(5)] public bool Alive;
         [Key(6)] public int Targeting; // 겨누는 플레이어의 번호. 겨누는 플레이어가 없을 경우 -1이다.
         [Key(7)] public float Range;
@@ -98,6 +101,16 @@ namespace dArtagnan.Shared
         [Key(0)] public int Direction;
         [Key(1)] public Vector2 Position;
         [Key(2)] public float Speed;
+    }
+
+    /// <summary>
+    /// 에너지 정보. 연속적으로 시뮬레이션 가능한 에너지 데이터.
+    /// </summary>
+    [MessagePackObject]
+    public struct EnergyData
+    {
+        [Key(0)] public int MaxEnergy; // 최대 에너지 (정수)
+        [Key(1)] public float CurrentEnergy; // 현재 에너지 (소수점 단위)
     }
 
     /// <summary>
@@ -146,7 +159,7 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// ShooterId번이 TargetId번을 사격했으며 그 결과는 Hit이고 사격자는 ShooteRemainingReloadTime만큼 쿨타임이 돈다.
+    /// ShooterId번이 TargetId번을 사격했으며 그 결과는 Hit이고 사격자의 현재 스태미나는 ShooterCurrentStamina이다.
     /// </summary>
     [MessagePackObject]
     public struct PlayerShootingBroadcast : IPacket
@@ -154,7 +167,7 @@ namespace dArtagnan.Shared
         [Key(0)] public int ShooterId;
         [Key(1)] public int TargetId;
         [Key(2)] public bool Hit;
-        [Key(3)] public float ShooterRemainingReloadingTime;
+        [Key(3)] public int ShooterCurrentEnergy;
     }
 
     /// <summary>
@@ -462,5 +475,38 @@ namespace dArtagnan.Shared
     {
         [Key(0)] public int PlayerId;               //system message일 경우 -1
         [Key(1)] public string Message;
+    }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// PlayerId번 플레이어의 현재 에너지가 업데이트 되었다.
+    /// </summary>
+    [MessagePackObject]
+    public struct UpdatePlayerCurrentEnergyBroadcast : IPacket
+    {
+        [Key(0)] public int PlayerId;
+        [Key(1)] public float CurrentEnergy;
+    }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// PlayerId번 플레이어의 최대 에너지가 업데이트 되었다.
+    /// </summary>
+    [MessagePackObject]
+    public struct UpdatePlayerMaxEnergyBroadcast : IPacket
+    {
+        [Key(0)] public int PlayerId;
+        [Key(1)] public int MaxEnergy;
+    }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// PlayerId번 플레이어의 사격 최소 필요 에너지가 업데이트 되었다.
+    /// </summary>
+    [MessagePackObject]
+    public struct UpdatePlayerMinEnergyToShootBroadcast : IPacket
+    {
+        [Key(0)] public int PlayerId;
+        [Key(1)] public int MinEnergyToShoot;
     }
 }

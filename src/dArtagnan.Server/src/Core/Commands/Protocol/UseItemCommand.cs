@@ -22,17 +22,21 @@ public class UseItemCommand : IGameCommand
             return;
         }
 
-        // 재장전 중이면 아이템 사용 불가 (공유 쿨타임)
-        // if (player.RemainingReloadTime > 0)
-        // {
-        //     Console.WriteLine($"[아이템] 플레이어 {PlayerId}는 쿨타임 중으로 아이템 사용 불가");
-        //     return;
-        // }
+        // 에너지 체크
+        if (!player.ConsumeEnergy(Constants.USE_ITEM_ENERGY_COST))
+        {
+            Console.WriteLine($"[아이템] 플레이어 {PlayerId} 아이템 사용 불가 (에너지 부족: {player.EnergyData.CurrentEnergy:F1}/{player.EnergyData.MaxEnergy})");
+            return;
+        }
+
+        // 현재 에너지만 브로드캐스트 (효율적)
+        await gameManager.BroadcastToAll(new UpdatePlayerCurrentEnergyBroadcast
+        {
+            PlayerId = PlayerId,
+            CurrentEnergy = player.EnergyData.CurrentEnergy
+        });
 
         int usedItemId = player.UseItem();
-        
-        // // 아이템 사용으로 인한 쿨타임 적용 (임시로 기본 재장전 시간 사용)
-        // player.RemainingReloadTime = player.TotalReloadTime;
 
         // 아이템 사용 브로드캐스트
         await gameManager.BroadcastToAll(new ItemUsedBroadcast

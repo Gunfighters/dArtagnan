@@ -16,11 +16,11 @@ public class GameLoopCommand : IGameCommand
         switch (gameManager.CurrentGameState)
         {
             case GameState.Waiting:
-                // 대기 상태: 정확도, 아이템 제작, 위치, 재장전 업데이트
+                // 대기 상태: 정확도, 아이템 제작, 위치, 에너지 업데이트
                 await UpdateByAccuracyState(gameManager, DeltaTime);
                 await UpdatePlayerCreatingStates(gameManager, DeltaTime);
                 UpdatePlayerMovementStates(gameManager, DeltaTime);
-                UpdatePlayerReloadStates(gameManager, DeltaTime);
+                UpdatePlayerEnergyStates(gameManager, DeltaTime);
                 break;
 
             case GameState.Round:
@@ -29,15 +29,12 @@ public class GameLoopCommand : IGameCommand
                 await UpdateByAccuracyState(gameManager, DeltaTime);
                 await UpdatePlayerCreatingStates(gameManager, DeltaTime);
                 UpdatePlayerMovementStates(gameManager, DeltaTime);
-                UpdatePlayerReloadStates(gameManager, DeltaTime);
+                UpdatePlayerEnergyStates(gameManager, DeltaTime);
                 await UpdateBotAI(gameManager, DeltaTime);
                 break;
 
             case GameState.Roulette:
             case GameState.Augment:
-                // 룰렛/증강 상태: 위치, 재장전만 업데이트
-                UpdatePlayerMovementStates(gameManager, DeltaTime);
-                UpdatePlayerReloadStates(gameManager, DeltaTime);
                 break;
         }
     }
@@ -152,18 +149,14 @@ public class GameLoopCommand : IGameCommand
     }
 
     /// <summary>
-    /// 플레이어들의 재장전 시간을 업데이트합니다
+    /// 플레이어들의 에너지를 업데이트합니다
     /// </summary>
-    private void UpdatePlayerReloadStates(GameManager gameManager, float deltaTime)
+    private void UpdatePlayerEnergyStates(GameManager gameManager, float deltaTime)
     {
         foreach (var player in gameManager.Players.Values)
         {
             if (!player.Alive) continue;
-
-            if (player.RemainingReloadTime > 0)
-            {
-                player.RemainingReloadTime = Math.Max(0, player.RemainingReloadTime - deltaTime);
-            }
+            player.UpdateEnergyRecovery(deltaTime);
         }
     }
 

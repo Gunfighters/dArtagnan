@@ -536,7 +536,7 @@ internal class Program
                         Console.WriteLine($"    명중률: {info.Accuracy}%");
                         Console.WriteLine($"    정확도 상태: {info.AccuracyState} ({GetAccuracyStateText(info.AccuracyState)})");
                         Console.WriteLine($"    속도: {info.MovementData.Speed:F2}");
-                        Console.WriteLine($"    재장전: {info.RemainingReloadTime:F2}/{info.TotalReloadTime:F2}초");
+                        Console.WriteLine($"    에너지: {info.EnergyData.CurrentEnergy:F1}/{info.EnergyData.MaxEnergy} (최소필요: {info.MinEnergyToShoot})");
                         Console.WriteLine($"    생존: {(info.Alive ? "생존" : "사망")}");
                         if (info.Augments.Count > 0)
                         {
@@ -561,7 +561,7 @@ internal class Program
                         Console.WriteLine($"    명중률: {info.Accuracy}%");
                         Console.WriteLine($"    정확도 상태: {info.AccuracyState} ({GetAccuracyStateText(info.AccuracyState)})");
                         Console.WriteLine($"    속도: {info.MovementData.Speed:F2}");
-                        Console.WriteLine($"    재장전: {info.RemainingReloadTime:F2}/{info.TotalReloadTime:F2}초");
+                        Console.WriteLine($"    에너지: {info.EnergyData.CurrentEnergy:F1}/{info.EnergyData.MaxEnergy} (최소필요: {info.MinEnergyToShoot})");
                         Console.WriteLine($"    생존: {(info.Alive ? "생존" : "사망")}");
                         if (info.Augments.Count > 0)
                         {
@@ -577,7 +577,7 @@ internal class Program
                         
                 case PlayerShootingBroadcast shooting:
                     var hitMsg = shooting.Hit ? "명중!" : "빗나감";
-                    Console.WriteLine($"플레이어 {shooting.ShooterId}가 플레이어 {shooting.TargetId}를 공격 - {hitMsg}");
+                    Console.WriteLine($"플레이어 {shooting.ShooterId}가 플레이어 {shooting.TargetId}를 공격 - {hitMsg} (사격자 현재 에너지: {shooting.ShooterCurrentEnergy})");
                     break;
                         
                 case UpdatePlayerAlive aliveUpdate:
@@ -650,7 +650,7 @@ internal class Program
                     {
                         Console.WriteLine($"  {i}: 증강 ID {augmentStart.AugmentOptions[i]}");
                     }
-                    Console.WriteLine($"명령어 'au [0|1|2]'로 증강을 선택하세요.");
+                    Console.WriteLine($"명령어 'au [ID]'로 증강을 선택하세요.");
                     break;
 
                 case PlayerCreatingStateBroadcast creatingState:
@@ -675,6 +675,26 @@ internal class Program
                     {
                         Console.WriteLine($"💬 [플레이어 {chatBroadcast.PlayerId}] {chatBroadcast.Message}");
                     }
+                    break;
+
+                case UpdatePlayerCurrentEnergyBroadcast energyUpdate:
+                    Console.WriteLine($"⚡ [에너지 업데이트] 플레이어 {energyUpdate.PlayerId}의 현재 에너지: {energyUpdate.CurrentEnergy:F1}");
+                    break;
+
+                case UpdatePlayerAccuracyBroadcast accuracyUpdate:
+                    Console.WriteLine($"🎯 [정확도 업데이트] 플레이어 {accuracyUpdate.PlayerId}의 정확도: {accuracyUpdate.Accuracy}%");
+                    break;
+
+                case UpdatePlayerRangeBroadcast rangeUpdate:
+                    Console.WriteLine($"📏 [사거리 업데이트] 플레이어 {rangeUpdate.PlayerId}의 사거리: {rangeUpdate.Range:F2}");
+                    break;
+
+                case UpdatePlayerMaxEnergyBroadcast maxEnergyUpdate:
+                    Console.WriteLine($"🔋 [최대 에너지 업데이트] 플레이어 {maxEnergyUpdate.PlayerId}의 최대 에너지: {maxEnergyUpdate.MaxEnergy}");
+                    break;
+
+                case UpdatePlayerMinEnergyToShootBroadcast minEnergyUpdate:
+                    Console.WriteLine($"💥 [사격 최소 필요 에너지 업데이트] 플레이어 {minEnergyUpdate.PlayerId}의 사격 최소 필요 에너지: {minEnergyUpdate.MinEnergyToShoot}");
                     break;
                         
                 default:

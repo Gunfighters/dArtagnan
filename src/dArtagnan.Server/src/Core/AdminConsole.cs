@@ -284,8 +284,9 @@ public class AdminConsole
             Console.WriteLine($"  속도: {player.MovementData.Speed:F2}");
             Console.WriteLine($"  명중률: {player.Accuracy}% (상태: {GetAccuracyStateText(player.AccuracyState)})");
             Console.WriteLine($"  사거리: {player.Range:F2}");
-            Console.WriteLine($"  총 재장전 시간: {player.TotalReloadTime:F2}초");
-            Console.WriteLine($"  남은 재장전 시간: {player.RemainingReloadTime:F2}초");
+            Console.WriteLine($"  최대 에너지: {player.EnergyData.MaxEnergy}");
+            Console.WriteLine($"  현재 에너지: {player.EnergyData.CurrentEnergy:F1}");
+            Console.WriteLine($"  사격 최소 필요 에너지: {player.MinEnergyToShoot}");
             Console.WriteLine($"  생존 상태: {(player.Alive ? "생존" : "사망")}");
             Console.WriteLine($"  잔액: {player.Balance}달러 {(player.Bankrupt ? "(파산)" : "")}");
             Console.WriteLine($"  타겟: {(player.Target?.Id.ToString() ?? "없음")}");
@@ -361,7 +362,7 @@ public class AdminConsole
             Console.WriteLine($"  잔액: {bot.Balance}달러 {(bot.Bankrupt ? "(파산)" : "")}");
             Console.WriteLine($"  정확도: {bot.Accuracy}% (상태: {GetAccuracyStateText(bot.AccuracyState)})");
             Console.WriteLine($"  위치: ({bot.MovementData.Position.X:F2}, {bot.MovementData.Position.Y:F2})");
-            Console.WriteLine($"  쿨타임: {bot.RemainingReloadTime:F1}초");
+            Console.WriteLine($"  에너지: {bot.EnergyData.CurrentEnergy:F1}/{bot.EnergyData.MaxEnergy}");
             Console.WriteLine($"  타겟: {(bot.Target?.Id.ToString() ?? "없음")}");
             Console.WriteLine();
         }
@@ -496,7 +497,7 @@ public class AdminConsole
                 string type = player is Bot ? "[봇]" : "[유저]";
                 string bankrupt = player.Bankrupt ? " (파산)" : "";
                 Console.WriteLine($"  {player.Id}번: {type} {player.Nickname} - {player.Balance}달러{bankrupt}");
-                Console.WriteLine($"    정확도: {player.Accuracy}%, 쿨타임: {player.RemainingReloadTime:F1}초");
+                Console.WriteLine($"    정확도: {player.Accuracy}%, 에너지: {player.EnergyData.CurrentEnergy:F1}/{player.EnergyData.MaxEnergy}");
             }
         }
         
