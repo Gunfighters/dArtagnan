@@ -13,23 +13,31 @@ MonoBehaviour:
   m_Name: ItemSo
   m_EditorClassIdentifier: 
   items:
-  - id: 1
-    name: Item #1
-    description: Item #1 Description
-    icon: {fileID: 21300000, guid: 8820f2404b85e4c059bb1aff048a3309, type: 3}
-  - id: 2
-    name: Item #2
-    description: Item #2 Description
-    icon: {fileID: 21300000, guid: bee99074e3aaa4f10b57618376e3c07a, type: 3}
-  - id: 3
-    name: Item #3
-    description: Item #3 Description
-    icon: {fileID: 21300000, guid: 7c35f9bfa46e7482288a92eb074cf663, type: 3}
-  - id: 4
-    name: Item #4
-    description: Item #4 Description
-    icon: {fileID: 21300000, guid: aad4a5337fc404186abe3606b9e9f88b, type: 3}
-  - id: 5
-    name: Item #5
-    description: Item #5 Description
-    icon: {fileID: 21300000, guid: c61f02f6f37024742bc8d4214baeafa6, type: 3}
+  - data:
+      Id: 1
+      Name: Boots
+      Description: Get 1.5x speed for 5 seconds.
+      EnergyCost: 1
+      Weight: 3
+    icon: {fileID: 21300000, guid: 44f2803dad0404cbeb9ee038d70da104, type: 3}
+  - data:
+      Id: 2
+      Name: Energy Drink
+      Description: Restore 4 units of energy.
+      EnergyCost: 0
+      Weight: 3
+    icon: {fileID: 21300000, guid: b7d7e36f0c41c4316a6ea75d0a9321a6, type: 3}
+  - data:
+      Id: 3
+      Name: Shield
+      Description: Immune to the next shot from enemy.
+      EnergyCost: 2
+      Weight: 3
+    icon: {fileID: 21300000, guid: c28d54c4733dc4fc7bedc4189f66bfbc, type: 3}
+  - data:
+      Id: 4
+      Name: Dice
+      Description: Reset the accuracy.
+      EnergyCost: 3
+      Weight: 3
+    icon: {fileID: 21300000, guid: 306521971e3ad46df87d172a8eace552, type: 3}

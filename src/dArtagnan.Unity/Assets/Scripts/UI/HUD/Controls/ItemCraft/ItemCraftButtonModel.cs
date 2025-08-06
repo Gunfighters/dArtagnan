@@ -7,7 +7,7 @@ namespace UI.HUD.Controls.ItemCraft
 {
     public static class ItemCraftButtonModel
     {
-        public static readonly ReactiveProperty<int> ItemId = new();
+        public static readonly ReactiveProperty<ItemId> ItemId = new();
 
         [RuntimeInitializeOnLoadMethod]
         private static void Initialize()
@@ -15,7 +15,7 @@ namespace UI.HUD.Controls.ItemCraft
             PacketChannel.On<ItemAcquiredBroadcast>(e =>
             {
                 if (e.PlayerId == PlayerGeneralManager.LocalPlayerCore.ID)
-                    ItemId.Value = e.ItemId;
+                    ItemId.Value = (ItemId)e.ItemId;
             });
             PacketChannel.On<ItemUsedBroadcast>(e =>
             {

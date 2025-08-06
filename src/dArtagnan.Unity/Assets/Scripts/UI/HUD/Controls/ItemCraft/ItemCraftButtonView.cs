@@ -16,6 +16,7 @@ namespace UI.HUD.Controls.ItemCraft
         [SerializeField] private Image filler;
         [SerializeField] private ItemSo itemCollection;
         [SerializeField] private TextMeshProUGUI costText;
+        private InGameItem _item;
         private bool hasItem;
         private bool canUseItem;
 
@@ -25,10 +26,12 @@ namespace UI.HUD.Controls.ItemCraft
             currentItemIcon.enabled = false;
         }
 
-        public void ShowItem(int id)
+        public void ShowItem(ItemId id)
         {
             hasItem = true;
-            currentItemIcon.sprite = itemCollection.items.First(item => item.id == id).icon;
+            _item = itemCollection.items.First(item => item.data.Id == id);
+            currentItemIcon.sprite = _item.icon;
+            costText.text = _item.data.EnergyCost.ToString();
             currentItemIcon.enabled = true;
             craftIcon.enabled = false;
         }
@@ -42,16 +45,27 @@ namespace UI.HUD.Controls.ItemCraft
 
         public void OnPointerUp(PointerEventData eventData)
         {
-            if (hasItem && canUseItem)
-                PacketChannel.Raise(new UseItemFromClient());
-            else if (!hasItem)
-                PacketChannel.Raise(new UpdateItemCreatingStateFromClient { IsCreatingItem = false });
-            else canUseItem = hasItem;
+            switch (hasItem)
+            {
+                case true when canUseItem:
+                    PacketChannel.Raise(new UseItemFromClient());
+                    break;
+                case false:
+                    PacketChannel.Raise(new UpdateItemCreatingStateFromClient { IsCreatingItem = false });
+                    break;
+                default:
+                    canUseItem = hasItem;
+                    break;
+            }
         }
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (!hasItem)
+            if (hasItem)
+            {
+                Debug.Log(_item.data.Description);
+            }
+            else
             {
                 PacketChannel.Raise(new UpdateItemCreatingStateFromClient { IsCreatingItem = true });
                 canUseItem = false;

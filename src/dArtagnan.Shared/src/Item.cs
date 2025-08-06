@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,23 +10,24 @@ namespace dArtagnan.Shared
     public enum ItemId
     {
         None = -1,
-        SpeedBoost = 1,        // 이동속도 순간 증가
-        EnergyRestore = 2,     // 행동력 4칸 회복
-        DamageShield = 3,      // 한번 총알 피해 가드
-        AccuracyReset = 4,     // 확률 재설정
+        SpeedBoost = 1, // 이동속도 순간 증가
+        EnergyRestore = 2, // 행동력 4칸 회복
+        DamageShield = 3, // 한번 총알 피해 가드
+        AccuracyReset = 4, // 확률 재설정
     }
 
     /// <summary>
     /// 아이템 정보를 담는 구조체
     /// </summary>
+    [Serializable]
     public struct ItemData
     {
         public ItemId Id;
         public string Name;
         public string Description;
-        public int EnergyCost;     // 소모 행동력
-        public int Weight;         // 획득 가중치
-        
+        public int EnergyCost; // 소모 행동력
+        public int Weight; // 획득 가중치
+
         public ItemData(ItemId id, string name, string description, int energyCost, int weight)
         {
             Id = id;
@@ -42,10 +44,10 @@ namespace dArtagnan.Shared
     public static class ItemConstants
     {
         // 아이템 효과 관련 상수
-        public const float SPEED_BOOST_MULTIPLIER = 1.5f;  // 속도 증가 배율
-        public const float SPEED_BOOST_DURATION = 5.0f;    // 속도 증가 지속시간 (초)
-        public const int ENERGY_RESTORE_AMOUNT = 4;        // 에너지 회복량
-        
+        public const float SPEED_BOOST_MULTIPLIER = 1.5f; // 속도 증가 배율
+        public const float SPEED_BOOST_DURATION = 5.0f; // 속도 증가 지속시간 (초)
+        public const int ENERGY_RESTORE_AMOUNT = 4; // 에너지 회복량
+
         // 아이템 데이터 정의
         public static readonly Dictionary<ItemId, ItemData> Items = new Dictionary<ItemId, ItemData>
         {

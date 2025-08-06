@@ -1,4 +1,5 @@
 using System;
+using dArtagnan.Shared;
 using UnityEngine;
 
 namespace Game.Items
@@ -6,9 +7,7 @@ namespace Game.Items
     [Serializable]
     public struct InGameItem
     {
-        public int id;
-        public string name;
-        public string description;
+        public ItemData data;
         public Sprite icon;
     }
 }
