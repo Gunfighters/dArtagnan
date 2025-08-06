@@ -21,10 +21,10 @@ namespace Game.Player.Components
 
         public MovementDataFromClient MovementData => new()
         {
-            Direction = _core.Dig.Digging ? 0 : _direction.DirectionToInt(),
+            Direction = _core.Craft.Crafting ? 0 : _direction.DirectionToInt(),
             MovementData =
             {
-                Direction = _core.Dig.Digging ? 0 : _direction.DirectionToInt(),
+                Direction = _core.Craft.Crafting ? 0 : _direction.DirectionToInt(),
                 Position = Position.ToSystemVec(),
                 Speed = _speed
             },
@@ -46,7 +46,7 @@ namespace Game.Player.Components
         private void Update()
         {
             if (!_core.Health.Alive) return;
-            if (_core.Dig.Digging) return;
+            if (_core.Craft.Crafting) return;
             if (_direction == Vector2.zero)
             {
                 _core.Model.Idle();
@@ -61,7 +61,7 @@ namespace Game.Player.Components
         private void FixedUpdate()
         {
             if (!_core.Health.Alive) return;
-            if (_core.Dig.Digging) return;
+            if (_core.Craft.Crafting) return;
             _rb.MovePosition(NextPosition());
         }
 

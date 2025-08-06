@@ -1,11 +1,14 @@
 using dArtagnan.Shared;
+using Game.Items;
 using UnityEngine;
 
 namespace Game
 {
-    public class PlayerCorePlayManager : MonoBehaviour, IChannelListener
+    public class PlayerCorePlayManager : MonoBehaviour
     {
-        public void Initialize()
+        [SerializeField] private ItemSo itemCollection;
+
+        private void Awake()
         {
             PacketChannel.On<MovementDataBroadcast>(OnPlayerMovementData);
             PacketChannel.On<PlayerIsTargetingBroadcast>(OnPlayerIsTargeting);
@@ -20,9 +23,10 @@ namespace Game
             PacketChannel.On<UpdateCurrentEnergyBroadcast>(OnCurrentEnergyUpdate);
             PacketChannel.On<UpdateMaxEnergyBroadcast>(OnMaxEnergyUpdate);
             PacketChannel.On<UpdateMinEnergyToShootBroadcast>(OnMinEnergyUpdate);
+            PacketChannel.On<ItemUsedBroadcast>(OnItemUse);
         }
 
-        private static void OnPlayerMovementData(MovementDataBroadcast e)
+        private void OnPlayerMovementData(MovementDataBroadcast e)
         {
             var targetPlayer = PlayerGeneralManager.GetPlayer(e.PlayerId);
             if (targetPlayer == PlayerGeneralManager.LocalPlayerCore) return;
@@ -31,14 +35,14 @@ namespace Game
             Debug.Log($"[패킷 수신] 플레이어 {e.PlayerId} 이동 데이터");
         }
 
-        private static void OnPlayerIsTargeting(PlayerIsTargetingBroadcast playerIsTargeting)
+        private void OnPlayerIsTargeting(PlayerIsTargetingBroadcast playerIsTargeting)
         {
             var aiming = PlayerGeneralManager.GetPlayer(playerIsTargeting.ShooterId);
             if (aiming == PlayerGeneralManager.LocalPlayerCore) return;
             aiming!.Shoot.SetTarget(PlayerGeneralManager.GetPlayer(playerIsTargeting.TargetId));
         }
 
-        private static void OnPlayerShoot(ShootingBroadcast e)
+        private void OnPlayerShoot(ShootingBroadcast e)
         {
             var shooter = PlayerGeneralManager.GetPlayer(e.ShooterId)!;
             var target = PlayerGeneralManager.GetPlayer(e.TargetId)!;
@@ -50,25 +54,25 @@ namespace Game
             }
         }
 
-        private static void OnCurrentEnergyUpdate(UpdateCurrentEnergyBroadcast e)
+        private void OnCurrentEnergyUpdate(UpdateCurrentEnergyBroadcast e)
         {
             var updated = PlayerGeneralManager.GetPlayer(e.PlayerId)!;
             updated.Energy.UpdateCurrentEnergy(e.CurrentEnergy);
         }
 
-        private static void OnMaxEnergyUpdate(UpdateMaxEnergyBroadcast e)
+        private void OnMaxEnergyUpdate(UpdateMaxEnergyBroadcast e)
         {
             var updated = PlayerGeneralManager.GetPlayer(e.PlayerId)!;
             updated.Energy.UpdateMaxEnergy(e.MaxEnergy);
         }
 
-        private static void OnMinEnergyUpdate(UpdateMinEnergyToShootBroadcast e)
+        private void OnMinEnergyUpdate(UpdateMinEnergyToShootBroadcast e)
         {
             var updated = PlayerGeneralManager.GetPlayer(e.PlayerId)!;
             updated.Energy.SetThreshold(e.MinEnergyToShoot);
         }
 
-        private static void OnUpdatePlayerAlive(UpdatePlayerAlive e)
+        private void OnUpdatePlayerAlive(UpdatePlayerAlive e)
         {
             var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
             updated!.Health.SetAlive(e.Alive);
@@ -78,25 +82,34 @@ namespace Game
             }
         }
 
-        private static void OnCreatingState(UpdateCreatingStateBroadcast e)
+        private void OnCreatingState(UpdateCreatingStateBroadcast e)
         {
             var creating = PlayerGeneralManager.GetPlayer(e.PlayerId);
-            creating!.Dig.ToggleDigging(e.IsCreatingItem);
+            creating!.Craft.ToggleCraft(e.IsCreatingItem);
         }
 
-        private static void OnItemAcquired(ItemAcquiredBroadcast e)
+        private void OnItemAcquired(ItemAcquiredBroadcast e)
         {
             var acquiring = PlayerGeneralManager.GetPlayer(e.PlayerId)!;
-            Debug.Log($"Player #{acquiring.ID} get Item: {e.ItemId}");
-            acquiring!.Dig.ToggleDigging(false);
+            var item = itemCollection.items.Find(item => item.data.Id == (ItemId)e.ItemId);
+            Debug.Log($"Player #{acquiring.ID} get Item: {item.data.Name}");
+            acquiring!.Craft.ToggleCraft(false);
+            acquiring!.Craft.SetItem(item);
+            acquiring!.Craft.ToggleItem(true);
         }
 
-        private static void OnAccuracyStateBroadcast(UpdateAccuracyStateBroadcast e)
+        private void OnItemUse(ItemUsedBroadcast e)
+        {
+            var losing = PlayerGeneralManager.GetPlayer(e.PlayerId)!;
+            losing!.Craft.ToggleItem(false);
+        }
+
+        private void OnAccuracyStateBroadcast(UpdateAccuracyStateBroadcast e)
         {
             PlayerGeneralManager.GetPlayer(e.PlayerId)!.Accuracy.SetAccuracyState(e.AccuracyState);
         }
 
-        private static void OnBalanceUpdate(BalanceUpdateBroadcast e)
+        private void OnBalanceUpdate(BalanceUpdateBroadcast e)
         {
             var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
             updated!.Balance.SetBalance(e.Balance);
@@ -106,13 +119,13 @@ namespace Game
             }
         }
 
-        private static void OnAccuracyUpdate(UpdateAccuracyBroadcast e)
+        private void OnAccuracyUpdate(UpdateAccuracyBroadcast e)
         {
             var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
             updated!.Accuracy.SetAccuracy(e.Accuracy);
         }
 
-        private static void OnRangeUpdate(UpdateRangeBroadcast e)
+        private void OnRangeUpdate(UpdateRangeBroadcast e)
         {
             var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
             updated!.Shoot.SetRange(e.Range);

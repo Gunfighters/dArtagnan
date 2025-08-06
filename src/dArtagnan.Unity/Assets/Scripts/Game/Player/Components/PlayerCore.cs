@@ -19,7 +19,7 @@ namespace Game.Player.Components
         public PlayerBalance Balance { get; private set; }
         public PlayerTrajectory Trajectory { get; private set; }
 
-        public PlayerDig Dig { get; private set; }
+        public PlayerCraft Craft { get; private set; }
 
         public Color MyColor => colorPool.colors[ID - 1];
 
@@ -33,7 +33,7 @@ namespace Game.Player.Components
             Energy = GetComponent<PlayerEnergy>();
             Balance = GetComponent<PlayerBalance>();
             Trajectory = GetComponent<PlayerTrajectory>();
-            Dig = GetComponent<PlayerDig>();
+            Craft = GetComponent<PlayerCraft>();
         }
 
         private void SetNickname(string newNickname)
@@ -59,7 +59,7 @@ namespace Game.Player.Components
             Energy.Initialize(info);
             Balance.Initialize(info);
             Trajectory.Initialize(info);
-            Dig.Initialize(info);
+            Craft.Initialize(info);
         }
     }
 }

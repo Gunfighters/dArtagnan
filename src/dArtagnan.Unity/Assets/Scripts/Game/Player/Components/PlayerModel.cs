@@ -97,7 +97,7 @@ namespace Game.Player.Components
             _actualModel.SetState(CharacterState.Death);
         }
 
-        public void Dig()
+        public void Craft()
         {
             if (_equipped != _shovelSprite)
             {
