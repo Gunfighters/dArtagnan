@@ -16,6 +16,8 @@ namespace UI.HUD.Controls.ItemCraft
         [SerializeField] private Image filler;
         [SerializeField] private ItemSo itemCollection;
         [SerializeField] private TextMeshProUGUI costText;
+        [SerializeField] private GameObject descriptionBox;
+        [SerializeField] private TextMeshProUGUI descriptionText;
         private InGameItem _item;
         private bool hasItem;
         private bool canUseItem;
@@ -23,7 +25,9 @@ namespace UI.HUD.Controls.ItemCraft
         private void Awake()
         {
             ItemCraftButtonPresenter.Initialize(this);
+            descriptionBox.SetActive(false);
             currentItemIcon.enabled = false;
+            costText.text = Constants.CRAFT_ENERGY_COST.ToString();
         }
 
         public void ShowItem(ItemId id)
@@ -32,12 +36,14 @@ namespace UI.HUD.Controls.ItemCraft
             _item = itemCollection.items.First(item => item.data.Id == id);
             currentItemIcon.sprite = _item.icon;
             costText.text = _item.data.EnergyCost.ToString();
+            descriptionText.text = _item.data.Description;
             currentItemIcon.enabled = true;
             craftIcon.enabled = false;
         }
 
         public void HideItem()
         {
+            costText.text = Constants.CRAFT_ENERGY_COST.ToString();
             hasItem = false;
             currentItemIcon.enabled = false;
             craftIcon.enabled = true;
@@ -49,6 +55,7 @@ namespace UI.HUD.Controls.ItemCraft
             {
                 case true when canUseItem:
                     PacketChannel.Raise(new UseItemFromClient());
+                    descriptionBox.SetActive(false);
                     break;
                 case false:
                     PacketChannel.Raise(new UpdateItemCreatingStateFromClient { IsCreatingItem = false });
@@ -61,11 +68,7 @@ namespace UI.HUD.Controls.ItemCraft
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (hasItem)
-            {
-                Debug.Log(_item.data.Description);
-            }
-            else
+            if (!hasItem)
             {
                 PacketChannel.Raise(new UpdateItemCreatingStateFromClient { IsCreatingItem = true });
                 canUseItem = false;
@@ -75,11 +78,13 @@ namespace UI.HUD.Controls.ItemCraft
         public void OnPointerEnter(PointerEventData eventData)
         {
             transform.localScale = Vector3.one * 1.1f;
+            descriptionBox.SetActive(hasItem);
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
             transform.localScale = Vector3.one;
+            descriptionBox.SetActive(false);
         }
     }
 }

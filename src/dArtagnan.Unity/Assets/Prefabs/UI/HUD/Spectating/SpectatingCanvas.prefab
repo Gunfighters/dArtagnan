@@ -85,7 +85,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!114 &3830909487088608267
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -223,7 +223,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3149052801430475526, guid: 28c9259810fd4419086d1565358e8954, type: 3}
       propertyPath: m_Pivot.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3149052801430475526, guid: 28c9259810fd4419086d1565358e8954, type: 3}
       propertyPath: m_AnchorMax.x
@@ -231,7 +231,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3149052801430475526, guid: 28c9259810fd4419086d1565358e8954, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3149052801430475526, guid: 28c9259810fd4419086d1565358e8954, type: 3}
       propertyPath: m_AnchorMin.x
@@ -239,7 +239,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3149052801430475526, guid: 28c9259810fd4419086d1565358e8954, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3149052801430475526, guid: 28c9259810fd4419086d1565358e8954, type: 3}
       propertyPath: m_SizeDelta.x
@@ -283,7 +283,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3149052801430475526, guid: 28c9259810fd4419086d1565358e8954, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -30
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 3149052801430475526, guid: 28c9259810fd4419086d1565358e8954, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
