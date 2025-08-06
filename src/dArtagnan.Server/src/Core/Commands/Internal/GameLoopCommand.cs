@@ -91,7 +91,7 @@ public class GameLoopCommand : IGameCommand
     }
 
     /// <summary>
-    /// 플레이어들의 정확도를 업데이트합니다
+    /// 플레이어들의 AccuracyState에 따라 Accuracy, Range, MinEnergyToShoot을 업데이트합니다.
     /// </summary>
     private async Task UpdateByAccuracyState(GameManager gameManager, float deltaTime)
     {
@@ -111,6 +111,12 @@ public class GameLoopCommand : IGameCommand
                 {
                     PlayerId = player.Id,
                     Range = player.Range
+                });
+
+                await gameManager.BroadcastToAll(new UpdateMinEnergyToShootBroadcast
+                {
+                    PlayerId = player.Id,
+                    MinEnergyToShoot = player.MinEnergyToShoot
                 });
             }
         }

@@ -165,7 +165,7 @@ public class Player
     }
 
     /// <summary>
-    /// 정확도를 업데이트합니다. 게임 루프에서 호출됩니다.
+    /// AccuracyState에 따라 Accuracy, Range, MinEnergyToShoot을 업데이트합니다. 게임루프에서 호출
     /// </summary>
     /// <param name="deltaTime">프레임 시간</param>
     public bool UpdateByAccuracyState(float deltaTime)
