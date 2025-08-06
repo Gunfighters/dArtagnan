@@ -15,7 +15,7 @@ namespace Game.Player.Components
         public PlayerPhysics Physics { get; private set; }
         public PlayerShoot Shoot { get; private set; }
         public PlayerAccuracy Accuracy { get; private set; }
-        public PlayerReload Reload { get; private set; }
+        public PlayerEnergy Energy { get; private set; }
         public PlayerBalance Balance { get; private set; }
         public PlayerTrajectory Trajectory { get; private set; }
 
@@ -30,7 +30,7 @@ namespace Game.Player.Components
             Physics = GetComponent<PlayerPhysics>();
             Shoot = GetComponent<PlayerShoot>();
             Accuracy = GetComponent<PlayerAccuracy>();
-            Reload = GetComponent<PlayerReload>();
+            Energy = GetComponent<PlayerEnergy>();
             Balance = GetComponent<PlayerBalance>();
             Trajectory = GetComponent<PlayerTrajectory>();
             Dig = GetComponent<PlayerDig>();
@@ -56,7 +56,7 @@ namespace Game.Player.Components
             Physics.Initialize(info);
             Shoot.Initialize(info);
             Accuracy.Initialize(info);
-            Reload.Initialize(info);
+            Energy.Initialize(info);
             Balance.Initialize(info);
             Trajectory.Initialize(info);
             Dig.Initialize(info);

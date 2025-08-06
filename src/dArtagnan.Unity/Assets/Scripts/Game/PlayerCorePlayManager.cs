@@ -17,6 +17,9 @@ namespace Game
             PacketChannel.On<UpdateAccuracyBroadcast>(OnAccuracyUpdate);
             PacketChannel.On<ItemAcquiredBroadcast>(OnItemAcquired);
             PacketChannel.On<UpdateRangeBroadcast>(OnRangeUpdate);
+            PacketChannel.On<UpdateCurrentEnergyBroadcast>(OnCurrentEnergyUpdate);
+            PacketChannel.On<UpdateMaxEnergyBroadcast>(OnMaxEnergyUpdate);
+            PacketChannel.On<UpdateMinEnergyToShootBroadcast>(OnMinEnergyUpdate);
         }
 
         private static void OnPlayerMovementData(MovementDataBroadcast e)
@@ -37,14 +40,32 @@ namespace Game
 
         private static void OnPlayerShoot(ShootingBroadcast e)
         {
-            var shooter = PlayerGeneralManager.GetPlayer(e.ShooterId);
-            var target = PlayerGeneralManager.GetPlayer(e.TargetId);
-            shooter!.Shoot.Fire(target);
-            shooter.Reload.UpdateRemainingReloadTime(shooter.Reload.TotalReloadTime);
+            var shooter = PlayerGeneralManager.GetPlayer(e.ShooterId)!;
+            var target = PlayerGeneralManager.GetPlayer(e.TargetId)!;
+            shooter.Shoot.Fire(target);
+            shooter.Energy.UpdateCurrentEnergy(e.ShooterCurrentEnergy);
             if (GameStateManager.GameState == GameState.Round)
             {
                 shooter.Shoot.ShowHitOrMiss(e.Hit);
             }
+        }
+
+        private static void OnCurrentEnergyUpdate(UpdateCurrentEnergyBroadcast e)
+        {
+            var updated = PlayerGeneralManager.GetPlayer(e.PlayerId)!;
+            updated.Energy.UpdateCurrentEnergy(e.CurrentEnergy);
+        }
+
+        private static void OnMaxEnergyUpdate(UpdateMaxEnergyBroadcast e)
+        {
+            var updated = PlayerGeneralManager.GetPlayer(e.PlayerId)!;
+            updated.Energy.UpdateMaxEnergy(e.MaxEnergy);
+        }
+
+        private static void OnMinEnergyUpdate(UpdateMinEnergyToShootBroadcast e)
+        {
+            var updated = PlayerGeneralManager.GetPlayer(e.PlayerId)!;
+            updated.Energy.SetThreshold(e.MinEnergyToShoot);
         }
 
         private static void OnUpdatePlayerAlive(UpdatePlayerAlive e)

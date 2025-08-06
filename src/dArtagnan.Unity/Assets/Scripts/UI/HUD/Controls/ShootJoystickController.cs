@@ -17,8 +17,10 @@ namespace UI.HUD.Controls
         public Image Icon;
         private PlayerCore LocalPlayer => PlayerGeneralManager.LocalPlayerCore;
 
-        private float RemainingReloadTime => LocalPlayer.Reload.RemainingReloadTime;
-        private float TotalReloadTime => LocalPlayer.Reload.TotalReloadTime;
+        private float RemainingReloadTime => Mathf.Max(0,
+            LocalPlayer.Energy.MinEnergyToShoot - LocalPlayer.Energy.EnergyData.CurrentEnergy);
+
+        private float TotalReloadTime => LocalPlayer.Energy.MinEnergyToShoot;
         private bool Shootable => RemainingReloadTime <= 0;
         private bool _reloading = true;
 
@@ -38,14 +40,16 @@ namespace UI.HUD.Controls
                 PacketChannel.Raise(new PlayerIsTargetingFromClient { TargetId = target?.ID ?? -1 });
             }
 
-            Color color;
             if (!Shootable)
-                color = Color.grey;
+                HandleOutline.color = Icon.color = Color.grey;
             else if (LocalPlayer.Shoot.CalculateTarget(Vector2.zero) is null)
-                color = _orange;
+                HandleOutline.color = Icon.color = _orange;
             else
-                color = Color.red;
-            HandleOutline.color = Icon.color = color;
+            {
+                HandleOutline.color = Color.red;
+                Icon.color = Color.white;
+            }
+
             shootingJoystick.enabled = Shootable;
             cooldownImage.fillAmount = RemainingReloadTime <= 0 ? 1 : 1f - RemainingReloadTime / TotalReloadTime;
             if (_reloading && Shootable)

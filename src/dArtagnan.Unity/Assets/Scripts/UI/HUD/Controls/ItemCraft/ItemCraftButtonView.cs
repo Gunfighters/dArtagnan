@@ -1,6 +1,7 @@
 using System.Linq;
 using dArtagnan.Shared;
 using Game.Items;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -14,6 +15,7 @@ namespace UI.HUD.Controls.ItemCraft
         [SerializeField] private Image currentItemIcon;
         [SerializeField] private Image filler;
         [SerializeField] private ItemSo itemCollection;
+        [SerializeField] private TextMeshProUGUI costText;
         private bool hasItem;
         private bool canUseItem;
 
@@ -42,9 +44,9 @@ namespace UI.HUD.Controls.ItemCraft
         {
             if (hasItem && canUseItem)
                 PacketChannel.Raise(new UseItemFromClient());
-            if (!hasItem)
+            else if (!hasItem)
                 PacketChannel.Raise(new UpdateItemCreatingStateFromClient { IsCreatingItem = false });
-            canUseItem = hasItem;
+            else canUseItem = hasItem;
         }
 
         public void OnPointerDown(PointerEventData eventData)

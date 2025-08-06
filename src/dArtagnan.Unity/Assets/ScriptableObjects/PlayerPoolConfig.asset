@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d3866dd470144079f0e3d204d2ad92b, type: 3}
   m_Name: PlayerPoolConfig
   m_EditorClassIdentifier: 
-  playerPrefab: {fileID: 5225883545143339161, guid: 9ea806eaf945f4eef9e1a11aedbf304e, type: 3}
+  playerPrefab: {fileID: 6478532052804931155, guid: 95cc3e70467cf4dcbb2a5c384707d03f, type: 3}
   poolSize: 8

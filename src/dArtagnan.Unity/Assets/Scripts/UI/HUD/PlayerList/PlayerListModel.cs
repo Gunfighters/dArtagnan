@@ -23,7 +23,7 @@ namespace UI.HUD.PlayerList
                     PlayerList.Add(PlayerGeneralManager.GetPlayer(e.PlayerId));
                 });
             PacketChannel
-                .On<UpdatePlayerAccuracyBroadcast>(e =>
+                .On<UpdateAccuracyBroadcast>(e =>
                 {
                     // 위와 같은 이유로 이렇게 한다.
                     PlayerList.Remove(PlayerGeneralManager.GetPlayer(e.PlayerId));
