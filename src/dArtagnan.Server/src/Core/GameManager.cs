@@ -12,38 +12,38 @@ namespace dArtagnan.Server;
 /// </summary>
 public class GameManager
 {
-
     // 방 정보
     public readonly ConcurrentDictionary<int, Player> Players = new();
     public readonly ConcurrentDictionary<int, ClientConnection> Clients = new();
     public Player? Host;
     public GameState CurrentGameState = GameState.Waiting;
-    public int Round = 0; 
-    
+    public int Round = 0;
+
     // 베팅금/판돈 시스템
     public int TotalPrizeMoney = 0; // 총 판돈
     public readonly int[] BettingAmounts = { 10, 20, 30, 40 }; // 라운드별 베팅금
     public int BettingAmount = 0;
     public float BettingTimer = 0f; // 베팅금 차감 타이머 constants.BETTING_PERIOD 마다
-    
+
     // 증강 시스템
-    public HashSet<Player> rouletteDonePlayers = [];
+    public List<Player> rouletteDonePlayers = [];
     public Dictionary<int, List<int>> playerAugmentOptions = []; // 플레이어별 증강 옵션 저장
     public HashSet<int> augmentSelectionDonePlayers = []; // 증강 선택을 완료한 플레이어 ID
-    
-    
+
+
     // 커맨드 시스템
-    private readonly Channel<IGameCommand> _commandQueue = Channel.CreateUnbounded<IGameCommand>(new UnboundedChannelOptions
-    {
-        SingleReader = true,  // 단일 소비자
-        SingleWriter = false  // 다중 생산자
-    });
-    
+    private readonly Channel<IGameCommand> _commandQueue = Channel.CreateUnbounded<IGameCommand>(
+        new UnboundedChannelOptions
+        {
+            SingleReader = true, // 단일 소비자
+            SingleWriter = false // 다중 생산자
+        });
+
     public GameManager()
     {
         _ = Task.Run(() => ProcessCommandsAsync());
     }
-    
+
     /// <summary>
     /// Command를 큐에 추가하는 메서드
     /// </summary>
@@ -51,7 +51,7 @@ public class GameManager
     {
         await _commandQueue.Writer.WriteAsync(command);
     }
-    
+
     /// <summary>
     /// Command Queue 처리 루프
     /// </summary>
@@ -77,6 +77,7 @@ public class GameManager
         {
             id++;
         }
+
         return id;
     }
 
@@ -99,6 +100,7 @@ public class GameManager
         {
             await SetHost(player);
         }
+
         return player;
     }
 
@@ -109,15 +111,15 @@ public class GameManager
     {
         var bot = new Bot(botId, nickname, position, this);
         Players.TryAdd(bot.Id, bot);
-        
+
         Console.WriteLine($"[봇] {nickname} 생성 완료 (ID: {botId}, 위치: {position})");
-        
+
         // 다른 플레이어들에게 봇 참가 알림
-        await BroadcastToAll(new JoinBroadcast 
-        { 
-            PlayerInfo = bot.PlayerInformation 
+        await BroadcastToAll(new JoinBroadcast
+        {
+            PlayerInfo = bot.PlayerInformation
         });
-        
+
         return bot;
     }
 
@@ -127,11 +129,11 @@ public class GameManager
     internal async Task RemoveClientInternal(int clientId)
     {
         var player = GetPlayerById(clientId);
-            
+
         if (player != null)
         {
             Console.WriteLine($"[게임] 플레이어 {player.Id}({player.Nickname}) 퇴장 처리");
-                
+
             await BroadcastToAllExcept(new LeaveBroadcast
             {
                 PlayerId = player.Id
@@ -140,7 +142,7 @@ public class GameManager
 
         Players.TryRemove(clientId, out _);
         Clients.TryRemove(clientId, out _);
-            
+
         if (player != null)
         {
             Console.WriteLine($"[게임] 플레이어 {player.Id} 제거 완료 (현재 인원: {Players.Count}, 접속자: {Clients.Count})");
@@ -151,7 +153,7 @@ public class GameManager
             var nextHost = Players.Values.FirstOrDefault(p => p.Alive);
             await SetHost(nextHost);
         }
-        
+
         // 실제 플레이어(봇이 아닌)가 없으면 게임을 대기 상태로 초기화
         var realPlayers = Players.Values.Where(p => p is not Bot).ToList();
         if (realPlayers.Count == 0)
@@ -170,7 +172,7 @@ public class GameManager
     public async Task BroadcastToAll(IPacket packet)
     {
         Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}][게임] {packet.GetType().Name} 패킷 브로드캐스트");
-        
+
         // 실제 클라이언트에게 패킷 전송
         var clientTasks = Clients.Values
             .Select(client => client.SendPacketAsync(packet)).ToList();
@@ -189,7 +191,8 @@ public class GameManager
 
     public async Task BroadcastToAllExcept(IPacket packet, int excludeClientId)
     {
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}][게임] {packet.GetType().Name} 패킷 브로드캐스트 (제외: {excludeClientId})");
+        Console.WriteLine(
+            $"[{DateTime.Now:HH:mm:ss.fff}][게임] {packet.GetType().Name} 패킷 브로드캐스트 (제외: {excludeClientId})");
         var tasks = Clients.Values
             .Where(client => client.Id != excludeClientId)
             .Select(client => client.SendPacketAsync(packet));
@@ -206,7 +209,7 @@ public class GameManager
     public async Task SendToPlayer(int playerId, IPacket packet)
     {
         Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}][게임] {packet.GetType().Name} 패킷을 플레이어 {playerId}에게 전송");
-        
+
         // 플레이어가 봇인지 확인
         if (Players.TryGetValue(playerId, out var player) && player is Bot bot)
         {
@@ -235,29 +238,29 @@ public class GameManager
     public async Task StartAugmentStateAsync()
     {
         Console.WriteLine("[증강] 증강 선택 단계 시작");
-        
+
         // 게임 상태를 Augment로 변경
         CurrentGameState = GameState.Augment;
-        
+
         // 플레이어별 증강 옵션 저장소 초기화
         playerAugmentOptions.Clear();
         augmentSelectionDonePlayers.Clear();
-        
+
         // 파산하지 않은 플레이어들에게 증강 선택 패킷 전송
         var alivePlayers = Players.Values.Where(p => !p.Bankrupt).ToList();
-        
+
         foreach (var player in alivePlayers)
         {
             var augmentOptions = GenerateAugmentOptions();
-            
+
             // 플레이어별 증강 옵션 저장
             playerAugmentOptions[player.Id] = augmentOptions;
-            
+
             await SendToPlayer(player.Id, new AugmentStartFromServer
             {
                 AugmentOptions = augmentOptions
             });
-            
+
             Console.WriteLine($"[증강] {player.Id}번 플레이어에게 증강 선택 옵션 전송: [{string.Join(", ", augmentOptions)}]");
         }
     }
@@ -270,7 +273,7 @@ public class GameManager
         // 임시로 3개의 랜덤 증강 ID 생성 (1~10 범위)
         var options = new List<int>();
         var random = new Random();
-        
+
         while (options.Count < 3)
         {
             var augmentId = random.Next(1, 11);
@@ -279,7 +282,7 @@ public class GameManager
                 options.Add(augmentId);
             }
         }
-        
+
         return options;
     }
 
@@ -289,19 +292,19 @@ public class GameManager
     public async Task<int> WithdrawFromPlayerAsync(Player player, int amount)
     {
         var actualWithdrawn = player.Withdraw(amount);
-        
+
         // 잔액 업데이트 브로드캐스트
         await BroadcastToAll(new BalanceUpdateBroadcast
         {
             PlayerId = player.Id,
             Balance = player.Balance
         });
-        
+
         // 파산 시 즉시 사망 처리
         if (player.Bankrupt && player.Alive)
         {
             Console.WriteLine($"[게임] 플레이어 {player.Id}({player.Nickname}) 파산으로 사망!");
-            
+
             player.Alive = false;
             await BroadcastToAll(new UpdatePlayerAlive
             {
@@ -309,10 +312,10 @@ public class GameManager
                 Alive = player.Alive
             });
         }
-        
+
         return actualWithdrawn;
     }
-    
+
     /// <summary>
     /// 플레이어 간 돈 이전을 처리하고 양쪽 모두 잔액 브로드캐스트를 합니다 (사격 등에서 사용)
     /// </summary>
@@ -320,7 +323,7 @@ public class GameManager
     {
         var actualTransferred = from.Withdraw(amount);
         to.Balance += actualTransferred;
-        
+
         // 양쪽 플레이어 잔액 업데이트 브로드캐스트
         await BroadcastToAll(new BalanceUpdateBroadcast
         {
@@ -332,12 +335,12 @@ public class GameManager
             PlayerId = to.Id,
             Balance = to.Balance
         });
-        
+
         // 돈을 잃은 플레이어의 파산 체크
         if (from.Bankrupt && from.Alive)
         {
             Console.WriteLine($"[게임] 플레이어 {from.Id}({from.Nickname}) 파산으로 사망!");
-            
+
             from.Alive = false;
             await BroadcastToAll(new UpdatePlayerAlive
             {
@@ -345,10 +348,10 @@ public class GameManager
                 Alive = from.Alive
             });
         }
-        
+
         return actualTransferred;
     }
-    
+
     /// <summary>
     /// 게임/라운드 종료 조건을 체크하고 적절한 처리를 수행합니다
     /// </summary>
@@ -359,7 +362,7 @@ public class GameManager
             await GiveRoundPrizeToWinner();
 
             await Task.Delay(2500);
-        
+
             if (ShouldEndGame())
             {
                 await AnnounceGameWinner();
@@ -403,17 +406,17 @@ public class GameManager
             player.InitToWaiting();
             player.MovementData.Position = Player.GetSpawnPosition(index);
         }
-        
+
         // 게임 상태 초기화
         Round = 0;
         TotalPrizeMoney = 0;
         BettingTimer = 0f;
-        
+
         // 시스템 상태 초기화
         rouletteDonePlayers.Clear();
         playerAugmentOptions.Clear();
         augmentSelectionDonePlayers.Clear();
-        
+
         // 게임 상태 변경
         CurrentGameState = GameState.Waiting;
     }
@@ -435,7 +438,7 @@ public class GameManager
         {
             Players.TryRemove(bot.Id, out _);
             Console.WriteLine($"[봇] {bot.Nickname} 제거 완료 (ID: {bot.Id})");
-            
+
             // 다른 플레이어들에게 봇 퇴장 알림
             await BroadcastToAll(new LeaveBroadcast
             {
@@ -453,7 +456,7 @@ public class GameManager
     {
         Round = newRound;
         BettingAmount = BettingAmounts[newRound - 1];
-        
+
         // 파산하지 않은 플레이어만 라운드 상태로 초기화 및 배치
         var alivePlayers = Players.Values.Where(p => !p.Bankrupt).ToList();
         for (var index = 0; index < alivePlayers.Count; index++)
@@ -462,7 +465,7 @@ public class GameManager
             player.InitToRound();
             player.MovementData.Position = Player.GetSpawnPosition(index);
         }
-        
+
         // 베팅 시스템 초기화
         BettingTimer = 0f;
         TotalPrizeMoney = 0;
@@ -477,14 +480,15 @@ public class GameManager
     public async Task StartRoundStateAsync(int newRound)
     {
         var oldState = CurrentGameState;
-        
+
         InitToRound(newRound);
-        
+
         Console.WriteLine($"[라운드 {newRound}] 라운드 시작! 현재 베팅금: {BettingAmount}달러");
         Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {CurrentGameState}");
-        
-        await BroadcastToAll(new RoundStartFromServer { 
-            PlayersInfo = PlayersInRoom(), 
+
+        await BroadcastToAll(new RoundStartFromServer
+        {
+            PlayersInfo = PlayersInRoom(),
             Round = Round,
             BettingAmount = BettingAmounts[Round - 1]
         });
@@ -496,13 +500,13 @@ public class GameManager
     public async Task StartWaitingStateAsync()
     {
         var oldState = CurrentGameState;
-        
+
         InitToWaiting();
-        
+
         Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {CurrentGameState}");
-        
+
         await BroadcastToAll(new WaitingStartFromServer { PlayersInfo = PlayersInRoom() });
-        
+
         await RemoveAllBots();
     }
 
@@ -514,16 +518,16 @@ public class GameManager
         var oldState = CurrentGameState;
 
         InitToRoulette();
-        
+
         // 정확도 풀 생성 및 플레이어 배정
         var accuracyPool = GenerateAccuracyPool();
         AssignAccuracyToPlayers(accuracyPool);
-        
+
         // 룰렛 상태로 변경
         CurrentGameState = GameState.Roulette;
-        
+
         Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {CurrentGameState}");
-        
+
         // 모든 플레이어에게 룰렛 시작 브로드캐스트
         await BroadcastRouletteStart(accuracyPool);
     }
@@ -543,6 +547,7 @@ public class GameManager
         {
             accuracyPool.Add(Random.Shared.Next(Constants.ROULETTE_MIN_ACCURACY, Constants.ROULETTE_MAX_ACCURACY + 1));
         }
+
         return accuracyPool;
     }
 
@@ -552,23 +557,24 @@ public class GameManager
     private void AssignAccuracyToPlayers(List<int> accuracyPool)
     {
         var availableAccuracies = new List<int>(accuracyPool);
-        
+
         foreach (var player in Players.Values)
         {
             var randomIndex = Random.Shared.Next(0, availableAccuracies.Count);
             var randomAccuracy = availableAccuracies[randomIndex];
             availableAccuracies.RemoveAt(randomIndex); // 중복방지
-            
+
             player.Accuracy = randomAccuracy;
-            
+
             // 정확도 변경 시 사격 최소 필요 에너지 업데이트
             player.UpdateMinEnergyToShoot();
 
             // 현재정확도에 반비례한 사거리 계산
             float t = Math.Clamp(randomAccuracy / (float)Constants.ROULETTE_MAX_ACCURACY, 0f, 1f);
             player.Range = Constants.MAX_RANGE + t * (Constants.MIN_RANGE - Constants.MAX_RANGE);
-            
-            Console.WriteLine($"[정확도] {player.Nickname}: {player.Accuracy}% (사거리: {player.Range:F2}, 최소필요에너지: {player.MinEnergyToShoot})");
+
+            Console.WriteLine(
+                $"[정확도] {player.Nickname}: {player.Accuracy}% (사거리: {player.Range:F2}, 최소필요에너지: {player.MinEnergyToShoot})");
         }
     }
 
@@ -579,11 +585,11 @@ public class GameManager
     {
         var broadcastTasks = Players.Values
             .Select(player => SendToPlayer(player.Id, new RouletteStartFromServer
-            { 
-                AccuracyPool = accuracyPool, 
+            {
+                AccuracyPool = accuracyPool,
                 YourAccuracy = player.Accuracy
             }));
-            
+
         await Task.WhenAll(broadcastTasks);
         Console.WriteLine($"[룰렛] 모든 플레이어에게 룰렛 시작 알림 전송 완료");
     }
@@ -594,14 +600,14 @@ public class GameManager
     private async Task GiveRoundPrizeToWinner()
     {
         var survivors = Players.Values.Where(p => p.Alive).ToList();
-        int prizePerWinner = survivors.Count==0 ? 0 : TotalPrizeMoney / survivors.Count;
+        int prizePerWinner = survivors.Count == 0 ? 0 : TotalPrizeMoney / survivors.Count;
         var winnerIds = new List<int>();
-        
+
         foreach (var winner in survivors)
         {
             winner.Balance += prizePerWinner;
             winnerIds.Add(winner.Id);
-            
+
             // 승리자 잔액 업데이트 브로드캐스트
             await BroadcastToAll(new BalanceUpdateBroadcast
             {
@@ -609,7 +615,7 @@ public class GameManager
                 Balance = winner.Balance
             });
         }
-        
+
         if (survivors.Count == 1)
         {
             Console.WriteLine($"[라운드 {Round}] {survivors[0].Nickname}이(가) 라운드 승리! 판돈 {TotalPrizeMoney}달러 획득");
@@ -619,7 +625,7 @@ public class GameManager
         {
             Console.WriteLine($"[라운드 {Round}] 생존자 {survivors.Count}명이 판돈을 공유! 각자 {prizePerWinner}달러 획득");
         }
-        
+
         // 라운드 승리자 브로드캐스트
         await BroadcastToAll(new RoundWinnerBroadcast
         {
@@ -628,13 +634,13 @@ public class GameManager
             PrizeMoney = TotalPrizeMoney
         });
     }
-    
+
     private async Task AnnounceGameWinner()
     {
         var winners = Players.Values.Where(p => !p.Bankrupt).Select(p => p.Id).ToList();
-        
+
         Console.WriteLine($"[게임 종료] 최종 승리자 {winners.Count}명: {string.Join(", ", winners)}");
-        
+
         await BroadcastToAll(new GameWinnerBroadcast { PlayerIds = winners });
     }
 
@@ -645,7 +651,7 @@ public class GameManager
     {
         var totalWeight = ItemConstants.Items.Values.Sum(item => item.Weight);
         var randomValue = System.Random.Shared.Next(totalWeight);
-            
+
         var currentWeight = 0;
         foreach (var item in ItemConstants.Items.Values)
         {
@@ -655,7 +661,7 @@ public class GameManager
                 return item.Id;
             }
         }
-            
+
         return ItemId.SpeedBoost; // 기본값
     }
 }
