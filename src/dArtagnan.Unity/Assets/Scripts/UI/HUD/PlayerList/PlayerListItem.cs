@@ -33,9 +33,7 @@ namespace UI.HUD.PlayerList
                 var nicknameTextColor = nicknameText.color;
                 nicknameTextColor.a = newAlive ? 1f : 0.5f;
                 nicknameText.color = nicknameTextColor;
-                var accuracyTextColor = accuracyText.color;
-                accuracyTextColor.a = newAlive ? 1f : 0.5f;
-                accuracyText.color = accuracyTextColor;
+                accuracyText.enabled = newAlive;
             }).AddTo(this);
         }
     }

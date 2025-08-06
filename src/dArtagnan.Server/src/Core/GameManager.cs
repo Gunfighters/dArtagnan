@@ -150,7 +150,7 @@ public class GameManager
 
         if (player == Host)
         {
-            var nextHost = Players.Values.FirstOrDefault(p => p.Alive);
+            var nextHost = Players.Values.FirstOrDefault(p => p.Alive && p is not Bot);
             await SetHost(nextHost);
         }
 
