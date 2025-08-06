@@ -1,5 +1,6 @@
 using System.Linq;
 using dArtagnan.Shared;
+using Game;
 using Game.Items;
 using TMPro;
 using UnityEngine;
@@ -28,6 +29,17 @@ namespace UI.HUD.Controls.ItemCraft
             descriptionBox.SetActive(false);
             currentItemIcon.enabled = false;
             costText.text = Constants.CRAFT_ENERGY_COST.ToString();
+        }
+
+        private void Update()
+        {
+            var ratio = PlayerGeneralManager
+                            .LocalPlayerCore
+                            .Energy
+                            .EnergyData
+                            .CurrentEnergy /
+                        Constants.CRAFT_ENERGY_COST;
+            filler.fillAmount = ratio;
         }
 
         public void ShowItem(ItemId id)
