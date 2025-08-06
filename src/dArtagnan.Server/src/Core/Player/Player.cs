@@ -22,6 +22,11 @@ public class Player
     public bool IsCreatingItem; // 아이템 제작 중인지 여부
     public float CreatingRemainingTime; // 아이템 제작 남은 시간
     private float accuracyTimer; // 정확도 업데이트를 위한 타이머
+    
+    // 아이템 효과 관련 필드
+    public float SpeedBoostTimer; // 속도 증가 남은 시간
+    public float SpeedMultiplier; // 현재 속도 배율
+    public bool HasDamageShield; // 피해 가드 보유 여부
 
     public Player(int id, string nickname, Vector2 position)
     {
@@ -64,6 +69,11 @@ public class Player
         CreatingRemainingTime = 0f;
         accuracyTimer = 0f;
         
+        // 아이템 효과 초기화
+        SpeedBoostTimer = 0f;
+        SpeedMultiplier = 1f;
+        HasDamageShield = false;
+        
         // 라운드 상태도 함께 초기화
         InitToRound();
     }
@@ -92,6 +102,11 @@ public class Player
         IsCreatingItem = false;
         CreatingRemainingTime = 0f;
         accuracyTimer = 0f;
+        
+        // 아이템 효과 초기화 (라운드 시작 시)
+        SpeedBoostTimer = 0f;
+        SpeedMultiplier = 1f;
+        HasDamageShield = false;
     }
 
     public PlayerInformation PlayerInformation => new()
@@ -111,6 +126,8 @@ public class Player
         CurrentItem = CurrentItem,
         IsCreatingItem = IsCreatingItem,
         CreatingRemainingTime = CreatingRemainingTime,
+        SpeedMultiplier = SpeedMultiplier,
+        HasDamageShield = HasDamageShield,
     };
 
     /// <summary>
@@ -127,7 +144,7 @@ public class Player
     {
         MovementData.Position = position;
         MovementData.Direction = direction;
-        MovementData.Speed = speed;
+        MovementData.Speed = speed * SpeedMultiplier; // 속도 배율 적용
     }
 
     public int Withdraw(int amount)
@@ -342,5 +359,76 @@ public class Player
         };
         Console.WriteLine($"[에너지] 플레이어 {Id}의 최대 에너지 변경: {newMaxEnergy}");
         return true;
+    }
+
+    /// <summary>
+    /// 속도 버프를 적용합니다.
+    /// </summary>
+    /// <param name="duration">지속시간</param>
+    /// <param name="multiplier">속도 배율</param>
+    public void ApplySpeedBoost(float duration, float multiplier)
+    {
+        SpeedBoostTimer = duration;
+        SpeedMultiplier = multiplier;
+        Console.WriteLine($"[버프] 플레이어 {Id}에게 속도 증가 적용 ({multiplier}배, {duration}초)");
+    }
+
+    /// <summary>
+    /// 속도 버프 타이머를 업데이트합니다.
+    /// </summary>
+    /// <param name="deltaTime">프레임 시간</param>
+    /// <returns>버프가 종료되었으면 true</returns>
+    public bool UpdateSpeedBoost(float deltaTime)
+    {
+        if (SpeedBoostTimer <= 0) return false;
+        
+        SpeedBoostTimer -= deltaTime;
+        
+        if (SpeedBoostTimer <= 0)
+        {
+            SpeedBoostTimer = 0f;
+            SpeedMultiplier = 1f;
+            Console.WriteLine($"[버프] 플레이어 {Id}의 속도 증가 종료");
+            return true;
+        }
+        
+        return false;
+    }
+
+    /// <summary>
+    /// 피해 가드를 적용합니다.
+    /// </summary>
+    public void ApplyDamageShield()
+    {
+        HasDamageShield = true;
+        Console.WriteLine($"[버프] 플레이어 {Id}에게 피해 가드 적용");
+    }
+
+    /// <summary>
+    /// 피해 가드를 소모합니다.
+    /// </summary>
+    /// <returns>가드가 있었으면 true</returns>
+    public bool ConsumeDamageShield()
+    {
+        if (!HasDamageShield) return false;
+        
+        HasDamageShield = false;
+        Console.WriteLine($"[버프] 플레이어 {Id}의 피해 가드 소모");
+        return true;
+    }
+
+    /// <summary>
+    /// 에너지를 회복합니다.
+    /// </summary>
+    /// <param name="amount">회복량</param>
+    public void RestoreEnergy(int amount)
+    {
+        var oldEnergy = EnergyData.CurrentEnergy;
+        EnergyData = new EnergyData
+        {
+            MaxEnergy = EnergyData.MaxEnergy,
+            CurrentEnergy = Math.Min(EnergyData.MaxEnergy, EnergyData.CurrentEnergy + amount)
+        };
+        Console.WriteLine($"[에너지] 플레이어 {Id}의 에너지 회복: {oldEnergy:F1} → {EnergyData.CurrentEnergy:F1}");
     }
 }

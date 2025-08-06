@@ -538,11 +538,13 @@ internal class Program
                         Console.WriteLine($"    속도: {info.MovementData.Speed:F2}");
                         Console.WriteLine($"    에너지: {info.EnergyData.CurrentEnergy:F1}/{info.EnergyData.MaxEnergy} (최소필요: {info.MinEnergyToShoot})");
                         Console.WriteLine($"    생존: {(info.Alive ? "생존" : "사망")}");
+                        Console.WriteLine($"    속도 배율: {info.SpeedMultiplier:F2}x");
+                        Console.WriteLine($"    피해 가드: {(info.HasDamageShield ? "보유" : "없음")}");
                         if (info.Augments.Count > 0)
                         {
                             Console.WriteLine($"    증강: [{string.Join(", ", info.Augments)}]");
                         }
-                        Console.WriteLine($"    아이템: {(info.CurrentItem == -1 ? "없음" : $"ID {info.CurrentItem}")}");
+                        Console.WriteLine($"    아이템: {(info.CurrentItem == -1 ? "없음" : $"{GetItemName(info.CurrentItem)}(ID: {info.CurrentItem})")}");
                         if (info.IsCreatingItem)
                         {
                             Console.WriteLine($"    제작 중: {info.CreatingRemainingTime:F1}초 남음");
@@ -563,11 +565,13 @@ internal class Program
                         Console.WriteLine($"    속도: {info.MovementData.Speed:F2}");
                         Console.WriteLine($"    에너지: {info.EnergyData.CurrentEnergy:F1}/{info.EnergyData.MaxEnergy} (최소필요: {info.MinEnergyToShoot})");
                         Console.WriteLine($"    생존: {(info.Alive ? "생존" : "사망")}");
+                        Console.WriteLine($"    속도 배율: {info.SpeedMultiplier:F2}x");
+                        Console.WriteLine($"    피해 가드: {(info.HasDamageShield ? "보유" : "없음")}");
                         if (info.Augments.Count > 0)
                         {
                             Console.WriteLine($"    증강: [{string.Join(", ", info.Augments)}]");
                         }
-                        Console.WriteLine($"    아이템: {(info.CurrentItem == -1 ? "없음" : $"ID {info.CurrentItem}")}");
+                        Console.WriteLine($"    아이템: {(info.CurrentItem == -1 ? "없음" : $"{GetItemName(info.CurrentItem)}(ID: {info.CurrentItem})")}");
                         if (info.IsCreatingItem)
                         {
                             Console.WriteLine($"    제작 중: {info.CreatingRemainingTime:F1}초 남음");
@@ -659,11 +663,13 @@ internal class Program
                     break;
 
                 case ItemAcquiredBroadcast itemAcquired:
-                    Console.WriteLine($"📦 [아이템 획득] 플레이어 {itemAcquired.PlayerId}가 아이템 ID {itemAcquired.ItemId}를 획득했습니다!");
+                    var acquiredItemName = GetItemName(itemAcquired.ItemId);
+                    Console.WriteLine($"📦 [아이템 획득] 플레이어 {itemAcquired.PlayerId}가 {acquiredItemName}(ID: {itemAcquired.ItemId})를 획득했습니다!");
                     break;
 
                 case ItemUsedBroadcast itemUsed:
-                    Console.WriteLine($"⚡ [아이템 사용] 플레이어 {itemUsed.PlayerId}가 아이템 ID {itemUsed.ItemId}를 사용했습니다");
+                    var itemName = GetItemName(itemUsed.ItemId);
+                    Console.WriteLine($"⚡ [아이템 사용] 플레이어 {itemUsed.PlayerId}가 {itemName}(ID: {itemUsed.ItemId})를 사용했습니다");
                     break;
 
                 case ChatBroadcast chatBroadcast:
@@ -718,6 +724,18 @@ internal class Program
             0 => "유지",
             1 => "증가",
             _ => "알 수 없음"
+        };
+    }
+
+    static string GetItemName(int itemId)
+    {
+        return itemId switch
+        {
+            1 => "속도 증가",
+            2 => "행동력 회복",
+            3 => "피해 가드",
+            4 => "확률 재설정",
+            _ => $"알 수 없는 아이템"
         };
     }
 

@@ -22,19 +22,30 @@ public class UseItemCommand : IGameCommand
             return;
         }
 
+        // 아이템 정보 가져오기
+        var itemId = (ItemId)player.CurrentItem;
+        if (!ItemConstants.Items.TryGetValue(itemId, out var itemData))
+        {
+            Console.WriteLine($"[아이템] 알 수 없는 아이템 ID: {player.CurrentItem}");
+            return;
+        }
+
         // 에너지 체크
-        if (!player.ConsumeEnergy(Constants.USE_ITEM_ENERGY_COST))
+        if (itemData.EnergyCost > 0 && !player.ConsumeEnergy(itemData.EnergyCost))
         {
             Console.WriteLine($"[아이템] 플레이어 {PlayerId} 아이템 사용 불가 (에너지 부족: {player.EnergyData.CurrentEnergy:F1}/{player.EnergyData.MaxEnergy})");
             return;
         }
 
-        // 현재 에너지만 브로드캐스트 (효율적)
-        await gameManager.BroadcastToAll(new UpdateCurrentEnergyBroadcast
+        // 에너지가 소모된 경우 브로드캐스트
+        if (itemData.EnergyCost > 0)
         {
-            PlayerId = PlayerId,
-            CurrentEnergy = player.EnergyData.CurrentEnergy
-        });
+            await gameManager.BroadcastToAll(new UpdateCurrentEnergyBroadcast
+            {
+                PlayerId = PlayerId,
+                CurrentEnergy = player.EnergyData.CurrentEnergy
+            });
+        }
 
         int usedItemId = player.UseItem();
 
@@ -45,41 +56,85 @@ public class UseItemCommand : IGameCommand
             ItemId = usedItemId
         });
 
-        // 아이템 효과 적용 (임시 구현 - 나중에 아이템별로 세분화)
-        await ApplyItemEffect(gameManager, player, usedItemId, TargetPlayerId);
+        // 아이템 효과 적용
+        await ApplyItemEffect(gameManager, player, itemId, TargetPlayerId);
     }
 
     /// <summary>
-    /// 아이템 효과를 적용합니다 (임시 구현)
+    /// 아이템 효과를 적용합니다
     /// </summary>
-    private static async Task ApplyItemEffect(GameManager gameManager, Player user, int itemId, int targetId)
+    private static async Task ApplyItemEffect(GameManager gameManager, Player user, ItemId itemId, int targetId)
     {
-        Console.WriteLine($"[아이템] 플레이어 {user.Id}가 아이템 {itemId} 효과 적용 (대상: {targetId})");
+        Console.WriteLine($"[아이템] 플레이어 {user.Id}가 {itemId} 효과 적용");
         
-        // 임시로 아이템 효과 없이 로그만 출력
-        // 나중에 아이템 종류별로 실제 효과 구현 예정
         switch (itemId)
         {
-            case 1:
-                Console.WriteLine($"[아이템] 아이템 1 효과: 치유");
+            case ItemId.SpeedBoost:
+                // 속도 증가 효과
+                user.ApplySpeedBoost(ItemConstants.SPEED_BOOST_DURATION, ItemConstants.SPEED_BOOST_MULTIPLIER);
+                
+                // 속도 변경 브로드캐스트
+                await gameManager.BroadcastToAll(new MovementDataBroadcast
+                {
+                    PlayerId = user.Id,
+                    MovementData = user.MovementData
+                });
                 break;
-            case 2:
-                Console.WriteLine($"[아이템] 아이템 2 효과: 공격력 증가");
+                
+            case ItemId.EnergyRestore:
+                // 에너지 회복
+                user.RestoreEnergy(ItemConstants.ENERGY_RESTORE_AMOUNT);
+                
+                // 에너지 브로드캐스트
+                await gameManager.BroadcastToAll(new UpdateCurrentEnergyBroadcast
+                {
+                    PlayerId = user.Id,
+                    CurrentEnergy = user.EnergyData.CurrentEnergy
+                });
                 break;
-            case 3:
-                Console.WriteLine($"[아이템] 아이템 3 효과: 방어력 증가");
+                
+            case ItemId.DamageShield:
+                // 피해 가드 적용
+                user.ApplyDamageShield();
+                // 클라이언트에서 시각 효과 처리 예정
                 break;
-            case 4:
-                Console.WriteLine($"[아이템] 아이템 4 효과: 속도 증가");
+                
+            case ItemId.AccuracyReset:
+                // 정확도 재설정 (25~75 사이 랜덤)
+                int newAccuracy = Random.Shared.Next(Constants.ROULETTE_MIN_ACCURACY, Constants.ROULETTE_MAX_ACCURACY + 1);
+                user.Accuracy = newAccuracy;
+                user.UpdateMinEnergyToShoot();
+                
+                Console.WriteLine($"[아이템] 플레이어 {user.Id}의 정확도 재설정: {newAccuracy}%");
+                
+                // 정확도 변경 브로드캐스트
+                await gameManager.BroadcastToAll(new UpdateAccuracyBroadcast
+                {
+                    PlayerId = user.Id,
+                    Accuracy = user.Accuracy
+                });
+                
+                // 최소 에너지 변경 브로드캐스트
+                await gameManager.BroadcastToAll(new UpdateMinEnergyToShootBroadcast
+                {
+                    PlayerId = user.Id,
+                    MinEnergyToShoot = user.MinEnergyToShoot
+                });
+                
+                // 사거리 변경 브로드캐스트
+                float t = Math.Clamp(newAccuracy / (float)Constants.ROULETTE_MAX_ACCURACY, 0f, 1f);
+                user.Range = Constants.MAX_RANGE + t * (Constants.MIN_RANGE - Constants.MAX_RANGE);
+                
+                await gameManager.BroadcastToAll(new UpdateRangeBroadcast
+                {
+                    PlayerId = user.Id,
+                    Range = user.Range
+                });
                 break;
-            case 5:
-                Console.WriteLine($"[아이템] 아이템 5 효과: 정확도 증가");
-                break;
+                
             default:
-                Console.WriteLine($"[아이템] 알 수 없는 아이템 {itemId}");
+                Console.WriteLine($"[아이템] 처리되지 않은 아이템: {itemId}");
                 break;
         }
-        
-        await Task.CompletedTask;
     }
 } 
