@@ -60,8 +60,6 @@ public class NetworkManager : MonoBehaviour, IChannelListener
         }
 
         _stream = _client.GetStream();
-        await NetworkUtils.SendPacketAsync(_stream, new PingPacket());
-        await NetworkUtils.SendPacketAsync(_stream, new JoinRequest());
     }
 
     private void Send<T>(T payload) where T : IPacket

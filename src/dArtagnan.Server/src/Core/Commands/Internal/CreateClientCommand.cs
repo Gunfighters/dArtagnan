@@ -9,7 +9,7 @@ public class CreateClientCommand : IGameCommand
 {
     required public TcpClient TcpClient;
     
-    public Task ExecuteAsync(GameManager gameManager)
+    public async Task ExecuteAsync(GameManager gameManager)
     {
         try
         {
@@ -21,6 +21,13 @@ public class CreateClientCommand : IGameCommand
             
             // Clients Dictionary에 추가
             gameManager.Clients.TryAdd(clientId, client);
+            
+            await gameManager.EnqueueCommandAsync(new PlayerJoinCommand
+            {
+                ClientId = clientId,
+                Nickname = $"Player #{clientId}",
+                Client = client
+            });
             
             Console.WriteLine($"새 클라이언트 연결됨 (ID: {clientId}, 현재 접속자: {gameManager.Clients.Count})");
         }
