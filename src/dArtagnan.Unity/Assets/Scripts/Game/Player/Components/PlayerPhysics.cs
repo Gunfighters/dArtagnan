@@ -45,7 +45,7 @@ namespace Game.Player.Components
 
         private void Update()
         {
-            if (!_core.Health.Alive) return;
+            if (!_core.Health.Alive.CurrentValue) return;
             if (_core.Craft.Crafting) return;
             if (_direction == Vector2.zero)
             {
@@ -60,7 +60,7 @@ namespace Game.Player.Components
 
         private void FixedUpdate()
         {
-            if (!_core.Health.Alive) return;
+            if (!_core.Health.Alive.CurrentValue) return;
             if (_core.Craft.Crafting) return;
             _rb.MovePosition(NextPosition());
         }

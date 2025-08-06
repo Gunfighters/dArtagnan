@@ -7,7 +7,7 @@ namespace Game.Player.Components
 {
     public class PlayerHealth : MonoBehaviour
     {
-        public bool Alive { get; private set; }
+        public readonly ReactiveProperty<bool> Alive = new();
         private PlayerCore _core;
         [SerializeField] private Canvas infoUICanvas;
 
@@ -24,8 +24,8 @@ namespace Game.Player.Components
 
         public void SetAlive(bool newAlive)
         {
-            Alive = newAlive;
-            if (Alive)
+            Alive.Value = newAlive;
+            if (Alive.CurrentValue)
                 _core.Model.Idle();
             else
             {
@@ -33,13 +33,13 @@ namespace Game.Player.Components
                 ScheduleDeactivation().Forget();
             }
 
-            infoUICanvas.gameObject.SetActive(Alive);
+            infoUICanvas.gameObject.SetActive(Alive.CurrentValue);
         }
 
         private async UniTask ScheduleDeactivation()
         {
             await UniTask.WaitForSeconds(2);
-            gameObject.SetActive(Alive);
+            gameObject.SetActive(Alive.CurrentValue);
         }
     }
 }

@@ -13,7 +13,7 @@ public static class PacketChannel
         var type = typeof(T);
         if (!Channels.ContainsKey(typeof(T)))
         {
-            Channels[type] = new ();
+            Channels[type] = new();
         }
 
         Channels[type].Add(Wrapper);
@@ -21,7 +21,7 @@ public static class PacketChannel
 
         void Wrapper(IPacket packet)
         {
-            Debug.Log($"[{DateTime.Now:HH:mm:ss.fff}] Raise {packet.GetType()} : {action.Method.DeclaringType}.{action.Method.Name}");
+            // Debug.Log($"[{DateTime.Now:HH:mm:ss.fff}] Raise {packet.GetType()} : {action.Method.DeclaringType}.{action.Method.Name}");
             action.Invoke((T)packet);
         }
     }

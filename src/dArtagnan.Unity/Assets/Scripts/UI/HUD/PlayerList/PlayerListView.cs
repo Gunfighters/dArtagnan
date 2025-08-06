@@ -8,26 +8,22 @@ namespace UI.HUD.PlayerList
     public class PlayerListView : MonoBehaviour
     {
         public PlayerListItem itemPrefab;
-        private List<PlayerListItem> _pool;
+        private readonly List<PlayerListItem> _pool = new();
 
-        private void Awake()
+        private void Awake() => PlayerListPresenter.Initialize(this);
+
+        public void Add(PlayerCore player)
         {
-            _pool = GetComponentsInChildren<PlayerListItem>(true).ToList();
-            _pool.ForEach(obj => obj.gameObject.SetActive(false));
-            PlayerListPresenter.Initialize(this);
+            var obj = Instantiate(itemPrefab, transform);
+            obj.Initialize(player);
+            _pool.Add(obj);
         }
 
-        public void Add(PlayerCore info)
+        public void Remove(PlayerCore player)
         {
-            var obj = _pool.Find(obj => !obj.gameObject.activeSelf) ?? Instantiate(itemPrefab, transform);
-            obj.Setup(info);
-            obj.gameObject.SetActive(true);
-            obj.transform.SetSiblingIndex(info.ID);
-        }
-
-        public void Remove(PlayerCore info)
-        {
-            _pool.Single(item => item.ID == info.ID).gameObject.SetActive(false);
+            var removed = _pool.Single(item => item.ID == player.ID);
+            _pool.Remove(removed);
+            Destroy(removed.gameObject);
         }
     }
 }

@@ -27,7 +27,11 @@ public class CameraController : MonoBehaviour, IChannelListener
     private void OnUpdatePlayerAlive(UpdatePlayerAlive e)
     {
         if (!e.Alive && e.PlayerId == target.ID)
-            LocalEventChannel.InvokeOnNewCameraTarget(PlayerGeneralManager.Survivors.First(p => p != target));
+        {
+            var newTarget = PlayerGeneralManager.Survivors.FirstOrDefault(p => p != target);
+            if (newTarget is not null)
+                LocalEventChannel.InvokeOnNewCameraTarget(newTarget);
+        }
     }
 
     private void Follow(PlayerCore newTarget)

@@ -22,7 +22,7 @@ namespace UI.HUD
             {
                 InRound.Value = true;
                 Waiting.Value = false;
-                Playing.Value = PlayerGeneralManager.LocalPlayerCore.Health.Alive;
+                Playing.Value = PlayerGeneralManager.LocalPlayerCore.Health.Alive.CurrentValue;
             });
             PacketChannel.On<WaitingStartFromServer>(_ =>
             {

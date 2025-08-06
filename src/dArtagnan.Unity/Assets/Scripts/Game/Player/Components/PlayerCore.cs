@@ -39,6 +39,7 @@ namespace Game.Player.Components
         private void SetNickname(string newNickname)
         {
             Nickname = newNickname;
+            gameObject.name = Nickname;
         }
 
         private void SetColor(Color color)

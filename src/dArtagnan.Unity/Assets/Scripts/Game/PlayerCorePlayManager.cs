@@ -78,7 +78,7 @@ namespace Game
             updated!.Health.SetAlive(e.Alive);
             if (updated == PlayerGeneralManager.LocalPlayerCore)
             {
-                LocalEventChannel.InvokeOnLocalPlayerAlive(updated.Health.Alive);
+                LocalEventChannel.InvokeOnLocalPlayerAlive(updated.Health.Alive.CurrentValue);
             }
         }
 

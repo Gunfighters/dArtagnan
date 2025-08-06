@@ -1,4 +1,5 @@
 using dArtagnan.Shared;
+using R3;
 using TMPro;
 using UnityEngine;
 
@@ -6,7 +7,7 @@ namespace Game.Player.Components
 {
     public class PlayerAccuracy : MonoBehaviour
     {
-        public int Accuracy { get; private set; }
+        public readonly ReactiveProperty<int> Accuracy = new();
         public int AccuracyState { get; private set; }
         [SerializeField] private TextMeshProUGUI accuracyText;
 
@@ -18,7 +19,7 @@ namespace Game.Player.Components
 
         public void SetAccuracy(int newAccuracy)
         {
-            Accuracy = newAccuracy;
+            Accuracy.Value = newAccuracy;
             accuracyText.text = $"{Accuracy}%";
         }
 

@@ -14,7 +14,7 @@ namespace Game
 
         public static IEnumerable<PlayerCore> Survivors =>
             Players
-                .Where(pair => pair.Value.Health.Alive)
+                .Where(pair => pair.Value.Health.Alive.CurrentValue)
                 .Select(pair => pair.Value);
 
         private static int _localPlayerId;
@@ -77,10 +77,10 @@ namespace Game
         private static void OnLocalPlayerSet()
         {
             LocalEventChannel.InvokeOnNewCameraTarget(
-                LocalPlayerCore.Health.Alive
+                LocalPlayerCore.Health.Alive.CurrentValue
                     ? LocalPlayerCore
-                    : Players.First(p => p.Value.Health.Alive).Value);
-            LocalEventChannel.InvokeOnLocalPlayerAlive(LocalPlayerCore.Health.Alive);
+                    : Players.First(p => p.Value.Health.Alive.CurrentValue).Value);
+            LocalEventChannel.InvokeOnLocalPlayerAlive(LocalPlayerCore.Health.Alive.CurrentValue);
             LocalEventChannel.InvokeOnLocalPlayerBalanceUpdate(LocalPlayerCore.Balance.Balance);
         }
 

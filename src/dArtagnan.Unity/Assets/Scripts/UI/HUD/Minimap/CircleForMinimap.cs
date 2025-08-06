@@ -31,13 +31,12 @@ namespace UI.HUD.Minimap
             {
                 // 플레이어 색깔 적용
                 spriteRenderer.color = _playerCore.MyColor;
-            
+
                 // accuracy에 비례해서 원의 크기 조절
-                var t = Mathf.Clamp01(_playerCore.Accuracy.Accuracy / 100f);
+                var t = Mathf.Clamp01(_playerCore.Accuracy.Accuracy.Value / 100f);
                 var scaleMultiplier = Mathf.Lerp(0.5f, 1.5f, t);
                 transform.localScale = originalScale * (scaleMultiplier * 1.5f);
             }
         }
     }
 }
-
