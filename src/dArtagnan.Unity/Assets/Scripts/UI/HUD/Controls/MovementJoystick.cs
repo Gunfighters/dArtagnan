@@ -1,6 +1,7 @@
 using Game;
 using Game.Player.Components;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace UI.HUD.Controls
 {
@@ -10,7 +11,7 @@ namespace UI.HUD.Controls
         private bool Moving => _variableJoystick.Direction != Vector2.zero;
         private Vector2 InputVectorSnapped => _variableJoystick.Direction.DirectionToInt().IntToDirection();
         private PlayerCore LocalPlayer => PlayerGeneralManager.LocalPlayerCore;
-    
+
         private void Awake() => _variableJoystick = GetComponent<VariableJoystick>();
 
         private void Update()
@@ -20,6 +21,8 @@ namespace UI.HUD.Controls
             LocalPlayer.Physics.SetDirection(newDirection.normalized);
             PacketChannel.Raise(LocalPlayer.Physics.MovementData);
         }
+
+        private void OnDisable() => _variableJoystick.OnPointerUp(new PointerEventData(EventSystem.current));
 
         private Vector2 GetInputDirection()
         {
