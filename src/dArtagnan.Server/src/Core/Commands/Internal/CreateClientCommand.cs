@@ -35,7 +35,5 @@ public class CreateClientCommand : IGameCommand
         {
             Console.WriteLine($"클라이언트 생성 실패: {ex.Message}");
         }
-        
-        return Task.CompletedTask;
     }
 } 

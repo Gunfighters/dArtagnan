@@ -26,13 +26,13 @@ public class GameLoopCommand : IGameCommand
 
             case GameState.Round:
                 // 라운드 상태: 베팅금 차감 + 모든 플레이어 상태 업데이트 + 봇 AI 업데이트
-                // await UpdateBettingTimer(gameManager);
+                await UpdateBettingTimer(gameManager);
                 await UpdateByAccuracyState(gameManager, DeltaTime);
                 await UpdatePlayerCreatingStates(gameManager, DeltaTime);
                 UpdatePlayerMovementStates(gameManager, DeltaTime);
                 UpdatePlayerEnergyStates(gameManager, DeltaTime);
                 await UpdatePlayerBuffStates(gameManager, DeltaTime);
-                // await UpdateBotAI(gameManager, DeltaTime);
+                await UpdateBotAI(gameManager, DeltaTime);
                 break;
 
             case GameState.Roulette:
