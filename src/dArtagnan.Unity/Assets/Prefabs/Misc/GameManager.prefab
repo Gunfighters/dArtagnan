@@ -162,6 +162,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   config: {fileID: 11400000, guid: 6c934d44d01dd432aa117b578669fa39, type: 2}
+  targetFrameRate: 60
 --- !u!114 &2655052901297011441
 MonoBehaviour:
   m_ObjectHideFlags: 0

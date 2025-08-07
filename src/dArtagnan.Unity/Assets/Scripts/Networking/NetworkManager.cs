@@ -8,10 +8,17 @@ using UnityEngine;
 public class NetworkManager : MonoBehaviour, IChannelListener
 {
     [Header("Config")] [SerializeField] private NetworkManagerConfig config;
+    [SerializeField] private int targetFrameRate;
     private readonly Channel<IPacket> _channel = Channel.CreateSingleConsumerUnbounded<IPacket>();
 
     private TcpClient _client;
     private NetworkStream _stream;
+
+    private void Start()
+    {
+        QualitySettings.vSyncCount = 0;
+        Application.targetFrameRate = targetFrameRate;
+    }
 
     private void Update()
     {
@@ -75,6 +82,7 @@ public class NetworkManager : MonoBehaviour, IChannelListener
 
     private async UniTask StartListeningLoop()
     {
+        await UniTask.SwitchToThreadPool();
         try
         {
             while (true)
@@ -85,6 +93,7 @@ public class NetworkManager : MonoBehaviour, IChannelListener
         }
         catch
         {
+            await UniTask.SwitchToMainThread();
             LocalEventChannel.InvokeOnConnectionFailure();
         }
     }

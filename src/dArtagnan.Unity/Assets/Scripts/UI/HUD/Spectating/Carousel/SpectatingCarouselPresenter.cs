@@ -10,7 +10,11 @@ namespace UI.HUD.Spectating.Carousel
         {
             SpectatingCarouselModel
                 .SpectateTarget
-                .Subscribe(target => view.nicknameSlot.text = target.Nickname);
+                .Subscribe(target =>
+                {
+                    if (target is not null)
+                        view.nicknameSlot.text = target.Nickname;
+                });
             view
                 .leftButton
                 .onClick
