@@ -22,7 +22,7 @@ public class NetworkManager : MonoBehaviour, IChannelListener
 
     private void Update()
     {
-        if (_channel.Reader.TryRead(out var packet))
+        while (_channel.Reader.TryRead(out var packet))
         {
             PacketChannel.Raise(packet);
         }
