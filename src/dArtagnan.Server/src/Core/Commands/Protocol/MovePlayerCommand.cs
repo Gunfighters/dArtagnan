@@ -25,7 +25,8 @@ public class PlayerMovementCommand : IGameCommand
         // 플레이어 위치와 방향만 업데이트 (속도는 서버가 관리)
         player.UpdateMovementData(
             MovementData.Position, 
-            MovementData.Direction
+            MovementData.Direction,
+            MovementData.Speed
         );
         
         // 모든 플레이어에게 이동 정보 브로드캐스트

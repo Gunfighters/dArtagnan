@@ -40,7 +40,7 @@ namespace dArtagnan.Shared
     /// </summary>
     public static class Constants
     {
-        public const int MAX_PLAYER_COUNT = 2;
+        public const int MAX_PLAYER_COUNT = 8;
         public const int MAX_ROUNDS = 4;
         public const int DEFAULT_MAX_ENERGY = 7;
         public const float ENERGY_RECOVERY_RATE = 0.5f; // 초당 0.5칸 회복 (2초에 1칸)

@@ -145,12 +145,11 @@ public class Player
         return new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * Constants.SPAWN_RADIUS;
     }
 
-    public void UpdateMovementData(Vector2 position, int direction)
+    public void UpdateMovementData(Vector2 position, int direction, float speed)
     {
         MovementData.Position = position;
         MovementData.Direction = direction;
-        // 속도는 서버가 관리하므로 클라이언트 속도는 무시
-        // MovementData.Speed는 이미 BaseSpeed * SpeedMultiplier로 설정되어 있음
+        MovementData.Speed = speed;
     }
 
     public int Withdraw(int amount)
