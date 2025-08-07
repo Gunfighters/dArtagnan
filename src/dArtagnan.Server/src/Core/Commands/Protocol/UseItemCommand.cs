@@ -74,10 +74,10 @@ public class UseItemCommand : IGameCommand
                 user.ApplySpeedBoost(ItemConstants.SPEED_BOOST_DURATION, ItemConstants.SPEED_BOOST_MULTIPLIER);
                 
                 // 속도 변경 브로드캐스트
-                await gameManager.BroadcastToAll(new MovementDataBroadcast
+                await gameManager.BroadcastToAll(new UpdateSpeedBroadcast
                 {
                     PlayerId = user.Id,
-                    MovementData = user.MovementData
+                    Speed = user.MovementData.Speed
                 });
                 break;
                 

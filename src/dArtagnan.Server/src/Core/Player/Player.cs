@@ -26,13 +26,15 @@ public class Player
     // 아이템 효과 관련 필드
     public float SpeedBoostTimer; // 속도 증가 남은 시간
     public float SpeedMultiplier; // 현재 속도 배율
+    public float BaseSpeed; // 버프 적용 전 기본 속도
     public bool HasDamageShield; // 피해 가드 보유 여부
 
     public Player(int id, string nickname, Vector2 position)
     {
         Id = id;
         Nickname = nickname;
-        MovementData = new MovementData { Direction = 0, Position = position, Speed = Constants.MOVEMENT_SPEED };
+        BaseSpeed = Constants.MOVEMENT_SPEED;
+        MovementData = new MovementData { Direction = 0, Position = position, Speed = BaseSpeed };
         Augments = [];
         InitToWaiting();
     }
@@ -72,6 +74,7 @@ public class Player
         // 아이템 효과 초기화
         SpeedBoostTimer = 0f;
         SpeedMultiplier = 1f;
+        BaseSpeed = Constants.MOVEMENT_SPEED;
         HasDamageShield = false;
         
         // 라운드 상태도 함께 초기화
@@ -88,7 +91,8 @@ public class Player
         Target = null;
         
         // 이동 상태 (위치는 GameManager에서 별도 설정)
-        MovementData = new MovementData { Direction = 0, Position = Vector2.Zero, Speed = Constants.MOVEMENT_SPEED };
+        BaseSpeed = Constants.MOVEMENT_SPEED;
+        MovementData = new MovementData { Direction = 0, Position = Vector2.Zero, Speed = BaseSpeed };
         
         // 전투 상태
         EnergyData = new EnergyData
@@ -106,6 +110,7 @@ public class Player
         // 아이템 효과 초기화 (라운드 시작 시)
         SpeedBoostTimer = 0f;
         SpeedMultiplier = 1f;
+        BaseSpeed = Constants.MOVEMENT_SPEED;
         HasDamageShield = false;
     }
 
@@ -140,11 +145,12 @@ public class Player
         return new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * Constants.SPAWN_RADIUS;
     }
 
-    public void UpdateMovementData(Vector2 position, int direction, float speed)
+    public void UpdateMovementData(Vector2 position, int direction)
     {
         MovementData.Position = position;
         MovementData.Direction = direction;
-        MovementData.Speed = speed * SpeedMultiplier; // 속도 배율 적용
+        // 속도는 서버가 관리하므로 클라이언트 속도는 무시
+        // MovementData.Speed는 이미 BaseSpeed * SpeedMultiplier로 설정되어 있음
     }
 
     public int Withdraw(int amount)
@@ -370,6 +376,10 @@ public class Player
     {
         SpeedBoostTimer = duration;
         SpeedMultiplier = multiplier;
+        
+        // 배율 적용된 속도 업데이트
+        MovementData.Speed = BaseSpeed * SpeedMultiplier;
+        
         Console.WriteLine($"[버프] 플레이어 {Id}에게 속도 증가 적용 ({multiplier}배, {duration}초)");
     }
 
@@ -388,6 +398,10 @@ public class Player
         {
             SpeedBoostTimer = 0f;
             SpeedMultiplier = 1f;
+            
+            // 원래 속도로 복구
+            MovementData.Speed = BaseSpeed;
+            
             Console.WriteLine($"[버프] 플레이어 {Id}의 속도 증가 종료");
             return true;
         }

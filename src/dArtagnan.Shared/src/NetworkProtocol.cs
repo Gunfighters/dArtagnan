@@ -31,14 +31,15 @@ namespace dArtagnan.Shared
     [Union(17, typeof(NewHostBroadcast))]
     [Union(18, typeof(RoundWinnerBroadcast))]
     [Union(19, typeof(GameWinnerBroadcast))]
+    [Union(25, typeof(BettingDeductionBroadcast))]
     
-    // 플레이어 스탯 및 경제
+    // 플레이어 스탯
     [Union(20, typeof(BalanceUpdateBroadcast))]
     [Union(21, typeof(UpdateAccuracyStateFromClient))]
     [Union(22, typeof(UpdateAccuracyStateBroadcast))]
     [Union(23, typeof(UpdateAccuracyBroadcast))]
     [Union(24, typeof(UpdateRangeBroadcast))]
-    [Union(25, typeof(BettingDeductionBroadcast))]
+    [Union(40, typeof(UpdateSpeedBroadcast))]
     
     // 에너지 시스템
     [Union(26, typeof(UpdateCurrentEnergyBroadcast))]
@@ -103,7 +104,7 @@ namespace dArtagnan.Shared
     {
         [Key(0)] public int Direction;
         [Key(1)] public Vector2 Position;
-        [Key(2)] public float Speed;
+        [Key(2)] public float Speed;                //시뮬되어야 하는 최종 계산된 speed
     }
 
     /// <summary>
@@ -342,10 +343,23 @@ namespace dArtagnan.Shared
     {
         [Key(0)] public List<int> PlayerIds; // 게임 최종 승자들. 승자가 없으면 빈 리스트
     }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// 10초마다 베팅금이 차감되었음을 알려주는 패킷
+    /// 이 패킷을 받으면 판돈을 TotalPrizeMoney로 업데이트하고
+    /// 모든 플레이어의 잔액을 DeductedAmount만큼 감소시킨다
+    /// </summary>
+    [MessagePackObject]
+    public struct BettingDeductionBroadcast : IPacket
+    {
+        [Key(0)] public int DeductedAmount; // 차감된 베팅금
+        [Key(1)] public int TotalPrizeMoney; // 업데이트된 총 판돈
+    }
     
     #endregion
     
-    #region 플레이어 스탯 및 경제 패킷들
+    #region 플레이어 스탯 패킷들
 
     /// <summary>
     /// [서버 => 클라이언트]
@@ -403,15 +417,13 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// 10초마다 베팅금이 차감되었음을 알려주는 패킷
-    /// 이 패킷을 받으면 판돈을 TotalPrizeMoney로 업데이트하고
-    /// 모든 플레이어의 잔액을 DeductedAmount만큼 감소시킨다
+    /// PlayerId번 플레이어의 속도가 Speed로 업데이트 되었다
     /// </summary>
     [MessagePackObject]
-    public struct BettingDeductionBroadcast : IPacket
+    public struct UpdateSpeedBroadcast : IPacket
     {
-        [Key(0)] public int DeductedAmount; // 차감된 베팅금
-        [Key(1)] public int TotalPrizeMoney; // 업데이트된 총 판돈
+        [Key(0)] public int PlayerId;
+        [Key(1)] public float Speed;
     }
     
     #endregion
