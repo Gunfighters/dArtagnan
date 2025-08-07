@@ -145,8 +145,7 @@ public class Player
     /// </summary>
     public static Vector2 GetSpawnPosition(int index)
     {
-        const int magicNumber = 53;
-        var angle = index * magicNumber * (float)(Math.PI / 180);
+        var angle = index * (360f / Constants.MAX_PLAYER_COUNT) * (float)(Math.PI / 180);
         return new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * Constants.SPAWN_RADIUS;
     }
 
@@ -182,7 +181,7 @@ public class Player
     {
         if (AccuracyState == 0) return false; // 유지 상태면 처리하지 않음
 
-        accuracyTimer += deltaTime;
+        accuracyTimer += deltaTime * Constants.ACCURACY_STATE_RATE;
 
         // 1초마다 정확도 업데이트
         if (accuracyTimer >= Constants.ACCURACY_UPDATE_INTERVAL)

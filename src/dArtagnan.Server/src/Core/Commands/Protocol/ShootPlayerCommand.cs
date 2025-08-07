@@ -90,7 +90,7 @@ public class PlayerShootingCommand : IGameCommand
             else
             {
                 // 돈 획득 두 배 증강 체크
-                int stealAmount = gameManager.BettingAmount;
+                int stealAmount = gameManager.BettingAmount * 3;
                 if (shooter.Augments.Contains((int)AugmentId.DoubleMoneySteakOnKill))
                 {
                     stealAmount = (int)(gameManager.BettingAmount * AugmentConstants.DOUBLE_MONEY_STEAL_MULTIPLIER);

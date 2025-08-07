@@ -36,14 +36,15 @@ namespace dArtagnan.Shared
     }
 
     /// <summary>
-    /// 클라이언트와 서버가 공유하는 상수.
+    /// 클라이언트와 서버가 공유하는 상수. (공유 안할수도 있음 낄낄)
     /// </summary>
     public static class Constants
     {
+        public const int ACCURACY_STATE_RATE = 3;
         public const int MAX_PLAYER_COUNT = 8;
         public const int MAX_ROUNDS = 4;
         public const int DEFAULT_MAX_ENERGY = 7;
-        public const float ENERGY_RECOVERY_RATE = 0.5f; // 초당 0.5칸 회복 (2초에 1칸)
+        public const float ENERGY_RECOVERY_RATE = 0.25f; // 4초에 1칸
         public const int CRAFT_ENERGY_COST = 2; // 아이템 제작 시 소모되는 에너지
         public const int USE_ITEM_ENERGY_COST = 1; // 아이템 사용 시 소모되는 에너지
         public const float ACCURACY_UPDATE_INTERVAL = 1.0f;
