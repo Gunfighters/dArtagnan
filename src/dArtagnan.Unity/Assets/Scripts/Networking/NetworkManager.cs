@@ -2,17 +2,24 @@
 using System.Net.Sockets;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
-using Game;
 using Networking;
 using UnityEngine;
 
 public class NetworkManager : MonoBehaviour, IChannelListener
 {
     [Header("Config")] [SerializeField] private NetworkManagerConfig config;
+    private readonly Channel<IPacket> _channel = Channel.CreateSingleConsumerUnbounded<IPacket>();
 
     private TcpClient _client;
     private NetworkStream _stream;
-    private readonly Channel<IPacket> _channel = Channel.CreateSingleConsumerUnbounded<IPacket>();
+
+    private void Update()
+    {
+        if (_channel.Reader.TryRead(out var packet))
+        {
+            PacketChannel.Raise(packet);
+        }
+    }
 
     public void Initialize()
     {
@@ -26,14 +33,6 @@ public class NetworkManager : MonoBehaviour, IChannelListener
         PacketChannel.On<UpdateItemCreatingStateFromClient>(Send);
         PacketChannel.On<UseItemFromClient>(Send);
         LocalEventChannel.OnEndpointSelected += Connect;
-    }
-
-    private void Update()
-    {
-        if (_channel.Reader.TryRead(out var packet))
-        {
-            PacketChannel.Raise(packet);
-        }
     }
 
     private void Connect(string host, int port)
@@ -76,20 +75,17 @@ public class NetworkManager : MonoBehaviour, IChannelListener
 
     private async UniTask StartListeningLoop()
     {
-        while (true)
+        try
         {
-            IPacket packet;
-            try
+            while (true)
             {
-                packet = await NetworkUtils.ReceivePacketAsync(_stream);
+                var packet = NetworkUtils.ReceivePacketSync(_stream);
+                _channel.Writer.TryWrite(packet);
             }
-            catch
-            {
-                LocalEventChannel.InvokeOnConnectionFailure();
-                break;
-            }
-
-            _channel.Writer.TryWrite(packet);
+        }
+        catch
+        {
+            LocalEventChannel.InvokeOnConnectionFailure();
         }
     }
 }
