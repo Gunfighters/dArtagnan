@@ -18,6 +18,7 @@ namespace UI.HUD.Controls
         {
             var newDirection = GetInputDirection();
             if (newDirection == LocalPlayer.Physics.MovementData.Direction.IntToDirection()) return;
+            if (LocalPlayer.Craft.Crafting) return;
             LocalPlayer.Physics.SetDirection(newDirection.normalized);
             PacketChannel.Raise(LocalPlayer.Physics.MovementData);
         }
