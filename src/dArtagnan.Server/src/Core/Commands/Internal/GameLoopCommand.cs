@@ -69,7 +69,15 @@ public class GameLoopCommand : IGameCommand
 
         foreach (var player in gameManager.Players.Values.Where(p => p.Alive))
         {
-            var deducted = await gameManager.WithdrawFromPlayerAsync(player, gameManager.BettingAmount);
+            // 베팅금 절반 증강 체크
+            int playerBettingAmount = gameManager.BettingAmount;
+            if (player.Augments.Contains((int)AugmentId.HalfBettingCost))
+            {
+                playerBettingAmount = (int)(gameManager.BettingAmount * AugmentConstants.HALF_BETTING_COST_MULTIPLIER);
+                Console.WriteLine($"[증강] 플레이어 {player.Id}: 베팅금 절반 적용 ({gameManager.BettingAmount} -> {playerBettingAmount})");
+            }
+            
+            var deducted = await gameManager.WithdrawFromPlayerAsync(player, playerBettingAmount);
             totalDeducted += deducted;
 
             Console.WriteLine($"[베팅] {player.Nickname}: {deducted}달러 차감 (잔액: {player.Balance}달러)");

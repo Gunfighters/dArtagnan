@@ -251,7 +251,7 @@ public class GameManager
 
         foreach (var player in alivePlayers)
         {
-            var augmentOptions = GenerateAugmentOptions();
+            var augmentOptions = GenerateAugmentOptions(player);
 
             // 플레이어별 증강 옵션 저장
             playerAugmentOptions[player.Id] = augmentOptions;
@@ -261,26 +261,73 @@ public class GameManager
                 AugmentOptions = augmentOptions
             });
 
-            Console.WriteLine($"[증강] {player.Id}번 플레이어에게 증강 선택 옵션 전송: [{string.Join(", ", augmentOptions)}]");
+            // 증강 이름도 함께 로그 출력
+            var optionNames = augmentOptions.Select(id => 
+            {
+                if (id == -1) return "없음";
+                if (AugmentConstants.Augments.TryGetValue((AugmentId)id, out var augmentData))
+                    return $"{augmentData.Name}({id})";
+                return id.ToString();
+            });
+            
+            Console.WriteLine($"[증강] {player.Id}번 플레이어({player.Nickname})에게 증강 선택 옵션 전송: [{string.Join(", ", optionNames)}]");
         }
     }
 
     /// <summary>
-    /// 랜덤 증강 옵션 3개를 생성합니다
+    /// 플레이어별로 맞춤 증강 옵션 3개를 생성합니다 (이미 보유한 증강 제외)
     /// </summary>
-    private List<int> GenerateAugmentOptions()
+    /// <param name="player">옵션을 생성할 플레이어</param>
+    private List<int> GenerateAugmentOptions(Player player)
     {
-        // 임시로 3개의 랜덤 증강 ID 생성 (1~10 범위)
+        // 플레이어가 이미 보유한 증강 제외한 사용 가능한 증강 목록
+        var availableAugments = AugmentConstants.Augments.Keys
+            .Where(augmentId => !player.Augments.Contains((int)augmentId))
+            .Select(id => (int)id)
+            .ToList();
+
         var options = new List<int>();
         var random = new Random();
 
+        // 사용 가능한 증강에서 최대 3개까지 가중치 기반 선택
+        var tempAvailable = new List<int>(availableAugments);
+        while (options.Count < 3 && tempAvailable.Count > 0)
+        {
+            // 가중치 기반 선택을 위해 사용 가능한 증강들의 총 가중치 계산
+            var availableAugmentData = AugmentConstants.Augments
+                .Where(kvp => tempAvailable.Contains((int)kvp.Key))
+                .ToList();
+            
+            if (availableAugmentData.Count == 0) break;
+
+            var totalWeight = availableAugmentData.Sum(kvp => kvp.Value.Weight);
+            var randomValue = random.Next(totalWeight);
+
+            var currentWeight = 0;
+            AugmentId selectedAugment = AugmentId.None;
+            
+            foreach (var kvp in availableAugmentData)
+            {
+                currentWeight += kvp.Value.Weight;
+                if (randomValue < currentWeight)
+                {
+                    selectedAugment = kvp.Key;
+                    break;
+                }
+            }
+
+            if (selectedAugment != AugmentId.None)
+            {
+                var selectedId = (int)selectedAugment;
+                options.Add(selectedId);
+                tempAvailable.Remove(selectedId); // 중복 방지
+            }
+        }
+
+        // 사용 가능한 증강이 3개 미만이면 -1로 패딩
         while (options.Count < 3)
         {
-            var augmentId = random.Next(1, 11);
-            if (!options.Contains(augmentId))
-            {
-                options.Add(augmentId);
-            }
+            options.Add(-1);
         }
 
         return options;
@@ -663,5 +710,26 @@ public class GameManager
         }
 
         return ItemId.SpeedBoost; // 기본값
+    }
+
+    /// <summary>
+    /// 가중치 기반으로 랜덤 증강을 선택합니다
+    /// </summary>
+    public static AugmentId GetRandomAugmentByWeight()
+    {
+        var totalWeight = AugmentConstants.Augments.Values.Sum(augment => augment.Weight);
+        var randomValue = System.Random.Shared.Next(totalWeight);
+
+        var currentWeight = 0;
+        foreach (var augment in AugmentConstants.Augments.Values)
+        {
+            currentWeight += augment.Weight;
+            if (randomValue < currentWeight)
+            {
+                return augment.Id;
+            }
+        }
+
+        return AugmentId.AccuracyStateDoubleApplication; // 기본값
     }
 }

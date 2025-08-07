@@ -18,11 +18,10 @@ public class PlayerMovementCommand : IGameCommand
         // 아이템 제작 중에는 움직일 수 없음
         if (player.IsCreatingItem)
         {
-            Console.WriteLine($"[이동] 플레이어 {PlayerId}는 아이템 제작 중으로 이동 불가");
-            return;
+            Console.WriteLine($"[이동] 플레이어 {PlayerId}는 아이템 제작 중으로 이동 불가여야 함. 잘못된 패킷이나 일단 통과");
+            // return;
         }
         
-        // 플레이어 위치와 방향만 업데이트 (속도는 서버가 관리)
         player.UpdateMovementData(
             MovementData.Position, 
             MovementData.Direction,

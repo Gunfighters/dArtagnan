@@ -50,20 +50,36 @@ public class AugmentDoneCommand : IGameCommand
 
         if (!augmentOptions.Contains(SelectedAugmentId))
         {
-            Console.WriteLine($"[증강] {ClientId}번 플레이어 - 제시되지 않은 증강을 선택: ${SelectedAugmentId}번 증강");
+            Console.WriteLine($"[증강] {ClientId}번 플레이어 - 제시되지 않은 증강을 선택: {SelectedAugmentId}번 증강");
             return;
         }
 
-        // 플레이어에게 증강 추가
-        player.Augments.Add(SelectedAugmentId);
-        
-        // 증강 효과 적용
-        ApplyAugmentEffect(player, SelectedAugmentId);
-        
+        // -1 (없음) 선택 시 처리
+        if (SelectedAugmentId == -1)
+        {
+            Console.WriteLine($"[증강] {ClientId}번 플레이어가 증강 선택을 패스했습니다");
+        }
+        else
+        {
+            // 증강 데이터 확인
+            var augmentId = (AugmentId)SelectedAugmentId;
+            if (!AugmentConstants.Augments.TryGetValue(augmentId, out var augmentData))
+            {
+                Console.WriteLine($"[증강] 알 수 없는 증강 ID: {SelectedAugmentId}");
+                return;
+            }
+
+            // 플레이어에게 증강 추가
+            player.Augments.Add(SelectedAugmentId);
+            
+            // 증강 효과 적용
+            await ApplyAugmentEffect(gameManager, player, augmentId);
+            
+            Console.WriteLine($"[증강] {ClientId}번 플레이어가 증강 {augmentData.Name}({SelectedAugmentId})를 획득했습니다");
+        }
+
         // 선택 완료 표시
         gameManager.augmentSelectionDonePlayers.Add(ClientId);
-        
-        Console.WriteLine($"[증강] {ClientId}번 플레이어가 증강 {SelectedAugmentId}를 획득했습니다");
 
         // 모든 플레이어가 증강을 선택했는지 확인
         var alivePlayers = gameManager.Players.Values.Where(p => !p.Bankrupt).ToList();
@@ -75,29 +91,73 @@ public class AugmentDoneCommand : IGameCommand
         }
     }
 
-    private void ApplyAugmentEffect(Player player, int augmentId)
+    private async Task ApplyAugmentEffect(GameManager gameManager, Player player, AugmentId augmentId)
     {
-        // 예시 증강들
-        // switch (augmentId)
-        // {
-        //     case 1: // 정확도 +10
-        //         player.Accuracy = Math.Min(100, player.Accuracy + 10);
-        //         break;
-        //     case 2: // 사거리 +1
-        //         player.Range += 1f;
-        //         break;
-        //     case 3: // 재장전 시간 -2초
-        //         player.TotalReloadTime = Math.Max(3f, player.TotalReloadTime - 2f);
-        //         break;
-        //     case 4: // 정확도 +15
-        //         player.Accuracy = Math.Min(100, player.Accuracy + 15);
-        //         break;
-        //     case 5: // 사거리 +1.5
-        //         player.Range += 1.5f;
-        //         break;
-        //     default:
-        //         Console.WriteLine($"[증강] 알 수 없는 증강 ID: {augmentId}");
-        //         break;
-        // }
+        switch (augmentId)
+        {
+            case AugmentId.AccuracyStateDoubleApplication:
+                // AccuracyState 두 배 적용 - 플레이어 객체에 표시만 함, 실제 적용은 게임루프에서
+                player.ActiveEffects.Add((int)augmentId);
+                Console.WriteLine($"[증강] 플레이어 {player.Id}가 정확도 상태 두 배 적용 증강 획득");
+                
+                // 활성 효과 변경 브로드캐스트
+                await gameManager.BroadcastToAll(new UpdateActiveEffectsBroadcast
+                {
+                    PlayerId = player.Id,
+                    ActiveEffects = player.ActiveEffects
+                });
+                break;
+                
+            case AugmentId.HalfBettingCost:
+                // 베팅금 절반 - 실제 적용은 베팅 차감 시
+                player.ActiveEffects.Add((int)augmentId);
+                Console.WriteLine($"[증강] 플레이어 {player.Id}가 베팅금 절반 증강 획득");
+                
+                // 활성 효과 변경 브로드캐스트
+                await gameManager.BroadcastToAll(new UpdateActiveEffectsBroadcast
+                {
+                    PlayerId = player.Id,
+                    ActiveEffects = player.ActiveEffects
+                });
+                break;
+                
+            case AugmentId.MaxEnergyIncrease:
+                // 최대 에너지 1 증가
+                player.UpdateMaxEnergy(player.EnergyData.MaxEnergy + AugmentConstants.MAX_ENERGY_INCREASE_AMOUNT);
+                player.ActiveEffects.Add((int)augmentId);
+                Console.WriteLine($"[증강] 플레이어 {player.Id}의 최대 에너지가 {player.EnergyData.MaxEnergy}로 증가");
+                
+                // 최대 에너지 변경 브로드캐스트
+                await gameManager.BroadcastToAll(new UpdateMaxEnergyBroadcast
+                {
+                    PlayerId = player.Id,
+                    MaxEnergy = player.EnergyData.MaxEnergy
+                });
+                
+                // 활성 효과 변경 브로드캐스트
+                await gameManager.BroadcastToAll(new UpdateActiveEffectsBroadcast
+                {
+                    PlayerId = player.Id,
+                    ActiveEffects = player.ActiveEffects
+                });
+                break;
+                
+            case AugmentId.DoubleMoneySteakOnKill:
+                // 돈 획득 두 배 - 실제 적용은 사격 시
+                player.ActiveEffects.Add((int)augmentId);
+                Console.WriteLine($"[증강] 플레이어 {player.Id}가 돈 획득 두 배 증강 획득");
+                
+                // 활성 효과 변경 브로드캐스트
+                await gameManager.BroadcastToAll(new UpdateActiveEffectsBroadcast
+                {
+                    PlayerId = player.Id,
+                    ActiveEffects = player.ActiveEffects
+                });
+                break;
+                
+            default:
+                Console.WriteLine($"[증강] 알 수 없는 증강 ID: {augmentId}");
+                break;
+        }
     }
 } 

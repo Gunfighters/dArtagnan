@@ -28,7 +28,7 @@ public class Player
     public float SpeedMultiplier; // 현재 속도 배율
     public float BaseSpeed; // 버프 적용 전 기본 속도
     public bool HasDamageShield; // 피해 가드 보유 여부
-    public List<int> ActiveEffects; // 현재 활성화된 효과 목록 (UI 표시용)
+    public List<int> ActiveEffects; // 현재 활성화된 효과 목록 (아이템: 1~999, 증강: 1000+)
 
     public Player(int id, string nickname, Vector2 position)
     {
@@ -37,7 +37,7 @@ public class Player
         BaseSpeed = Constants.MOVEMENT_SPEED;
         MovementData = new MovementData { Direction = 0, Position = position, Speed = BaseSpeed };
         Augments = [];
-        ActiveEffects = [];
+        ActiveEffects = new List<int>();
         InitToWaiting();
     }
 
@@ -189,7 +189,15 @@ public class Player
         {
             accuracyTimer = 0f;
 
-            int newAccuracy = Accuracy + AccuracyState;
+            // 정확도 상태 두 배 적용 증강 체크
+            int accuracyChange = AccuracyState;
+            if (Augments.Contains((int)AugmentId.AccuracyStateDoubleApplication))
+            {
+                accuracyChange *= AugmentConstants.ACCURACY_STATE_DOUBLE_MULTIPLIER;
+                Console.WriteLine($"[증강] 플레이어 {Id}: 정확도 상태 두 배 적용 ({AccuracyState} -> {accuracyChange})");
+            }
+            
+            int newAccuracy = Accuracy + accuracyChange;
 
             // 정확도 범위 제한
             newAccuracy = Math.Clamp(newAccuracy, 1, 100);  

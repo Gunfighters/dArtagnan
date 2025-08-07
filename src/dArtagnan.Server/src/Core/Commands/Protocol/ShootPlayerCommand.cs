@@ -89,8 +89,16 @@ public class PlayerShootingCommand : IGameCommand
             }
             else
             {
+                // 돈 획득 두 배 증강 체크
+                int stealAmount = gameManager.BettingAmount;
+                if (shooter.Augments.Contains((int)AugmentId.DoubleMoneySteakOnKill))
+                {
+                    stealAmount = (int)(gameManager.BettingAmount * AugmentConstants.DOUBLE_MONEY_STEAL_MULTIPLIER);
+                    Console.WriteLine($"[증강] 플레이어 {shooter.Id}: 돈 획득 두 배 적용 ({gameManager.BettingAmount} -> {stealAmount})");
+                }
+                
                 // 타겟의 돈 일부를 사격자에게 이전
-                await gameManager.TransferMoneyBetweenPlayersAsync(target, shooter, gameManager.BettingAmount);
+                await gameManager.TransferMoneyBetweenPlayersAsync(target, shooter, stealAmount);
                 
                 // 타겟 사망 처리
                 await KillPlayer(target, gameManager);
