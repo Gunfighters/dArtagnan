@@ -649,7 +649,6 @@ public class GameManager
     /// </summary>
     public static ItemId GetRandomItemByWeight()
     {
-        return ItemId.SpeedBoost; // 기본값
         var totalWeight = ItemConstants.Items.Values.Sum(item => item.Weight);
         var randomValue = System.Random.Shared.Next(totalWeight);
 
@@ -663,6 +662,6 @@ public class GameManager
             }
         }
 
-        //return ItemId.SpeedBoost; // 기본값
+        return ItemId.SpeedBoost; // 기본값
     }
 }

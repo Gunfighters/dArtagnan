@@ -77,6 +77,14 @@ public class PlayerShootingCommand : IGameCommand
             if (target.ConsumeDamageShield())
             {
                 Console.WriteLine($"[전투] 플레이어 {target.Id}의 피해 가드가 공격을 막음!");
+                
+                // 활성 효과 변경 브로드캐스트 (피해 가드 소모)
+                await gameManager.BroadcastToAll(new UpdateActiveEffectsBroadcast
+                {
+                    PlayerId = target.Id,
+                    ActiveEffects = target.ActiveEffects
+                });
+                
                 // 가드로 막았으므로 피해 없음
             }
             else

@@ -79,6 +79,13 @@ public class UseItemCommand : IGameCommand
                     PlayerId = user.Id,
                     Speed = user.MovementData.Speed
                 });
+                
+                // 활성 효과 변경 브로드캐스트
+                await gameManager.BroadcastToAll(new UpdateActiveEffectsBroadcast
+                {
+                    PlayerId = user.Id,
+                    ActiveEffects = user.ActiveEffects
+                });
                 break;
                 
             case ItemId.EnergyRestore:
@@ -96,7 +103,13 @@ public class UseItemCommand : IGameCommand
             case ItemId.DamageShield:
                 // 피해 가드 적용
                 user.ApplyDamageShield();
-                // 클라이언트에서 시각 효과 처리 예정
+                
+                // 활성 효과 변경 브로드캐스트
+                await gameManager.BroadcastToAll(new UpdateActiveEffectsBroadcast
+                {
+                    PlayerId = user.Id,
+                    ActiveEffects = user.ActiveEffects
+                });
                 break;
                 
             case ItemId.AccuracyReset:

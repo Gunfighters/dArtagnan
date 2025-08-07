@@ -28,6 +28,7 @@ public class Player
     public float SpeedMultiplier; // 현재 속도 배율
     public float BaseSpeed; // 버프 적용 전 기본 속도
     public bool HasDamageShield; // 피해 가드 보유 여부
+    public List<int> ActiveEffects; // 현재 활성화된 효과 목록 (UI 표시용)
 
     public Player(int id, string nickname, Vector2 position)
     {
@@ -36,6 +37,7 @@ public class Player
         BaseSpeed = Constants.MOVEMENT_SPEED;
         MovementData = new MovementData { Direction = 0, Position = position, Speed = BaseSpeed };
         Augments = [];
+        ActiveEffects = [];
         InitToWaiting();
     }
 
@@ -76,6 +78,7 @@ public class Player
         SpeedMultiplier = 1f;
         BaseSpeed = Constants.MOVEMENT_SPEED;
         HasDamageShield = false;
+        ActiveEffects.Clear();
         
         // 라운드 상태도 함께 초기화
         InitToRound();
@@ -112,6 +115,7 @@ public class Player
         SpeedMultiplier = 1f;
         BaseSpeed = Constants.MOVEMENT_SPEED;
         HasDamageShield = false;
+        ActiveEffects.Clear();
     }
 
     public PlayerInformation PlayerInformation => new()
@@ -133,6 +137,7 @@ public class Player
         CreatingRemainingTime = CreatingRemainingTime,
         SpeedMultiplier = SpeedMultiplier,
         HasDamageShield = HasDamageShield,
+        ActiveEffects = ActiveEffects,
     };
 
     /// <summary>
@@ -379,6 +384,12 @@ public class Player
         // 배율 적용된 속도 업데이트
         MovementData.Speed = BaseSpeed * SpeedMultiplier;
         
+        // 활성 효과 목록에 추가 (중복 방지)
+        if (!ActiveEffects.Contains((int)ItemId.SpeedBoost))
+        {
+            ActiveEffects.Add((int)ItemId.SpeedBoost);
+        }
+        
         Console.WriteLine($"[버프] 플레이어 {Id}에게 속도 증가 적용 ({multiplier}배, {duration}초)");
     }
 
@@ -401,6 +412,9 @@ public class Player
             // 원래 속도로 복구
             MovementData.Speed = BaseSpeed;
             
+            // 활성 효과 목록에서 제거
+            ActiveEffects.Remove((int)ItemId.SpeedBoost);
+            
             Console.WriteLine($"[버프] 플레이어 {Id}의 속도 증가 종료");
             return true;
         }
@@ -414,6 +428,13 @@ public class Player
     public void ApplyDamageShield()
     {
         HasDamageShield = true;
+        
+        // 활성 효과 목록에 추가 (중복 방지)
+        if (!ActiveEffects.Contains((int)ItemId.DamageShield))
+        {
+            ActiveEffects.Add((int)ItemId.DamageShield);
+        }
+        
         Console.WriteLine($"[버프] 플레이어 {Id}에게 피해 가드 적용");
     }
 
@@ -426,6 +447,10 @@ public class Player
         if (!HasDamageShield) return false;
         
         HasDamageShield = false;
+        
+        // 활성 효과 목록에서 제거
+        ActiveEffects.Remove((int)ItemId.DamageShield);
+        
         Console.WriteLine($"[버프] 플레이어 {Id}의 피해 가드 소모");
         return true;
     }

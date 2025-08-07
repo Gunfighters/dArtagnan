@@ -186,6 +186,13 @@ public class GameLoopCommand : IGameCommand
                     PlayerId = player.Id,
                     Speed = player.MovementData.Speed
                 });
+                
+                // 활성 효과 변경 브로드캐스트
+                await gameManager.BroadcastToAll(new UpdateActiveEffectsBroadcast
+                {
+                    PlayerId = player.Id,
+                    ActiveEffects = player.ActiveEffects
+                });
             }
         }
     }

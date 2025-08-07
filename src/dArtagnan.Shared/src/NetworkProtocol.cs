@@ -40,6 +40,7 @@ namespace dArtagnan.Shared
     [Union(23, typeof(UpdateAccuracyBroadcast))]
     [Union(24, typeof(UpdateRangeBroadcast))]
     [Union(40, typeof(UpdateSpeedBroadcast))]
+    [Union(41, typeof(UpdateActiveEffectsBroadcast))]
     
     // 에너지 시스템
     [Union(26, typeof(UpdateCurrentEnergyBroadcast))]
@@ -94,6 +95,7 @@ namespace dArtagnan.Shared
         [Key(14)] public float CreatingRemainingTime; // 아이템 제작 남은 시간
         [Key(15)] public float SpeedMultiplier; // 현재 속도 배율
         [Key(16)] public bool HasDamageShield; // 피해 가드 보유 여부
+        [Key(17)] public List<int> ActiveEffects; // 현재 적용 중인 효과 목록 (UI 표시용)
     }
 
     /// <summary>
@@ -424,6 +426,17 @@ namespace dArtagnan.Shared
     {
         [Key(0)] public int PlayerId;
         [Key(1)] public float Speed;
+    }
+
+    /// <summary>
+    /// [서버 => 클라이언트]
+    /// PlayerId번 플레이어의 활성 효과 목록이 업데이트 되었다 (UI 표시용)
+    /// </summary>
+    [MessagePackObject]
+    public struct UpdateActiveEffectsBroadcast : IPacket
+    {
+        [Key(0)] public int PlayerId;
+        [Key(1)] public List<int> ActiveEffects; // 활성 효과 ID 목록 (ItemId 값)
     }
     
     #endregion
