@@ -181,10 +181,10 @@ public class GameLoopCommand : IGameCommand
             if (player.UpdateSpeedBoost(deltaTime))
             {
                 // 버프가 종료되면 속도 원복 브로드캐스트
-                await gameManager.BroadcastToAll(new MovementDataBroadcast
+                await gameManager.BroadcastToAll(new UpdateSpeedBroadcast
                 {
                     PlayerId = player.Id,
-                    MovementData = player.MovementData
+                    Speed = player.MovementData.Speed
                 });
             }
         }

@@ -24,6 +24,8 @@ namespace Game
             PacketChannel.On<UpdateMaxEnergyBroadcast>(OnMaxEnergyUpdate);
             PacketChannel.On<UpdateMinEnergyToShootBroadcast>(OnMinEnergyUpdate);
             PacketChannel.On<ItemUsedBroadcast>(OnItemUse);
+            PacketChannel.On<UpdateSpeedBroadcast>(OnSpeedUpdate);
+            
         }
 
         private void OnPlayerMovementData(MovementDataBroadcast e)
@@ -129,6 +131,12 @@ namespace Game
         {
             var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
             updated!.Shoot.SetRange(e.Range);
+        }
+
+        private void OnSpeedUpdate(UpdateSpeedBroadcast e)
+        {
+            var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
+            updated!.Physics.SetSpeed(e.Speed);
         }
     }
 }
