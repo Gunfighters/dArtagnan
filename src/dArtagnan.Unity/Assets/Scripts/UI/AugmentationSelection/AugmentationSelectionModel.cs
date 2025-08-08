@@ -8,7 +8,7 @@ namespace UI.AugmentationSelection
     public static class AugmentationSelectionModel
     {
         public static readonly ReactiveProperty<List<int>> Options = new();
-        public static readonly ReactiveProperty<int> SelectedAugmentId = new(-1);
+        public static readonly ReactiveProperty<AugmentId> SelectedAugmentId = new(AugmentId.None);
         public static readonly ReactiveProperty<bool> IsSelectionComplete = new(false);
 
         [RuntimeInitializeOnLoadMethod]
@@ -20,17 +20,17 @@ namespace UI.AugmentationSelection
         private static void OnAugmentationStartFromServer(AugmentStartFromServer e)
         {
             Options.Value = e.AugmentOptions;
-            SelectedAugmentId.Value = -1;
+            SelectedAugmentId.Value = AugmentId.None;
             IsSelectionComplete.Value = false;
         }
 
-        public static void SelectAugmentation(int augmentId)
+        public static void SelectAugmentation(AugmentId augmentId)
         {
             if (IsSelectionComplete.Value) return;
 
             SelectedAugmentId.Value = augmentId;
             IsSelectionComplete.Value = true;
-            PacketChannel.Raise(new AugmentDoneFromClient { SelectedAugmentID = augmentId });
+            PacketChannel.Raise(new AugmentDoneFromClient { SelectedAugmentID = (int)augmentId });
         }
     }
 }

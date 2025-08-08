@@ -8,30 +8,26 @@ namespace UI.AugmentationSelection.Frame
 {
     public class AugmentationFrame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
     {
-        public Augmentation Augmentation { get; private set; }
         [SerializeField] private TextMeshProUGUI nameText;
         [SerializeField] private Image image;
         [SerializeField] private TextMeshProUGUI description;
         [SerializeField] private AugmentationCollection augmentationCollection;
         [SerializeField] private Toggle selectedToggle;
+        public Augmentation Augmentation { get; private set; }
 
         private void Awake()
         {
             selectedToggle.onValueChanged.AddListener(value =>
             {
                 if (value)
-                    AugmentationSelectionModel.SelectAugmentation(Augmentation.id);
+                    AugmentationSelectionModel.SelectAugmentation(Augmentation.data.Id);
             });
         }
 
-        public void Setup(int id)
+        public void OnPointerClick(PointerEventData eventData)
         {
-            Augmentation = augmentationCollection.GetAugmentationById(id);
-            nameText.text = Augmentation.name;
-            image.sprite = Augmentation.sprite;
-            ;
-            description.text = Augmentation.description;
-            selectedToggle.isOn = false;
+            if (AugmentationSelectionModel.IsSelectionComplete.Value) return;
+            AugmentationSelectionModel.SelectAugmentation(Augmentation.data.Id);
         }
 
         public void OnPointerEnter(PointerEventData eventData)
@@ -44,10 +40,14 @@ namespace UI.AugmentationSelection.Frame
             transform.localScale = Vector3.one;
         }
 
-        public void OnPointerClick(PointerEventData eventData)
+        public void Setup(int id)
         {
-            if (AugmentationSelectionModel.IsSelectionComplete.Value) return;
-            AugmentationSelectionModel.SelectAugmentation(Augmentation.id);
+            Augmentation = augmentationCollection.GetAugmentationById(id);
+            nameText.text = Augmentation.data.Name;
+            image.sprite = Augmentation.sprite;
+            ;
+            description.text = Augmentation.data.Description;
+            selectedToggle.isOn = false;
         }
 
         public void UpdateSelection(bool isSelected)

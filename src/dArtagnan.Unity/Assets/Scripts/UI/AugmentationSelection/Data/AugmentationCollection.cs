@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using dArtagnan.Shared;
 using UnityEngine;
 
 namespace UI.AugmentationSelection.Data
@@ -7,7 +8,7 @@ namespace UI.AugmentationSelection.Data
     public class AugmentationCollection : ScriptableObject
     {
         public List<Augmentation> augmentations;
-        
-        public Augmentation GetAugmentationById(int id) => augmentations.Find(x => x.id == id);
+
+        public Augmentation GetAugmentationById(int id) => augmentations.Find(x => x.data.Id == (AugmentId)id);
     }
 }

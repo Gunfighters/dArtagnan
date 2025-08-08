@@ -13,43 +13,29 @@ MonoBehaviour:
   m_Name: AugmentationCollection
   m_EditorClassIdentifier: 
   augmentations:
-  - id: 1
-    name: Item #1
-    sprite: {fileID: 21300000, guid: c1e3f83fb7eb942ee8baa3d7c3723eb1, type: 3}
-    description: Bag
-  - id: 2
-    name: Item #2
-    sprite: {fileID: 21300000, guid: 7f5077902f34e4dcda6e69df4ced83a7, type: 3}
-    description: Gloves
-  - id: 3
-    name: Item #3
-    sprite: {fileID: 21300000, guid: b7d7e36f0c41c4316a6ea75d0a9321a6, type: 3}
-    description: Energy
-  - id: 4
-    name: Item #4
-    sprite: {fileID: 21300000, guid: 3fb23bf6552b44aafb168ed0584e1641, type: 3}
-    description: Gold
-  - id: 5
-    name: Item #5
-    sprite: {fileID: 21300000, guid: 7f09d3082a97a42e5a902edd5a6e37a4, type: 3}
-    description: Oil
-  - id: 6
-    name: Item #6
-    sprite: {fileID: 21300000, guid: cba6fba15682e49cdab63583abb7be7c, type: 3}
-    description: Target
-  - id: 7
-    name: Item #7
-    sprite: {fileID: 21300000, guid: c28d54c4733dc4fc7bedc4189f66bfbc, type: 3}
-    description: Shield
-  - id: 8
-    name: Item #8
-    sprite: {fileID: 21300000, guid: ea73c8c20afcd4bf4b8a82f0bedfe2ff, type: 3}
-    description: Magnetic
-  - id: 9
-    name: Item #9
-    sprite: {fileID: 21300000, guid: f906e57fb43bb4c48b8705c36ff4bafa, type: 3}
-    description: Crown
-  - id: 10
-    name: Item #10
-    sprite: {fileID: 21300000, guid: f51a90149e1314fec94565a904e11a20, type: 3}
-    description: Ranking
+  - data:
+      Id: 1001
+      Name: "\uAC00\uC18D\uC81C"
+      Description: "\uC815\uD655\uB3C4 \uC99D\uAC00/\uAC10\uC18C \uD6A8\uACFC\uAC00
+        2\uBC30\uB85C \uC801\uC6A9\uB429\uB2C8\uB2E4."
+      Weight: 3
+    sprite: {fileID: 21300000, guid: 9079162d3f5e946f88770d469ae4cd5b, type: 3}
+  - data:
+      Id: 1002
+      Name: "VIP \uD2F0\uCF13"
+      Description: "\uBCA0\uD305\uAE08\uC744 \uC808\uBC18\uB9CC \uC9C0\uBD88\uD569\uB2C8\uB2E4."
+      Weight: 4
+    sprite: {fileID: 21300000, guid: fe3de42cc913e4fad9f1d8f050e20767, type: 3}
+  - data:
+      Id: 1003
+      Name: "\uAC15\uD654\uC81C"
+      Description: "\uCD5C\uB300 \uD589\uB3D9\uB825\uC774 1 \uC99D\uAC00\uD569\uB2C8\uB2E4."
+      Weight: 5
+    sprite: {fileID: 21300000, guid: 3ae3c5a77112c4b37b8e7280ca2a66ff, type: 3}
+  - data:
+      Id: 1004
+      Name: "\uAC15\uB3C4"
+      Description: "\uC801\uC744 \uCC98\uCE58\uD560 \uB54C \uB3C8\uC744 2\uBC30\uB85C
+        \uB9CE\uC774 \uBE7C\uC557\uC2B5\uB2C8\uB2E4."
+      Weight: 3
+    sprite: {fileID: 21300000, guid: c249affb68c10448491cf5f21db84c12, type: 3}

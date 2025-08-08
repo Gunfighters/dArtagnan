@@ -11,15 +11,15 @@ namespace UI.AugmentationSelection
                 for (var i = 0; i < options.Count; i++)
                     view.Frames[i].Setup(options[i]);
             });
-            
+
             AugmentationSelectionModel.SelectedAugmentId.Subscribe(selectedId =>
             {
                 foreach (var frame in view.Frames)
                 {
-                    frame.UpdateSelection(frame.Augmentation.id == selectedId);
+                    frame.UpdateSelection(frame.Augmentation.data.Id == selectedId);
                 }
             });
-            
+
             AugmentationSelectionModel.IsSelectionComplete.Subscribe(isComplete =>
             {
                 if (isComplete)
@@ -27,7 +27,7 @@ namespace UI.AugmentationSelection
                     var selectedId = AugmentationSelectionModel.SelectedAugmentId.Value;
                     foreach (var frame in view.Frames)
                     {
-                        bool isSelected = frame.Augmentation.id == selectedId;
+                        bool isSelected = frame.Augmentation.data.Id == selectedId;
                         frame.SetInteractable(isSelected);
                     }
                 }
