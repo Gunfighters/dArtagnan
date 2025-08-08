@@ -7,8 +7,8 @@ namespace Game.Player.Components
 {
     public class PlayerBalance : MonoBehaviour
     {
-        public int Balance { get; private set; }
         [SerializeField] private TextMeshProUGUI balanceText;
+        public int Balance { get; private set; }
 
         public void Initialize(PlayerInformation info)
         {
@@ -19,7 +19,7 @@ namespace Game.Player.Components
         {
             var gain = newBalance >= Balance;
             Balance = newBalance;
-            balanceText.text = $"${Balance}";
+            balanceText.text = Balance.ToString();
             balanceText.color = gain ? Color.green : Color.red;
             ResetBalanceTextColor().Forget();
         }

@@ -336,10 +336,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Spectating
       objectReference: {fileID: 0}
-    - target: {fileID: 7235903320906918703, guid: 8997e16c410a8412da25cd716632beb1, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 8465982617579687375, guid: 8997e16c410a8412da25cd716632beb1, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
