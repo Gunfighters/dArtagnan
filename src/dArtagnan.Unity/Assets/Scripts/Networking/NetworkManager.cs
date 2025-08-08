@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Sockets;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using Networking;
@@ -10,6 +11,7 @@ public class NetworkManager : MonoBehaviour, IChannelListener
     [Header("Config")] [SerializeField] private NetworkManagerConfig config;
     [SerializeField] private int targetFrameRate;
     private readonly Channel<IPacket> _channel = Channel.CreateSingleConsumerUnbounded<IPacket>();
+    private CancellationTokenSource _cancellationTokenSource;
 
     private TcpClient _client;
     private NetworkStream _stream;
@@ -28,6 +30,14 @@ public class NetworkManager : MonoBehaviour, IChannelListener
         }
     }
 
+    private void OnDestroy()
+    {
+        _cancellationTokenSource?.Cancel();
+        _cancellationTokenSource?.Dispose();
+        _stream?.Close();
+        _client?.Close();
+    }
+
     public void Initialize()
     {
         PacketChannel.On<MovementDataFromClient>(Send);
@@ -44,6 +54,7 @@ public class NetworkManager : MonoBehaviour, IChannelListener
 
     private void Connect(string host, int port)
     {
+        _cancellationTokenSource = new CancellationTokenSource();
         ConnectToServer(host, port)
             .ContinueWith(StartListeningLoop)
             .Forget();
@@ -85,11 +96,15 @@ public class NetworkManager : MonoBehaviour, IChannelListener
         await UniTask.SwitchToThreadPool();
         try
         {
-            while (true)
+            while (!_cancellationTokenSource.Token.IsCancellationRequested)
             {
                 var packet = NetworkUtils.ReceivePacketSync(_stream);
                 _channel.Writer.TryWrite(packet);
             }
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected when cancellation is requested
         }
         catch
         {
