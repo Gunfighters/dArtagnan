@@ -16,28 +16,29 @@ MonoBehaviour:
   - data:
       Id: 1
       Name: Boots
-      Description: Get 1.5x speed for 5 seconds.
+      Description: "5\uCD08 \uAC04 \uC774\uB3D9\uC18D\uB3C4\uAC00 1.5\uBC30\uAC00
+        \uB429\uB2C8\uB2E4."
       EnergyCost: 1
       Weight: 3
     icon: {fileID: 21300000, guid: 44f2803dad0404cbeb9ee038d70da104, type: 3}
   - data:
       Id: 2
       Name: Energy Drink
-      Description: Restore 4 units of energy.
+      Description: "\uD589\uB3D9\uB825 4\uCE78\uC744 \uC989\uC2DC \uD68C\uBCF5\uD569\uB2C8\uB2E4."
       EnergyCost: 0
       Weight: 3
     icon: {fileID: 21300000, guid: e9b7eec7fd9994fb982871fce788e178, type: 3}
   - data:
       Id: 3
       Name: Shield
-      Description: Immune to the next shot from enemy.
+      Description: "\uB2E4\uC74C \uD53C\uACA9\uC744 1\uD68C \uB9C9\uC2B5\uB2C8\uB2E4."
       EnergyCost: 2
       Weight: 3
     icon: {fileID: 21300000, guid: c28d54c4733dc4fc7bedc4189f66bfbc, type: 3}
   - data:
       Id: 4
       Name: Dice
-      Description: Reset the accuracy.
+      Description: "\uBA85\uC911\uB960\uC744 25-75% \uC0AC\uC774\uB85C \uC7AC\uC124\uC815\uD569\uB2C8\uB2E4."
       EnergyCost: 3
       Weight: 3
     icon: {fileID: 21300000, guid: 306521971e3ad46df87d172a8eace552, type: 3}

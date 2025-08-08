@@ -204,10 +204,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Get 1.5x speed for 5 seconds.
+  m_text: "\uC774\uB3D9\uC18D\uB3C4\uAC00 5\uCD08 \uB3D9\uC548 1.5\uBC30\uAC00 \uB429\uB2C8\uB2E4."
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: c1482dbce654844b9ba1c753cbea5d80, type: 2}
-  m_sharedMaterial: {fileID: 7374927986402738804, guid: c1482dbce654844b9ba1c753cbea5d80, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 933b58d67624b4ac8a089781c72eba8a, type: 2}
+  m_sharedMaterial: {fileID: 6908996379999708796, guid: 933b58d67624b4ac8a089781c72eba8a, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

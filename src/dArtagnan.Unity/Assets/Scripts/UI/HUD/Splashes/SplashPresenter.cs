@@ -17,21 +17,20 @@ namespace UI.HUD.Splashes
             SplashModel
                 .Winners
                 .Subscribe(winners =>
-            {
-                var joined = winners.Any() ? string.Join(", ", winners) : "NOBODY";
-                var haveHas = winners.Count > 1 ? " HAVE" : " HAS";
-                const string won = " WON!";
-                view
-                    .roundOverSplash
-                    .GetComponentInChildren<TextMeshProUGUI>()
-                    .text = joined + haveHas + won;
-            });
+                {
+                    var joined = winners.Any() ? string.Join(", ", winners) + "플레이어가" : "아무도";
+                    var won = winners.Any() ? "승리했습니다!" : "승리하지 못했습니다!";
+                    view
+                        .roundOverSplash
+                        .GetComponentInChildren<TextMeshProUGUI>()
+                        .text = joined + won;
+                });
             SplashModel
                 .RoundIndex
                 .Subscribe(i =>
                     view.roundStartSplash
-                        .GetComponentInChildren<TextMeshProUGUI>()
-                        .text = $"ROUND #{i}"
+                            .GetComponentInChildren<TextMeshProUGUI>()
+                            .text = $"제{i}라운드"
                 );
         }
     }

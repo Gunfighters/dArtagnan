@@ -1250,30 +1250,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Controls
       objectReference: {fileID: 0}
-    - target: {fileID: 6612363389810110391, guid: 3826464c974ee4333bede81804bfb567, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6612363389810110391, guid: 3826464c974ee4333bede81804bfb567, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6612363389810110391, guid: 3826464c974ee4333bede81804bfb567, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6612363389810110391, guid: 3826464c974ee4333bede81804bfb567, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6612363389810110391, guid: 3826464c974ee4333bede81804bfb567, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6612363390441390638, guid: 3826464c974ee4333bede81804bfb567, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 6926573713457470001, guid: 3826464c974ee4333bede81804bfb567, type: 3}
       propertyPath: m_PresetInfoIsWorld
       value: 0
