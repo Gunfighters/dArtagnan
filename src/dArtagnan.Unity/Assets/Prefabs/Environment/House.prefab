@@ -26,8 +26,8 @@ Transform:
   m_GameObject: {fileID: 6317493819022325785}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.0387, y: -0.92, z: 0}
-  m_LocalScale: {x: 2.215839, y: 1, z: 1}
+  m_LocalPosition: {x: -0.044, y: -0.641, z: 0}
+  m_LocalScale: {x: 2.27, y: 1.515, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7653625559524022773}
@@ -75,9 +75,9 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 10
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -98,6 +98,7 @@ GameObject:
   - component: {fileID: 7653625559524022773}
   - component: {fileID: 5181549982082252484}
   - component: {fileID: 8739076341745412090}
+  - component: {fileID: 8275907308889631980}
   m_Layer: 6
   m_Name: House
   m_TagString: Untagged
@@ -222,3 +223,16 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 2.2704387, y: 1.5155314}
   m_EdgeRadius: 0
+--- !u!114 &8275907308889631980
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8060598337380975587}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac478c668caa430d9f2e49980f0eb31b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  square: {fileID: 4830007018679571522}
