@@ -1,3 +1,4 @@
+using dArtagnan.Shared;
 using Game;
 using Game.Player.Components;
 using UnityEngine;
@@ -7,6 +8,7 @@ namespace UI.HUD.Controls
 {
     public class MovementJoystick : MonoBehaviour
     {
+        private Vector2 _lastInputDirection;
         private VariableJoystick _variableJoystick;
         private bool Moving => _variableJoystick.Direction != Vector2.zero;
         private Vector2 InputVectorSnapped => _variableJoystick.Direction.DirectionToInt().IntToDirection();
@@ -17,9 +19,19 @@ namespace UI.HUD.Controls
         private void Update()
         {
             var newDirection = GetInputDirection();
-            if (newDirection == LocalPlayer.Physics.MovementData.Direction.IntToDirection()) return;
-            if (LocalPlayer.Craft.Crafting) return;
+            if (LocalPlayer.Craft.Crafting)
+            {
+                if (newDirection != _lastInputDirection && newDirection != Vector2.zero)
+                {
+                    PacketChannel.Raise(new UpdateItemCreatingStateFromClient { IsCreatingItem = false });
+                }
+
+                newDirection = Vector2.zero;
+            }
+
+            _lastInputDirection = GetInputDirection();
             LocalPlayer.Physics.SetDirection(newDirection.normalized);
+            if (newDirection == LocalPlayer.Physics.MovementData.Direction.IntToDirection()) return;
             PacketChannel.Raise(LocalPlayer.Physics.MovementData);
         }
 

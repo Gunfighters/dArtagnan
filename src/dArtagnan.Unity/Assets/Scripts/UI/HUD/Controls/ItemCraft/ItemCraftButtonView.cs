@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace UI.HUD.Controls.ItemCraft
 {
-    public class ItemCraftButtonView : MonoBehaviour, IPointerUpHandler, IPointerDownHandler, IPointerEnterHandler,
+    public class ItemCraftButtonView : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler,
         IPointerExitHandler
     {
         [SerializeField] private Image craftIcon;
@@ -19,10 +19,8 @@ namespace UI.HUD.Controls.ItemCraft
         [SerializeField] private TextMeshProUGUI costText;
         [SerializeField] private GameObject descriptionBox;
         [SerializeField] private TextMeshProUGUI descriptionText;
+        private bool _hasItem;
         private InGameItem _item;
-        private bool canUseItem;
-        private bool hasItem;
-        private bool insideButton;
 
         private void Awake()
         {
@@ -43,49 +41,33 @@ namespace UI.HUD.Controls.ItemCraft
             filler.fillAmount = ratio;
         }
 
-        public void OnPointerDown(PointerEventData eventData)
+        public void OnPointerClick(PointerEventData eventData)
         {
-            if (!hasItem)
+            if (_hasItem)
+                PacketChannel.Raise(new UseItemFromClient());
+            else
             {
+                PlayerGeneralManager.LocalPlayerCore.Physics.Stop();
+                PacketChannel.Raise(PlayerGeneralManager.LocalPlayerCore.Physics.MovementData);
                 PacketChannel.Raise(new UpdateItemCreatingStateFromClient { IsCreatingItem = true });
-                canUseItem = false;
             }
         }
 
         public void OnPointerEnter(PointerEventData eventData)
         {
             transform.localScale = Vector3.one * 1.1f;
-            descriptionBox.SetActive(hasItem);
-            insideButton = true;
+            descriptionBox.SetActive(_hasItem);
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
             transform.localScale = Vector3.one;
             descriptionBox.SetActive(false);
-            insideButton = false;
-        }
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            switch (hasItem)
-            {
-                case true when canUseItem && insideButton:
-                    PacketChannel.Raise(new UseItemFromClient());
-                    descriptionBox.SetActive(false);
-                    break;
-                case false:
-                    PacketChannel.Raise(new UpdateItemCreatingStateFromClient { IsCreatingItem = false });
-                    break;
-                default:
-                    canUseItem = hasItem;
-                    break;
-            }
         }
 
         public void ShowItem(ItemId id)
         {
-            hasItem = true;
+            _hasItem = true;
             _item = itemCollection.items.First(item => item.data.Id == id);
             currentItemIcon.sprite = _item.icon;
             costText.text = _item.data.EnergyCost.ToString();
@@ -97,7 +79,7 @@ namespace UI.HUD.Controls.ItemCraft
         public void HideItem()
         {
             costText.text = Constants.CRAFT_ENERGY_COST.ToString();
-            hasItem = false;
+            _hasItem = false;
             currentItemIcon.enabled = false;
             craftIcon.enabled = true;
         }
