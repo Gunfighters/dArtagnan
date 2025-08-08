@@ -192,6 +192,8 @@ MonoBehaviour:
   JoystickAxis: {fileID: 5099327684154690118}
   HandleOutline: {fileID: 7053586859434282798}
   Icon: {fileID: 2561801994423707800}
+  costEnergyIcon: {fileID: 7336822072300507421}
+  costText: {fileID: 1360634706105217338}
 --- !u!82 &1038732753952459884
 AudioSource:
   m_ObjectHideFlags: 0
@@ -574,8 +576,30 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c98e5d92348a244468b14aedb8fccfa6, type: 3}
+--- !u!114 &1360634706105217338 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8037077782554154614, guid: c98e5d92348a244468b14aedb8fccfa6, type: 3}
+  m_PrefabInstance: {fileID: 9036645994299336524}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &2570729373398185638 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6829019552654070250, guid: c98e5d92348a244468b14aedb8fccfa6, type: 3}
   m_PrefabInstance: {fileID: 9036645994299336524}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7336822072300507421 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1781522653691819601, guid: c98e5d92348a244468b14aedb8fccfa6, type: 3}
+  m_PrefabInstance: {fileID: 9036645994299336524}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

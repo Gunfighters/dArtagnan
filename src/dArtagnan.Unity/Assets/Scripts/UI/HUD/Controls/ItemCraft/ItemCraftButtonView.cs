@@ -12,10 +12,12 @@ namespace UI.HUD.Controls.ItemCraft
     public class ItemCraftButtonView : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler,
         IPointerExitHandler
     {
+        [SerializeField] private Image outline;
         [SerializeField] private Image craftIcon;
         [SerializeField] private Image currentItemIcon;
         [SerializeField] private Image filler;
         [SerializeField] private ItemSo itemCollection;
+        [SerializeField] private Image costIcon;
         [SerializeField] private TextMeshProUGUI costText;
         [SerializeField] private GameObject descriptionBox;
         [SerializeField] private TextMeshProUGUI descriptionText;
@@ -32,13 +34,29 @@ namespace UI.HUD.Controls.ItemCraft
 
         private void Update()
         {
-            var ratio = PlayerGeneralManager
-                            .LocalPlayerCore
-                            .Energy
-                            .EnergyData
-                            .CurrentEnergy /
-                        Constants.CRAFT_ENERGY_COST;
-            filler.fillAmount = ratio;
+            if (_hasItem)
+            {
+                filler.fillAmount = 0;
+                outline.color = Color.green;
+                costIcon.color = costText.color =
+                    _item.data.EnergyCost <= PlayerGeneralManager.LocalPlayerCore.Energy.EnergyData.CurrentEnergy
+                        ? Color.white
+                        : Color.grey;
+            }
+            else
+            {
+                var ratio = PlayerGeneralManager
+                                .LocalPlayerCore
+                                .Energy
+                                .EnergyData
+                                .CurrentEnergy /
+                            Constants.CRAFT_ENERGY_COST;
+                filler.fillAmount = ratio;
+                craftIcon.color = costIcon.color = costText.color = ratio >= 1 ? Color.white : Color.grey;
+                outline.color = ratio >= 1 && !PlayerGeneralManager.LocalPlayerCore.Craft.Crafting
+                    ? Color.green
+                    : Color.grey;
+            }
         }
 
         public void OnPointerClick(PointerEventData eventData)

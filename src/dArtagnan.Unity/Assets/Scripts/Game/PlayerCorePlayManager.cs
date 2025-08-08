@@ -25,7 +25,7 @@ namespace Game
             PacketChannel.On<UpdateMinEnergyToShootBroadcast>(OnMinEnergyUpdate);
             PacketChannel.On<ItemUsedBroadcast>(OnItemUse);
             PacketChannel.On<UpdateSpeedBroadcast>(OnSpeedUpdate);
-            
+            PacketChannel.On<UpdateActiveEffectsBroadcast>(OnActiveFx);
         }
 
         private void OnPlayerMovementData(MovementDataBroadcast e)
@@ -137,6 +137,12 @@ namespace Game
         {
             var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
             updated!.Physics.SetSpeed(e.Speed);
+        }
+
+        private void OnActiveFx(UpdateActiveEffectsBroadcast e)
+        {
+            var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
+            updated!.Fx.UpdateFx(e.ActiveEffects);
         }
     }
 }

@@ -318,10 +318,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9584cc9e1540475695665724b9cfbcc6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  outline: {fileID: 8622411819963423546}
   craftIcon: {fileID: 588379323953124720}
   currentItemIcon: {fileID: 4292480122063640091}
   filler: {fileID: 2539552712166219437}
   itemCollection: {fileID: 11400000, guid: 4ada8f966af1b4fb3afb897f98bf5079, type: 2}
+  costIcon: {fileID: 2951646159632651383}
   costText: {fileID: 6901212585367139408}
   descriptionBox: {fileID: 3783796268944820694}
   descriptionText: {fileID: 3783796268300821571}
@@ -422,6 +424,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c98e5d92348a244468b14aedb8fccfa6, type: 3}
+--- !u!114 &2951646159632651383 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1781522653691819601, guid: c98e5d92348a244468b14aedb8fccfa6, type: 3}
+  m_PrefabInstance: {fileID: 3481115253231608358}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &6901212585367139408 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8037077782554154614, guid: c98e5d92348a244468b14aedb8fccfa6, type: 3}

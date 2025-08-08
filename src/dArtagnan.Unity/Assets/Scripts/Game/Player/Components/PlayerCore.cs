@@ -1,6 +1,5 @@
 using dArtagnan.Shared;
 using Game.Misc;
-using TMPro;
 using UnityEngine;
 
 namespace Game.Player.Components
@@ -18,8 +17,8 @@ namespace Game.Player.Components
         public PlayerEnergy Energy { get; private set; }
         public PlayerBalance Balance { get; private set; }
         public PlayerTrajectory Trajectory { get; private set; }
-
         public PlayerCraft Craft { get; private set; }
+        public PlayerFx Fx { get; private set; }
 
         public Color MyColor => colorPool.colors[ID - 1];
 
@@ -34,6 +33,7 @@ namespace Game.Player.Components
             Balance = GetComponent<PlayerBalance>();
             Trajectory = GetComponent<PlayerTrajectory>();
             Craft = GetComponent<PlayerCraft>();
+            Fx = GetComponent<PlayerFx>();
         }
 
         private void SetNickname(string newNickname)
@@ -61,6 +61,7 @@ namespace Game.Player.Components
             Balance.Initialize(info);
             Trajectory.Initialize(info);
             Craft.Initialize(info);
+            Fx.Initialize(info);
         }
     }
 }

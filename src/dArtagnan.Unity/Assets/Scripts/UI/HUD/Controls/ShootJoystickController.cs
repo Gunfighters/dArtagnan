@@ -1,6 +1,7 @@
 using dArtagnan.Shared;
 using Game;
 using Game.Player.Components;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -15,6 +16,13 @@ namespace UI.HUD.Controls
         public Image JoystickAxis;
         public Image HandleOutline;
         public Image Icon;
+        public Image costEnergyIcon;
+        public TextMeshProUGUI costText;
+
+        private readonly Color _orange = new(1.0f, 0.64f, 0.0f);
+
+        private bool _aiming = false;
+        private bool _reloading = true;
         private PlayerCore LocalPlayer => PlayerGeneralManager.LocalPlayerCore;
 
         private float RemainingReloadTime => Mathf.Max(0,
@@ -22,11 +30,6 @@ namespace UI.HUD.Controls
 
         private float TotalReloadTime => LocalPlayer.Energy.MinEnergyToShoot;
         private bool Shootable => RemainingReloadTime <= 0;
-        private bool _reloading = true;
-
-        private readonly Color _orange = new(1.0f, 0.64f, 0.0f);
-
-        private bool _aiming = false;
 
         private void Update()
         {
@@ -41,13 +44,13 @@ namespace UI.HUD.Controls
             }
 
             if (!Shootable)
-                HandleOutline.color = Icon.color = Color.grey;
+                HandleOutline.color = Icon.color = costEnergyIcon.color = costText.color = Color.grey;
             else if (LocalPlayer.Shoot.CalculateTarget(Vector2.zero) is null)
-                HandleOutline.color = Icon.color = _orange;
+                HandleOutline.color = Icon.color = costEnergyIcon.color = costText.color = _orange;
             else
             {
                 HandleOutline.color = Color.red;
-                Icon.color = Color.white;
+                Icon.color = costEnergyIcon.color = costText.color = Color.white;
             }
 
             shootingJoystick.enabled = Shootable;
