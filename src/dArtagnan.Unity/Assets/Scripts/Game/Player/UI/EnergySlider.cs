@@ -5,12 +5,12 @@ namespace Game.Player.UI
 {
     public class EnergySlider : MonoBehaviour
     {
-        private Slider _slider;
         [SerializeField] private Image fill;
         [SerializeField] private Image thresholdMarker;
         [SerializeField] private Sprite normalFill;
         [SerializeField] private Sprite loadedFill;
         [SerializeField] private RectTransform ruler;
+        private Slider _slider;
         private int _threshold;
 
         private void Awake()
@@ -28,7 +28,7 @@ namespace Game.Player.UI
         public void SetThreshold(int threshold)
         {
             _threshold = threshold;
-            thresholdMarker.rectTransform.anchoredPosition = new Vector2(36 * threshold + 3, 0);
+            thresholdMarker.rectTransform.anchoredPosition = new Vector2(36 * threshold + 30, 0);
         }
 
         public void SetMax(int max)
