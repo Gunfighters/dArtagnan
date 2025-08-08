@@ -26,7 +26,7 @@ MonoBehaviour:
       Description: Restore 4 units of energy.
       EnergyCost: 0
       Weight: 3
-    icon: {fileID: 21300000, guid: b7d7e36f0c41c4316a6ea75d0a9321a6, type: 3}
+    icon: {fileID: 21300000, guid: e9b7eec7fd9994fb982871fce788e178, type: 3}
   - data:
       Id: 3
       Name: Shield
