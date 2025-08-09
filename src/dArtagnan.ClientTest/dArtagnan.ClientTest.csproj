@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\dArtagnan.Shared\dArtagnan.Shared.csproj" />
+    <PackageReference Include="SocketIOClient" Version="3.0.8" />
   </ItemGroup>
 
   <PropertyGroup>

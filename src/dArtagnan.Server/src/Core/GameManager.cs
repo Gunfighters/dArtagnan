@@ -154,12 +154,20 @@ public class GameManager
             await SetHost(nextHost);
         }
 
-        // 실제 플레이어(봇이 아닌)가 없으면 게임을 대기 상태로 초기화
+        // 실제 플레이어(봇이 아닌)가 없으면 컨테이너 기반 단일 세션 서버는 종료
+        // DEV_MODE 일 때는 Waiting 상태로 전환
         var realPlayers = Players.Values.Where(p => p is not Bot).ToList();
         if (realPlayers.Count == 0)
         {
-            Console.WriteLine("[게임] 실제 플레이어가 모두 나가서 게임을 대기 상태로 초기화합니다");
-            await StartWaitingStateAsync();
+            if (!Program.DEV_MODE)
+            {
+                Environment.Exit(0);
+            }
+            else
+            {
+                Console.WriteLine("[게임] 실제 플레이어가 모두 나가서 게임을 대기 상태로 초기화합니다");
+                await StartWaitingStateAsync();
+            }
         }
     }
 
@@ -413,7 +421,8 @@ public class GameManager
             if (ShouldEndGame())
             {
                 await AnnounceGameWinner();
-                //await Task.Delay(2500);
+                await Task.Delay(2500);
+              await Task.Delay(2500);
                 await StartWaitingStateAsync();
             }
             else
@@ -539,6 +548,8 @@ public class GameManager
             Round = Round,
             BettingAmount = BettingAmounts[Round - 1]
         });
+
+        LobbyReporter.ReportState(1);
     }
 
     /// <summary>
@@ -555,6 +566,7 @@ public class GameManager
         await BroadcastToAll(new WaitingStartFromServer { PlayersInfo = PlayersInRoom() });
 
         await RemoveAllBots();
+        LobbyReporter.ReportState(0);
     }
 
     /// <summary>
@@ -577,6 +589,8 @@ public class GameManager
 
         // 모든 플레이어에게 룰렛 시작 브로드캐스트
         await BroadcastRouletteStart(accuracyPool);
+
+        LobbyReporter.ReportState(2);
     }
 
     public void InitToRoulette()

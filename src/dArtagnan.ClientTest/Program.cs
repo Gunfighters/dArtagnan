@@ -3,11 +3,17 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Numerics;
 using dArtagnan.Shared;
+using SocketIOClient;
+using System.Text.Json;
+using System.Net.Http;
 
 namespace dArtagnan.ClientTest;
 
 internal class Program
 {
+    private static SocketIO? lobby;
+    private static string? lobbyUrl;
+    private static string? sessionId;
     private static TcpClient? client;
     private static NetworkStream? stream;
     private static bool isConnected = false;
@@ -41,17 +47,20 @@ internal class Program
     {
         Console.WriteLine("=== D'Artagnan 테스트 클라이언트 ===");
         Console.WriteLine("명령어:");
-        Console.WriteLine("  c/connect [0/1] - 서버 연결 (0: localhost, 1: 54.180.85.77, 기본: 0)");
-        Console.WriteLine("  j/join [nickname] - 게임 참가");
+        Console.WriteLine("  lg/login [nickname?] [lobbyUrl?] - 로비 로그인 (기본: test http://localhost:3000)");
+        Console.WriteLine("  cr/create-room - 방 생성(로비 Socket.IO)");
+        Console.WriteLine("  jr/join-room [roomId?] - 방 참가(로비 Socket.IO, roomId 없으면 랜덤 배정/생성)");
+        Console.WriteLine("  c/connect [host?] [port?] - 게임 서버 직접 TCP 연결 (기본: localhost 3000)");
+        Console.WriteLine("  j/join [nickname?] - 게임 참가 (기본: TestPlayer)");
         Console.WriteLine("  s/start - 게임 시작");
-        Console.WriteLine("  d/dir [i] - 플레이어 이동 방향 변경");
+        Console.WriteLine("  d/dir [direction] - 플레이어 이동 방향 변경");
         Console.WriteLine("  sh/shoot [targetId] - 플레이어 공격");
         Console.WriteLine("  a/accuracy [state] - 정확도 상태 변경 (-1: 감소, 0: 유지, 1: 증가)");
-        Console.WriteLine("  ro/roulette [count] - 룰렛 돌리기 완료 패킷 전송 (기본: 1)");
+        Console.WriteLine("  r/roulette [count?] - 룰렛 돌리기 완료 패킷 전송 (기본: 1)");
         Console.WriteLine("  au/augment [index] - 증강 선택 (0, 1, 2 중 하나)");
-        Console.WriteLine("  ic/item-create [true/false] - 아이템 제작 시작/취소 (기본: true)");
-        Console.WriteLine("  iu/use-item [targetId] - 아이템 사용 (targetId는 선택적, 기본: -1)");
-        Console.WriteLine("  chat/msg [message] - 채팅 메시지 전송");
+        Console.WriteLine("  ic/item-create [true/false?] - 아이템 제작 시작/취소 (기본: true)");
+        Console.WriteLine("  iu/item-use [targetId?] - 아이템 사용 (기본: -1)");
+        Console.WriteLine("  m/msg/chat [message] - 채팅 메시지 전송");
         Console.WriteLine("  l/leave - 게임 나가기");
         Console.WriteLine("  q/quit - 종료");
         Console.WriteLine("=====================================");
@@ -81,11 +90,43 @@ internal class Program
         {
             switch (command)
             {
+                case "lg":
+                case "login":
+                    string nick = "test";
+                    string url = "http://localhost:3000";
+                    
+                    if (parts.Length >= 2)
+                        nick = parts[1];
+                    if (parts.Length >= 3)
+                        url = parts[2];
+                    
+                    lobbyUrl = url;
+                    await LobbyLogin(nick, lobbyUrl);
+                    break;
+
+                case "cr":
+                case "create-room":
+                    await LobbyEnsureConnected();
+                    await LobbyCreateRoom();
+                    break;
+
+                case "jr":
+                case "join-room":
+                    await LobbyEnsureConnected();
+                    var rid = parts.Length >= 2 ? parts[1] : string.Empty;
+                    await LobbyJoinRoom(rid);
+                    break;
+
                 case "c":
                 case "connect":
-                    var serverChoice = parts.Length > 1 ? int.Parse(parts[1]) : 0;
-                    var host = serverChoice == 1 ? "54.180.85.77" : "localhost";
-                    var port = 7777;
+                    string host = "localhost";
+                    int port = 3000;
+                    
+                    if (parts.Length >= 2)
+                        host = parts[1];
+                    if (parts.Length >= 3)
+                        port = int.Parse(parts[2]);
+                    
                     await ConnectToServer(host, port);
                     break;
 
@@ -109,7 +150,7 @@ internal class Program
                     }
                     else
                     {
-                        Console.WriteLine("사용법: d/dir [i]");
+                        Console.WriteLine("사용법: d/dir [direction]");
                     }
                     break;
                 
@@ -139,6 +180,7 @@ internal class Program
                     }
                     break;
 
+                case "r":
                 case "ro":
                 case "roulette":
                     if (parts.Length >= 2)
@@ -179,6 +221,7 @@ internal class Program
                     break;
 
                 case "iu":
+                case "item-use":
                 case "use-item":
                     if (parts.Length >= 2)
                     {
@@ -191,8 +234,9 @@ internal class Program
                     }
                     break;
 
-                case "chat":
+                case "m":
                 case "msg":
+                case "chat":
                     if (parts.Length >= 2)
                     {
                         var message = string.Join(" ", parts.Skip(1)); // 첫 번째 단어(명령어) 제외하고 나머지를 메시지로 합치기
@@ -200,7 +244,7 @@ internal class Program
                     }
                     else
                     {
-                        Console.WriteLine("사용법: chat/msg [message]");
+                        Console.WriteLine("사용법: m/msg/chat [message]");
                     }
                     break;
 
@@ -224,6 +268,127 @@ internal class Program
         {
             Console.WriteLine($"명령어 처리 오류: {ex.Message}");
         }
+    }
+
+    static async Task LobbyLogin(string nickname, string lobbyEndpoint)
+    {
+        // HTTP 로그인
+        try
+        {
+            using var http = new HttpClient();
+            var payload = new { nickname };
+            var json = System.Text.Json.JsonSerializer.Serialize(payload);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            var resp = await http.PostAsync(new Uri(new Uri(lobbyEndpoint), "/login"), content);
+            var body = await resp.Content.ReadAsStringAsync();
+            if (!resp.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"로그인 실패: {resp.StatusCode} {body}");
+                return;
+            }
+            var doc = System.Text.Json.JsonDocument.Parse(body);
+            sessionId = doc.RootElement.GetProperty("sessionId").GetString();
+            Console.WriteLine($"로그인 성공. sessionId={sessionId}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"로그인 오류: {ex.Message}");
+            return;
+        }
+
+        await LobbyConnect();
+    }
+
+    static async Task LobbyConnect()
+    {
+        if (lobby != null) return;
+        if (string.IsNullOrWhiteSpace(lobbyUrl) || string.IsNullOrWhiteSpace(sessionId))
+        {
+            Console.WriteLine("lobbyUrl 또는 sessionId가 없습니다. 먼저 login 명령 사용");
+            return;
+        }
+
+        lobby = new SocketIO(lobbyUrl, new SocketIOOptions
+        {
+            Auth = new { sessionId }
+        });
+
+        lobby.OnConnected += (_, _) => Console.WriteLine("[로비] 소켓 연결됨");
+        lobby.OnDisconnected += (_, _) => Console.WriteLine("[로비] 소켓 연결 끊김");
+
+        await lobby.ConnectAsync();
+    }
+
+    static async Task LobbyEnsureConnected()
+    {
+        if (lobby == null)
+        {
+            await LobbyConnect();
+        }
+    }
+
+    static async Task LobbyCreateRoom()
+    {
+        if (lobby == null) { Console.WriteLine("로비 소켓이 연결되지 않음"); return; }
+        var tcs = new TaskCompletionSource<bool>();
+        await lobby.EmitAsync("create_room", new { }, (SocketIOResponse response) =>
+        {
+            try
+            {
+                var payload = response.GetValue<JsonElement>(0);
+                var ok = payload.GetProperty("ok").GetBoolean();
+                if (!ok)
+                {
+                    Console.WriteLine($"방 생성 실패: {payload}");
+                }
+                else
+                {
+                    var roomId = payload.GetProperty("roomId").GetString();
+                    var ip = payload.GetProperty("ip").GetString();
+                    var port = payload.GetProperty("port").GetInt32();
+                    Console.WriteLine($"방 생성 성공 roomId={roomId} {ip}:{port}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ACK 파싱 오류: {ex.Message}");
+            }
+            finally { tcs.TrySetResult(true); }
+        });
+        await tcs.Task;
+    }
+
+    static async Task LobbyJoinRoom(string roomId)
+    {
+        if (lobby == null) { Console.WriteLine("로비 소켓이 연결되지 않음"); return; }
+        var tcs = new TaskCompletionSource<bool>();
+        await lobby.EmitAsync("join_room", new { roomId }, (SocketIOResponse response) =>
+        {
+            try
+            {
+                var payload = response.GetValue<JsonElement>(0);
+                var ok = payload.GetProperty("ok").GetBoolean();
+                if (!ok)
+                {
+                    var code = payload.TryGetProperty("code", out var codeEl) ? codeEl.GetString() : "unknown";
+                    Console.WriteLine($"방 참가 실패: {code}");
+                }
+                else
+                {
+                    var ip = payload.GetProperty("ip").GetString();
+                    var port = payload.GetProperty("port").GetInt32();
+                    var assignedId = payload.TryGetProperty("roomId", out var rid) ? rid.GetString() : roomId;
+                    Console.WriteLine($"방 참가 성공 roomId={assignedId} {ip}:{port}");
+                    _ = ConnectToServer(ip!, port);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ACK 파싱 오류: {ex.Message}");
+            }
+            finally { tcs.TrySetResult(true); }
+        });
+        await tcs.Task;
     }
 
     static async Task ConnectToServer(string host, int port)
@@ -265,17 +430,6 @@ internal class Program
         }
             
         stopwatch.Start();
-
-        try
-        {
-            var joinPacket = new JoinRequest();
-            await NetworkUtils.SendPacketAsync(stream, joinPacket);
-            Console.WriteLine($"게임 참가 요청을 보냈습니다: {nickname}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"게임 참가 실패: {ex.Message}");
-        }
     }
 
     static async Task SendDirection(int dir)
