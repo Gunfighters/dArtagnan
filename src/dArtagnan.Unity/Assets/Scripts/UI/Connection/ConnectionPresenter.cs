@@ -11,25 +11,31 @@ namespace UI.Connection
             view
                 .ipEndpointInputField
                 .OnValueChangedAsObservable()
-                .Subscribe(ConnectionModel.IPEndpoint.AsObserver());
+                .Subscribe(ConnectionModel.IPEndpoint.AsObserver())
+                .AddTo(view);
             view
                 .setAwsButton
                 .OnClickAsObservable()
-                .Subscribe(_ => ConnectionModel.IPEndpoint.Value = view.config.awsHost);
+                .Subscribe(_ => ConnectionModel.IPEndpoint.Value = view.config.awsHost)
+                .AddTo(view);
             view
                 .setLocalHostButton
                 .OnClickAsObservable()
-                .Subscribe(_ => ConnectionModel.IPEndpoint.Value = "localhost");
+                .Subscribe(_ => ConnectionModel.IPEndpoint.Value = "localhost")
+                .AddTo(view);
             view
                 .connectButton
                 .OnClickAsObservable()
-                .Subscribe(_ => ConnectionModel.Connect());
+                .Subscribe(_ => ConnectionModel.Connect())
+                .AddTo(view);
             ConnectionModel
                 .IPEndpoint
-                .Subscribe(value => view.ipEndpointInputField.text = value);
+                .Subscribe(value => view.ipEndpointInputField.text = value)
+                .AddTo(view);
             ConnectionModel
                 .IsConnecting
-                .Subscribe(connecting => view.connectButton.interactable = !connecting);
+                .Subscribe(connecting => view.connectButton.interactable = !connecting)
+                .AddTo(view);
         }
     }
 }

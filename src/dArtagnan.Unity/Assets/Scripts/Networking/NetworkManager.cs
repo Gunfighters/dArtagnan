@@ -15,6 +15,9 @@ public class NetworkManager : MonoBehaviour, IChannelListener
 
     private TcpClient _client;
     private NetworkStream _stream;
+    private bool _initialized;
+
+    private void Awake() => DontDestroyOnLoad(gameObject);
 
     private void Start()
     {
@@ -40,6 +43,8 @@ public class NetworkManager : MonoBehaviour, IChannelListener
 
     public void Initialize()
     {
+        if (_initialized) return;
+        _initialized = true;
         PacketChannel.On<MovementDataFromClient>(Send);
         PacketChannel.On<ShootingFromClient>(Send);
         PacketChannel.On<PlayerIsTargetingFromClient>(Send);
@@ -77,6 +82,7 @@ public class NetworkManager : MonoBehaviour, IChannelListener
         }
 
         _stream = _client.GetStream();
+        LocalEventChannel.InvokeOnConnectionSuccess();
     }
 
     private void Send<T>(T payload) where T : IPacket
