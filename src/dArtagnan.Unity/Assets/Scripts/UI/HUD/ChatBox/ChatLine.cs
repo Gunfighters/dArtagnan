@@ -1,38 +1,33 @@
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace UI.HUD.ChatBox
 {
     public class ChatLine : MonoBehaviour
     {
-        public TextMeshProUGUI content;
+        private TextMeshProUGUI _content;
         private bool _disappearing;
-        public Image ContainerImage { get; private set; }
 
         private void Awake()
         {
-            ContainerImage = GetComponent<Image>();
+            _content = GetComponent<TextMeshProUGUI>();
         }
 
         public void SetLine(string line)
         {
-            content.text = line;
+            _content.text = line;
         }
 
         public async UniTask FadeOut(float duration)
         {
             if (_disappearing) return;
             _disappearing = true;
-            while (ContainerImage.color.a > 0)
+            while (_content.color.a > 0)
             {
-                var imageColor = ContainerImage.color;
-                imageColor.a -= Time.deltaTime / duration;
-                ContainerImage.color = imageColor;
-                var textColor = content.color;
+                var textColor = _content.color;
                 textColor.a -= Time.deltaTime / duration;
-                content.color = textColor;
+                _content.color = textColor;
                 await UniTask.WaitForEndOfFrame();
             }
 

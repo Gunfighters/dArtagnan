@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using dArtagnan.Shared;
-using Game;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,35 +9,33 @@ namespace UI.HUD.Playing
 {
     public class AccuracyStateTabMenuView : MonoBehaviour
     {
-        public TextMeshProUGUI up;
-        public TextMeshProUGUI keep;
-        public TextMeshProUGUI down;
+        public Transform up;
+        public Transform keep;
+        public Transform down;
         public Image tabFocus;
         public Color highlightColor;
         public Color normalColor;
-        public event Action<int> OnSwitch;
 
         private void Awake()
         {
             AccuracyStateTabMenuPresenter.Initialize(this);
         }
 
+        public event Action<int> OnSwitch;
+
         public void Switch(int newState)
         {
             OnSwitch?.Invoke(newState);
         }
 
-        public void SwitchUIOnly(TextMeshProUGUI tab)
+        public void SwitchUIOnly(Transform tab)
         {
-            tabFocus.transform.SetParent(tab.transform);
-            var pos = tabFocus.transform.localPosition;
-            pos.x = 0;
-            tabFocus.transform.localPosition = pos;
-            tab.color = highlightColor;
-            List<TextMeshProUGUI> menuList = new() { up, keep, down };
+            tabFocus.transform.SetParent(tab.transform, false);
+            tab.GetComponentInChildren<TextMeshProUGUI>().color = highlightColor;
+            List<Transform> menuList = new() { up, keep, down };
             foreach (var menu in menuList.Where(menu => menu != tab))
             {
-                menu.color = normalColor;
+                menu.GetComponentInChildren<TextMeshProUGUI>().color = normalColor;
             }
         }
     }

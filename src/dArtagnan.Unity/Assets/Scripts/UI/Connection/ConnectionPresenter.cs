@@ -1,5 +1,4 @@
 using R3;
-using UnityEngine;
 
 namespace UI.Connection
 {
@@ -26,10 +25,10 @@ namespace UI.Connection
                 .Subscribe(_ => ConnectionModel.Connect());
             ConnectionModel
                 .IPEndpoint
-                .Subscribe(value => view.ipEndpointInputField.text = value);
+                .Subscribe(value => view.ipEndpointInputField.text = value).AddTo(view);
             ConnectionModel
                 .IsConnecting
-                .Subscribe(connecting => view.connectButton.interactable = !connecting);
+                .Subscribe(connecting => view.connectButton.interactable = !connecting).AddTo(view);
         }
     }
 }

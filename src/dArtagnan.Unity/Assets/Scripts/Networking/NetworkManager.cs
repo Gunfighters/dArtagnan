@@ -49,6 +49,7 @@ public class NetworkManager : MonoBehaviour, IChannelListener
         PacketChannel.On<AugmentDoneFromClient>(Send);
         PacketChannel.On<UpdateItemCreatingStateFromClient>(Send);
         PacketChannel.On<UseItemFromClient>(Send);
+        PacketChannel.On<ChatFromClient>(Send);
         LocalEventChannel.OnEndpointSelected += Connect;
     }
 
