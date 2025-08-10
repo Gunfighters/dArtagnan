@@ -13,7 +13,10 @@ namespace UI.HUD.Spectating.Carousel
                 .Subscribe(target =>
                 {
                     if (target is not null)
+                    {
                         view.colorSlot.color = target.MyColor;
+                        view.textSlot.text = target.Nickname;
+                    }
                 });
             view
                 .leftButton

@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,6 +9,7 @@ namespace UI.HUD.Spectating.Carousel
         public Button leftButton;
         public Button rightButton;
         public Image colorSlot;
+        public TextMeshProUGUI textSlot;
 
         private void Awake()
         {
