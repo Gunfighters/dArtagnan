@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6318902323193105242}
   - component: {fileID: 8616143920068903923}
   - component: {fileID: 8233963010235590487}
+  - component: {fileID: 2594421964466211884}
   m_Layer: 5
   m_Name: MinimapCanvas
   m_TagString: Untagged
@@ -84,6 +85,21 @@ MonoBehaviour:
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
   m_PresetInfoIsWorld: 0
+--- !u!114 &2594421964466211884
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7364492724264638124}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c97afc556caea1c44969477eb7ddec74, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ConformX: 1
+  ConformY: 1
+  Logging: 0
 --- !u!1001 &1769310483107490306
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -154,7 +170,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 833458796566728512, guid: cdcc7248c734f484c9eee106ede8125f, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -50
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 833458796566728512, guid: cdcc7248c734f484c9eee106ede8125f, type: 3}
       propertyPath: m_AnchoredPosition.y
