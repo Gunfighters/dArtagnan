@@ -51,7 +51,6 @@ internal class Program
         Console.WriteLine("  cr/create-room - 방 생성(로비 Socket.IO)");
         Console.WriteLine("  jr/join-room [roomId?] - 방 참가(로비 Socket.IO, roomId 없으면 랜덤 배정/생성)");
         Console.WriteLine("  c/connect [host?] [port?] - 게임 서버 직접 TCP 연결 (기본: localhost 3000)");
-        Console.WriteLine("  j/join [nickname?] - 게임 참가 (기본: TestPlayer)");
         Console.WriteLine("  s/start - 게임 시작");
         Console.WriteLine("  d/dir [direction] - 플레이어 이동 방향 변경");
         Console.WriteLine("  sh/shoot [targetId] - 플레이어 공격");
@@ -129,13 +128,7 @@ internal class Program
                     
                     await ConnectToServer(host, port);
                     break;
-
-                case "j":
-                case "join":
-                    var nickname = parts.Length > 1 ? parts[1] : "TestPlayer";
-                    await JoinGame(nickname);
-                    break;
-                    
+                
                 case "s":
                 case "start":
                     await StartGame();
@@ -331,7 +324,8 @@ internal class Program
     {
         if (lobby == null) { Console.WriteLine("로비 소켓이 연결되지 않음"); return; }
         var tcs = new TaskCompletionSource<bool>();
-        await lobby.EmitAsync("create_room", new { }, (SocketIOResponse response) =>
+        
+        await lobby.EmitAsync("create_room", response =>
         {
             try
             {
@@ -347,6 +341,7 @@ internal class Program
                     var ip = payload.GetProperty("ip").GetString();
                     var port = payload.GetProperty("port").GetInt32();
                     Console.WriteLine($"방 생성 성공 roomId={roomId} {ip}:{port}");
+                    Task.Run(async () => await ConnectToServer(ip!, port));
                 }
             }
             catch (Exception ex)
@@ -354,15 +349,17 @@ internal class Program
                 Console.WriteLine($"ACK 파싱 오류: {ex.Message}");
             }
             finally { tcs.TrySetResult(true); }
-        });
+        }, new { });
         await tcs.Task;
     }
 
-    static async Task LobbyJoinRoom(string roomId)
+    static async Task LobbyJoinRoom(string? roomId)
     {
         if (lobby == null) { Console.WriteLine("로비 소켓이 연결되지 않음"); return; }
         var tcs = new TaskCompletionSource<bool>();
-        await lobby.EmitAsync("join_room", new { roomId }, (SocketIOResponse response) =>
+        
+        object requestData = string.IsNullOrEmpty(roomId) ? new { } : new { roomId };
+        await lobby.EmitAsync("join_room", response =>
         {
             try
             {
@@ -379,7 +376,7 @@ internal class Program
                     var port = payload.GetProperty("port").GetInt32();
                     var assignedId = payload.TryGetProperty("roomId", out var rid) ? rid.GetString() : roomId;
                     Console.WriteLine($"방 참가 성공 roomId={assignedId} {ip}:{port}");
-                    _ = ConnectToServer(ip!, port);
+                    Task.Run(async () => await ConnectToServer(ip!, port));
                 }
             }
             catch (Exception ex)
@@ -387,7 +384,7 @@ internal class Program
                 Console.WriteLine($"ACK 파싱 오류: {ex.Message}");
             }
             finally { tcs.TrySetResult(true); }
-        });
+        }, requestData);
         await tcs.Task;
     }
 
@@ -412,24 +409,43 @@ internal class Program
 
             Console.WriteLine($"서버에 연결되었습니다: {host}:{port}");
             
-            // 연결 성공 후 자동으로 게임 참가
-            await JoinGame("TestPlayer");
+            // 연결 상태 모니터링 시작
+            _ = Task.Run(async () => await MonitorConnection());
         }
         catch (Exception ex)
         {
             Console.WriteLine($"서버 연결 실패: {ex.Message}");
         }
     }
-
-    static async Task JoinGame(string nickname)
+    
+    static async Task MonitorConnection()
     {
-        if (!isConnected || stream == null)
+        try
         {
-            Console.WriteLine("먼저 서버에 연결해주세요.");
-            return;
+            while (isConnected && client != null && client.Connected)
+            {
+                // 연결 상태 확인을 위한 작은 딜레이
+                await Task.Delay(1000);
+                
+                // 스트림이 읽기 가능한지 확인
+                if (stream != null && !stream.CanRead)
+                {
+                    break;
+                }
+            }
         }
-            
-        stopwatch.Start();
+        catch (Exception)
+        {
+            // 연결 오류 발생
+        }
+        finally
+        {
+            if (isConnected)
+            {
+                Console.WriteLine("서버와의 연결이 끊어졌습니다.");
+                await Disconnect();
+            }
+        }
     }
 
     static async Task SendDirection(int dir)
