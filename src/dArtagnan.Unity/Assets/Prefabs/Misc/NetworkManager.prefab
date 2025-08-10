@@ -10,12 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 4758414744428271299}
   - component: {fileID: 3056038483346782095}
-  - component: {fileID: 270576434676097986}
-  - component: {fileID: 2655052901297011441}
-  - component: {fileID: -7601000857679353151}
-  - component: {fileID: 1446410474570743357}
+  - component: {fileID: -1565456284384083479}
   m_Layer: 0
-  m_Name: GameManager
+  m_Name: NetworkManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -133,7 +130,7 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &270576434676097986
+--- !u!114 &-1565456284384083479
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -142,47 +139,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 1911721104961795121}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 31f94b65f80a4915a7975e838a4fc9bb, type: 3}
+  m_Script: {fileID: 11500000, guid: cbd1f4b5a0af4c34b7bebe285c8fd720, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  BGMInGame: {fileID: 8300000, guid: af82a872e67b740efb7c3e4afb78ae2d, type: 3}
-  BGMWaiting: {fileID: 8300000, guid: 28801ccd5cc5c4d3fa6a85a5e45b0cd5, type: 3}
-  BGMPlayer: {fileID: 3056038483346782095}
---- !u!114 &2655052901297011441
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1911721104961795121}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fd5d7875759c4427b5f3487b6d44b500, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  config: {fileID: 11400000, guid: 6fefd48da89e04651aadcc49fc04a47a, type: 2}
---- !u!114 &-7601000857679353151
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1911721104961795121}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f7265b16f98e447fbd0142a969da3499, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemCollection: {fileID: 11400000, guid: 4ada8f966af1b4fb3afb897f98bf5079, type: 2}
---- !u!114 &1446410474570743357
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1911721104961795121}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1b089180f4ba47f1b182b60531f67f90, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  config: {fileID: 11400000, guid: 6c934d44d01dd432aa117b578669fa39, type: 2}
+  targetFrameRate: 60
