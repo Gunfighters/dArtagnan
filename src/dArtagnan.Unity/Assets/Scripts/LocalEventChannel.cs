@@ -1,5 +1,4 @@
 using System;
-using Game.Player;
 using Game.Player.Components;
 using UnityEngine;
 
@@ -31,4 +30,7 @@ public static class LocalEventChannel
 
     public static event Action BackToConnection;
     public static void InvokeOnBackToConnection() => BackToConnection?.Invoke();
+
+    public static event Action<string, Color> OnAlertMessage;
+    public static void InvokeOnAlertMessage(string msg, Color color) => OnAlertMessage?.Invoke(msg, color);
 }

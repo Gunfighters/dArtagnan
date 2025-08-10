@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5818994644130635202}
   - component: {fileID: 8779714393885920747}
   - component: {fileID: 3830909487088608267}
+  - component: {fileID: 5417602650053451574}
   m_Layer: 5
   m_Name: SpectatingCanvas
   m_TagString: Untagged
@@ -103,6 +104,21 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &5417602650053451574
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6894849222696923551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c97afc556caea1c44969477eb7ddec74, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ConformX: 1
+  ConformY: 1
+  Logging: 0
 --- !u!1001 &4220400208311215054
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -113,7 +129,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2665207562029900541, guid: 633c098de35154f39a18933b1bf8547c, type: 3}
       propertyPath: m_Pivot.x
-      value: 0.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2665207562029900541, guid: 633c098de35154f39a18933b1bf8547c, type: 3}
       propertyPath: m_Pivot.y
@@ -121,7 +137,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2665207562029900541, guid: 633c098de35154f39a18933b1bf8547c, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2665207562029900541, guid: 633c098de35154f39a18933b1bf8547c, type: 3}
       propertyPath: m_AnchorMax.y
@@ -129,7 +145,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2665207562029900541, guid: 633c098de35154f39a18933b1bf8547c, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 0.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2665207562029900541, guid: 633c098de35154f39a18933b1bf8547c, type: 3}
       propertyPath: m_AnchorMin.y
@@ -137,7 +153,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2665207562029900541, guid: 633c098de35154f39a18933b1bf8547c, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 100
+      value: 700
       objectReference: {fileID: 0}
     - target: {fileID: 2665207562029900541, guid: 633c098de35154f39a18933b1bf8547c, type: 3}
       propertyPath: m_SizeDelta.y
