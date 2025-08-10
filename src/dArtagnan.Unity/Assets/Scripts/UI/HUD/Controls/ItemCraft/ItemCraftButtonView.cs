@@ -37,11 +37,16 @@ namespace UI.HUD.Controls.ItemCraft
             if (_hasItem)
             {
                 filler.fillAmount = 0;
-                outline.color = Color.green;
-                costIcon.color = costText.color =
-                    _item.data.EnergyCost <= PlayerGeneralManager.LocalPlayerCore.Energy.EnergyData.CurrentEnergy
-                        ? Color.white
-                        : Color.grey;
+                if (_item.data.EnergyCost <= PlayerGeneralManager.LocalPlayerCore.Energy.EnergyData.CurrentEnergy)
+                {
+                    outline.color = Color.green;
+                    costIcon.color = costText.color = currentItemIcon.color = Color.white;
+                }
+                else
+                {
+                    outline.color = Color.grey;
+                    costIcon.color = costText.color = currentItemIcon.color = Color.grey;
+                }
             }
             else
             {
@@ -62,12 +67,22 @@ namespace UI.HUD.Controls.ItemCraft
         public void OnPointerClick(PointerEventData eventData)
         {
             if (_hasItem)
-                PacketChannel.Raise(new UseItemFromClient());
+            {
+                if (PlayerGeneralManager.LocalPlayerCore.Energy.EnergyData.CurrentEnergy < _item.data.EnergyCost)
+                    LocalEventChannel.InvokeOnAlertMessage("에너지가 부족합니다", Color.yellow);
+                else
+                    PacketChannel.Raise(new UseItemFromClient());
+            }
             else
             {
-                PlayerGeneralManager.LocalPlayerCore.Physics.Stop();
-                PacketChannel.Raise(PlayerGeneralManager.LocalPlayerCore.Physics.MovementData);
-                PacketChannel.Raise(new UpdateItemCreatingStateFromClient { IsCreatingItem = true });
+                if (PlayerGeneralManager.LocalPlayerCore.Energy.EnergyData.CurrentEnergy < Constants.CRAFT_ENERGY_COST)
+                    LocalEventChannel.InvokeOnAlertMessage("에너지가 부족합니다", Color.yellow);
+                else
+                {
+                    PlayerGeneralManager.LocalPlayerCore.Physics.Stop();
+                    PacketChannel.Raise(PlayerGeneralManager.LocalPlayerCore.Physics.MovementData);
+                    PacketChannel.Raise(new UpdateItemCreatingStateFromClient { IsCreatingItem = true });
+                }
             }
         }
 

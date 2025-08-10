@@ -19,7 +19,7 @@ namespace UI.HUD.Controls
         public Image costEnergyIcon;
         public TextMeshProUGUI costText;
 
-        private readonly Color _orange = new(1.0f, 0.64f, 0.0f);
+        private readonly Color _orange = Color.Lerp(Color.red, Color.yellow, 0.5f);
 
         private bool _aiming = false;
         private bool _reloading = true;
@@ -73,6 +73,9 @@ namespace UI.HUD.Controls
         {
             JoystickAxis.enabled = false;
             _aiming = false;
+            if (PlayerGeneralManager.LocalPlayerCore.Energy.EnergyData.CurrentEnergy <
+                LocalPlayer.Energy.MinEnergyToShoot)
+                LocalEventChannel.InvokeOnAlertMessage("에너지가 부족합니다.", Color.yellow);
             if (Shootable && PlayerGeneralManager.LocalPlayerCore.Shoot.Target)
                 PacketChannel.Raise(new ShootingFromClient
                     { TargetId = PlayerGeneralManager.LocalPlayerCore.Shoot.Target.ID });

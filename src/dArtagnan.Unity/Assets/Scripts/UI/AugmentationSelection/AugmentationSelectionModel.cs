@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using R3;
 using UnityEngine;
@@ -22,6 +24,7 @@ namespace UI.AugmentationSelection
             Options.Value = e.AugmentOptions;
             SelectedAugmentId.Value = AugmentId.None;
             IsSelectionComplete.Value = false;
+            ScheduleForcedSelection().Forget();
         }
 
         public static void SelectAugmentation(AugmentId augmentId)
@@ -31,6 +34,12 @@ namespace UI.AugmentationSelection
             SelectedAugmentId.Value = augmentId;
             IsSelectionComplete.Value = true;
             PacketChannel.Raise(new AugmentDoneFromClient { SelectedAugmentID = (int)augmentId });
+        }
+
+        private static async UniTask ScheduleForcedSelection()
+        {
+            await UniTask.WaitForSeconds(15);
+            SelectAugmentation((AugmentId)Options.Value.First());
         }
     }
 }
