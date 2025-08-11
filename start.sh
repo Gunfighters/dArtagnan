@@ -30,15 +30,10 @@ echo "=== Server started ==="
 
 # AWS인 경우 퍼블릭 IP 설정
 if [ "$IS_AWS" = true ]; then
-    PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
-    if [ -n "$PUBLIC_IP" ]; then
-        echo "AWS 퍼블릭 IP: $PUBLIC_IP"
-        echo "Lobby: http://$PUBLIC_IP:3000"
-        export PUBLIC_IP
-    else
-        echo "Warning: Failed to get AWS public IP, using localhost"
-        echo "Lobby: http://localhost:3000"
-    fi
+    PUBLIC_IP="13.125.222.113"
+    echo "AWS 퍼블릭 IP: $PUBLIC_IP"
+    echo "Lobby: http://$PUBLIC_IP:3000"
+    export PUBLIC_IP
 else
     echo "Lobby: http://localhost:3000"
 fi
