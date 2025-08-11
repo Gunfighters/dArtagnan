@@ -18,6 +18,9 @@ public class LobbyManager : MonoBehaviour
 
     [Header("Server Settings")]
     public string lobbyUrl = "http://localhost:3000";
+    public string awsLobbyUrl = "http://13.125.222.113:3000";
+    
+    private bool useAwsServer = false;
 
     private string sessionId;
     private string nickname;
@@ -30,6 +33,7 @@ public class LobbyManager : MonoBehaviour
     public event Action<string> OnError;
     public event Action<LobbyProtocol.CreateRoomResult> OnCreateRoomResult;
     public event Action<LobbyProtocol.JoinRoomResult> OnJoinRoomResult;
+    public event Action<bool> OnServerChanged; // AWS 서버 사용 여부
 
     private void Awake()
     {
@@ -49,6 +53,32 @@ public class LobbyManager : MonoBehaviour
     private void OnDestroy()
     {
         DisconnectWebSocket();
+    }
+    
+    /// <summary>
+    /// 서버 선택 - localhost 또는 AWS
+    /// </summary>
+    public void SetServerType(bool useAws)
+    {
+        useAwsServer = useAws;
+        OnServerChanged?.Invoke(useAws);
+        Debug.Log($"[LobbyManager] Server changed to: {(useAws ? "AWS" : "Localhost")}");
+    }
+    
+    /// <summary>
+    /// 현재 선택된 서버 URL 반환
+    /// </summary>
+    public string GetCurrentServerUrl()
+    {
+        return useAwsServer ? awsLobbyUrl : lobbyUrl;
+    }
+    
+    /// <summary>
+    /// 현재 AWS 서버 사용 여부
+    /// </summary>
+    public bool IsUsingAwsServer()
+    {
+        return useAwsServer;
     }
 
     /// <summary>
@@ -72,7 +102,7 @@ public class LobbyManager : MonoBehaviour
         
         Debug.Log($"Sending JSON: {jsonData}");
         
-        using (UnityWebRequest request = new UnityWebRequest($"{lobbyUrl}/login", "POST"))
+        using (UnityWebRequest request = new UnityWebRequest($"{GetCurrentServerUrl()}/login", "POST"))
         {
             request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(jsonData));
             request.downloadHandler = new DownloadHandlerBuffer();
@@ -127,7 +157,7 @@ public class LobbyManager : MonoBehaviour
             webSocket = new ClientWebSocket();
             cancellationTokenSource = new CancellationTokenSource();
             
-            string wsUrl = lobbyUrl.Replace("http://", "ws://").Replace("https://", "wss://");
+            string wsUrl = GetCurrentServerUrl().Replace("http://", "ws://").Replace("https://", "wss://");
             await webSocket.ConnectAsync(new Uri(wsUrl), cancellationTokenSource.Token);
             
             Debug.Log("WebSocket connection successful.");

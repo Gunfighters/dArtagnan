@@ -8,6 +8,10 @@ public class LoginButton : MonoBehaviour
     [SerializeField] private TMP_InputField nicknameInputField;
     [SerializeField] private Button loginButton;
     [SerializeField] private TextMeshProUGUI statusText;
+    
+    [Header("서버 선택")]
+    [SerializeField] private Toggle serverToggle; // AWS/Localhost 토글
+    [SerializeField] private TextMeshProUGUI serverStatusText; // 현재 서버 표시
 
     private void Start()
     {
@@ -15,10 +19,19 @@ public class LoginButton : MonoBehaviour
         LobbyManager.Instance.OnLoginComplete += OnLoginComplete;
         LobbyManager.Instance.OnAuthComplete += OnAuthComplete;
         LobbyManager.Instance.OnError += OnError;
+        LobbyManager.Instance.OnServerChanged += OnServerChanged;
+        
+        // 서버 토글 이벤트 연결
+        if (serverToggle != null)
+        {
+            serverToggle.onValueChanged.AddListener(OnServerToggleChanged);
+            serverToggle.isOn = LobbyManager.Instance.IsUsingAwsServer();
+        }
         
         // 초기 상태 설정
         SetStatusText("Enter nickname and login");
         SetLoginButtonEnabled(true);
+        UpdateServerStatusText();
     }
 
     private void OnDestroy()
@@ -29,7 +42,10 @@ public class LoginButton : MonoBehaviour
             LobbyManager.Instance.OnLoginComplete -= OnLoginComplete;
             LobbyManager.Instance.OnAuthComplete -= OnAuthComplete;
             LobbyManager.Instance.OnError -= OnError;
+            LobbyManager.Instance.OnServerChanged -= OnServerChanged;
         }
+        
+        serverToggle?.onValueChanged.RemoveAllListeners();
     }
 
     /// <summary>
@@ -115,6 +131,36 @@ public class LoginButton : MonoBehaviour
         if (loginButton != null)
         {
             loginButton.interactable = enabled;
+        }
+    }
+    
+    /// <summary>
+    /// 서버 토글 변경 처리
+    /// </summary>
+    private void OnServerToggleChanged(bool useAws)
+    {
+        LobbyManager.Instance.SetServerType(useAws);
+        SetStatusText($"Server changed to {(useAws ? "AWS" : "Localhost")}");
+    }
+    
+    /// <summary>
+    /// 서버 변경 이벤트 처리
+    /// </summary>
+    private void OnServerChanged(bool useAws)
+    {
+        UpdateServerStatusText();
+    }
+    
+    /// <summary>
+    /// 서버 상태 텍스트 업데이트
+    /// </summary>
+    private void UpdateServerStatusText()
+    {
+        if (serverStatusText != null)
+        {
+            string serverType = LobbyManager.Instance.IsUsingAwsServer() ? "AWS" : "Localhost";
+            string serverUrl = LobbyManager.Instance.GetCurrentServerUrl();
+            serverStatusText.text = $"Server: {serverType}\n{serverUrl}";
         }
     }
 }

@@ -37,7 +37,18 @@ async function createRoom(roomId) {
     return rooms.get(roomId);
   }
 
-  const lobbyUrl = `http://host.docker.internal:${process.env.PORT || 3000}`;
+  // 컨테이너에서 로비 서버로 접근할 URL 결정
+  let lobbyUrl;
+  if (process.env.LOBBY_HOST_URL) {
+    // 환경변수가 설정된 경우 (수동 설정)
+    lobbyUrl = process.env.LOBBY_HOST_URL;
+  } else if (process.platform === 'win32') {
+    // Windows/Mac Docker Desktop
+    lobbyUrl = `http://host.docker.internal:${process.env.PORT || 3000}`;
+  } else {
+    // Linux (AWS 등) - Docker 기본 브리지 게이트웨이
+    lobbyUrl = `http://172.17.0.1:${process.env.PORT || 3000}`;
+  }
   console.log(`[DEBUG] Creating container for room ${roomId} with lobby URL: ${lobbyUrl}`);
 
   const container = await docker.createContainer({
