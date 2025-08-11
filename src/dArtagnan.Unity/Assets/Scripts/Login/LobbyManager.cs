@@ -16,7 +16,7 @@ public class LobbyManager : MonoBehaviour
 {
     public static LobbyManager Instance { get; private set; }
 
-    [Header("서버 설정")]
+    [Header("Server Settings")]
     public string lobbyUrl = "http://localhost:3000";
 
     private string sessionId;
@@ -24,8 +24,8 @@ public class LobbyManager : MonoBehaviour
     private ClientWebSocket webSocket;
     private CancellationTokenSource cancellationTokenSource;
     
-    // 이벤트
-    public event Action<bool, string> OnLoginComplete; // 성공 여부, 메시지
+    // Events
+    public event Action<bool, string> OnLoginComplete; // success, message
     public event Action OnAuthComplete;
     public event Action<string> OnError;
     public event Action<LobbyProtocol.CreateRoomResult> OnCreateRoomResult;
@@ -58,7 +58,7 @@ public class LobbyManager : MonoBehaviour
     {
         if (string.IsNullOrEmpty(inputNickname))
         {
-            OnLoginComplete?.Invoke(false, "닉네임을 입력해주세요");
+            OnLoginComplete?.Invoke(false, "Please enter a nickname.");
             return;
         }
 
@@ -70,7 +70,7 @@ public class LobbyManager : MonoBehaviour
         var loginRequest = new LoginRequest { nickname = inputNickname };
         string jsonData = JsonUtility.ToJson(loginRequest);
         
-        Debug.Log($"전송할 JSON: {jsonData}");
+        Debug.Log($"Sending JSON: {jsonData}");
         
         using (UnityWebRequest request = new UnityWebRequest($"{lobbyUrl}/login", "POST"))
         {
@@ -88,16 +88,16 @@ public class LobbyManager : MonoBehaviour
                     sessionId = response.sessionId;
                     nickname = response.nickname;
                     
-                    Debug.Log($"로그인 성공: {nickname} (세션: {sessionId})");
-                    OnLoginComplete?.Invoke(true, "로그인 성공");
+                    Debug.Log($"Login successful: {nickname} (Session: {sessionId})");
+                    OnLoginComplete?.Invoke(true, "Login successful.");
                     
                     // 웹소켓 연결 시작
                     ConnectWebSocket();
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"로그인 응답 파싱 오류: {e.Message}");
-                    OnLoginComplete?.Invoke(false, "로그인 응답 처리 중 오류가 발생했습니다");
+                    Debug.LogError($"Error parsing login response: {e.Message}");
+                    OnLoginComplete?.Invoke(false, "An error occurred while processing the login response.");
                 }
             }
             else
@@ -109,7 +109,7 @@ public class LobbyManager : MonoBehaviour
                 }
                 catch
                 {
-                    OnLoginComplete?.Invoke(false, $"로그인 실패: {request.responseCode}");
+                    OnLoginComplete?.Invoke(false, $"Login failed: {request.responseCode}");
                 }
             }
         }
@@ -130,7 +130,7 @@ public class LobbyManager : MonoBehaviour
             string wsUrl = lobbyUrl.Replace("http://", "ws://").Replace("https://", "wss://");
             await webSocket.ConnectAsync(new Uri(wsUrl), cancellationTokenSource.Token);
             
-            Debug.Log("웹소켓 연결 성공");
+            Debug.Log("WebSocket connection successful.");
             
             // 인증 메시지 전송
             var authMessage = new AuthMessage { type = "auth", sessionId = sessionId };
@@ -141,8 +141,8 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError($"웹소켓 연결 실패: {e.Message}");
-            OnError?.Invoke("서버 연결에 실패했습니다");
+            Debug.LogError($"WebSocket connection failed: {e.Message}");
+            OnError?.Invoke("Failed to connect to the server.");
         }
     }
 
@@ -180,7 +180,7 @@ public class LobbyManager : MonoBehaviour
             }
             catch (Exception e)
             {
-                Debug.LogError($"웹소켓 수신 오류: {e.Message}");
+                Debug.LogError($"WebSocket receive error: {e.Message}");
                 yield break;
             }
         }
@@ -196,13 +196,13 @@ public class LobbyManager : MonoBehaviour
             switch (typeMessage.type)
             {
                 case "auth_success":
-                    Debug.Log("인증 성공");
+                    Debug.Log("Authentication successful.");
                     OnAuthComplete?.Invoke();
                     break;
                     
                 case "error":
                     var errorMessage = JsonUtility.FromJson<ErrorMessage>(message);
-                    Debug.LogWarning($"서버 오류: {errorMessage.code}");
+                    Debug.LogWarning($"Server error: {errorMessage.code}");
                     OnError?.Invoke(errorMessage.code);
                     break;
                     
@@ -210,13 +210,19 @@ public class LobbyManager : MonoBehaviour
                     var createResponse = JsonUtility.FromJson<CreateRoomResponseMessage>(message);
                     if (createResponse.ok)
                     {
-                        OnCreateRoomResult?.Invoke(new LobbyProtocol.CreateRoomResult 
+                        var result = new LobbyProtocol.CreateRoomResult 
                         { 
                             success = true, 
                             roomId = createResponse.roomId, 
                             ip = createResponse.ip, 
                             port = createResponse.port 
-                        });
+                        };
+                        
+                        OnCreateRoomResult?.Invoke(result);
+                        
+                        Debug.Log($"[LobbyManager] Invoking ConnectToGameServer with {createResponse.ip}:{createResponse.port}");
+                        // NetworkManager에게 게임 서버 연결 요청
+                        ConnectToGameServer(createResponse.ip, createResponse.port);
                     }
                     break;
                     
@@ -224,21 +230,27 @@ public class LobbyManager : MonoBehaviour
                     var joinResponse = JsonUtility.FromJson<JoinRoomResponseMessage>(message);
                     if (joinResponse.ok)
                     {
-                        OnJoinRoomResult?.Invoke(new LobbyProtocol.JoinRoomResult 
+                        var result = new LobbyProtocol.JoinRoomResult 
                         { 
                             success = true, 
                             roomId = joinResponse.roomId ?? "", 
                             ip = joinResponse.ip, 
                             port = joinResponse.port 
-                        });
+                        };
+                        
+                        OnJoinRoomResult?.Invoke(result);
+                        
+                        Debug.Log($"[LobbyManager] Invoking ConnectToGameServer with {joinResponse.ip}:{joinResponse.port}");
+                        // NetworkManager에게 게임 서버 연결 요청
+                        ConnectToGameServer(joinResponse.ip, joinResponse.port);
                     }
                     break;
             }
         }
         catch (Exception e)
         {
-            Debug.LogError($"웹소켓 메시지 처리 오류: {e.Message}");
-            Debug.LogError($"메시지 내용: {message}");
+            Debug.LogError($"Error processing WebSocket message: {e.Message}");
+            Debug.LogError($"Message content: {message}");
         }
     }
 
@@ -249,7 +261,7 @@ public class LobbyManager : MonoBehaviour
     {
         if (webSocket?.State != WebSocketState.Open)
         {
-            OnError?.Invoke("서버 연결이 끊어졌습니다");
+            OnError?.Invoke("Server connection lost.");
             return;
         }
 
@@ -266,7 +278,7 @@ public class LobbyManager : MonoBehaviour
     {
         if (webSocket?.State != WebSocketState.Open)
         {
-            OnError?.Invoke("서버 연결이 끊어졌습니다");
+            OnError?.Invoke("Server connection lost.");
             return;
         }
 
@@ -288,7 +300,7 @@ public class LobbyManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"웹소켓 종료 중 오류: {e.Message}");
+            Debug.LogWarning($"Error while closing WebSocket: {e.Message}");
         }
         finally
         {
@@ -308,7 +320,21 @@ public class LobbyManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 게임 씬으로 이동 (TCP 연결 정보와 함께)
+    /// NetworkManager에게 게임 서버 연결을 요청
+    /// 기존 LocalEventChannel 시스템을 활용
+    /// </summary>
+    private void ConnectToGameServer(string ip, int port)
+    {
+        Debug.Log($"[LobbyManager] ConnectToGameServer called: {ip}:{port}");
+        Debug.Log($"[LobbyManager] About to invoke LocalEventChannel.InvokeOnEndpointSelected");
+        
+        // 기존 NetworkManager 시스템과 연동
+        LocalEventChannel.InvokeOnEndpointSelected(ip, port);
+        Debug.Log($"[LobbyManager] LocalEventChannel.InvokeOnEndpointSelected completed");
+    }
+    
+    /// <summary>
+    /// 게임 씬으로 이동 (TCP 연결 정보와 함께) - 호환성용 유지
     /// </summary>
     public void GoToGame(string gameServerIp, int gameServerPort)
     {
@@ -319,5 +345,3 @@ public class LobbyManager : MonoBehaviour
         SceneManager.LoadScene("Game"); // 게임 씬 이름에 맞게 수정
     }
 }
-
-// 이제 모든 프로토콜 클래스는 dArtagnan.Shared.LobbyProtocol에서 가져와서 사용합니다.

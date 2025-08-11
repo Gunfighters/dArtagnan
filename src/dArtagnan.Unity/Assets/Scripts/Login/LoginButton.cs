@@ -17,7 +17,7 @@ public class LoginButton : MonoBehaviour
         LobbyManager.Instance.OnError += OnError;
         
         // 초기 상태 설정
-        SetStatusText("닉네임을 입력하고 로그인하세요");
+        SetStatusText("Enter nickname and login");
         SetLoginButtonEnabled(true);
     }
 
@@ -41,12 +41,12 @@ public class LoginButton : MonoBehaviour
 
         if (string.IsNullOrEmpty(nickname))
         {
-            SetStatusText("닉네임을 입력해주세요");
+            SetStatusText("Please enter a nickname");
             return;
         }
 
         // 로그인 시작
-        SetStatusText("로그인 중...");
+        SetStatusText("Logging in...");
         SetLoginButtonEnabled(false);
         
         LobbyManager.Instance.Login(nickname);
@@ -59,12 +59,12 @@ public class LoginButton : MonoBehaviour
     {
         if (success)
         {
-            SetStatusText("서버 연결 중...");
+            SetStatusText("Connecting to server...");
             // 웹소켓 연결은 LobbyManager에서 자동으로 처리됨
         }
         else
         {
-            SetStatusText($"로그인 실패: {message}");
+            SetStatusText($"Login failed: {message}");
             SetLoginButtonEnabled(true);
         }
     }
@@ -74,7 +74,7 @@ public class LoginButton : MonoBehaviour
     /// </summary>
     private void OnAuthComplete()
     {
-        SetStatusText("로그인 성공! 로비로 이동합니다...");
+        SetStatusText("Login successful! Moving to lobby...");
         
         // 1초 후 로비 씬으로 이동
         Invoke(nameof(GoToLobby), 1f);
@@ -85,7 +85,7 @@ public class LoginButton : MonoBehaviour
     /// </summary>
     private void OnError(string errorCode)
     {
-        SetStatusText($"오류: {errorCode}");
+        SetStatusText($"Error: {errorCode}");
         SetLoginButtonEnabled(true);
     }
 

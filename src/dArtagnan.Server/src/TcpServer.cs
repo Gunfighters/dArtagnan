@@ -30,6 +30,10 @@ public class TcpServer
         try
         {
             Console.WriteLine($"D'Artagnan TCP 서버가 포트 {port}에서 클라이언트 연결을 기다리는 중...");
+            
+            LobbyReporter.ReportState(0);
+            Console.WriteLine("게임 서버 준비 완료 - 로비 서버에 신호 전송됨");
+            
             while (true)
             {
                 try

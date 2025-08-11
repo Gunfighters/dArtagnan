@@ -60,6 +60,7 @@ public class NetworkManager : MonoBehaviour, IChannelListener
 
     private void Connect(string host, int port)
     {
+        Debug.Log($"[NetworkManager] Connect called with {host}:{port}");
         _cancellationTokenSource = new CancellationTokenSource();
         ConnectToServer(host, port)
             .ContinueWith(StartListeningLoop)
@@ -68,22 +69,32 @@ public class NetworkManager : MonoBehaviour, IChannelListener
 
     private async UniTask ConnectToServer(string host, int port)
     {
-        Debug.Log($"Connecting to: {host}:{port}");
+        Debug.Log($"[NetworkManager] Starting TCP connection to: {host}:{port}");
         _client = new TcpClient();
         _client.NoDelay = true;
+        
+        // 연결 시도 전 상태 로그
+        Debug.Log($"[NetworkManager] TcpClient created, attempting connection...");
+        
         try
         {
+            var startTime = System.DateTime.Now;
             await _client.ConnectAsync(host, port).AsUniTask();
+            var endTime = System.DateTime.Now;
+            Debug.Log($"[NetworkManager] TCP connection successful! Time taken: {(endTime - startTime).TotalMilliseconds}ms");
         }
         catch (Exception e)
         {
-            Debug.LogError(e);
+            Debug.LogError($"[NetworkManager] TCP connection failed: {e.GetType().Name}: {e.Message}");
+            Debug.LogError($"[NetworkManager] Stack trace: {e.StackTrace}");
             LocalEventChannel.InvokeOnConnectionFailure();
             return;
         }
 
         _stream = _client.GetStream();
+        Debug.Log($"[NetworkManager] Network stream obtained successfully");
         LocalEventChannel.InvokeOnConnectionSuccess();
+        Debug.Log($"[NetworkManager] Connection success event invoked");
     }
 
     private void Send<T>(T payload) where T : IPacket
