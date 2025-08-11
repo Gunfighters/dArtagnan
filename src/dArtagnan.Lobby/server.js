@@ -2,12 +2,16 @@ import express from 'express';
 import Docker from 'dockerode';
 import net from 'node:net';
 import http from 'http';
-import { Server as SocketIOServer } from 'socket.io';
+import { WebSocketServer } from 'ws';
+import crypto from 'crypto';
 
 const app = express();
 const httpServer = http.createServer(app);
-const io = new SocketIOServer(httpServer, { cors: { origin: '*' } });
+const wss = new WebSocketServer({ server: httpServer });
 app.use(express.json());
+
+// WebSocket 연결 관리
+const connections = new Map(); // ws -> { sessionId, nickname }
 
 // Docker 연결 (플랫폼 자동 감지)
 const docker = process.platform === 'win32' 
@@ -100,12 +104,26 @@ function generateRoomId() {
 // 로그인
 app.post('/login', (req, res) => {
   const nickname = (req.body?.nickname || '').trim();
+  if (!nickname) {
+    return res.status(400).json({
+      code: 'null_nickname',
+      message: '올바른 닉네임을 입력해주세요 (1-16자)'
+    });
+  }
   if (!nickname || nickname.length < 1 || nickname.length > 16) {
-    return res.status(400).json({ error: 'invalid_nickname' });
+    return res.status(400).json({ 
+      code: 'invalid_nickname', 
+      message: '올바른 닉네임을 입력해주세요 (1-16자)' 
+    });
   }
   // 중복 체크
   for (const user of users.values()) {
-    if (user.nickname === nickname) return res.status(409).json({ error: 'duplicate_nickname' });
+    if (user.nickname === nickname) {
+      return res.status(409).json({ 
+        code: 'duplicate_nickname', 
+        message: '이미 사용 중인 닉네임입니다' 
+      });
+    }
   }
   const sessionId = Math.random().toString(36).slice(2);
   users.set(sessionId, { nickname });
@@ -115,57 +133,111 @@ app.post('/login', (req, res) => {
 // 게임서버 상태 업데이트
 app.post('/internal/rooms/:roomId/state', (req, res) => {
   const room = rooms.get(req.params.roomId);
-  if (!room) return res.status(404).json({ error: 'room_not_found' });
+  if (!room) {
+    return res.status(404).json({ 
+      code: 'room_not_found', 
+      message: '방을 찾을 수 없습니다' 
+    });
+  }
   room.state = req.body.state;
   res.json({ ok: true });
 });
 
-// 소켓 인증
-io.use((socket, next) => {
-  const sessionId = socket.handshake.auth?.sessionId;
-  if (!sessionId || !users.has(sessionId)) return next(new Error('unauthorized'));
-  socket.data.sessionId = sessionId;
-  next();
-});
+// WebSocket 메시지 처리
+function sendMessage(ws, type, data) {
+  if (ws.readyState === ws.OPEN) {
+    ws.send(JSON.stringify({ type, ...data }));
+  }
+}
 
-io.on('connection', (socket) => {
-  // 방 생성
-  socket.on('create_room', async (payload, ack) => {
+function sendError(ws, code) {
+  sendMessage(ws, 'error', code);
+}
+
+wss.on('connection', (ws, req) => {
+  let authenticated = false;
+  let sessionId = null;
+  
+  ws.on('message', async (message) => {
     try {
-      const roomId = payload?.roomId || generateRoomId();
-      const room = await createRoom(roomId);
-      ack?.({ ok: true, roomId, ip: room.ip, port: room.port });
-    } catch {
-      ack?.({ ok: false, code: 'room_create_failed' });
+      const data = JSON.parse(message.toString());
+      
+      // 인증 처리
+      if (data.type === 'auth') {
+        sessionId = data.sessionId;
+        if (!sessionId || !users.has(sessionId)) {
+          sendError(ws, 'unauthorized');
+          ws.close();
+          return;
+        }
+        authenticated = true;
+        connections.set(ws, { sessionId, nickname: users.get(sessionId).nickname });
+        sendMessage(ws, 'auth_success', { ok: true });
+        return;
+      }
+      
+      // 인증되지 않은 요청 거부
+      if (!authenticated) {
+        sendError(ws, 'not_authenticated');
+        return;
+      }
+      
+      // 방 생성
+      if (data.type === 'create_room') {
+        try {
+          const roomId = data.roomId || generateRoomId();
+          const room = await createRoom(roomId);
+          sendMessage(ws, 'create_room_response', { ok: true, roomId, ip: room.ip, port: room.port });
+        } catch (e) {
+          sendError(ws, 'room_create_failed');
+        }
+      }
+      
+      // 방 참가
+      else if (data.type === 'join_room') {
+        try {
+          let roomId = data.roomId;
+          
+          if (roomId) {
+            // 특정 방 참가
+            const room = rooms.get(roomId);
+            if (!room) {
+              sendError(ws, 'room_not_found');
+              return;
+            }
+            if (room.state !== 0) {
+              sendError(ws, 'room_not_joinable');
+              return;
+            }
+            sendMessage(ws, 'join_room_response', { ok: true, ip: room.ip, port: room.port });
+          } else {
+            // 랜덤 매칭 또는 새 방 생성
+            roomId = pickRandomWaitingRoom() || generateRoomId();
+            const room = roomId ? rooms.get(roomId) : null;
+            
+            if (room) {
+              sendMessage(ws, 'join_room_response', { ok: true, ip: room.ip, port: room.port, roomId });
+            } else {
+              const newRoom = await createRoom(roomId);
+              sendMessage(ws, 'join_room_response', { ok: true, ip: newRoom.ip, port: newRoom.port, roomId });
+            }
+          }
+        } catch (e) {
+          sendError(ws, 'room_not_available');
+        }
+      }
+    } catch (e) {
+      sendError(ws, 'invalid_message');
     }
   });
-
-  // 방 참가
-  socket.on('join_room', async (payload, ack) => {
-    try {
-      let roomId = payload?.roomId;
-      
-      if (roomId) {
-        // 특정 방 참가
-        const room = rooms.get(roomId);
-        if (!room) return ack?.({ ok: false, code: 'room_not_found' });
-        if (room.state !== 0) return ack?.({ ok: false, code: 'room_not_joinable' });
-        return ack?.({ ok: true, ip: room.ip, port: room.port });
-      }
-      
-      // 랜덤 매칭 또는 새 방 생성
-      roomId = pickRandomWaitingRoom() || generateRoomId();
-      const room = roomId ? rooms.get(roomId) : null;
-      
-      if (room) {
-        ack?.({ ok: true, ip: room.ip, port: room.port, roomId });
-      } else {
-        const newRoom = await createRoom(roomId);
-        ack?.({ ok: true, ip: newRoom.ip, port: newRoom.port, roomId });
-      }
-    } catch {
-      ack?.({ ok: false, code: 'room_not_available' });
-    }
+  
+  ws.on('close', () => {
+    connections.delete(ws);
+  });
+  
+  ws.on('error', (err) => {
+    console.error('WebSocket error:', err);
+    connections.delete(ws);
   });
 });
 

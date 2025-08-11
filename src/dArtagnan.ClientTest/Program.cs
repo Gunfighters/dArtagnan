@@ -1,9 +1,10 @@
 ﻿using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
+using System.Net.WebSockets;
 using System.Numerics;
 using dArtagnan.Shared;
-using SocketIOClient;
+using System.Text;
 using System.Text.Json;
 using System.Net.Http;
 
@@ -11,7 +12,7 @@ namespace dArtagnan.ClientTest;
 
 internal class Program
 {
-    private static SocketIO? lobby;
+    private static ClientWebSocket? lobbyWs;
     private static string? lobbyUrl;
     private static string? sessionId;
     private static TcpClient? client;
@@ -48,8 +49,8 @@ internal class Program
         Console.WriteLine("=== D'Artagnan 테스트 클라이언트 ===");
         Console.WriteLine("명령어:");
         Console.WriteLine("  lg/login [nickname?] [lobbyUrl?] - 로비 로그인 (기본: test http://localhost:3000)");
-        Console.WriteLine("  cr/create-room - 방 생성(로비 Socket.IO)");
-        Console.WriteLine("  jr/join-room [roomId?] - 방 참가(로비 Socket.IO, roomId 없으면 랜덤 배정/생성)");
+        Console.WriteLine("  cr/create-room - 방 생성(로비 WebSocket)");
+        Console.WriteLine("  jr/join-room [roomId?] - 방 참가(로비 WebSocket, roomId 없으면 랜덤 배정/생성)");
         Console.WriteLine("  c/connect [host?] [port?] - 게임 서버 직접 TCP 연결 (기본: localhost 3000)");
         Console.WriteLine("  s/start - 게임 시작");
         Console.WriteLine("  d/dir [direction] - 플레이어 이동 방향 변경");
@@ -65,6 +66,7 @@ internal class Program
         Console.WriteLine("=====================================");
 
         var receiveTask = Task.Run(ReceiveLoop);
+        var lobbyReceiveTask = Task.Run(LobbyReceiveLoop);
 
         while (isRunning) // isConnected 대신 isRunning을 사용하도록 변경
         {
@@ -76,6 +78,7 @@ internal class Program
         }
 
         await receiveTask;
+        await lobbyReceiveTask;
     }
 
     static async Task ProcessCommand(string input)
@@ -249,6 +252,10 @@ internal class Program
                 case "q":
                 case "quit":
                     await Disconnect();
+                    if (lobbyWs != null && lobbyWs.State == WebSocketState.Open)
+                    {
+                        await lobbyWs.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
+                    }
                     isRunning = false; // isConnected 대신 isRunning을 사용하도록 변경
                     break;
 
@@ -294,98 +301,157 @@ internal class Program
 
     static async Task LobbyConnect()
     {
-        if (lobby != null) return;
+        if (lobbyWs != null && lobbyWs.State == WebSocketState.Open) return;
         if (string.IsNullOrWhiteSpace(lobbyUrl) || string.IsNullOrWhiteSpace(sessionId))
         {
             Console.WriteLine("lobbyUrl 또는 sessionId가 없습니다. 먼저 login 명령 사용");
             return;
         }
 
-        lobby = new SocketIO(lobbyUrl, new SocketIOOptions
+        try
         {
-            Auth = new { sessionId }
-        });
-
-        lobby.OnConnected += (_, _) => Console.WriteLine("[로비] 소켓 연결됨");
-        lobby.OnDisconnected += (_, _) => Console.WriteLine("[로비] 소켓 연결 끊김");
-
-        await lobby.ConnectAsync();
+            lobbyWs = new ClientWebSocket();
+            var wsUrl = lobbyUrl.Replace("http://", "ws://").Replace("https://", "wss://");
+            await lobbyWs.ConnectAsync(new Uri(wsUrl), CancellationToken.None);
+            
+            // 인증 메시지 전송
+            var authMsg = JsonSerializer.Serialize(new { type = "auth", sessionId });
+            await SendWebSocketMessage(lobbyWs, authMsg);
+            
+            Console.WriteLine("[로비] WebSocket 연결됨");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[로비] WebSocket 연결 실패: {ex.Message}");
+        }
     }
 
     static async Task LobbyEnsureConnected()
     {
-        if (lobby == null)
+        if (lobbyWs == null || lobbyWs.State != WebSocketState.Open)
         {
             await LobbyConnect();
         }
     }
 
+    static async Task SendWebSocketMessage(ClientWebSocket ws, string message)
+    {
+        var bytes = Encoding.UTF8.GetBytes(message);
+        await ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+    }
+
+    static async Task LobbyReceiveLoop()
+    {
+        while (isRunning)
+        {
+            if (lobbyWs != null && lobbyWs.State == WebSocketState.Open)
+            {
+                try
+                {
+                    var buffer = new ArraySegment<byte>(new byte[4096]);
+                    var result = await lobbyWs.ReceiveAsync(buffer, CancellationToken.None);
+                    
+                    if (result.MessageType == WebSocketMessageType.Text)
+                    {
+                        var message = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
+                        await HandleLobbyMessage(message);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[로비] WebSocket 수신 오류: {ex.Message}");
+                    await Task.Delay(1000);
+                }
+            }
+            else
+            {
+                await Task.Delay(100);
+            }
+        }
+    }
+
+    static async Task HandleLobbyMessage(string message)
+    {
+        try
+        {
+            var doc = JsonDocument.Parse(message);
+            var type = doc.RootElement.GetProperty("type").GetString();
+            
+            switch (type)
+            {
+                case "auth_success":
+                    Console.WriteLine("[로비] 인증 성공");
+                    break;
+                    
+                case "error":
+                    var errorCode = doc.RootElement.TryGetProperty("code", out var codeEl) ? codeEl.GetString() : "unknown";
+                    var errorMsg = doc.RootElement.TryGetProperty("message", out var msgEl) ? msgEl.GetString() : "알 수 없는 오류";
+                    Console.WriteLine($"[로비] 오류: {errorMsg} (code: {errorCode})");
+                    break;
+                    
+                case "create_room_response":
+                    var ok = doc.RootElement.GetProperty("ok").GetBoolean();
+                    if (ok)
+                    {
+                        var roomId = doc.RootElement.GetProperty("roomId").GetString();
+                        var ip = doc.RootElement.GetProperty("ip").GetString();
+                        var port = doc.RootElement.GetProperty("port").GetInt32();
+                        Console.WriteLine($"방 생성 성공 roomId={roomId} {ip}:{port}");
+                        await ConnectToServer(ip!, port);
+                    }
+                    break;
+                    
+                case "join_room_response":
+                    ok = doc.RootElement.GetProperty("ok").GetBoolean();
+                    if (ok)
+                    {
+                        var ip = doc.RootElement.GetProperty("ip").GetString();
+                        var port = doc.RootElement.GetProperty("port").GetInt32();
+                        var roomId = doc.RootElement.TryGetProperty("roomId", out var rid) ? rid.GetString() : "";
+                        Console.WriteLine($"방 참가 성공 roomId={roomId} {ip}:{port}");
+                        await ConnectToServer(ip!, port);
+                    }
+                    break;
+                    
+                case "auth_error":
+                    // 하위 호환성을 위해 auth_error도 지원
+                    var error = doc.RootElement.TryGetProperty("error", out var errorEl) ? errorEl.GetString() : "인증 실패";
+                    Console.WriteLine($"[로비] 인증 실패: {error}");
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[로비] 메시지 처리 오류: {ex.Message}");
+        }
+    }
+
     static async Task LobbyCreateRoom()
     {
-        if (lobby == null) { Console.WriteLine("로비 소켓이 연결되지 않음"); return; }
-        var tcs = new TaskCompletionSource<bool>();
-        
-        await lobby.EmitAsync("create_room", response =>
+        if (lobbyWs == null || lobbyWs.State != WebSocketState.Open)
         {
-            try
-            {
-                var payload = response.GetValue<JsonElement>(0);
-                var ok = payload.GetProperty("ok").GetBoolean();
-                if (!ok)
-                {
-                    Console.WriteLine($"방 생성 실패: {payload}");
-                }
-                else
-                {
-                    var roomId = payload.GetProperty("roomId").GetString();
-                    var ip = payload.GetProperty("ip").GetString();
-                    var port = payload.GetProperty("port").GetInt32();
-                    Console.WriteLine($"방 생성 성공 roomId={roomId} {ip}:{port}");
-                    Task.Run(async () => await ConnectToServer(ip!, port));
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"ACK 파싱 오류: {ex.Message}");
-            }
-            finally { tcs.TrySetResult(true); }
-        }, new { });
-        await tcs.Task;
+            Console.WriteLine("로비 WebSocket이 연결되지 않음");
+            return;
+        }
+        
+        var msg = JsonSerializer.Serialize(new { type = "create_room" });
+        await SendWebSocketMessage(lobbyWs, msg);
     }
 
     static async Task LobbyJoinRoom(string? roomId)
     {
-        if (lobby == null) { Console.WriteLine("로비 소켓이 연결되지 않음"); return; }
-        var tcs = new TaskCompletionSource<bool>();
-        
-        object requestData = string.IsNullOrEmpty(roomId) ? new { } : new { roomId };
-        await lobby.EmitAsync("join_room", response =>
+        if (lobbyWs == null || lobbyWs.State != WebSocketState.Open)
         {
-            try
-            {
-                var payload = response.GetValue<JsonElement>(0);
-                var ok = payload.GetProperty("ok").GetBoolean();
-                if (!ok)
-                {
-                    var code = payload.TryGetProperty("code", out var codeEl) ? codeEl.GetString() : "unknown";
-                    Console.WriteLine($"방 참가 실패: {code}");
-                }
-                else
-                {
-                    var ip = payload.GetProperty("ip").GetString();
-                    var port = payload.GetProperty("port").GetInt32();
-                    var assignedId = payload.TryGetProperty("roomId", out var rid) ? rid.GetString() : roomId;
-                    Console.WriteLine($"방 참가 성공 roomId={assignedId} {ip}:{port}");
-                    Task.Run(async () => await ConnectToServer(ip!, port));
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"ACK 파싱 오류: {ex.Message}");
-            }
-            finally { tcs.TrySetResult(true); }
-        }, requestData);
-        await tcs.Task;
+            Console.WriteLine("로비 WebSocket이 연결되지 않음");
+            return;
+        }
+        
+        object data = string.IsNullOrEmpty(roomId) 
+            ? new { type = "join_room" } 
+            : new { type = "join_room", roomId };
+        
+        var msg = JsonSerializer.Serialize(data);
+        await SendWebSocketMessage(lobbyWs, msg);
     }
 
     static async Task ConnectToServer(string host, int port)
