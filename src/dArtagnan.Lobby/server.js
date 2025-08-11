@@ -26,7 +26,10 @@ const pendingRequests = new Map(); // roomId -> [{ ws, type, responseData }]
 // 설정
 const IMAGE = 'dartagnan-gameserver:latest';
 const INTERNAL_PORT = 7777;
-const HOST_IP = '127.0.0.1';
+
+// AWS에서는 퍼블릭 IP를 사용해야 클라이언트가 접근 가능
+const HOST_IP = process.env.PUBLIC_IP || '127.0.0.1';
+console.log(`[INFO] Using HOST_IP: ${HOST_IP}`);
 
 async function createRoom(roomId) {
   console.log(`[DEBUG] createRoom called with roomId: ${roomId}`);
