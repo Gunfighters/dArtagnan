@@ -28,6 +28,10 @@ public class GameManager
     // 증강 시스템
     public List<Player> rouletteDonePlayers = [];
     public Dictionary<int, List<int>> playerAugmentOptions = []; // 플레이어별 증강 옵션 저장
+    
+    // 서버 종료 타이머
+    public float emptyServerTimer = 0f;
+    public const float EMPTY_SERVER_TIMEOUT = 10f;
     public HashSet<int> augmentSelectionDonePlayers = []; // 증강 선택을 완료한 플레이어 ID
 
 
@@ -128,6 +132,9 @@ public class GameManager
     /// </summary>
     internal async Task RemoveClientInternal(int clientId)
     {
+        Console.WriteLine($"[DEBUG] RemoveClientInternal called for client {clientId}");
+        Console.WriteLine($"[DEBUG] Current thread: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
+        Console.WriteLine($"[DEBUG] Stack trace: {Environment.StackTrace}");
         var player = GetPlayerById(clientId);
 
         if (player != null)
@@ -152,22 +159,12 @@ public class GameManager
         {
             var nextHost = Players.Values.FirstOrDefault(p => p.Alive && p is not Bot);
             await SetHost(nextHost);
-        }
-
-        // 실제 플레이어(봇이 아닌)가 없으면 컨테이너 기반 단일 세션 서버는 종료
-        // DEV_MODE 일 때는 Waiting 상태로 전환
+        } 
         var realPlayers = Players.Values.Where(p => p is not Bot).ToList();
         if (realPlayers.Count == 0)
         {
-            if (!Program.DEV_MODE)
-            {
-                Environment.Exit(0);
-            }
-            else
-            {
-                Console.WriteLine("[게임] 실제 플레이어가 모두 나가서 게임을 대기 상태로 초기화합니다");
-                await StartWaitingStateAsync();
-            }
+            Console.WriteLine("[게임] 실제 플레이어가 모두 나가서 게임을 대기 상태로 초기화합니다");
+            await StartWaitingStateAsync();
         }
     }
 
@@ -560,6 +557,9 @@ public class GameManager
         var oldState = CurrentGameState;
 
         InitToWaiting();
+        
+        // 서버 종료 타이머 리셋
+        emptyServerTimer = 0f;
 
         Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {CurrentGameState}");
 

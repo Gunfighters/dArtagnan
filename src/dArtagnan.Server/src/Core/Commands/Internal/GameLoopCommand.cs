@@ -16,7 +16,8 @@ public class GameLoopCommand : IGameCommand
         switch (gameManager.CurrentGameState)
         {
             case GameState.Waiting:
-                // 대기 상태: 정확도, 아이템 제작, 위치, 에너지, 버프 업데이트
+                // 대기 상태: 빈 서버 타이머 체크 + 플레이어 상태 업데이트
+                await CheckEmptyServerTimeout(gameManager);
                 await UpdateByAccuracyState(gameManager, DeltaTime);
                 await UpdatePlayerCreatingStates(gameManager, DeltaTime);
                 UpdatePlayerMovementStates(gameManager, DeltaTime);
@@ -38,6 +39,49 @@ public class GameLoopCommand : IGameCommand
             case GameState.Roulette:
             case GameState.Augment:
                 break;
+        }
+    }
+
+    /// <summary>
+    /// 대기 상태에서 빈 서버 타이머를 체크하고 타임아웃 시 서버 종료
+    /// </summary>
+    private async Task CheckEmptyServerTimeout(GameManager gameManager)
+    {
+        var realPlayers = gameManager.Players.Values.Where(p => p is not Bot).ToList();
+        
+        if (realPlayers.Count == 0)
+        {
+            // 실제 플레이어가 없을 때 타이머 증가
+            gameManager.emptyServerTimer += DeltaTime;
+            
+            // 첫 시작 시에만 로그 출력 (1초마다가 아니라)
+            if (gameManager.emptyServerTimer <= DeltaTime) // 첫 프레임
+            {
+                Console.WriteLine($"[서버] 대기 상태에서 플레이어가 없음 - {GameManager.EMPTY_SERVER_TIMEOUT}초 후 서버 종료 예정");
+            }
+            
+            // 타임아웃 체크
+            if (gameManager.emptyServerTimer >= GameManager.EMPTY_SERVER_TIMEOUT)
+            {
+                Console.WriteLine($"[서버] {GameManager.EMPTY_SERVER_TIMEOUT}초 타임아웃 - 서버 종료");
+                if (!Program.DEV_MODE)
+                {
+                    Environment.Exit(0);
+                }
+                else
+                {
+                    Console.WriteLine("[서버] DEV_MODE에서는 서버를 종료하지 않음");
+                }
+            }
+        }
+        else
+        {
+            // 실제 플레이어가 있으면 타이머 리셋
+            if (gameManager.emptyServerTimer > 0f)
+            {
+                Console.WriteLine("[서버] 플레이어 접속으로 종료 타이머 취소");
+                gameManager.emptyServerTimer = 0f;
+            }
         }
     }
 
