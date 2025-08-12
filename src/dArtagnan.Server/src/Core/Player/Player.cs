@@ -111,6 +111,7 @@ public class Player
         accuracyTimer = 0f;
         
         // 아이템 효과 초기화 (라운드 시작 시)
+        CurrentItem = -1;
         SpeedBoostTimer = 0f;
         SpeedMultiplier = 1f;
         BaseSpeed = Constants.MOVEMENT_SPEED;

@@ -47,6 +47,12 @@ public class GameLoopCommand : IGameCommand
     /// </summary>
     private async Task CheckEmptyServerTimeout(GameManager gameManager)
     {
+        //개발 모드일 때는 자동 종료 x
+        if (Program.DEV_MODE)
+        {
+            return;
+        }
+
         var realPlayers = gameManager.Players.Values.Where(p => p is not Bot).ToList();
         
         if (realPlayers.Count == 0)
@@ -64,14 +70,7 @@ public class GameLoopCommand : IGameCommand
             if (gameManager.emptyServerTimer >= GameManager.EMPTY_SERVER_TIMEOUT)
             {
                 Console.WriteLine($"[서버] {GameManager.EMPTY_SERVER_TIMEOUT}초 타임아웃 - 서버 종료");
-                if (!Program.DEV_MODE)
-                {
-                    Environment.Exit(0);
-                }
-                else
-                {
-                    Console.WriteLine("[서버] DEV_MODE에서는 서버를 종료하지 않음");
-                }
+                Environment.Exit(0);
             }
         }
         else

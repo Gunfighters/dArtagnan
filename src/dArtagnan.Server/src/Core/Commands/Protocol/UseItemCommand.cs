@@ -14,7 +14,7 @@ public class UseItemCommand : IGameCommand
     {
         var player = gameManager.GetPlayerById(PlayerId);
         if (player == null || !player.Alive) return;
-
+        
         // 소지한 아이템이 없으면 사용 불가
         if (player.CurrentItem == -1)
         {
@@ -57,7 +57,10 @@ public class UseItemCommand : IGameCommand
         });
 
         // 아이템 효과 적용
-        await ApplyItemEffect(gameManager, player, itemId, TargetPlayerId);
+        if (gameManager.CurrentGameState == GameState.Round)
+        {
+            await ApplyItemEffect(gameManager, player, itemId, TargetPlayerId);
+        }
     }
 
     /// <summary>
