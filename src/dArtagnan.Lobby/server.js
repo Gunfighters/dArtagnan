@@ -4,6 +4,7 @@ import net from 'node:net';
 import http from 'http';
 import { WebSocketServer } from 'ws';
 import crypto from 'crypto';
+import { ErrorCodes, RoomState } from './errorCodes.js';
 
 // --- 로깅 유틸리티 (최종 수정) ---
 const logger = {
@@ -146,7 +147,7 @@ function waitForPort(host, port, timeoutMs = 5000, retryMs = 150) {
 }
 
 function pickRandomWaitingRoom() {
-  const waiting = Array.from(rooms.entries()).filter(([, r]) => r.state === 0);
+  const waiting = Array.from(rooms.entries()).filter(([, r]) => r.state === RoomState.WAITING);
   return waiting.length > 0 ? waiting[Math.floor(Math.random() * waiting.length)][0] : null;
 }
 
@@ -159,15 +160,15 @@ app.post('/login', (req, res) => {
   logger.info(`[로그인] 요청 수신:`, req.body);
   const nickname = (req.body?.nickname || '').trim();
   if (!nickname) {
-    return res.status(400).json({ code: 'null_nickname', message: '닉네임을 입력해주세요.' });
+    return res.status(400).json({ code: ErrorCodes.NULL_NICKNAME, message: '닉네임을 입력해주세요.' });
   }
   if (nickname.length < 1 || nickname.length > 16) {
-    return res.status(400).json({ code: 'invalid_nickname', message: '닉네임은 1자 이상 16자 이하로 입력해주세요.' });
+    return res.status(400).json({ code: ErrorCodes.INVALID_NICKNAME, message: '닉네임은 1자 이상 16자 이하로 입력해주세요.' });
   }
   for (const user of users.values()) {
     if (user.nickname === nickname) {
       logger.warn(`[로그인] 닉네임 중복 시도: ${nickname}`);
-      return res.status(409).json({ code: 'duplicate_nickname', message: '이미 사용 중인 닉네임입니다.' });
+      return res.status(409).json({ code: ErrorCodes.DUPLICATE_NICKNAME, message: '이미 사용 중인 닉네임입니다.' });
     }
   }
   const sessionId = Math.random().toString(36).slice(2);
@@ -186,13 +187,13 @@ app.post('/internal/rooms/:roomId/state', (req, res) => {
   if (!room) {
     const currentRooms = Array.from(rooms.keys());
     logger.error(`[상태 업데이트] [방 ${roomId}] 존재하지 않는 방에 대한 요청입니다. (현재 방: ${currentRooms.join(', ') || '없음'})`);
-    return res.status(404).json({ code: 'room_not_found', message: '방을 찾을 수 없습니다.' });
+    return res.status(404).json({ code: ErrorCodes.ROOM_NOT_FOUND, message: '방을 찾을 수 없습니다.' });
   }
 
   logger.info(`[방 ${roomId}] 상태 변경: ${room.state} -> ${newState}`);
   room.state = newState;
 
-  if (newState === 0 && pendingRequests.has(roomId)) {
+  if (newState === RoomState.WAITING && pendingRequests.has(roomId)) {
     const requests = pendingRequests.get(roomId);
     logger.info(`[방 ${roomId}] 준비 완료. 대기 중인 요청 ${requests.length}건에 대해 응답을 전송합니다.`);
 
@@ -261,7 +262,7 @@ wss.on('connection', (ws, req) => {
         sessionId = data.sessionId;
         if (!sessionId || !users.has(sessionId)) {
           logger.error(`[WebSocket ${connectionId}] 인증 실패: 유효하지 않은 세션ID (${sessionId})`);
-          sendError(ws, 'unauthorized');
+          sendError(ws, ErrorCodes.UNAUTHORIZED);
           ws.close();
           return;
         }
@@ -274,7 +275,7 @@ wss.on('connection', (ws, req) => {
 
       if (!authenticated) {
         logger.warn(`[WebSocket ${connectionId}] 인증되지 않은 요청 시도: ${data.type}`);
-        sendError(ws, 'not_authenticated');
+        sendError(ws, ErrorCodes.NOT_AUTHENTICATED);
         return;
       }
 
@@ -287,7 +288,7 @@ wss.on('connection', (ws, req) => {
           const room = await createRoom(roomId);
           const responseData = { ok: true, roomId, ip: room.ip, port: room.port };
 
-          if (room.state === 0) {
+          if (room.state === RoomState.WAITING) {
             logger.info(`[방 ${roomId}] 즉시 응답 가능. 응답을 전송합니다.`);
             sendMessage(ws, 'create_room_response', responseData);
           } else {
@@ -296,7 +297,7 @@ wss.on('connection', (ws, req) => {
           }
         } catch (e) {
           logger.error(`[${nickname}] 방 생성 처리 중 오류 발생: ${e.message}`);
-          sendError(ws, 'room_create_failed');
+          sendError(ws, ErrorCodes.ROOM_CREATE_FAILED);
         }
       }
 
@@ -310,11 +311,11 @@ wss.on('connection', (ws, req) => {
           if (roomId) { // 특정 방 참가
             room = rooms.get(roomId);
             if (!room) {
-              sendError(ws, 'room_not_found');
+              sendError(ws, ErrorCodes.ROOM_NOT_FOUND);
               return;
             }
-            if (room.state !== 0 && room.state !== -1) {
-              sendError(ws, 'room_not_joinable');
+            if (room.state !== RoomState.WAITING && room.state !== -1) {
+              sendError(ws, ErrorCodes.ROOM_NOT_JOINABLE);
               return;
             }
             responseData = { ok: true, ip: room.ip, port: room.port };
@@ -325,7 +326,7 @@ wss.on('connection', (ws, req) => {
             responseData = { ok: true, ip: room.ip, port: room.port, roomId };
           }
 
-          if (room.state === 0) {
+          if (room.state === RoomState.WAITING) {
             logger.info(`[방 ${roomId}] 즉시 응답 가능. 응답을 전송합니다.`);
             sendMessage(ws, 'join_room_response', responseData);
           } else {
@@ -334,12 +335,12 @@ wss.on('connection', (ws, req) => {
           }
         } catch (e) {
           logger.error(`[${nickname}] 방 참가 처리 중 오류 발생: ${e.message}`);
-          sendError(ws, 'room_not_available');
+          sendError(ws, ErrorCodes.ROOM_NOT_AVAILABLE);
         }
       }
     } catch (e) {
       logger.error(`[WebSocket ${connectionId}] 메시지 처리 오류: ${e.message}`);
-      sendError(ws, 'invalid_message');
+      sendError(ws, ErrorCodes.INVALID_MESSAGE);
     }
   });
 
