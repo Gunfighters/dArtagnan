@@ -5,64 +5,67 @@ A real-time multiplayer probability-based battle royale game inspired by the "Gu
 
 ## Quick Start | 빠른 시작
 
-### Windows (로컬)
+### Windows (로컬 개발)
 ```cmd
-start.bat
+window.bat
 ```
 
-### Linux/Mac (로컬)
+### Linux/Mac (로컬 개발)
 ```bash
-chmod +x start.sh
-./start.sh
+chmod +x startUnix.sh
+./unix.sh
 ```
 
-### AWS EC2 (클라우드)
+### AWS EC2 (프로덕션)
 ```bash
-chmod +x start.sh
-./start.sh
+chmod +x startUnix.sh
+./unix.sh
 ```
-AWS 환경이 자동 감지되어 퍼블릭 IP가 설정됩니다.
+AWS 환경이 자동 감지되어 도메인 기반 서비스가 설정됩니다.
 
 ## Architecture | 아키텍처
 
 ```
-Host Machine
-├── Lobby Server (Node.js) - Port 3000
-└── Game Servers (Docker containers) - Dynamic ports
+Client (Unity)
+      ↓ HTTPS/WSS
+   Nginx (SSL)
+      ↓ HTTP/WS  
+Lobby Server (Node.js) - Port 3000
+      ↓ Docker API
+Game Servers (Docker containers) - Dynamic ports
 ```
 
-- **Lobby Server**: Node.js로 직접 실행, WebSocket + HTTP API 제공
-- **Game Servers**: Docker 컨테이너로 동적 생성/관리, .NET TCP 서버
+- **Unity Client**: Windows, Android, iOS 지원
+- **Nginx**: HTTPS/WSS 종료, 리버스 프록시
+- **Lobby Server**: 매칭, 방 관리, WebSocket API
+- **Game Servers**: 실시간 게임 로직, TCP 통신
 
 ### 환경별 설정
 
-#### 로컬 환경
+#### 로컬 개발 환경
+- Unity 클라이언트: `http://localhost:3000` 선택
 - 로비 서버: `http://localhost:3000`
-- 게임 서버: Docker 컨테이너 자동 생성 (localhost)
+- 게임 서버: Docker 컨테이너 (localhost)
 
-#### AWS EC2
-- 로비 서버: `http://[퍼블릭IP]:3000` (자동 감지)
-- 게임 서버: Docker 컨테이너 자동 생성 (퍼블릭 IP 사용)
-- Unity 클라이언트: AWS 서버 선택 시 `http://13.125.222.113:3000`
+#### 프로덕션 환경 (dartagnan.shop)
+- Unity 클라이언트: `https://dartagnan.shop` 선택  
+- Nginx: HTTPS/WSS → HTTP/WS 변환
+- 로비 서버: `http://localhost:3000` (백엔드)
+- 게임 서버: Docker 컨테이너 (도메인 기반)
 
-## Test Client | 테스트 클라이언트
+### 주요 기능
 
-```bash
-cd src/dArtagnan.ClientTest
-dotnet run
-```
-
-### Commands | 명령어
-- `lg` or `login` - 로그인 (기본값: test, http://localhost:3000)
-- `ct` or `connect` - 게임 서버 연결 (기본값: localhost 3000)
-- `cr` or `create_room` - 방 생성
-- `jr` or `join_room` - 방 참가
+- **크로스 플랫폼**: Windows, Android, iOS
+- **실시간 매칭**: WebSocket 기반 빠른 매칭
+- **동적 스케일링**: Docker 컨테이너 자동 생성/삭제
+- **보안 통신**: HTTPS/WSS (모바일 호환)
 
 ## Requirements | 요구사항
 
 - .NET 8.0+
 - Node.js 18+
 - Docker
+- Unity 2022.3 LTS+
 
 ## Acknowledgments | 감사의 말
 

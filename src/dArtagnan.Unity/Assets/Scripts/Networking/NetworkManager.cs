@@ -8,7 +8,7 @@ using UnityEngine;
 
 public class NetworkManager : MonoBehaviour, IChannelListener
 {
-    [Header("Config")] [SerializeField] private NetworkManagerConfig config;
+    //[Header("Config")] [SerializeField] private NetworkManagerConfig config;
     [SerializeField] private int targetFrameRate;
     private readonly Channel<IPacket> _channel = Channel.CreateSingleConsumerUnbounded<IPacket>();
     private CancellationTokenSource _cancellationTokenSource;

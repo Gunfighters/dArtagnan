@@ -263,6 +263,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -1565456284384083479, guid: b4fb4c8881fdf51478a5f638e84d24da, type: 3}
+      propertyPath: config
+      value: 
+      objectReference: {fileID: 11400000, guid: 6c934d44d01dd432aa117b578669fa39, type: 2}
     - target: {fileID: 1911721104961795121, guid: b4fb4c8881fdf51478a5f638e84d24da, type: 3}
       propertyPath: m_Name
       value: NetworkManager
@@ -637,7 +641,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lobbyUrl: http://localhost:3000
-  awsLobbyUrl: http://13.125.222.113:3000
+  awsLobbyUrl: https://dartagnan.shop
 --- !u!1 &1836853654
 GameObject:
   m_ObjectHideFlags: 0

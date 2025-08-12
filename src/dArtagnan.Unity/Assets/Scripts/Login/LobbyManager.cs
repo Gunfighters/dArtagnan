@@ -15,10 +15,9 @@ using dArtagnan.Shared;
 public class LobbyManager : MonoBehaviour
 {
     public static LobbyManager Instance { get; private set; }
-
-    [Header("Server Settings")]
-    public string lobbyUrl = "http://localhost:3000";
-    public string awsLobbyUrl = "http://dartagnan.shop";
+    
+    private string lobbyUrl = "http://localhost:3000";
+    private string awsLobbyUrl = "https://dartagnan.shop";
     
     private bool useAwsServer = false;
 

@@ -5,6 +5,40 @@ import http from 'http';
 import { WebSocketServer } from 'ws';
 import crypto from 'crypto';
 
+// --- 로깅 유틸리티 (최종 수정) ---
+const logger = {
+  _log(level, ...args) {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    const ms = String(now.getMilliseconds()).padStart(3, '0');
+    const timestamp = `[${h}:${m}:${s}.${ms}]`;
+
+    // 모든 인자를 하나의 문자열로 변환하고 합칩니다.
+    const message = args.map(arg => {
+      if (typeof arg === 'object' && arg !== null) {
+        return JSON.stringify(arg, null, 2); // 객체는 보기 좋게 변환
+      }
+      return String(arg);
+    }).join(' ');
+
+    const stream = level === 'ERROR' || level === 'WARN' ? console.error : console.log;
+
+    if (level === 'INFO') {
+      stream(`${timestamp} ${message}`);
+    } else if (level === 'WARN') {
+      stream(`${timestamp} ⚠️ ${message}`);
+    } else if (level === 'ERROR') {
+      stream(`${timestamp} ❌ ${message}`);
+    }
+  },
+  info(...args) { this._log('INFO', ...args); },
+  warn(...args) { this._log('WARN', ...args); },
+  error(...args) { this._log('ERROR', ...args); }
+};
+// --------------------
+
 const app = express();
 const httpServer = http.createServer(app);
 const wss = new WebSocketServer({ server: httpServer });
@@ -14,9 +48,9 @@ app.use(express.json());
 const connections = new Map(); // ws -> { sessionId, nickname }
 
 // Docker 연결 (플랫폼 자동 감지)
-const docker = process.platform === 'win32' 
-  ? new Docker() 
-  : new Docker({ socketPath: '/var/run/docker.sock' });
+const docker = process.platform === 'win32'
+    ? new Docker()
+    : new Docker({ socketPath: '/var/run/docker.sock' });
 
 // 상태 저장소
 const rooms = new Map(); // roomId -> { containerId, ip, port, state }
@@ -29,30 +63,25 @@ const INTERNAL_PORT = 7777;
 
 // 게임 서버 접속 주소 (도메인 사용 시 도메인, 아니면 localhost)
 const HOST_IP = process.env.GAME_SERVER_HOST || '127.0.0.1';
-console.log(`[INFO] Game server host: ${HOST_IP}`);
+logger.info(`게임 서버 호스트 주소: ${HOST_IP}`);
 
 async function createRoom(roomId) {
-  console.log(`[DEBUG] createRoom called with roomId: ${roomId}`);
-  
-  // Return existing
+  logger.info(`[방 ${roomId}] 생성 요청 접수`);
+
   if (rooms.has(roomId)) {
-    console.log(`[DEBUG] Room ${roomId} already exists, returning existing room`);
+    logger.info(`[방 ${roomId}] 기존에 생성된 방이 존재하여 반환합니다.`);
     return rooms.get(roomId);
   }
 
-  // 컨테이너에서 로비 서버로 접근할 URL 결정
   let lobbyUrl;
   if (process.env.LOBBY_HOST_URL) {
-    // 환경변수가 설정된 경우 (수동 설정)
     lobbyUrl = process.env.LOBBY_HOST_URL;
   } else if (process.platform === 'win32') {
-    // Windows/Mac Docker Desktop
     lobbyUrl = `http://host.docker.internal:${process.env.PORT || 3000}`;
   } else {
-    // Linux (AWS 등) - Docker 기본 브리지 게이트웨이
     lobbyUrl = `http://172.17.0.1:${process.env.PORT || 3000}`;
   }
-  console.log(`[DEBUG] Creating container for room ${roomId} with lobby URL: ${lobbyUrl}`);
+  logger.info(`[방 ${roomId}] 컨테이너 생성을 시작합니다. (로비 URL: ${lobbyUrl})`);
 
   const container = await docker.createContainer({
     Image: IMAGE,
@@ -67,39 +96,35 @@ async function createRoom(roomId) {
       AutoRemove: true
     }
   });
-  console.log(`[DEBUG] Container created for room ${roomId}: ${container.id}`);
+  logger.info(`[방 ${roomId}] 컨테이너 생성 완료: ${container.id.substring(0, 12)}`);
 
   await container.start();
-  console.log(`[DEBUG] Container started for room ${roomId}`);
+  logger.info(`[방 ${roomId}] 컨테이너 시작 완료.`);
 
-  // Wait until port is bound
   const info = await container.inspect();
   const bindings = info.NetworkSettings.Ports[`${INTERNAL_PORT}/tcp`];
-  const hostPort = bindings && bindings[0] && bindings[0].HostPort;
+  const hostPort = bindings?.[0]?.HostPort;
   if (!hostPort) {
-    console.error(`[DEBUG] Failed to get host port binding for room ${roomId}`);
+    logger.error(`[방 ${roomId}] 호스트 포트 바인딩 정보를 가져오는 데 실패했습니다.`);
     throw new Error('Failed to get host port binding');
   }
-  console.log(`[DEBUG] Port binding successful for room ${roomId}: ${HOST_IP}:${hostPort}`);
+  logger.info(`[방 ${roomId}] 포트 바인딩 확인: ${HOST_IP}:${hostPort}`);
 
-  // *** 중요: 게임 서버가 상태를 보고하기 전에 미리 방 정보를 저장 ***
   const room = { containerId: container.id, ip: HOST_IP, port: Number(hostPort), state: -1 };
   rooms.set(roomId, room);
-  console.log(`[DEBUG] Room pre-stored: ${roomId} -> ${HOST_IP}:${hostPort} (state: -1)`);
+  logger.info(`[방 ${roomId}] 방 정보 사전 저장 완료 (상태: 대기중)`);
 
-  // 포트가 준비될 때까지 대기
-  console.log(`[DEBUG] Waiting for port ${hostPort} to be ready for room ${roomId}`);
+  logger.info(`[방 ${roomId}] 포트(${hostPort}) 활성화 대기를 시작합니다.`);
   await waitForPort(HOST_IP, Number(hostPort));
-  await new Promise(resolve => setTimeout(resolve, 200)); // 짧은 대기
-  console.log(`[DEBUG] Port ${hostPort} is ready for room ${roomId}`);
+  await new Promise(resolve => setTimeout(resolve, 200));
+  logger.info(`[방 ${roomId}] 포트(${hostPort})가 활성화되었습니다.`);
 
-  // 컨테이너 종료 시 방 삭제
   container.wait().then(() => {
-    console.log(`[DEBUG] Container for room ${roomId} has stopped, cleaning up`);
+    logger.info(`[방 ${roomId}] 컨테이너가 정지되어 관련 리소스를 정리합니다.`);
     rooms.delete(roomId);
     pendingRequests.delete(roomId);
   }).catch(() => {});
-  
+
   return room;
 }
 
@@ -131,73 +156,53 @@ function generateRoomId() {
 
 // 로그인
 app.post('/login', (req, res) => {
+  logger.info(`[로그인] 요청 수신:`, req.body);
   const nickname = (req.body?.nickname || '').trim();
   if (!nickname) {
-    return res.status(400).json({
-      code: 'null_nickname',
-      message: '올바른 닉네임을 입력해주세요 (1-16자)'
-    });
+    return res.status(400).json({ code: 'null_nickname', message: '닉네임을 입력해주세요.' });
   }
-  if (!nickname || nickname.length < 1 || nickname.length > 16) {
-    return res.status(400).json({ 
-      code: 'invalid_nickname', 
-      message: '올바른 닉네임을 입력해주세요 (1-16자)' 
-    });
+  if (nickname.length < 1 || nickname.length > 16) {
+    return res.status(400).json({ code: 'invalid_nickname', message: '닉네임은 1자 이상 16자 이하로 입력해주세요.' });
   }
-  // 중복 체크
   for (const user of users.values()) {
     if (user.nickname === nickname) {
-      return res.status(409).json({ 
-        code: 'duplicate_nickname', 
-        message: '이미 사용 중인 닉네임입니다' 
-      });
+      logger.warn(`[로그인] 닉네임 중복 시도: ${nickname}`);
+      return res.status(409).json({ code: 'duplicate_nickname', message: '이미 사용 중인 닉네임입니다.' });
     }
   }
   const sessionId = Math.random().toString(36).slice(2);
   users.set(sessionId, { nickname });
+  logger.info(`[로그인] 성공: ${nickname} (세션ID: ${sessionId})`);
   res.json({ sessionId, nickname });
 });
 
 // 게임서버 상태 업데이트
 app.post('/internal/rooms/:roomId/state', (req, res) => {
-  const roomId = req.params.roomId;
-  const newState = req.body.state;
-  console.log(`[DEBUG] Received state update for room ${roomId}: state = ${newState}`);
-  
-  // 현재 저장된 방 목록 출력
-  const currentRooms = Array.from(rooms.keys());
-  console.log(`[DEBUG] Current rooms in memory: [${currentRooms.join(', ')}] (total: ${currentRooms.length})`);
-  
+  const { roomId } = req.params;
+  const { state: newState } = req.body;
+  logger.info(`[상태 업데이트] [방 ${roomId}] 상태 변경 요청: ${newState}`);
+
   const room = rooms.get(roomId);
   if (!room) {
-    console.error(`[DEBUG] Room ${roomId} not found for state update`);
-    console.error(`[DEBUG] Available rooms: ${currentRooms.length > 0 ? currentRooms.join(', ') : 'NONE'}`);
-    return res.status(404).json({ 
-      code: 'room_not_found', 
-      message: '방을 찾을 수 없습니다' 
-    });
+    const currentRooms = Array.from(rooms.keys());
+    logger.error(`[상태 업데이트] [방 ${roomId}] 존재하지 않는 방에 대한 요청입니다. (현재 방: ${currentRooms.join(', ') || '없음'})`);
+    return res.status(404).json({ code: 'room_not_found', message: '방을 찾을 수 없습니다.' });
   }
-  
-  console.log(`[DEBUG] Room ${roomId} state changed from ${room.state} to ${newState}`);
+
+  logger.info(`[방 ${roomId}] 상태 변경: ${room.state} -> ${newState}`);
   room.state = newState;
-  
-  // state가 0(준비완료)이면 대기 중인 요청들에 응답 전송
+
   if (newState === 0 && pendingRequests.has(roomId)) {
     const requests = pendingRequests.get(roomId);
-    console.log(`[DEBUG] Found ${requests.length} pending requests for room ${roomId}, sending responses`);
-    
+    logger.info(`[방 ${roomId}] 준비 완료. 대기 중인 요청 ${requests.length}건에 대해 응답을 전송합니다.`);
+
     requests.forEach(({ ws, type, responseData }) => {
-      console.log(`[DEBUG] Sending response: type=${type}`);
+      logger.info(`[방 ${roomId}] 대기열 응답 전송: ${type}`);
       sendMessage(ws, type, responseData);
     });
     pendingRequests.delete(roomId);
-    console.log(`[DEBUG] Sent ${requests.length} pending responses for room ${roomId} and cleared queue`);
-  } else if (newState === 0) {
-    console.log(`[DEBUG] No pending requests found for room ${roomId}`);
-  } else {
-    console.log(`[DEBUG] State is not 0 (${newState}), not processing pending requests`);
   }
-  
+
   res.json({ ok: true });
 });
 
@@ -217,17 +222,17 @@ function addPendingRequest(roomId, ws, type, responseData) {
     pendingRequests.set(roomId, []);
   }
   pendingRequests.get(roomId).push({ ws, type, responseData });
-  console.log(`[DEBUG] Added pending request for room ${roomId}. Queue size: ${pendingRequests.get(roomId).length}`);
+  logger.info(`[방 ${roomId}] 요청이 대기열에 추가되었습니다. (현재 ${pendingRequests.get(roomId).length}개 대기)`);
 }
 
 function cleanupPendingRequests(ws) {
-  let cleaned = 0;
+  let cleanedCount = 0;
   for (const [roomId, requests] of pendingRequests.entries()) {
     const originalLength = requests.length;
     const filteredRequests = requests.filter(req => req.ws !== ws);
-    
+
     if (filteredRequests.length !== originalLength) {
-      cleaned += originalLength - filteredRequests.length;
+      cleanedCount += originalLength - filteredRequests.length;
       if (filteredRequests.length === 0) {
         pendingRequests.delete(roomId);
       } else {
@@ -235,28 +240,27 @@ function cleanupPendingRequests(ws) {
       }
     }
   }
-  
-  if (cleaned > 0) {
-    console.log(`[DEBUG] Cleaned up ${cleaned} pending requests for disconnected user`);
+  if (cleanedCount > 0) {
+    logger.info(`[연결 해제] 사용자의 대기중인 요청 ${cleanedCount}개를 정리했습니다.`);
   }
 }
 
 wss.on('connection', (ws, req) => {
+  const connectionId = crypto.randomBytes(4).toString('hex');
+  logger.info(`[WebSocket] 새로운 연결 수립: ${connectionId}`);
+
   let authenticated = false;
   let sessionId = null;
-  console.log('[DEBUG] New WebSocket connection established');
-  
+
   ws.on('message', async (message) => {
     try {
       const data = JSON.parse(message.toString());
-      console.log(`[DEBUG] Received WebSocket message: ${JSON.stringify(data)}`);
-      
-      // 인증 처리
+      logger.info(`[WebSocket ${connectionId}] 메시지 수신:`, data);
+
       if (data.type === 'auth') {
         sessionId = data.sessionId;
-        console.log(`[DEBUG] Auth request with sessionId: ${sessionId}`);
         if (!sessionId || !users.has(sessionId)) {
-          console.error(`[DEBUG] Auth failed for sessionId: ${sessionId}`);
+          logger.error(`[WebSocket ${connectionId}] 인증 실패: 유효하지 않은 세션ID (${sessionId})`);
           sendError(ws, 'unauthorized');
           ws.close();
           return;
@@ -264,54 +268,46 @@ wss.on('connection', (ws, req) => {
         authenticated = true;
         connections.set(ws, { sessionId, nickname: users.get(sessionId).nickname });
         sendMessage(ws, 'auth_success', { ok: true });
-        console.log(`[DEBUG] Auth successful for sessionId: ${sessionId}`);
+        logger.info(`[WebSocket ${connectionId}] 인증 성공: ${users.get(sessionId).nickname} (${sessionId})`);
         return;
       }
-      
-      // 인증되지 않은 요청 거부
+
       if (!authenticated) {
-        console.error(`[DEBUG] Unauthenticated request: ${data.type}`);
+        logger.warn(`[WebSocket ${connectionId}] 인증되지 않은 요청 시도: ${data.type}`);
         sendError(ws, 'not_authenticated');
         return;
       }
-      
-      // 방 생성
+
+      const { nickname } = connections.get(ws);
+
       if (data.type === 'create_room') {
-        console.log(`[DEBUG] Received create_room request from ${sessionId}`);
+        logger.info(`[${nickname}] 방 생성 요청`);
         try {
           const roomId = data.roomId || generateRoomId();
-          console.log(`[DEBUG] Generated/using roomId: ${roomId}`);
-          
           const room = await createRoom(roomId);
-          console.log(`[DEBUG] Room created successfully: ${roomId}`);
-          
           const responseData = { ok: true, roomId, ip: room.ip, port: room.port };
-          
-          // 게임 서버가 이미 준비되었으면 즉시 응답, 아니면 대기 큐에 추가
+
           if (room.state === 0) {
-            console.log(`[DEBUG] Room ${roomId} is already ready, sending immediate response`);
+            logger.info(`[방 ${roomId}] 즉시 응답 가능. 응답을 전송합니다.`);
             sendMessage(ws, 'create_room_response', responseData);
           } else {
-            console.log(`[DEBUG] Room ${roomId} not ready yet, adding to pending queue`);
+            logger.info(`[방 ${roomId}] 게임 서버 준비 대기. 요청을 큐에 추가합니다.`);
             addPendingRequest(roomId, ws, 'create_room_response', responseData);
           }
         } catch (e) {
-          console.error(`[DEBUG] create_room failed: ${e.message}`);
+          logger.error(`[${nickname}] 방 생성 처리 중 오류 발생: ${e.message}`);
           sendError(ws, 'room_create_failed');
         }
       }
-      
-      // 방 참가
+
       else if (data.type === 'join_room') {
-        console.log(`[DEBUG] Received join_room request from ${sessionId}`);
+        logger.info(`[${nickname}] 방 참가 요청`, data.roomId ? { roomId: data.roomId } : { random: true });
         try {
           let roomId = data.roomId;
           let room = null;
           let responseData = null;
-          
-          if (roomId) {
-            // 특정 방 참가
-            console.log(`[DEBUG] Joining specific room: ${roomId}`);
+
+          if (roomId) { // 특정 방 참가
             room = rooms.get(roomId);
             if (!room) {
               sendError(ws, 'room_not_found');
@@ -322,69 +318,48 @@ wss.on('connection', (ws, req) => {
               return;
             }
             responseData = { ok: true, ip: room.ip, port: room.port };
-          } else {
-            // 랜덤 매칭 또는 새 방 생성
+          } else { // 랜덤 매칭
             roomId = pickRandomWaitingRoom() || generateRoomId();
-            console.log(`[DEBUG] Random matching/creating room: ${roomId}`);
-            room = rooms.get(roomId);
-            
-            if (room) {
-              responseData = { ok: true, ip: room.ip, port: room.port, roomId };
-            } else {
-              room = await createRoom(roomId);
-              responseData = { ok: true, ip: room.ip, port: room.port, roomId };
-            }
+            logger.info(`[${nickname}] 참가할 방 결정: ${roomId}`);
+            room = await createRoom(roomId); // 없으면 생성, 있으면 정보 가져오기
+            responseData = { ok: true, ip: room.ip, port: room.port, roomId };
           }
-          
-          // 게임 서버가 이미 준비되었으면 즉시 응답, 아니면 대기 큐에 추가
+
           if (room.state === 0) {
-            console.log(`[DEBUG] Room ${roomId} is already ready, sending immediate response`);
+            logger.info(`[방 ${roomId}] 즉시 응답 가능. 응답을 전송합니다.`);
             sendMessage(ws, 'join_room_response', responseData);
           } else {
-            console.log(`[DEBUG] Room ${roomId} not ready yet, adding to pending queue`);
+            logger.info(`[방 ${roomId}] 게임 서버 준비 대기. 요청을 큐에 추가합니다.`);
             addPendingRequest(roomId, ws, 'join_room_response', responseData);
           }
         } catch (e) {
-          console.error(`[DEBUG] join_room failed: ${e.message}`);
+          logger.error(`[${nickname}] 방 참가 처리 중 오류 발생: ${e.message}`);
           sendError(ws, 'room_not_available');
         }
       }
     } catch (e) {
-      console.error(`[DEBUG] WebSocket message parsing error: ${e.message}`);
+      logger.error(`[WebSocket ${connectionId}] 메시지 처리 오류: ${e.message}`);
       sendError(ws, 'invalid_message');
     }
   });
-  
-  ws.on('close', () => {
-    handleDisconnection(ws, 'close');
-  });
-  
-  ws.on('error', (err) => {
-    console.error('WebSocket error:', err);
-    handleDisconnection(ws, 'error');
-  });
-  
-  // WebSocket 연결 해제 시 로그아웃 처리
-  function handleDisconnection(ws, reason) {
+
+  ws.on('close', () => handleDisconnection(ws, 'close'));
+  ws.on('error', (err) => handleDisconnection(ws, 'error', err));
+
+  function handleDisconnection(ws, reason, err = null) {
     const connection = connections.get(ws);
     if (connection) {
       const { sessionId, nickname } = connection;
-      console.log(`[DEBUG] User ${nickname} (${sessionId}) disconnected (${reason})`);
-      
-      // 사용자 세션 정리
+      logger.info(`[WebSocket] 연결 해제: ${nickname} (${sessionId}), 사유: ${reason}${err ? `, 오류: ${err.message}` : ''}`);
       users.delete(sessionId);
       connections.delete(ws);
-      
-      // 해당 사용자의 대기 중인 요청도 정리
       cleanupPendingRequests(ws);
-      
-      console.log(`[DEBUG] Logout processed for ${nickname}`);
     } else {
-      console.log(`[DEBUG] Unauthenticated connection disconnected (${reason})`);
+      logger.info(`[WebSocket ${connectionId}] 인증되지 않은 연결 해제, 사유: ${reason}`);
       connections.delete(ws);
     }
   }
 });
 
 const PORT = process.env.PORT || 3000;
-httpServer.listen(PORT, () => console.log(`Lobby server running on port ${PORT}`));
+httpServer.listen(PORT, () => logger.info(`로비 서버가 포트 ${PORT}에서 실행됩니다.`));
