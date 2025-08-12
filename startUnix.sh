@@ -28,12 +28,12 @@ fi
 echo
 echo "=== Server started ==="
 
-# AWS인 경우 퍼블릭 IP 설정
+# 서버 정보 출력 및 설정
 if [ "$IS_AWS" = true ]; then
-    PUBLIC_IP="13.125.222.113"
-    echo "AWS 퍼블릭 IP: $PUBLIC_IP"
-    echo "Lobby: http://$PUBLIC_IP:3000"
-    export PUBLIC_IP
+    echo "Lobby: http://localhost:3000 (Backend)"
+    echo "Public: http://dartagnan.shop (Nginx → Backend)"
+    # 게임 서버도 도메인 사용
+    export GAME_SERVER_HOST="dartagnan.shop"
 else
     echo "Lobby: http://localhost:3000"
 fi

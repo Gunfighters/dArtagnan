@@ -27,9 +27,9 @@ const pendingRequests = new Map(); // roomId -> [{ ws, type, responseData }]
 const IMAGE = 'dartagnan-gameserver:latest';
 const INTERNAL_PORT = 7777;
 
-// AWS에서는 퍼블릭 IP를 사용해야 클라이언트가 접근 가능
-const HOST_IP = process.env.PUBLIC_IP || '127.0.0.1';
-console.log(`[INFO] Using HOST_IP: ${HOST_IP}`);
+// 게임 서버 접속 주소 (도메인 사용 시 도메인, 아니면 localhost)
+const HOST_IP = process.env.GAME_SERVER_HOST || '127.0.0.1';
+console.log(`[INFO] Game server host: ${HOST_IP}`);
 
 async function createRoom(roomId) {
   console.log(`[DEBUG] createRoom called with roomId: ${roomId}`);
@@ -220,6 +220,27 @@ function addPendingRequest(roomId, ws, type, responseData) {
   console.log(`[DEBUG] Added pending request for room ${roomId}. Queue size: ${pendingRequests.get(roomId).length}`);
 }
 
+function cleanupPendingRequests(ws) {
+  let cleaned = 0;
+  for (const [roomId, requests] of pendingRequests.entries()) {
+    const originalLength = requests.length;
+    const filteredRequests = requests.filter(req => req.ws !== ws);
+    
+    if (filteredRequests.length !== originalLength) {
+      cleaned += originalLength - filteredRequests.length;
+      if (filteredRequests.length === 0) {
+        pendingRequests.delete(roomId);
+      } else {
+        pendingRequests.set(roomId, filteredRequests);
+      }
+    }
+  }
+  
+  if (cleaned > 0) {
+    console.log(`[DEBUG] Cleaned up ${cleaned} pending requests for disconnected user`);
+  }
+}
+
 wss.on('connection', (ws, req) => {
   let authenticated = false;
   let sessionId = null;
@@ -335,13 +356,34 @@ wss.on('connection', (ws, req) => {
   });
   
   ws.on('close', () => {
-    connections.delete(ws);
+    handleDisconnection(ws, 'close');
   });
   
   ws.on('error', (err) => {
     console.error('WebSocket error:', err);
-    connections.delete(ws);
+    handleDisconnection(ws, 'error');
   });
+  
+  // WebSocket 연결 해제 시 로그아웃 처리
+  function handleDisconnection(ws, reason) {
+    const connection = connections.get(ws);
+    if (connection) {
+      const { sessionId, nickname } = connection;
+      console.log(`[DEBUG] User ${nickname} (${sessionId}) disconnected (${reason})`);
+      
+      // 사용자 세션 정리
+      users.delete(sessionId);
+      connections.delete(ws);
+      
+      // 해당 사용자의 대기 중인 요청도 정리
+      cleanupPendingRequests(ws);
+      
+      console.log(`[DEBUG] Logout processed for ${nickname}`);
+    } else {
+      console.log(`[DEBUG] Unauthenticated connection disconnected (${reason})`);
+      connections.delete(ws);
+    }
+  }
 });
 
 const PORT = process.env.PORT || 3000;

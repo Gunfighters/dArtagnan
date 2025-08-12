@@ -18,7 +18,7 @@ public class LobbyManager : MonoBehaviour
 
     [Header("Server Settings")]
     public string lobbyUrl = "http://localhost:3000";
-    public string awsLobbyUrl = "http://13.125.222.113:3000";
+    public string awsLobbyUrl = "http://dartagnan.shop";
     
     private bool useAwsServer = false;
 

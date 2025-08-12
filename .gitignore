@@ -6,3 +6,4 @@ riderModule.iml
 /.cursor/
 **/.claude/
 **/node_modules/
+**/publish/
