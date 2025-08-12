@@ -363,6 +363,13 @@ public class GameManager
                 PlayerId = player.Id,
                 Alive = player.Alive
             });
+
+            // 플레이어 사망 시스템 메시지 브로드캐스트
+            await BroadcastToAll(new ChatBroadcast
+            {
+                PlayerId = -1, // 시스템 메시지
+                Message = $"{player.Nickname}님이 파산으로 탈락했습니다!"
+            });
         }
 
         return actualWithdrawn;
@@ -546,6 +553,13 @@ public class GameManager
             BettingAmount = BettingAmounts[Round - 1]
         });
 
+        // 라운드 시작 시스템 메시지 브로드캐스트
+        await BroadcastToAll(new ChatBroadcast
+        {
+            PlayerId = -1, // 시스템 메시지
+            Message = $"라운드 {Round} 시작! 베팅금: {BettingAmount}달러"
+        });
+
         LobbyReporter.ReportState(1);
     }
 
@@ -564,6 +578,13 @@ public class GameManager
         Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {CurrentGameState}");
 
         await BroadcastToAll(new WaitingStartFromServer { PlayersInfo = PlayersInRoom() });
+
+        // 대기 상태 시스템 메시지 브로드캐스트
+        await BroadcastToAll(new ChatBroadcast
+        {
+            PlayerId = -1, // 시스템 메시지
+            Message = "게임이 종료되었습니다. 대기 상태로 전환됩니다."
+        });
 
         await RemoveAllBots();
         LobbyReporter.ReportState(0);
@@ -694,6 +715,25 @@ public class GameManager
             Round = Round,
             PrizeMoney = TotalPrizeMoney
         });
+
+        // 라운드 승리자 시스템 메시지 브로드캐스트
+        if (survivors.Count == 1)
+        {
+            await BroadcastToAll(new ChatBroadcast
+            {
+                PlayerId = -1, // 시스템 메시지
+                Message = $"라운드 {Round} 승리: {survivors[0].Nickname}님! (상금: {TotalPrizeMoney}달러)"
+            });
+        }
+        else if (survivors.Count > 1)
+        {
+            var winnerNames = string.Join(", ", survivors.Select(s => s.Nickname));
+            await BroadcastToAll(new ChatBroadcast
+            {
+                PlayerId = -1, // 시스템 메시지
+                Message = $"라운드 {Round} 승리: {winnerNames}! (각자 {prizePerWinner}달러 획득)"
+            });
+        }
     }
 
     private async Task AnnounceGameWinner()
@@ -703,6 +743,26 @@ public class GameManager
         Console.WriteLine($"[게임 종료] 최종 승리자 {winners.Count}명: {string.Join(", ", winners)}");
 
         await BroadcastToAll(new GameWinnerBroadcast { PlayerIds = winners });
+
+        // 게임 최종 승리자 시스템 메시지 브로드캐스트
+        var winnerPlayers = Players.Values.Where(p => !p.Bankrupt).ToList();
+        if (winnerPlayers.Count == 1)
+        {
+            await BroadcastToAll(new ChatBroadcast
+            {
+                PlayerId = -1, // 시스템 메시지
+                Message = $"게임 종료! 최종 승리자: {winnerPlayers[0].Nickname}님! 축하합니다!"
+            });
+        }
+        else if (winnerPlayers.Count > 1)
+        {
+            var winnerNames = string.Join(", ", winnerPlayers.Select(p => p.Nickname));
+            await BroadcastToAll(new ChatBroadcast
+            {
+                PlayerId = -1, // 시스템 메시지
+                Message = $"게임 종료! 최종 승리자: {winnerNames}! 축하합니다!"
+            });
+        }
     }
 
     /// <summary>

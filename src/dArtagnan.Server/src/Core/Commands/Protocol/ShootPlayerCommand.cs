@@ -101,28 +101,35 @@ public class PlayerShootingCommand : IGameCommand
                 await gameManager.TransferMoneyBetweenPlayersAsync(target, shooter, stealAmount);
                 
                 // 타겟 사망 처리
-                await KillPlayer(target, gameManager);
+                await KillPlayer(target, shooter, gameManager);
             }
         }
     }
     
-    private async Task KillPlayer(Player player, GameManager gameManager)
+    private async Task KillPlayer(Player target, Player shooter, GameManager gameManager)
     {
         // 이미 죽은 플레이어는 처리하지 않음 (파산 등으로 이미 사망한 경우)
-        if (!player.Alive)
+        if (!target.Alive)
         {
-            Console.WriteLine($"[전투] 플레이어 {player.Id}는 이미 사망 상태 (파산 등)");
+            Console.WriteLine($"[전투] 플레이어 {target.Id}는 이미 사망 상태 (파산 등)");
             await gameManager.CheckAndHandleGameEndAsync();
             return;
         }
         
-        Console.WriteLine($"[전투] 플레이어 {player.Id} 사격으로 사망");
-        player.Alive = false;
+        Console.WriteLine($"[전투] 플레이어 {target.Id} 사격으로 사망");
+        target.Alive = false;
         
         await gameManager.BroadcastToAll(new UpdatePlayerAlive
         {
-            PlayerId = player.Id,
-            Alive = player.Alive
+            PlayerId = target.Id,
+            Alive = target.Alive
+        });
+
+        // 사격으로 인한 사망 시스템 메시지 브로드캐스트
+        await gameManager.BroadcastToAll(new ChatBroadcast
+        {
+            PlayerId = -1, // 시스템 메시지
+            Message = $"{shooter.Nickname}님이 {target.Nickname}님을 처치했습니다!"
         });
         
         await gameManager.CheckAndHandleGameEndAsync();
