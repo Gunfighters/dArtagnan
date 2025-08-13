@@ -77,7 +77,7 @@ async function createRoom(roomId) {
     let lobbyUrl;
     if (process.env.LOBBY_HOST_URL) {
         lobbyUrl = process.env.LOBBY_HOST_URL;
-    } else if (process.platform === 'win32') {
+    } else if (process.platform === 'win32' || process.platform === 'darwin') {
         lobbyUrl = `http://host.docker.internal:${process.env.PORT || 3000}`;
     } else {
         lobbyUrl = `http://172.17.0.1:${process.env.PORT || 3000}`;
