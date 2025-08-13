@@ -28,7 +28,7 @@ public class Player
     public float SpeedMultiplier; // 현재 속도 배율
     public float BaseSpeed; // 버프 적용 전 기본 속도
     public bool HasDamageShield; // 피해 가드 보유 여부
-    public List<int> ActiveEffects; // 현재 활성화된 효과 목록 (아이템: 1~999, 증강: 1000+)
+    public List<int> ActiveEffects; // 현재 활성화된 효과 목록 단순 UI표시용(아이템: 1~999, 증강: 1000+)
 
     public Player(int id, string nickname, Vector2 position)
     {
@@ -116,7 +116,6 @@ public class Player
         SpeedMultiplier = 1f;
         BaseSpeed = Constants.MOVEMENT_SPEED;
         HasDamageShield = false;
-        ActiveEffects.Clear();
     }
 
     public PlayerInformation PlayerInformation => new()
