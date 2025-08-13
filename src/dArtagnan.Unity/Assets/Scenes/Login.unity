@@ -487,14 +487,14 @@ RectTransform:
   m_GameObject: {fileID: 1723120133}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.2333, y: 1.2333, z: 1.2333}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 6588894569729821247}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -250, y: 120}
+  m_AnchoredPosition: {x: 0, y: 120}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1723120136
@@ -551,7 +551,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: -1
@@ -640,8 +640,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29317c33cd05b094fad3aa658473c586, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lobbyUrl: http://localhost:3000
-  awsLobbyUrl: https://dartagnan.shop
 --- !u!1 &1836853654
 GameObject:
   m_ObjectHideFlags: 0
