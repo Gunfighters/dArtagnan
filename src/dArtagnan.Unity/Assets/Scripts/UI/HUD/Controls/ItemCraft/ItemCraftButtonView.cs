@@ -100,8 +100,9 @@ namespace UI.HUD.Controls.ItemCraft
 
         public void ShowItem(ItemId id)
         {
-            if (id == ItemId.None) return;
+            if (id is ItemId.None or 0) return;
             _hasItem = true;
+            Debug.Log(id);
             _item = itemCollection.items.First(item => item.data.Id == id);
             currentItemIcon.sprite = _item.icon;
             costText.text = _item.data.EnergyCost.ToString();

@@ -1,7 +1,7 @@
+using dArtagnan.Shared;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-using dArtagnan.Shared;
 
 /// <summary>
 /// 로비 씬을 위한 간단한 UI 컨트롤러
@@ -9,8 +9,8 @@ using dArtagnan.Shared;
 /// </summary>
 public class LobbyUI : MonoBehaviour
 {
-    [Header("UI 요소")]
-    [SerializeField] private Button createRoomButton;
+    [Header("UI 요소")] [SerializeField] private Button createRoomButton;
+
     [SerializeField] private Button joinRoomButton;
     [SerializeField] private TextMeshProUGUI statusText;
     [SerializeField] private TMP_InputField roomIdInputField; // (선택 사항) 방 ID 입력 필드
@@ -21,13 +21,13 @@ public class LobbyUI : MonoBehaviour
         LobbyManager.Instance.OnCreateRoomResult += OnCreateRoomResult;
         LobbyManager.Instance.OnJoinRoomResult += OnJoinRoomResult;
         LobbyManager.Instance.OnError += OnError;
-        
+
         // 버튼 이벤트 연결
         createRoomButton.onClick.AddListener(OnCreateRoomClick);
         joinRoomButton.onClick.AddListener(OnJoinRoomClick);
-        
+
         // 초기 상태
-        SetStatusText("Create or join a room");
+        // SetStatusText("Create or join a room");
         SetButtonsEnabled(true);
     }
 
@@ -40,7 +40,7 @@ public class LobbyUI : MonoBehaviour
             LobbyManager.Instance.OnJoinRoomResult -= OnJoinRoomResult;
             LobbyManager.Instance.OnError -= OnError;
         }
-        
+
         // 버튼 이벤트 리스너 제거
         createRoomButton?.onClick.RemoveAllListeners();
         joinRoomButton?.onClick.RemoveAllListeners();
@@ -52,10 +52,10 @@ public class LobbyUI : MonoBehaviour
     private void OnCreateRoomClick()
     {
         string roomId = string.IsNullOrEmpty(roomIdInputField.text.Trim()) ? null : roomIdInputField.text.Trim();
-        
-        SetStatusText("Creating room...");
+
+        SetStatusText("방 만드는 중...");
         SetButtonsEnabled(false);
-        
+
         LobbyManager.Instance.CreateRoom(roomId);
     }
 
@@ -65,18 +65,18 @@ public class LobbyUI : MonoBehaviour
     private void OnJoinRoomClick()
     {
         string roomId = string.IsNullOrEmpty(roomIdInputField.text.Trim()) ? null : roomIdInputField.text.Trim();
-        
+
         if (roomId == null)
         {
-            SetStatusText("Attempting random match...");
+            SetStatusText("아무 방이나 들어가는 중...");
         }
         else
         {
-            SetStatusText($"Joining room {roomId}...");
+            SetStatusText($"{roomId}번 방에 들어가는 중...");
         }
-        
+
         SetButtonsEnabled(false);
-        
+
         LobbyManager.Instance.JoinRoom(roomId);
     }
 
@@ -87,12 +87,12 @@ public class LobbyUI : MonoBehaviour
     {
         if (result.success)
         {
-            SetStatusText($"Room created! Connecting to game server... ({result.ip}:{result.port})");
+            SetStatusText($"방 생성 완료! 게임 서버 연결중... ({result.ip}:{result.port})");
             // 게임 서버 연결은 LobbyManager가 자동으로 처리
         }
         else
         {
-            SetStatusText($"Room creation failed: {result.errorCode}");
+            SetStatusText($"방 생성 실패: {result.errorCode}");
             SetButtonsEnabled(true);
         }
     }
@@ -104,12 +104,12 @@ public class LobbyUI : MonoBehaviour
     {
         if (result.success)
         {
-            SetStatusText($"Room joined! Connecting to game server... ({result.ip}:{result.port})");
+            SetStatusText($"방 접속 완료! 게임서버 연결하는 중... ({result.ip}:{result.port})");
             // 게임 서버 연결은 LobbyManager가 자동으로 처리
         }
         else
         {
-            SetStatusText($"Room join failed: {result.errorCode}");
+            SetStatusText($"방 접속 실패: {result.errorCode}");
             SetButtonsEnabled(true);
         }
     }
@@ -119,7 +119,7 @@ public class LobbyUI : MonoBehaviour
     /// </summary>
     private void OnError(string errorCode)
     {
-        SetStatusText($"Error occurred: {errorCode}");
+        SetStatusText($"오류: {errorCode}");
         SetButtonsEnabled(true);
     }
 
@@ -132,7 +132,7 @@ public class LobbyUI : MonoBehaviour
         {
             statusText.text = text;
         }
-        
+
         Debug.Log($"[LobbyUI] {text}");
     }
 
@@ -145,7 +145,7 @@ public class LobbyUI : MonoBehaviour
         {
             createRoomButton.interactable = enabled;
         }
-        
+
         if (joinRoomButton != null)
         {
             joinRoomButton.interactable = enabled;
