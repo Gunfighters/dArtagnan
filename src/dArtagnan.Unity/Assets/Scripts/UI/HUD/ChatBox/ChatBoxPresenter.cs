@@ -11,9 +11,14 @@ namespace UI.HUD.ChatBox
             ChatBoxModel
                 .Messages
                 .ObserveAdd()
-                .Subscribe(e => view
-                    .AddChat(PlayerGeneralManager
-                        .GetPlayer(e.Value.PlayerId), e.Value.Message));
+                .Subscribe(e =>
+                {
+                    if (e.Value.PlayerId == -1)
+                        view.AddSystemMessage(e.Value.Message);
+                    else
+                        view.AddChat(PlayerGeneralManager.GetPlayer(e.Value.PlayerId), e.Value.Message);
+                })
+                .AddTo(view);
         }
     }
 }

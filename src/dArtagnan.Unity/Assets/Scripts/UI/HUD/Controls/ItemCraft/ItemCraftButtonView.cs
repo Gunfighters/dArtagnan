@@ -100,6 +100,7 @@ namespace UI.HUD.Controls.ItemCraft
 
         public void ShowItem(ItemId id)
         {
+            if (id == ItemId.None) return;
             _hasItem = true;
             _item = itemCollection.items.First(item => item.data.Id == id);
             currentItemIcon.sprite = _item.icon;

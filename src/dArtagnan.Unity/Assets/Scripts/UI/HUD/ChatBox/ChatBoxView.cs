@@ -41,6 +41,30 @@ namespace UI.HUD.ChatBox
             {
                 var disappearing = _chatLines[0];
                 _chatLines.Remove(disappearing);
+                disappearing.gameObject.SetActive(false);
+                Destroy(disappearing.gameObject);
+            }
+        }
+
+        public void AddSystemMessage(string message)
+        {
+            var added = Instantiate(chatPrefab, chatLineContainer);
+            added.SetLine($"System: {message}");
+            added.SetSystemMessage(true);
+            _chatLines.Add(added);
+            UniTask.WaitForSeconds(fadeOutDuration).ContinueWith(() =>
+            {
+                if (_chatLines.Contains(added))
+                {
+                    _chatLines.Remove(added);
+                    added.FadeOut(fadeOutDuration).Forget();
+                }
+            });
+            if (_chatLines.Count > lineCount)
+            {
+                var disappearing = _chatLines[0];
+                _chatLines.Remove(disappearing);
+                disappearing.gameObject.SetActive(false);
                 Destroy(disappearing.gameObject);
             }
         }
