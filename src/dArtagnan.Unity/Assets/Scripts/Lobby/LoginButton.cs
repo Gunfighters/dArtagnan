@@ -1,16 +1,18 @@
+using R3;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class LoginButton : MonoBehaviour
 {
-    [Header("UI 요소")]
-    [SerializeField] private TMP_InputField nicknameInputField;
+    [Header("UI 요소")] [SerializeField] private TMP_InputField nicknameInputField;
+
     [SerializeField] private Button loginButton;
     [SerializeField] private TextMeshProUGUI statusText;
-    
-    [Header("서버 선택")]
-    [SerializeField] private Toggle serverToggle; // AWS/Localhost 토글
+
+    [Header("서버 선택")] [SerializeField] private Button localhostButton;
+
+    [SerializeField] private Button awsButton;
     [SerializeField] private TextMeshProUGUI serverStatusText; // 현재 서버 표시
 
     private void Start()
@@ -20,16 +22,12 @@ public class LoginButton : MonoBehaviour
         LobbyManager.Instance.OnAuthComplete += OnAuthComplete;
         LobbyManager.Instance.OnError += OnError;
         LobbyManager.Instance.OnServerChanged += OnServerChanged;
-        
-        // 서버 토글 이벤트 연결
-        if (serverToggle != null)
-        {
-            serverToggle.onValueChanged.AddListener(OnServerToggleChanged);
-            serverToggle.isOn = LobbyManager.Instance.IsUsingAwsServer();
-        }
-        
+
+        localhostButton.onClick.AsObservable().Subscribe(_ => OnServerToggleChanged(false)).AddTo(this);
+        awsButton.onClick.AsObservable().Subscribe(_ => OnServerToggleChanged(true)).AddTo(this);
+
         // 초기 상태 설정
-        SetStatusText("Enter nickname and login");
+        SetStatusText("닉네임을 입력하고 로그인해주세요.");
         SetLoginButtonEnabled(true);
         UpdateServerStatusText();
     }
@@ -44,8 +42,6 @@ public class LoginButton : MonoBehaviour
             LobbyManager.Instance.OnError -= OnError;
             LobbyManager.Instance.OnServerChanged -= OnServerChanged;
         }
-        
-        serverToggle?.onValueChanged.RemoveAllListeners();
     }
 
     /// <summary>
@@ -57,14 +53,14 @@ public class LoginButton : MonoBehaviour
 
         if (string.IsNullOrEmpty(nickname))
         {
-            SetStatusText("Please enter a nickname");
+            SetStatusText("닉네임을 입력해주세요.");
             return;
         }
 
         // 로그인 시작
-        SetStatusText("Logging in...");
+        SetStatusText("로그인 중...");
         SetLoginButtonEnabled(false);
-        
+
         LobbyManager.Instance.Login(nickname);
     }
 
@@ -75,12 +71,12 @@ public class LoginButton : MonoBehaviour
     {
         if (success)
         {
-            SetStatusText("Connecting to server...");
+            SetStatusText("서버에 연결하는 중...");
             // 웹소켓 연결은 LobbyManager에서 자동으로 처리됨
         }
         else
         {
-            SetStatusText($"Login failed: {message}");
+            SetStatusText($"로그인 실패: {message}");
             SetLoginButtonEnabled(true);
         }
     }
@@ -90,8 +86,8 @@ public class LoginButton : MonoBehaviour
     /// </summary>
     private void OnAuthComplete()
     {
-        SetStatusText("Login successful! Moving to lobby...");
-        
+        SetStatusText("로그인 성공! 로비로 이동합니다...");
+
         // 1초 후 로비 씬으로 이동
         Invoke(nameof(GoToLobby), 1f);
     }
@@ -101,7 +97,7 @@ public class LoginButton : MonoBehaviour
     /// </summary>
     private void OnError(string errorCode)
     {
-        SetStatusText($"Error: {errorCode}");
+        SetStatusText($"오류: {errorCode}");
         SetLoginButtonEnabled(true);
     }
 
@@ -119,7 +115,7 @@ public class LoginButton : MonoBehaviour
         {
             statusText.text = text;
         }
-        
+
         Debug.Log($"[LoginButton] {text}");
     }
 
@@ -133,16 +129,15 @@ public class LoginButton : MonoBehaviour
             loginButton.interactable = enabled;
         }
     }
-    
+
     /// <summary>
     /// 서버 토글 변경 처리
     /// </summary>
     private void OnServerToggleChanged(bool useAws)
     {
         LobbyManager.Instance.SetServerType(useAws);
-        SetStatusText($"Server changed to {(useAws ? "AWS" : "Localhost")}");
     }
-    
+
     /// <summary>
     /// 서버 변경 이벤트 처리
     /// </summary>
@@ -150,7 +145,7 @@ public class LoginButton : MonoBehaviour
     {
         UpdateServerStatusText();
     }
-    
+
     /// <summary>
     /// 서버 상태 텍스트 업데이트
     /// </summary>
@@ -160,7 +155,7 @@ public class LoginButton : MonoBehaviour
         {
             string serverType = LobbyManager.Instance.IsUsingAwsServer() ? "AWS" : "Localhost";
             string serverUrl = LobbyManager.Instance.GetCurrentServerUrl();
-            serverStatusText.text = $"Server: {serverType}\n{serverUrl}";
+            serverStatusText.text = $"{serverType}({serverUrl})로 연결합니다.";
         }
     }
 }

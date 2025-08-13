@@ -14,7 +14,7 @@ namespace UI.Connection
         private static void Initialize()
         {
             LocalEventChannel.OnConnectionFailure += () => IsConnecting.Value = false;
-        LocalEventChannel.OnConnectionSuccess += () => SceneManager.LoadScene("Game");
+            LocalEventChannel.OnConnectionSuccess += () => SceneManager.LoadScene("Game");
         }
 
         public static void Connect()

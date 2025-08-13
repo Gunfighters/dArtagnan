@@ -8,11 +8,6 @@ namespace UI.Connection
         {
             ConnectionModel.Port.Value = view.config.port;
             view
-                .ipEndpointInputField
-                .OnValueChangedAsObservable()
-                .Subscribe(ConnectionModel.IPEndpoint.AsObserver())
-                .AddTo(view);
-            view
                 .setAwsButton
                 .OnClickAsObservable()
                 .Subscribe(_ => ConnectionModel.IPEndpoint.Value = view.config.awsHost)
@@ -26,10 +21,6 @@ namespace UI.Connection
                 .connectButton
                 .OnClickAsObservable()
                 .Subscribe(_ => ConnectionModel.Connect())
-                .AddTo(view);
-            ConnectionModel
-                .IPEndpoint
-                .Subscribe(value => view.ipEndpointInputField.text = value)
                 .AddTo(view);
             ConnectionModel
                 .IsConnecting
