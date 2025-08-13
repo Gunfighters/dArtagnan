@@ -6,7 +6,7 @@ import { WebSocketServer } from 'ws';
 import crypto from 'crypto';
 import { ErrorCodes, RoomState } from './errorCodes.js';
 
-// --- 로깅 유틸리티 (최종 수정) ---
+// --- 로깅 유틸리티 ---
 const logger = {
     _log(level, ...args) {
         const now = new Date();
@@ -19,7 +19,7 @@ const logger = {
         // 모든 인자를 하나의 문자열로 변환하고 합칩니다.
         const message = args.map(arg => {
             if (typeof arg === 'object' && arg !== null) {
-                return JSON.stringify(arg, null, 2); // 객체는 보기 좋게 변환
+                return JSON.stringify(arg, null, 2);
             }
             return String(arg);
         }).join(' ');
@@ -62,9 +62,9 @@ const pendingRequests = new Map(); // roomId -> [{ ws, type, responseData }]
 const IMAGE = 'dartagnan-gameserver:latest';
 const INTERNAL_PORT = 7777;
 
-// 게임 서버 접속 주소 (도메인 사용 시 도메인, 아니면 localhost)
-const HOST_IP = process.env.GAME_SERVER_HOST || '127.0.0.1';
-logger.info(`게임 서버 호스트 주소: ${HOST_IP}`);
+// 게임 서버 공개 주소 (배포 환경에서는 도메인, 로컬에서는 localhost)
+const PUBLIC_DOMAIN = process.env.PUBLIC_DOMAIN || '127.0.0.1';
+logger.info(`게임 서버 공개 주소: ${PUBLIC_DOMAIN}`);
 
 async function createRoom(roomId) {
     logger.info(`[방 ${roomId}] 생성 요청 접수`);
@@ -74,14 +74,10 @@ async function createRoom(roomId) {
         return rooms.get(roomId);
     }
 
-    let lobbyUrl;
-    if (process.env.LOBBY_HOST_URL) {
-        lobbyUrl = process.env.LOBBY_HOST_URL;
-    } else if (process.platform === 'win32' || process.platform === 'darwin') {
-        lobbyUrl = `http://host.docker.internal:${process.env.PORT || 3000}`;
-    } else {
-        lobbyUrl = `http://172.17.0.1:${process.env.PORT || 3000}`;
-    }
+    // Docker 컨테이너에서 로비 서버 접근 주소 자동 설정
+    const lobbyUrl = process.platform === 'win32' || process.platform === 'darwin'
+        ? `http://host.docker.internal:3000`
+        : `http://172.17.0.1:3000`;
     logger.info(`[방 ${roomId}] 컨테이너 생성을 시작합니다. (로비 URL: ${lobbyUrl})`);
 
     const container = await docker.createContainer({
@@ -109,14 +105,14 @@ async function createRoom(roomId) {
         logger.error(`[방 ${roomId}] 호스트 포트 바인딩 정보를 가져오는 데 실패했습니다.`);
         throw new Error('Failed to get host port binding');
     }
-    logger.info(`[방 ${roomId}] 포트 바인딩 확인: ${HOST_IP}:${hostPort}`);
+    logger.info(`[방 ${roomId}] 포트 바인딩 확인: ${PUBLIC_DOMAIN}:${hostPort}`);
 
-    const room = { containerId: container.id, ip: HOST_IP, port: Number(hostPort), state: -1 };
+    const room = { containerId: container.id, ip: PUBLIC_DOMAIN, port: Number(hostPort), state: -1 };
     rooms.set(roomId, room);
     logger.info(`[방 ${roomId}] 방 정보 사전 저장 완료 (상태: 대기중)`);
 
     logger.info(`[방 ${roomId}] 포트(${hostPort}) 활성화 대기를 시작합니다.`);
-    await waitForPort(HOST_IP, Number(hostPort));
+    await waitForPort(PUBLIC_DOMAIN, Number(hostPort));
     await new Promise(resolve => setTimeout(resolve, 200));
     logger.info(`[방 ${roomId}] 포트(${hostPort})가 활성화되었습니다.`);
 
@@ -362,5 +358,5 @@ wss.on('connection', (ws, req) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 httpServer.listen(PORT, () => logger.info(`로비 서버가 포트 ${PORT}에서 실행됩니다.`));
