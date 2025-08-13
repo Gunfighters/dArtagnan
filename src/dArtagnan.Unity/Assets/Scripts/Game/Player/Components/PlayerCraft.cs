@@ -1,4 +1,3 @@
-using System.Linq;
 using dArtagnan.Shared;
 using Game.Items;
 using Game.Player.UI;
@@ -34,6 +33,7 @@ namespace Game.Player.Components
             if (info.CurrentItem != -1)
                 SetItem(itemCollection.items.Find(i => i.data.Id == (ItemId)info.CurrentItem));
             ToggleItem(info.CurrentItem != -1);
+            LocalEventChannel.InvokeOnLocalPlayerNewItem((ItemId)info.CurrentItem);
         }
 
         public void ToggleCraft(bool craft)

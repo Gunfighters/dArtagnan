@@ -1,3 +1,4 @@
+using dArtagnan.Shared;
 using R3;
 
 namespace UI.HUD.Controls.ItemCraft
@@ -8,7 +9,7 @@ namespace UI.HUD.Controls.ItemCraft
         {
             ItemCraftButtonModel.ItemId.Subscribe(id =>
             {
-                if (id == 0)
+                if (id == ItemId.None)
                     view.HideItem();
                 else
                     view.ShowItem(id);

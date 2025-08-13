@@ -1,4 +1,5 @@
 using System;
+using dArtagnan.Shared;
 using Game.Player.Components;
 using UnityEngine;
 
@@ -24,7 +25,7 @@ public static class LocalEventChannel
 
     public static event Action OnConnectionFailure;
     public static void InvokeOnConnectionFailure() => OnConnectionFailure?.Invoke();
-    
+
     public static event Action OnConnectionSuccess;
     public static void InvokeOnConnectionSuccess() => OnConnectionSuccess?.Invoke();
 
@@ -33,4 +34,7 @@ public static class LocalEventChannel
 
     public static event Action<string, Color> OnAlertMessage;
     public static void InvokeOnAlertMessage(string msg, Color color) => OnAlertMessage?.Invoke(msg, color);
+
+    public static event Action<ItemId> OnLocalPlayerNewItem;
+    public static void InvokeOnLocalPlayerNewItem(ItemId itemId) => OnLocalPlayerNewItem?.Invoke(itemId);
 }

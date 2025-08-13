@@ -12,6 +12,7 @@ namespace UI.HUD.Controls.ItemCraft
         [RuntimeInitializeOnLoadMethod]
         private static void Initialize()
         {
+            LocalEventChannel.OnLocalPlayerNewItem += id => ItemId.Value = id;
             PacketChannel.On<ItemAcquiredBroadcast>(e =>
             {
                 if (e.PlayerId == PlayerGeneralManager.LocalPlayerCore.ID)
@@ -20,7 +21,7 @@ namespace UI.HUD.Controls.ItemCraft
             PacketChannel.On<ItemUsedBroadcast>(e =>
             {
                 if (e.PlayerId == PlayerGeneralManager.LocalPlayerCore.ID)
-                    ItemId.Value = 0;
+                    ItemId.Value = dArtagnan.Shared.ItemId.None;
             });
         }
     }
