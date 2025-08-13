@@ -3,14 +3,16 @@ using UnityEngine;
 
 namespace Game
 {
-    public class GameStateManager : MonoBehaviour, IChannelListener
+    public class GameStateManager : MonoBehaviour
     {
         public static GameState GameState { get; private set; }
-        public void Initialize()
+
+        private void Awake()
         {
             PacketChannel.On<RoundStartFromServer>(OnGamePlaying);
             PacketChannel.On<WaitingStartFromServer>(OnGameWaiting);
-            PacketChannel.On<RouletteStartFromServer>(OnYourAccuracyAndPool);;
+            PacketChannel.On<RouletteStartFromServer>(OnYourAccuracyAndPool);
+            ;
         }
 
         private static void OnGamePlaying(RoundStartFromServer e)
