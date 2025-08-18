@@ -15,11 +15,11 @@ namespace Game.Player.Components
         [SerializeField] private Color hitTextColor;
         [SerializeField] private Color missTextColor;
         [SerializeField] private float hitMissShowingDuration;
+        public Transform _rangeCircleTransform;
         private readonly RaycastHit2D[] _hits = new RaycastHit2D[2];
         private Collider2D _collider2D;
         private ContactFilter2D _contactFilter2D;
         private PlayerCore _core;
-        public Transform _rangeCircleTransform;
         [CanBeNull] public PlayerCore Target { get; private set; }
         public float Range { get; private set; }
 
@@ -86,7 +86,7 @@ namespace Game.Player.Components
         [CanBeNull]
         public PlayerCore CalculateTarget(Vector2 aim)
         {
-            var targetPool = PlayerGeneralManager
+            var targetPool = GameService
                 .Survivors
                 .Where(target => target.transform != transform)
                 .Where(CanShoot)

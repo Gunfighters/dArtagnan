@@ -11,7 +11,7 @@ namespace UI.HUD.Controls
         private VariableJoystick _variableJoystick;
         private bool Moving => _variableJoystick.Direction != Vector2.zero;
         private Vector2 InputVectorSnapped => _variableJoystick.Direction.DirectionToInt().IntToDirection();
-        private PlayerCore LocalPlayer => PlayerGeneralManager.LocalPlayerCore;
+        private PlayerCore LocalPlayer => GameService.LocalPlayer;
 
         private void Awake() => _variableJoystick = GetComponent<VariableJoystick>();
 

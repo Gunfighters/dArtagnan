@@ -7,8 +7,8 @@ namespace Game.Player.Components
 {
     public class PlayerTrajectory : MonoBehaviour
     {
-        private LineRenderer _lineRenderer;
         [SerializeField] private float duration;
+        private LineRenderer _lineRenderer;
         [CanBeNull] private Transform _target;
 
         private void Awake()
@@ -28,7 +28,7 @@ namespace Game.Player.Components
 
         public void Initialize(PlayerInformation info)
         {
-            _target = PlayerGeneralManager.GetPlayer(info.Targeting)?.transform;
+            _target = GameService.GetPlayer(info.Targeting)?.transform;
         }
 
         public void Flash(Transform newTarget)

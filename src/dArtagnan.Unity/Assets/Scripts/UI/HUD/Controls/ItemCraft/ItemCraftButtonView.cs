@@ -37,7 +37,7 @@ namespace UI.HUD.Controls.ItemCraft
             if (_hasItem)
             {
                 filler.fillAmount = 0;
-                if (_item.data.EnergyCost <= PlayerGeneralManager.LocalPlayerCore.Energy.EnergyData.CurrentEnergy)
+                if (_item.data.EnergyCost <= GameService.LocalPlayer.Energy.EnergyData.CurrentEnergy)
                 {
                     outline.color = Color.green;
                     costIcon.color = costText.color = currentItemIcon.color = Color.white;
@@ -50,15 +50,15 @@ namespace UI.HUD.Controls.ItemCraft
             }
             else
             {
-                var ratio = PlayerGeneralManager
-                                .LocalPlayerCore
+                var ratio = GameService
+                                .LocalPlayer
                                 .Energy
                                 .EnergyData
                                 .CurrentEnergy /
                             Constants.CRAFT_ENERGY_COST;
                 filler.fillAmount = ratio;
                 craftIcon.color = costIcon.color = costText.color = ratio >= 1 ? Color.white : Color.grey;
-                outline.color = ratio >= 1 && !PlayerGeneralManager.LocalPlayerCore.Craft.Crafting
+                outline.color = ratio >= 1 && !GameService.LocalPlayer.Craft.Crafting
                     ? Color.green
                     : Color.grey;
             }
@@ -68,19 +68,19 @@ namespace UI.HUD.Controls.ItemCraft
         {
             if (_hasItem)
             {
-                if (PlayerGeneralManager.LocalPlayerCore.Energy.EnergyData.CurrentEnergy < _item.data.EnergyCost)
+                if (GameService.LocalPlayer.Energy.EnergyData.CurrentEnergy < _item.data.EnergyCost)
                     LocalEventChannel.InvokeOnAlertMessage("에너지가 부족합니다", Color.yellow);
                 else
                     PacketChannel.Raise(new UseItemFromClient());
             }
             else
             {
-                if (PlayerGeneralManager.LocalPlayerCore.Energy.EnergyData.CurrentEnergy < Constants.CRAFT_ENERGY_COST)
+                if (GameService.LocalPlayer.Energy.EnergyData.CurrentEnergy < Constants.CRAFT_ENERGY_COST)
                     LocalEventChannel.InvokeOnAlertMessage("에너지가 부족합니다", Color.yellow);
                 else
                 {
-                    PlayerGeneralManager.LocalPlayerCore.Physics.Stop();
-                    PacketChannel.Raise(PlayerGeneralManager.LocalPlayerCore.Physics.MovementData);
+                    GameService.LocalPlayer.Physics.Stop();
+                    PacketChannel.Raise(GameService.LocalPlayer.Physics.MovementData);
                     PacketChannel.Raise(new UpdateItemCreatingStateFromClient { IsCreatingItem = true });
                 }
             }

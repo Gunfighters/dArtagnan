@@ -4,19 +4,18 @@ using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using Game;
 using R3;
-using UnityEditor;
 using UnityEngine;
 
 namespace UI.HUD.Splashes
 {
     public static class SplashModel
     {
+        private const float SplashDuration = 2.5f;
         public static readonly ReactiveProperty<int> RoundIndex = new();
         public static readonly ReactiveProperty<bool> GameStart = new();
         public static readonly ReactiveProperty<bool> RoundStart = new();
         public static readonly ReactiveProperty<bool> RoundOver = new();
         public static readonly ReactiveProperty<bool> GameOver = new();
-        private const float SplashDuration = 2.5f;
         public static readonly ReactiveProperty<List<string>> Winners = new(new List<string>());
 
         [RuntimeInitializeOnLoadMethod]
@@ -41,7 +40,7 @@ namespace UI.HUD.Splashes
 
         private static void SetWinners(List<int> ids)
         {
-            Winners.Value = ids.Select(PlayerGeneralManager.GetPlayer).Select(p => p.Nickname).ToList();
+            Winners.Value = ids.Select(GameService.GetPlayer).Select(p => p.Nickname).ToList();
         }
 
         private static void Flash(ReactiveProperty<bool> splash)

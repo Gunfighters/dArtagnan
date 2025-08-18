@@ -1,13 +1,11 @@
-using Assets.HeroEditor4D.Common.Scripts.Common;
-using R3;
 using UnityEngine;
 
 namespace UI.HUD
 {
     public class HUDView : MonoBehaviour
     {
-        [Header("Canvases")]
-        public Canvas controls;
+        [Header("Canvases")] public Canvas controls;
+
         public Canvas spectating;
         public Canvas waiting;
         public Canvas playing;
@@ -16,7 +14,7 @@ namespace UI.HUD
 
         private void Awake()
         {
-            HUDPresenter.Initialize(this);
+            HUDPresenter.Initialize(this, new HUDModel());
         }
     }
 }

@@ -23,7 +23,7 @@ namespace UI.HUD.Controls
 
         private bool _aiming = false;
         private bool _reloading = true;
-        private PlayerCore LocalPlayer => PlayerGeneralManager.LocalPlayerCore;
+        private PlayerCore LocalPlayer => GameService.LocalPlayer;
 
         private float RemainingReloadTime => Mathf.Max(0,
             LocalPlayer.Energy.MinEnergyToShoot - LocalPlayer.Energy.EnergyData.CurrentEnergy);
@@ -73,12 +73,12 @@ namespace UI.HUD.Controls
         {
             JoystickAxis.enabled = false;
             _aiming = false;
-            if (PlayerGeneralManager.LocalPlayerCore.Energy.EnergyData.CurrentEnergy <
+            if (GameService.LocalPlayer.Energy.EnergyData.CurrentEnergy <
                 LocalPlayer.Energy.MinEnergyToShoot)
                 LocalEventChannel.InvokeOnAlertMessage("에너지가 부족합니다.", Color.yellow);
-            if (Shootable && PlayerGeneralManager.LocalPlayerCore.Shoot.Target)
+            if (Shootable && GameService.LocalPlayer.Shoot.Target)
                 PacketChannel.Raise(new ShootingFromClient
-                    { TargetId = PlayerGeneralManager.LocalPlayerCore.Shoot.Target.ID });
+                    { TargetId = GameService.LocalPlayer.Shoot.Target.ID });
         }
     }
 }

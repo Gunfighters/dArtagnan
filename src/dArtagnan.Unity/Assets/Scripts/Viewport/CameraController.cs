@@ -21,10 +21,6 @@ public class CameraController : MonoBehaviour
     {
         LocalEventChannel.OnNewCameraTarget += Follow;
         PacketChannel.On<UpdatePlayerAlive>(OnUpdatePlayerAlive);
-    }
-
-    private void Start()
-    {
         cam = GetComponent<Camera>();
         mapSize = groundRenderer.bounds.size / 2;
         height = cam.orthographicSize;
@@ -49,7 +45,7 @@ public class CameraController : MonoBehaviour
     {
         if (!e.Alive && e.PlayerId == target.ID)
         {
-            var newTarget = PlayerGeneralManager.Survivors.FirstOrDefault(p => p != target);
+            var newTarget = GameService.Survivors.FirstOrDefault(p => p != target);
             if (newTarget is not null)
                 LocalEventChannel.InvokeOnNewCameraTarget(newTarget);
         }

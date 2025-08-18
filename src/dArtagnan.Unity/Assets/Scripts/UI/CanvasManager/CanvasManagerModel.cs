@@ -1,17 +1,14 @@
 using dArtagnan.Shared;
 using Game;
 using R3;
-using UnityEditor;
-using UnityEngine;
 
 namespace UI.CanvasManager
 {
-    public static class CanvasManagerModel
+    public class CanvasManagerModel
     {
-        public static readonly ReactiveProperty<GameScreen> Screen = new();
+        public readonly ReactiveProperty<GameScreen> Screen = new();
 
-        [RuntimeInitializeOnLoadMethod]
-        public static void Initialize()
+        public CanvasManagerModel()
         {
             LocalEventChannel.OnConnectionFailure += () => Screen.Value = GameScreen.NetworkFailure;
             LocalEventChannel.BackToConnection += () => Screen.Value = GameScreen.Connection;
@@ -19,7 +16,6 @@ namespace UI.CanvasManager
             PacketChannel.On<RoundStartFromServer>(_ => Screen.Value = GameScreen.HUD);
             PacketChannel.On<RouletteStartFromServer>(_ => Screen.Value = GameScreen.Roulette);
             PacketChannel.On<AugmentStartFromServer>(_ => Screen.Value = GameScreen.AugmentationSelection);
-            Screen.Value = GameScreen.Connection;
         }
     }
 }

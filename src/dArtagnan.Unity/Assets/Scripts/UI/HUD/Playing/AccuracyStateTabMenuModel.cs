@@ -20,13 +20,13 @@ namespace UI.HUD.Playing
         private static void OnGamePlaying(RoundStartFromServer e)
         {
             State.Value = e.PlayersInfo
-                .Single(i => i.PlayerId == PlayerGeneralManager.LocalPlayerCore.ID)
+                .Single(i => i.PlayerId == GameService.LocalPlayer.ID)
                 .AccuracyState;
         }
 
         private static void OnStateBroadcast(UpdateAccuracyStateBroadcast e)
         {
-            if (PlayerGeneralManager.LocalPlayerCore.ID == e.PlayerId)
+            if (GameService.LocalPlayer.ID == e.PlayerId)
                 State.Value = e.AccuracyState;
         }
     }

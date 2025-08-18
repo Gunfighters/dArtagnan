@@ -4,12 +4,12 @@ namespace UI.CanvasManager
 {
     public static class CanvasManagerPresenter
     {
-        public static void Initialize(CanvasManagerView view)
+        public static void Initialize(CanvasManagerView view, CanvasManagerModel model)
         {
-            CanvasManagerModel.Screen.Subscribe(screen =>
+            model.Screen.Subscribe(screen =>
             {
                 view.canvasList.ForEach(c => c.canvas.gameObject.SetActive(c.screen == screen));
-            });
+            }).AddTo(view);
         }
     }
 }

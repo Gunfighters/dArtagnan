@@ -9,7 +9,7 @@ namespace UI.CanvasManager
 
         private void Awake()
         {
-            CanvasManagerPresenter.Initialize(this);
+            CanvasManagerPresenter.Initialize(this, new CanvasManagerModel());
         }
     }
 }

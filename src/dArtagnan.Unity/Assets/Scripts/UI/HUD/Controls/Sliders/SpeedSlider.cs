@@ -9,8 +9,8 @@ namespace UI.HUD.Controls.Sliders
         private void Start()
         {
             var slider = GetComponent<Slider>();
-            slider.onValueChanged.AddListener(PlayerGeneralManager.LocalPlayerCore.Physics.SetSpeed);
-            slider.onValueChanged.AddListener(_ => PacketChannel.Raise(PlayerGeneralManager.LocalPlayerCore.Physics.MovementData));
+            slider.onValueChanged.AddListener(GameService.LocalPlayer.Physics.SetSpeed);
+            slider.onValueChanged.AddListener(_ => PacketChannel.Raise(GameService.LocalPlayer.Physics.MovementData));
             slider.value = slider.value;
         }
     }

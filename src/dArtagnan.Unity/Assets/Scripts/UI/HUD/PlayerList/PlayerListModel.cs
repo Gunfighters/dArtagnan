@@ -13,11 +13,11 @@ namespace UI.HUD.PlayerList
         [RuntimeInitializeOnLoadMethod]
         private static void Initialize()
         {
-            PlayerGeneralManager
+            GameService
                 .Players
                 .ObserveDictionaryAdd()
                 .Subscribe(e => PlayerList.Add(e.Value));
-            PlayerGeneralManager
+            GameService
                 .Players
                 .ObserveDictionaryRemove()
                 .Subscribe(e => PlayerList.Remove(e.Value));

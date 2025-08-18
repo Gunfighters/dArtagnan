@@ -24,6 +24,10 @@ namespace Networking
             PacketChannel.On<UpdateItemCreatingStateFromClient>(Send);
             PacketChannel.On<UseItemFromClient>(Send);
             PacketChannel.On<ChatFromClient>(Send);
+        }
+
+        private void Start()
+        {
             Connect(PlayerPrefs.GetString("GameServerIP"), PlayerPrefs.GetInt("GameServerPort"));
         }
 
@@ -37,6 +41,7 @@ namespace Networking
 
         private void OnDestroy()
         {
+            PacketChannel.Clear();
             _stream?.Close();
             _client?.Close();
         }

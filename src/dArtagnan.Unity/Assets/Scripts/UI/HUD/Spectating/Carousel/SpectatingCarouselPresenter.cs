@@ -23,23 +23,23 @@ namespace UI.HUD.Spectating.Carousel
                 .onClick
                 .AddListener(() => LocalEventChannel
                     .InvokeOnNewCameraTarget(
-                        PlayerGeneralManager
+                        GameService
                             .Survivors
                             .SkipWhile(s => s != SpectatingCarouselModel.SpectateTarget.Value)
                             .Skip(1)
-                            .DefaultIfEmpty(PlayerGeneralManager.Survivors.First())
+                            .DefaultIfEmpty(GameService.Survivors.First())
                             .FirstOrDefault()));
             view
                 .rightButton
                 .onClick
                 .AddListener(() => LocalEventChannel
                     .InvokeOnNewCameraTarget(
-                        PlayerGeneralManager
+                        GameService
                             .Survivors
                             .Reverse()
                             .SkipWhile(s => s != SpectatingCarouselModel.SpectateTarget.Value)
                             .Skip(1)
-                            .DefaultIfEmpty(PlayerGeneralManager.Survivors.Reverse().First())
+                            .DefaultIfEmpty(GameService.Survivors.Reverse().First())
                             .FirstOrDefault()));
         }
     }

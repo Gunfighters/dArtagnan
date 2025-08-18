@@ -18,7 +18,7 @@ namespace UI.HUD.Minimap
 
         private void Update()
         {
-            _spriteRenderer.sprite = core == PlayerGeneralManager.LocalPlayerCore ? triangleSprite : circleSprite;
+            _spriteRenderer.sprite = core == GameService.LocalPlayer ? triangleSprite : circleSprite;
             _spriteRenderer.color = core.MyColor;
             var t = Mathf.Clamp01(core.Accuracy.Accuracy.Value / 100f);
             var scaleMultiplier = Mathf.Lerp(0.5f, 1.5f, t);

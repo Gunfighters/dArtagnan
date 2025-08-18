@@ -30,8 +30,8 @@ namespace Game
 
         private void OnPlayerMovementData(MovementDataBroadcast e)
         {
-            var targetPlayer = PlayerGeneralManager.GetPlayer(e.PlayerId);
-            if (targetPlayer == PlayerGeneralManager.LocalPlayerCore) return;
+            var targetPlayer = GameService.GetPlayer(e.PlayerId);
+            if (targetPlayer == GameService.LocalPlayer) return;
 
             targetPlayer!.Physics.UpdateRemotePlayerMovement(e.MovementData);
             Debug.Log($"[패킷 수신] 플레이어 {e.PlayerId} 이동 데이터");
@@ -39,18 +39,18 @@ namespace Game
 
         private void OnPlayerIsTargeting(PlayerIsTargetingBroadcast playerIsTargeting)
         {
-            var aiming = PlayerGeneralManager.GetPlayer(playerIsTargeting.ShooterId);
-            if (aiming == PlayerGeneralManager.LocalPlayerCore) return;
-            aiming!.Shoot.SetTarget(PlayerGeneralManager.GetPlayer(playerIsTargeting.TargetId));
+            var aiming = GameService.GetPlayer(playerIsTargeting.ShooterId);
+            if (aiming == GameService.LocalPlayer) return;
+            aiming!.Shoot.SetTarget(GameService.GetPlayer(playerIsTargeting.TargetId));
         }
 
         private void OnPlayerShoot(ShootingBroadcast e)
         {
-            var shooter = PlayerGeneralManager.GetPlayer(e.ShooterId)!;
-            var target = PlayerGeneralManager.GetPlayer(e.TargetId)!;
+            var shooter = GameService.GetPlayer(e.ShooterId)!;
+            var target = GameService.GetPlayer(e.TargetId)!;
             shooter.Shoot.Fire(target);
             shooter.Energy.UpdateCurrentEnergy(e.ShooterCurrentEnergy);
-            if (GameStateManager.GameState == GameState.Round)
+            if (GameService.State.CurrentValue == GameState.Round)
             {
                 shooter.Shoot.ShowHitOrMiss(e.Hit);
             }
@@ -58,27 +58,27 @@ namespace Game
 
         private void OnCurrentEnergyUpdate(UpdateCurrentEnergyBroadcast e)
         {
-            var updated = PlayerGeneralManager.GetPlayer(e.PlayerId)!;
+            var updated = GameService.GetPlayer(e.PlayerId)!;
             updated.Energy.UpdateCurrentEnergy(e.CurrentEnergy);
         }
 
         private void OnMaxEnergyUpdate(UpdateMaxEnergyBroadcast e)
         {
-            var updated = PlayerGeneralManager.GetPlayer(e.PlayerId)!;
+            var updated = GameService.GetPlayer(e.PlayerId)!;
             updated.Energy.UpdateMaxEnergy(e.MaxEnergy);
         }
 
         private void OnMinEnergyUpdate(UpdateMinEnergyToShootBroadcast e)
         {
-            var updated = PlayerGeneralManager.GetPlayer(e.PlayerId)!;
+            var updated = GameService.GetPlayer(e.PlayerId)!;
             updated.Energy.SetThreshold(e.MinEnergyToShoot);
         }
 
         private void OnUpdatePlayerAlive(UpdatePlayerAlive e)
         {
-            var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
+            var updated = GameService.GetPlayer(e.PlayerId);
             updated!.Health.SetAlive(e.Alive);
-            if (updated == PlayerGeneralManager.LocalPlayerCore)
+            if (updated == GameService.LocalPlayer)
             {
                 LocalEventChannel.InvokeOnLocalPlayerAlive(updated.Health.Alive.CurrentValue);
             }
@@ -86,13 +86,13 @@ namespace Game
 
         private void OnCreatingState(UpdateCreatingStateBroadcast e)
         {
-            var creating = PlayerGeneralManager.GetPlayer(e.PlayerId);
+            var creating = GameService.GetPlayer(e.PlayerId);
             creating!.Craft.ToggleCraft(e.IsCreatingItem);
         }
 
         private void OnItemAcquired(ItemAcquiredBroadcast e)
         {
-            var acquiring = PlayerGeneralManager.GetPlayer(e.PlayerId)!;
+            var acquiring = GameService.GetPlayer(e.PlayerId)!;
             var item = itemCollection.items.Find(item => item.data.Id == (ItemId)e.ItemId);
             Debug.Log($"Player #{acquiring.ID} get Item: {item.data.Name}");
             acquiring!.Craft.ToggleCraft(false);
@@ -102,20 +102,20 @@ namespace Game
 
         private void OnItemUse(ItemUsedBroadcast e)
         {
-            var losing = PlayerGeneralManager.GetPlayer(e.PlayerId)!;
+            var losing = GameService.GetPlayer(e.PlayerId)!;
             losing!.Craft.ToggleItem(false);
         }
 
         private void OnAccuracyStateBroadcast(UpdateAccuracyStateBroadcast e)
         {
-            PlayerGeneralManager.GetPlayer(e.PlayerId)!.Accuracy.SetAccuracyState(e.AccuracyState);
+            GameService.GetPlayer(e.PlayerId)!.Accuracy.SetAccuracyState(e.AccuracyState);
         }
 
         private void OnBalanceUpdate(BalanceUpdateBroadcast e)
         {
-            var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
+            var updated = GameService.GetPlayer(e.PlayerId);
             updated!.Balance.SetBalance(e.Balance);
-            if (updated == PlayerGeneralManager.LocalPlayerCore)
+            if (updated == GameService.LocalPlayer)
             {
                 LocalEventChannel.InvokeOnLocalPlayerBalanceUpdate(updated.Balance.Balance);
             }
@@ -123,25 +123,25 @@ namespace Game
 
         private void OnAccuracyUpdate(UpdateAccuracyBroadcast e)
         {
-            var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
+            var updated = GameService.GetPlayer(e.PlayerId);
             updated!.Accuracy.SetAccuracy(e.Accuracy);
         }
 
         private void OnRangeUpdate(UpdateRangeBroadcast e)
         {
-            var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
+            var updated = GameService.GetPlayer(e.PlayerId);
             updated!.Shoot.SetRange(e.Range);
         }
 
         private void OnSpeedUpdate(UpdateSpeedBroadcast e)
         {
-            var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
+            var updated = GameService.GetPlayer(e.PlayerId);
             updated!.Physics.SetSpeed(e.Speed);
         }
 
         private void OnActiveFx(UpdateActiveEffectsBroadcast e)
         {
-            var updated = PlayerGeneralManager.GetPlayer(e.PlayerId);
+            var updated = GameService.GetPlayer(e.PlayerId);
             updated!.Fx.UpdateFx(e.ActiveEffects);
         }
     }
