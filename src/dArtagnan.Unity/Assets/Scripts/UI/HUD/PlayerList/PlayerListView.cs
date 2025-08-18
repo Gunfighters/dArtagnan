@@ -10,14 +10,14 @@ namespace UI.HUD.PlayerList
         public PlayerListItem itemPrefab;
         private readonly List<PlayerListItem> _pool = new();
 
-        private void Awake()
+        private void Start()
         {
             foreach (var item in GetComponentsInChildren<PlayerListItem>())
             {
                 Destroy(item.gameObject);
             }
 
-            PlayerListPresenter.Initialize(this);
+            PlayerListPresenter.Initialize(new PlayerListModel(), this);
         }
 
         public void Add(PlayerCore player)

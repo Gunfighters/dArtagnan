@@ -5,10 +5,10 @@ namespace UI.HUD.PlayerList
 {
     public static class PlayerListPresenter
     {
-        public static void Initialize(PlayerListView view)
+        public static void Initialize(PlayerListModel model, PlayerListView view)
         {
-            PlayerListModel.PlayerList.ObserveAdd().Subscribe(e => view.Add(e.Value));
-            PlayerListModel.PlayerList.ObserveRemove().Subscribe(e => view.Remove(e.Value));
+            model.PlayerList.ObserveAdd().Subscribe(e => view.Add(e.Value));
+            model.PlayerList.ObserveRemove().Subscribe(e => view.Remove(e.Value));
         }
     }
 }

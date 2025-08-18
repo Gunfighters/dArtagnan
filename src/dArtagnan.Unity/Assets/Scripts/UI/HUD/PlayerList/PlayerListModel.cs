@@ -2,16 +2,14 @@ using Game;
 using Game.Player.Components;
 using ObservableCollections;
 using R3;
-using UnityEngine;
 
 namespace UI.HUD.PlayerList
 {
-    public static class PlayerListModel
+    public class PlayerListModel
     {
-        public static readonly ObservableList<PlayerCore> PlayerList = new();
+        public readonly ObservableList<PlayerCore> PlayerList = new();
 
-        [RuntimeInitializeOnLoadMethod]
-        private static void Initialize()
+        public PlayerListModel()
         {
             GameService
                 .Players
