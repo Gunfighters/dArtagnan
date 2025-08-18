@@ -21,7 +21,7 @@ namespace UI.HUD.ChatBox
                 Destroy(c.gameObject);
             }
 
-            ChatBoxPresenter.Initialize(this);
+            ChatBoxPresenter.Initialize(new ChatBoxModel(), this);
         }
 
         public void AddChat(PlayerCore messenger, string message)

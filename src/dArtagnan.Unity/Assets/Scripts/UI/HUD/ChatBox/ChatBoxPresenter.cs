@@ -6,9 +6,9 @@ namespace UI.HUD.ChatBox
 {
     public static class ChatBoxPresenter
     {
-        public static void Initialize(ChatBoxView view)
+        public static void Initialize(ChatBoxModel model, ChatBoxView view)
         {
-            ChatBoxModel
+            model
                 .Messages
                 .ObserveAdd()
                 .Subscribe(e =>

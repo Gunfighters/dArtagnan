@@ -28,6 +28,7 @@ namespace UI.HUD.ChatBox
             _disappearing = true;
             while (_content.color.a > 0)
             {
+                if (!gameObject) return;
                 var textColor = _content.color;
                 textColor.a -= Time.deltaTime / duration;
                 _content.color = textColor;

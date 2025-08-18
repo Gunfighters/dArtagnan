@@ -1,15 +1,13 @@
 using dArtagnan.Shared;
 using ObservableCollections;
-using UnityEngine;
 
 namespace UI.HUD.ChatBox
 {
-    public static class ChatBoxModel
+    public class ChatBoxModel
     {
-        public static readonly ObservableList<ChatBroadcast> Messages = new();
+        public readonly ObservableList<ChatBroadcast> Messages = new();
 
-        [RuntimeInitializeOnLoadMethod]
-        private static void Initialize()
+        public ChatBoxModel()
         {
             PacketChannel.On<ChatBroadcast>(Messages.Add);
         }
