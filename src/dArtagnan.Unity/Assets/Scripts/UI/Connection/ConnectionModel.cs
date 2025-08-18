@@ -1,6 +1,5 @@
 using R3;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace UI.Connection
 {
@@ -14,13 +13,6 @@ namespace UI.Connection
         private static void Initialize()
         {
             LocalEventChannel.OnConnectionFailure += () => IsConnecting.Value = false;
-            LocalEventChannel.OnConnectionSuccess += () => SceneManager.LoadScene("Game");
-        }
-
-        public static void Connect()
-        {
-            IsConnecting.Value = true;
-            LocalEventChannel.InvokeOnEndpointSelected(IPEndpoint.CurrentValue, Port.CurrentValue);
         }
     }
 }

@@ -13,21 +13,12 @@ public static class LocalEventChannel
 
     public static event Action<bool> OnLocalPlayerAlive;
     public static void InvokeOnLocalPlayerAlive(bool alive) => OnLocalPlayerAlive?.Invoke(alive);
-
-    public static event Action<string, int> OnEndpointSelected;
-
-    public static void InvokeOnEndpointSelected(string endpoint, int port) =>
-        OnEndpointSelected?.Invoke(endpoint, port);
-
     public static event Action<int> OnLocalPlayerBalanceUpdate;
 
     public static void InvokeOnLocalPlayerBalanceUpdate(int balance) => OnLocalPlayerBalanceUpdate?.Invoke(balance);
 
     public static event Action OnConnectionFailure;
     public static void InvokeOnConnectionFailure() => OnConnectionFailure?.Invoke();
-
-    public static event Action OnConnectionSuccess;
-    public static void InvokeOnConnectionSuccess() => OnConnectionSuccess?.Invoke();
 
     public static event Action BackToConnection;
     public static void InvokeOnBackToConnection() => BackToConnection?.Invoke();

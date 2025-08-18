@@ -17,11 +17,6 @@ namespace UI.Connection
                 .OnClickAsObservable()
                 .Subscribe(_ => ConnectionModel.IPEndpoint.Value = "localhost")
                 .AddTo(view);
-            view
-                .connectButton
-                .OnClickAsObservable()
-                .Subscribe(_ => ConnectionModel.Connect())
-                .AddTo(view);
             ConnectionModel
                 .IsConnecting
                 .Subscribe(connecting => view.connectButton.interactable = !connecting)
