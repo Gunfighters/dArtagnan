@@ -5,23 +5,17 @@ A real-time multiplayer probability-based battle royale game inspired by the "Gu
 
 ## Quick Start | 빠른 시작
 
-### Windows (로컬 개발)
+### 로컬 개발 (Windows or Mac)
 ```cmd
 window.bat
+or
+mac.sh
 ```
 
-### Linux/Mac (로컬 개발)
+### 프로덕션 (AWS EC2)
 ```bash
-chmod +x startUnix.sh
-./unix.sh
+ec2.sh
 ```
-
-### AWS EC2 (프로덕션)
-```bash
-chmod +x startUnix.sh
-./unix.sh
-```
-AWS 환경이 자동 감지되어 도메인 기반 서비스가 설정됩니다.
 
 ## Architecture | 아키텍처
 
