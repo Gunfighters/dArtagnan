@@ -112,8 +112,6 @@ async function createRoom(roomId) {
     logger.info(`[방 ${roomId}] 방 정보 사전 저장 완료 (상태: 대기중)`);
 
     logger.info(`[방 ${roomId}] 포트(${hostPort}) 활성화 대기를 시작합니다.`);
-    await waitForPort(PUBLIC_DOMAIN, Number(hostPort));
-    await new Promise(resolve => setTimeout(resolve, 200));
     logger.info(`[방 ${roomId}] 포트(${hostPort})가 활성화되었습니다.`);
 
     container.wait().then(() => {
@@ -123,23 +121,6 @@ async function createRoom(roomId) {
     }).catch(() => {});
 
     return room;
-}
-
-function waitForPort(host, port, timeoutMs = 5000, retryMs = 150) {
-    const started = Date.now();
-    return new Promise((resolve, reject) => {
-        (function attempt() {
-            const socket = net.createConnection({ host, port }, () => {
-                socket.end();
-                resolve();
-            });
-            socket.once('error', () => {
-                socket.destroy();
-                if (Date.now() - started >= timeoutMs) return reject(new Error('Timeout'));
-                setTimeout(attempt, retryMs);
-            });
-        })();
-    });
 }
 
 function pickRandomWaitingRoom() {
