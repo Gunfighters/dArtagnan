@@ -13,7 +13,7 @@ public class Player
     public int MinEnergyToShoot; // 사격하기 위한 최소 필요 에너지
     public bool Alive;
     public Player? Target;
-    public MovementData MovementData;
+    public MovementData MovementData; //최종 시뮬 되는 vector값
     public int Balance;
     public bool Bankrupt => Balance <= 0;
     public int AccuracyState; // 정확도 상태: -1(감소), 0(유지), 1(증가)

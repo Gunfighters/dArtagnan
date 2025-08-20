@@ -6,12 +6,11 @@ namespace dArtagnan.Server;
 
 /// <summary>
 /// AI 봇 클래스 - Player를 상속받아 게임에 참여하는 봇입니다
-/// 멈춰있으면서 5초마다 정확도 상태 변경과 사격을 각각 일정 확률로 시도합니다
+/// 1초마다 일정 확률로 이동 방향 변경(10%), 정확도 상태 변경(15%), 사격(20%)을 시도합니다
 /// </summary>
 public class Bot : Player
 {
-    private float accuracyStateTimer = 0f;
-    private float shootingTimer = 0f;
+    private float actionTimer = 0f; // 모든 행동을 위한 통합 타이머
     private const float ACTION_INTERVAL = 1.0f; // 1초마다 행동 시도
     private const float ACCURACY_ACTION_CHANCE = 0.15f; // 15% 확률로 정확도 상태 변경
     private const float SHOOTING_ACTION_CHANCE = 0.2f; // 20% 확률로 사격 시도
@@ -20,8 +19,18 @@ public class Bot : Player
     
     public Bot(int id, string nickname, Vector2 position, GameManager gameManager) : base(id, nickname, position)
     {
-        MovementData.Speed = 0f;
+        MovementData.Speed = Constants.MOVEMENT_SPEED; // 기본 이동 속도 설정
         this.gameManager = gameManager;
+    }
+    
+    /// <summary>
+    /// 라운드 시작 시 봇 초기화를 오버라이드
+    /// </summary>
+    public new void InitToRound()
+    {
+        base.InitToRound();
+        
+        actionTimer = 0f; // 액션 타이머 리셋
     }
 
     /// <summary>
@@ -31,96 +40,120 @@ public class Bot : Player
     {
         if (!Alive) return;
 
-        // 정확도 상태 변경 타이머 업데이트
-        await UpdateAccuracyStateTimer(deltaTime);
+        actionTimer += deltaTime;
         
-        // 사격 타이머 업데이트  
-        await UpdateShootingTimerAsync(deltaTime);
-    }
-
-    /// <summary>
-    /// 5초마다 정확도 상태를 랜덤으로 변경합니다 (70% 확률)
-    /// </summary>
-    private async Task UpdateAccuracyStateTimer(float deltaTime)
-    {
-        accuracyStateTimer += deltaTime;
-        
-        if (accuracyStateTimer >= ACTION_INTERVAL)
+        if (actionTimer >= ACTION_INTERVAL)
         {
-            // 70% 확률로 정확도 상태 변경, 아니면 건너뛰기
-            if (random.NextDouble() > ACCURACY_ACTION_CHANCE)
-            {
-                accuracyStateTimer = 0f;
-                return;
-            }
-
-            // -1(감소), 0(유지), 1(증가) 중 랜덤 선택
-            var newAccuracyState = random.Next(-1, 2);
-            AccuracyState = newAccuracyState;
+            await TryMovement();
+            await TryAccuracyChange();
+            await TryShooting();
             
-            Console.WriteLine($"[봇 AI] {Nickname}의 정확도 상태 변경: {AccuracyState}");
-            
-            // 정확도 상태 변경 명령 실행
-            await gameManager.EnqueueCommandAsync(new SetAccuracyCommand 
-            { 
-                PlayerId = Id,
-                AccuracyState = AccuracyState
-            });
-            
-            accuracyStateTimer = 0f;
+            actionTimer = 0f;
         }
     }
 
     /// <summary>
-    /// 5초마다 사거리 내 타겟을 찾아 사격합니다 (80% 확률)
+    /// 10% 확률로 이동 상태를 변경합니다
+    /// 70% 확률로 정지, 20% 확률로 현상유지, 10% 확률로 새로운 방향 이동
     /// </summary>
-    private async Task UpdateShootingTimerAsync(float deltaTime)
+    private async Task TryMovement()
     {
-        shootingTimer += deltaTime;
+        var rand = random.NextDouble();
+        int newDirection;
+        string actionDescription;
         
-        if (shootingTimer >= ACTION_INTERVAL)
+        if (rand <= 0.80) // 정지
         {
-            // 80% 확률로 사격 시도, 아니면 건너뛰기
-            if (random.NextDouble() > SHOOTING_ACTION_CHANCE)
-            {
-                shootingTimer = 0f;
-                return;
-            }
-
-            // 에너지가 부족하면 사격 불가
-            if (EnergyData.CurrentEnergy < MinEnergyToShoot)
-            {
-                shootingTimer = 0f;
-                return;
-            }
-            
-            // 사거리 내에 있는 살아있는 다른 플레이어들을 찾습니다
-            var potentialTargets = gameManager.Players.Values
-                .Where(p => p.Id != Id && p.Alive)
-                .Where(p => Vector2.Distance(MovementData.Position, p.MovementData.Position) <= Range)
-                .ToList();
-
-            if (potentialTargets.Count == 0)
-            {
-                shootingTimer = 0f;
-                return;
-            }
-
-            // 랜덤하게 타겟 선택
-            var target = potentialTargets[random.Next(potentialTargets.Count)];
-            Target = target;
-
-            Console.WriteLine($"[봇 AI] {Nickname}이 {target.Nickname}을 타겟으로 사격 시도");
-
-            // 사격 명령 실행
-            await gameManager.EnqueueCommandAsync(new PlayerShootingCommand 
-            { 
-                ShooterId = Id,
-                TargetId = target.Id
-            });
-            
-            shootingTimer = 0f;
+            newDirection = 0;
+            actionDescription = "정지";
         }
+        else if (rand <= 0.90) // 현재 방향 그대로 유지
+        {
+            return; 
+        }
+        else // 10% 확률로 새로운 방향 (1~8)
+        {
+            newDirection = random.Next(1, 9); // 정지(0) 제외한 1~8 방향
+            actionDescription = newDirection switch
+            {
+                1 => "위로 이동",
+                2 => "오른쪽 위로 이동",
+                3 => "오른쪽으로 이동",
+                4 => "오른쪽 아래로 이동",
+                5 => "아래로 이동",
+                6 => "왼쪽 아래로 이동",
+                7 => "왼쪽으로 이동",
+                8 => "왼쪽 위로 이동",
+                _ => "알 수 없는 방향"
+            };
+        }
+        
+        // 이동 방향 변경
+        MovementData.Direction = newDirection;
+        
+        Console.WriteLine($"[봇 AI] {Nickname}의 행동: {actionDescription} (방향값: {newDirection})");
+        
+        // 이동 데이터 브로드캐스트
+        await gameManager.BroadcastToAll(new MovementDataBroadcast
+        {
+            PlayerId = Id,
+            MovementData = MovementData
+        });
+    }
+    
+    /// <summary>
+    /// 15% 확률로 정확도 상태를 랜덤으로 변경합니다
+    /// </summary>
+    private async Task TryAccuracyChange()
+    {
+        // 15% 확률로 정확도 상태 변경
+        if (random.NextDouble() > ACCURACY_ACTION_CHANCE) return;
+
+        // -1(감소), 0(유지), 1(증가) 중 랜덤 선택
+        var newAccuracyState = random.Next(-1, 2);
+        AccuracyState = newAccuracyState;
+        
+        Console.WriteLine($"[봇 AI] {Nickname}의 정확도 상태 변경: {AccuracyState}");
+        
+        // 정확도 상태 변경 명령 실행
+        await gameManager.EnqueueCommandAsync(new SetAccuracyCommand 
+        { 
+            PlayerId = Id,
+            AccuracyState = AccuracyState
+        });
+    }
+
+    /// <summary>
+    /// 20% 확률로 사거리 내 타겟을 찾아 사격합니다
+    /// </summary>
+    private async Task TryShooting()
+    {
+        // 20% 확률로 사격 시도
+        if (random.NextDouble() > SHOOTING_ACTION_CHANCE) return;
+
+        // 에너지가 부족하면 사격 불가
+        if (EnergyData.CurrentEnergy < MinEnergyToShoot) return;
+        
+        // 사거리 내에 있는 살아있는 다른 플레이어들을 찾습니다
+        var potentialTargets = gameManager.Players.Values
+            .Where(p => p.Id != Id && p.Alive)
+            .Where(p => Vector2.Distance(MovementData.Position, p.MovementData.Position) <= Range)
+            .ToList();
+
+        if (potentialTargets.Count == 0) return;
+
+        // 랜덤하게 타겟 선택
+        var target = potentialTargets[random.Next(potentialTargets.Count)];
+        Target = target;
+
+        Console.WriteLine($"[봇 AI] {Nickname}이 {target.Nickname}을 타겟으로 사격 시도");
+
+        // 사격 명령 실행
+        await gameManager.EnqueueCommandAsync(new PlayerShootingCommand 
+        { 
+            ShooterId = Id,
+            TargetId = target.Id
+        });
     }
 
     /// <summary>

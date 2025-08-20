@@ -20,7 +20,7 @@ public class GameLoopCommand : IGameCommand
                 await CheckEmptyServerTimeout(gameManager);
                 await UpdateByAccuracyState(gameManager, DeltaTime);
                 await UpdatePlayerCreatingStates(gameManager, DeltaTime);
-                UpdatePlayerMovementStates(gameManager, DeltaTime);
+                SimulatePlayerPosition(gameManager, DeltaTime);
                 UpdatePlayerEnergyStates(gameManager, DeltaTime);
                 await UpdatePlayerBuffStates(gameManager, DeltaTime);
                 break;
@@ -30,7 +30,7 @@ public class GameLoopCommand : IGameCommand
                 await UpdateBettingTimer(gameManager);
                 await UpdateByAccuracyState(gameManager, DeltaTime);
                 await UpdatePlayerCreatingStates(gameManager, DeltaTime);
-                UpdatePlayerMovementStates(gameManager, DeltaTime);
+                SimulatePlayerPosition(gameManager, DeltaTime);
                 UpdatePlayerEnergyStates(gameManager, DeltaTime);
                 await UpdatePlayerBuffStates(gameManager, DeltaTime);
                 await UpdateBotAI(gameManager, DeltaTime);
@@ -193,7 +193,7 @@ public class GameLoopCommand : IGameCommand
     /// <summary>
     /// 플레이어들의 위치를 업데이트합니다
     /// </summary>
-    private void UpdatePlayerMovementStates(GameManager gameManager, float deltaTime)
+    private void SimulatePlayerPosition(GameManager gameManager, float deltaTime)
     {
         foreach (var player in gameManager.Players.Values)
         {

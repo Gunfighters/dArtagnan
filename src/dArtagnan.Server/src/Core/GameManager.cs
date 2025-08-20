@@ -480,6 +480,31 @@ public class GameManager
         // 게임 상태 변경
         CurrentGameState = GameState.Waiting;
     }
+    
+    /// <summary>
+    /// 라운드 상태로 초기화 (파산하지 않은 플레이어 + 라운드 상태)
+    /// </summary>
+    public void InitToRound(int newRound)
+    {
+        Round = newRound;
+        BettingAmount = BettingAmounts[newRound - 1];
+
+        // 파산하지 않은 플레이어만 라운드 상태로 초기화 및 배치
+        var alivePlayers = Players.Values.Where(p => !p.Bankrupt).ToList();
+        for (var index = 0; index < alivePlayers.Count; index++)
+        {
+            var player = alivePlayers[index];
+            player.InitToRound();
+            player.MovementData.Position = Player.GetSpawnPosition(index);
+        }
+
+        // 베팅 시스템 초기화
+        BettingTimer = 0f;
+        TotalPrizeMoney = 0;
+
+        // 게임 상태 변경
+        CurrentGameState = GameState.Round;
+    }
 
     /// <summary>
     /// 모든 봇을 제거합니다
@@ -507,31 +532,6 @@ public class GameManager
         }
 
         Console.WriteLine($"[봇] 모든 봇 제거 완료. 남은 참가자: {Players.Count}명");
-    }
-
-    /// <summary>
-    /// 라운드 상태로 초기화 (파산하지 않은 플레이어 + 라운드 상태)
-    /// </summary>
-    public void InitToRound(int newRound)
-    {
-        Round = newRound;
-        BettingAmount = BettingAmounts[newRound - 1];
-
-        // 파산하지 않은 플레이어만 라운드 상태로 초기화 및 배치
-        var alivePlayers = Players.Values.Where(p => !p.Bankrupt).ToList();
-        for (var index = 0; index < alivePlayers.Count; index++)
-        {
-            var player = alivePlayers[index];
-            player.InitToRound();
-            player.MovementData.Position = Player.GetSpawnPosition(index);
-        }
-
-        // 베팅 시스템 초기화
-        BettingTimer = 0f;
-        TotalPrizeMoney = 0;
-
-        // 게임 상태 변경
-        CurrentGameState = GameState.Round;
     }
 
     /// <summary>
