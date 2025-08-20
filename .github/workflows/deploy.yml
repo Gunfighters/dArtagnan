@@ -1,4 +1,4 @@
-name: Deploy .NET App to EC2
+name: Deploy App to EC2
 
 on:
   push:
@@ -24,12 +24,8 @@ jobs:
             echo "Pulling latest source code..."
             git pull
 
-            # 3. 서버에서 직접 publish 실행 (배포용 빌드)
-            echo "Publishing the application on the server..."
-            dotnet publish --configuration Release -o publish
-
-            # 4. 백그라운드 서비스 재시작
-            echo "Restarting application service..."
+            # 3. myapp.service 재시작 (ec2.sh 스크립트 실행 트리거)
+            echo "Restarting application service to trigger build and run..."
             sudo systemctl restart myapp.service
 
-            echo "Deployment successful!"
+            echo "Deployment triggered successfully!"
