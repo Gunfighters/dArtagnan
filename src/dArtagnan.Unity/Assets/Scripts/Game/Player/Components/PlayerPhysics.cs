@@ -41,6 +41,9 @@ namespace Game.Player.Components
             transform.position = info.MovementData.Position.ToUnityVec();
             _speed = info.MovementData.Speed;
             _direction = info.MovementData.Direction.IntToDirection();
+            
+            _lastUpdatedPosition = info.MovementData.Position.ToUnityVec();
+            _needToCorrect = false;
         }
 
         private void Update()
