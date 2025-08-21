@@ -28,7 +28,7 @@ namespace Game.Player.UI
         public void SetThreshold(int threshold)
         {
             _threshold = threshold;
-            thresholdMarker.rectTransform.anchoredPosition = new Vector2(36 * threshold + 30, 0);
+            thresholdMarker.rectTransform.anchoredPosition = new Vector2(36 * (threshold - 1) + 30, 0);
         }
 
         public void SetMax(int max)
