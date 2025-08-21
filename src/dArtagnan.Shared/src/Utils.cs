@@ -42,20 +42,19 @@ namespace dArtagnan.Shared
     {
         public const int ACCURACY_STATE_RATE = 3;
         public const int MAX_PLAYER_COUNT = 8;
-        public const int MAX_ROUNDS = 4;
+        public const int MAX_ROUNDS = 2;
         public const int DEFAULT_MAX_ENERGY = 7;
-        public const float ENERGY_RECOVERY_RATE = 0.25f; // 4초에 1칸
-        public const int CRAFT_ENERGY_COST = 2; // 아이템 제작 시 소모되는 에너지
-        public const int USE_ITEM_ENERGY_COST = 1; // 아이템 사용 시 소모되는 에너지
+        public const float ENERGY_RECOVERY_RATE = 0.185f;
+        public const int CRAFT_ENERGY_COST = 1; // 아이템 제작 시 소모되는 에너지
         public const float ACCURACY_UPDATE_INTERVAL = 1.0f;
-        public const float MOVEMENT_SPEED = 1.5f;
+        public const float MOVEMENT_SPEED = 1.3f;
         public const int ROULETTE_MIN_ACCURACY = 25;
         public const int ROULETTE_MAX_ACCURACY = 75;
         public const float DEFAULT_RANGE = 2f;
         public const float MAX_RANGE = 2.8f; // 정확도가 낮을 때의 최대 사거리
         public const float MIN_RANGE = 1.2f; // 정확도가 높을 때의 최소 사거리
         public const float SPAWN_RADIUS = 1.5f;
-        public const float BETTING_PERIOD = 3.0f;
+        public const float BETTING_PERIOD = 10.0f;
         public const float CREATING_DURATION = 3.0f;
     }
 }
