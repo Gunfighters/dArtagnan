@@ -3,7 +3,6 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
 using R3;
-using UnityEngine;
 
 namespace UI.AugmentationSelection
 {
@@ -13,7 +12,6 @@ namespace UI.AugmentationSelection
         public static readonly ReactiveProperty<AugmentId> SelectedAugmentId = new(AugmentId.None);
         public static readonly ReactiveProperty<bool> IsSelectionComplete = new(false);
 
-        [RuntimeInitializeOnLoadMethod]
         public static void Initialize()
         {
             PacketChannel.On<AugmentStartFromServer>(OnAugmentationStartFromServer);

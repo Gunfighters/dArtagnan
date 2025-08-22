@@ -2,6 +2,8 @@
 using System.Net.Sockets;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
+using UI.AugmentationSelection;
+using UI.Roulette;
 using UnityEngine;
 
 namespace Networking
@@ -24,6 +26,8 @@ namespace Networking
             PacketChannel.On<UpdateItemCreatingStateFromClient>(Send);
             PacketChannel.On<UseItemFromClient>(Send);
             PacketChannel.On<ChatFromClient>(Send);
+            AugmentationSelectionModel.Initialize();
+            RouletteModel.Initialize();
         }
 
         private void Start()
