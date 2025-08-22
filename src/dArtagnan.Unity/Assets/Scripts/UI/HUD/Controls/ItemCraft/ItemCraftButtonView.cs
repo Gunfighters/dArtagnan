@@ -36,8 +36,8 @@ namespace UI.HUD.Controls.ItemCraft
         {
             if (_hasItem)
             {
-                filler.fillAmount = 0;
-                if (_item.data.EnergyCost <= GameService.LocalPlayer.Energy.EnergyData.CurrentEnergy)
+                filler.fillAmount = GameService.LocalPlayer.Energy.EnergyData.CurrentEnergy / _item.data.EnergyCost;
+                if (filler.fillAmount >= 1)
                 {
                     outline.color = Color.green;
                     costIcon.color = costText.color = currentItemIcon.color = Color.white;
@@ -48,6 +48,8 @@ namespace UI.HUD.Controls.ItemCraft
                     costIcon.color = costText.color = currentItemIcon.color = Color.grey;
                 }
             }
+            else if (GameService.LocalPlayer.Craft.Crafting)
+                filler.fillAmount = 1;
             else
             {
                 var ratio = GameService
@@ -102,7 +104,6 @@ namespace UI.HUD.Controls.ItemCraft
         {
             if (id is ItemId.None or 0) return;
             _hasItem = true;
-            Debug.Log(id);
             _item = itemCollection.items.First(item => item.data.Id == id);
             currentItemIcon.sprite = _item.icon;
             costText.text = _item.data.EnergyCost.ToString();
