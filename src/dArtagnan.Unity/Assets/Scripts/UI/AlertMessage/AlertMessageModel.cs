@@ -11,7 +11,6 @@ namespace UI.AlertMessage
         public static readonly ReactiveProperty<bool> ShowMsg = new();
         private static int _messageCounter;
 
-        [RuntimeInitializeOnLoadMethod]
         public static void Initialize()
         {
             LocalEventChannel.OnAlertMessage += (msg, color) =>

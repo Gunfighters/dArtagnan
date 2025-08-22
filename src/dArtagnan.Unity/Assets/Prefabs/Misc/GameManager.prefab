@@ -146,7 +146,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31f94b65f80a4915a7975e838a4fc9bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  BGMInGame: {fileID: 8300000, guid: af82a872e67b740efb7c3e4afb78ae2d, type: 3}
+  BGMInGame: {fileID: 8300000, guid: 28801ccd5cc5c4d3fa6a85a5e45b0cd5, type: 3}
   BGMWaiting: {fileID: 8300000, guid: 28801ccd5cc5c4d3fa6a85a5e45b0cd5, type: 3}
   BGMPlayer: {fileID: 3056038483346782095}
 --- !u!114 &2655052901297011441

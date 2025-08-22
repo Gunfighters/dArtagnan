@@ -47,7 +47,7 @@ namespace dArtagnan.Shared
         public const float ENERGY_RECOVERY_RATE = 0.185f;
         public const int CRAFT_ENERGY_COST = 1; // 아이템 제작 시 소모되는 에너지
         public const float ACCURACY_UPDATE_INTERVAL = 1.0f;
-        public const float MOVEMENT_SPEED = 1.3f;
+        public const float MOVEMENT_SPEED = 0.7f;
         public const int ROULETTE_MIN_ACCURACY = 25;
         public const int ROULETTE_MAX_ACCURACY = 75;
         public const float DEFAULT_RANGE = 2f;

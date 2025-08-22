@@ -1,7 +1,6 @@
 using dArtagnan.Shared;
 using Game;
 using R3;
-using UnityEngine;
 
 namespace UI.HUD.Controls.ItemCraft
 {
@@ -9,8 +8,7 @@ namespace UI.HUD.Controls.ItemCraft
     {
         public static readonly ReactiveProperty<ItemId> ItemId = new();
 
-        [RuntimeInitializeOnLoadMethod]
-        private static void Initialize()
+        public static void Initialize()
         {
             LocalEventChannel.OnLocalPlayerNewItem += id => ItemId.Value = id;
             PacketChannel.On<ItemAcquiredBroadcast>(e =>
