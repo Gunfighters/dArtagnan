@@ -56,7 +56,6 @@ internal class Program
         Console.WriteLine("  d/dir [direction] - 플레이어 이동 방향 변경");
         Console.WriteLine("  sh/shoot [targetId] - 플레이어 공격");
         Console.WriteLine("  a/accuracy [state] - 정확도 상태 변경 (-1: 감소, 0: 유지, 1: 증가)");
-        Console.WriteLine("  r/roulette [count?] - 룰렛 돌리기 완료 패킷 전송 (기본: 1)");
         Console.WriteLine("  au/augment [index] - 증강 선택 (0, 1, 2 중 하나)");
         Console.WriteLine("  ic/item-create [true/false?] - 아이템 제작 시작/취소 (기본: true)");
         Console.WriteLine("  iu/item-use [targetId?] - 아이템 사용 (기본: -1)");
@@ -173,20 +172,6 @@ internal class Program
                     else
                     {
                         Console.WriteLine("사용법: a/accuracy [state] (-1: 감소, 0: 유지, 1: 증가)");
-                    }
-                    break;
-
-                case "r":
-                case "ro":
-                case "roulette":
-                    if (parts.Length >= 2)
-                    {
-                        var count = int.Parse(parts[1]);
-                        await SendRoulette(count);
-                    }
-                    else
-                    {
-                        await SendRoulette(1);
                     }
                     break;
 
@@ -586,25 +571,6 @@ internal class Program
         }
     }
 
-    static async Task SendRoulette(int count)
-    {
-        if (!isConnected || stream == null)
-        {
-            Console.WriteLine("먼저 서버에 연결해주세요.");
-            return;
-        }
-
-        try
-        {
-            await NetworkUtils.SendPacketAsync(stream, new RouletteDoneFromClient { TrialCount = count });
-            Console.WriteLine($"룰렛 돌리기 완료 패킷 전송: 횟수 {count}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"룰렛 돌리기 완료 패킷 전송 실패: {ex.Message}");
-        }
-    }
-
     static async Task SendAugmentSelection(int id)
     {
         if (!isConnected || stream == null)
@@ -837,14 +803,11 @@ internal class Program
                     Console.WriteLine($"플레이어 {accuracyStateBroadcast.PlayerId}의 정확도 상태 변경: {accuracyStateBroadcast.AccuracyState} ({GetAccuracyStateText(accuracyStateBroadcast.AccuracyState)})");
                     break;
                         
-                case RouletteStartFromServer yourAccuracyAndPool:
-                    Console.WriteLine($"=== 룰렛 정보 받음 ===");
-                    Console.WriteLine($"당신의 정확도: {yourAccuracyAndPool.YourAccuracy}%");
-                    Console.WriteLine($"정확도 풀: [{string.Join(", ", yourAccuracyAndPool.AccuracyPool)}]");
-                    Console.WriteLine($"자동으로 룰렛 돌리기 완료 패킷 전송...");
-                    
-                    // 자동으로 룰렛 돌리기 완료 패킷 전송
-                    await SendRoulette(1);
+                case ShowdownStartFromServer showdownStart:
+                    Console.WriteLine($"=== 게임 쇼다운 시작 ===");
+                    Console.WriteLine($"할당받은 정확도: {showdownStart.YourAccuracy}%");
+                    Console.WriteLine($"전체 정확도 풀: [{string.Join(", ", showdownStart.AccuracyPool)}]");
+                    Console.WriteLine($"[자동화] 3초 후 서버에서 자동으로 라운드를 시작합니다...");
                     break;
                 
                 case BettingDeductionBroadcast bettingDeduction:

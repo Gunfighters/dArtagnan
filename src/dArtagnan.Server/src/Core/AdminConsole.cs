@@ -322,11 +322,7 @@ public class AdminConsole
             Console.WriteLine($"라운드별 베팅금: [{string.Join(", ", gameManager.BettingAmounts)}]달러");
         }
         
-        Console.WriteLine($"룰렛 완료한 플레이어: {gameManager.rouletteDonePlayers.Count}명");
-        if (gameManager.rouletteDonePlayers.Count > 0)
-        {
-            Console.WriteLine($"  완료자 ID: [{string.Join(", ", gameManager.rouletteDonePlayers.Select(p => p.Id))}]");
-        }
+        // 룰렛 관련 정보는 자동화로 인해 제거됨
         
         Console.WriteLine($"증강 선택 완료한 플레이어: {gameManager.augmentSelectionDonePlayers.Count}명");
         if (gameManager.augmentSelectionDonePlayers.Count > 0)
@@ -426,15 +422,8 @@ public class AdminConsole
         Console.WriteLine($"게임 상태: {gameManager.CurrentGameState}");
         
         Console.WriteLine();
-        Console.WriteLine($"■ 룰렛 상태");
-        Console.WriteLine($"룰렛 완료한 플레이어: {gameManager.rouletteDonePlayers.Count}명");
-        if (gameManager.rouletteDonePlayers.Count > 0)
-        {
-            foreach (var player in gameManager.rouletteDonePlayers)
-            {
-                Console.WriteLine($"  - {player.Id}번 {player.Nickname}");
-            }
-        }
+        Console.WriteLine($"■ 게임 쇼다운 상태");
+        Console.WriteLine("게임 준비는 자동으로 진행됩니다 (3초 후 자동 시작)");
         
         Console.WriteLine();
         Console.WriteLine($"■ 증강 선택 상태");

@@ -5,7 +5,7 @@ namespace dArtagnan.Server;
 
 /// <summary>
 /// 게임 시작 명령 - 방장이 게임을 시작할 때 처리합니다
-/// 게임 전체 초기화부터 룰렛 준비까지 모든 로직을 담당합니다
+/// 게임 전체 초기화부터 쇼다운까지 모든 로직을 담당합니다
 /// </summary>
 public class StartGameCommand : IGameCommand
 {
@@ -33,8 +33,8 @@ public class StartGameCommand : IGameCommand
         // === 봇 생성 로직 ===
         await CreateBots(gameManager);
         
-        // === 룰렛 시작 ===
-        await gameManager.StartRouletteStateAsync();
+        // === 쇼다운 시작 ===
+        await gameManager.StartShowdownStateAsync();
     }
 
 

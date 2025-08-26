@@ -24,9 +24,12 @@ public class GameManager
     public readonly int[] BettingAmounts = { 10, 20, 30, 40 }; // 라운드별 베팅금
     public int BettingAmount = 0;
     public float BettingTimer = 0f; // 베팅금 차감 타이머 constants.BETTING_PERIOD 마다
+    
+    // 쇼다운 상태 타이머
+    public float ShowdownTimer = 0f;
+    public const float SHOWDOWN_DURATION = 3.0f; // 3초 대기
 
     // 증강 시스템
-    public List<Player> rouletteDonePlayers = [];
     public Dictionary<int, List<int>> playerAugmentOptions = []; // 플레이어별 증강 옵션 저장
     
     // 서버 종료 타이머
@@ -473,7 +476,6 @@ public class GameManager
         BettingTimer = 0f;
 
         // 시스템 상태 초기화
-        rouletteDonePlayers.Clear();
         playerAugmentOptions.Clear();
         augmentSelectionDonePlayers.Clear();
 
@@ -591,32 +593,43 @@ public class GameManager
     }
 
     /// <summary>
-    /// 룰렛을 시작합니다 (정확도 배정 및 룰렛 상태로 전환)
+    /// 쇼다운을 시작합니다 (정확도 배정 후 3초 대기 후 자동으로 라운드 시작)
     /// </summary>
-    public async Task StartRouletteStateAsync()
+    public async Task StartShowdownStateAsync()
     {
         var oldState = CurrentGameState;
-
-        InitToRoulette();
 
         // 정확도 풀 생성 및 플레이어 배정
         var accuracyPool = GenerateAccuracyPool();
         AssignAccuracyToPlayers(accuracyPool);
 
-        // 룰렛 상태로 변경
-        CurrentGameState = GameState.Roulette;
+        // 쇼다운 상태로 변경
+        CurrentGameState = GameState.Showdown;
+        ShowdownTimer = 0f; // 타이머 초기화
 
         Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {CurrentGameState}");
+        Console.WriteLine($"[게임] {SHOWDOWN_DURATION}초 후 자동으로 라운드 시작...");
 
-        // 모든 플레이어에게 룰렛 시작 브로드캐스트
-        await BroadcastRouletteStart(accuracyPool);
+        // 모든 플레이어에게 쇼다운 시작 브로드캐스트
+        await BroadcastShowdownStart(accuracyPool);
 
         LobbyReporter.ReportState(2);
     }
 
-    public void InitToRoulette()
+    /// <summary>
+    /// 모든 클라이언트에게 쇼다운 시작을 알립니다
+    /// </summary>
+    private async Task BroadcastShowdownStart(List<int> accuracyPool)
     {
-        rouletteDonePlayers.Clear();
+        var broadcastTasks = Players.Values
+            .Select(player => SendToPlayer(player.Id, new ShowdownStartFromServer
+            {
+                AccuracyPool = accuracyPool,
+                YourAccuracy = player.Accuracy
+            }));
+
+        await Task.WhenAll(broadcastTasks);
+        Console.WriteLine($"[쇼다운] 모든 플레이어에게 쇼다운 시작 알림 전송 완료");
     }
 
     /// <summary>
@@ -627,7 +640,7 @@ public class GameManager
         List<int> accuracyPool = [];
         for (var i = 0; i < 8; i++)
         {
-            accuracyPool.Add(Random.Shared.Next(Constants.ROULETTE_MIN_ACCURACY, Constants.ROULETTE_MAX_ACCURACY + 1));
+            accuracyPool.Add(Random.Shared.Next(Constants.SHOWDOWN_MIN_ACCURACY, Constants.SHOWDOWN_MAX_ACCURACY + 1));
         }
 
         return accuracyPool;
@@ -652,30 +665,14 @@ public class GameManager
             player.UpdateMinEnergyToShoot();
 
             // 현재정확도에 반비례한 사거리 계산
-            float t = Math.Clamp(randomAccuracy / (float)Constants.ROULETTE_MAX_ACCURACY, 0f, 1f);
+            float t = Math.Clamp(randomAccuracy / (float)Constants.SHOWDOWN_MAX_ACCURACY, 0f, 1f);
             player.Range = Constants.MAX_RANGE + t * (Constants.MIN_RANGE - Constants.MAX_RANGE);
 
             Console.WriteLine(
                 $"[정확도] {player.Nickname}: {player.Accuracy}% (사거리: {player.Range:F2}, 최소필요에너지: {player.MinEnergyToShoot})");
         }
     }
-
-    /// <summary>
-    /// 모든 클라이언트에게 룰렛 시작을 알립니다
-    /// </summary>
-    private async Task BroadcastRouletteStart(List<int> accuracyPool)
-    {
-        var broadcastTasks = Players.Values
-            .Select(player => SendToPlayer(player.Id, new RouletteStartFromServer
-            {
-                AccuracyPool = accuracyPool,
-                YourAccuracy = player.Accuracy
-            }));
-
-        await Task.WhenAll(broadcastTasks);
-        Console.WriteLine($"[룰렛] 모든 플레이어에게 룰렛 시작 알림 전송 완료");
-    }
-
+    
     /// <summary>
     /// 라운드 승리자에게 판돈을 지급합니다
     /// </summary>

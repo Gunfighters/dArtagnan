@@ -7,7 +7,7 @@ namespace dArtagnan.Shared
     {
         Waiting, // 대기 중 (Ready 단계 포함)
         Round, // 라운드 진행 중
-        Roulette, // 룰렛 돌리는 중
+        Showdown, // 게임 준비 중 (정확도 배정 및 3초 대기)
         Augment, // 증강 선택 중
     }
 
@@ -48,8 +48,8 @@ namespace dArtagnan.Shared
         public const int CRAFT_ENERGY_COST = 1; // 아이템 제작 시 소모되는 에너지
         public const float ACCURACY_UPDATE_INTERVAL = 1.0f;
         public const float MOVEMENT_SPEED = 0.7f;
-        public const int ROULETTE_MIN_ACCURACY = 25;
-        public const int ROULETTE_MAX_ACCURACY = 75;
+        public const int SHOWDOWN_MIN_ACCURACY = 25;
+        public const int SHOWDOWN_MAX_ACCURACY = 75;
         public const float DEFAULT_RANGE = 2f;
         public const float MAX_RANGE = 2.8f; // 정확도가 낮을 때의 최대 사거리
         public const float MIN_RANGE = 1.2f; // 정확도가 높을 때의 최소 사거리

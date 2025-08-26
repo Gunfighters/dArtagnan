@@ -47,7 +47,7 @@ public class Player
     public void InitToWaiting()
     {
         // 기본 능력치 초기화
-        Accuracy = Random.Shared.Next(Constants.ROULETTE_MIN_ACCURACY, Constants.ROULETTE_MAX_ACCURACY + 1);
+        Accuracy = Random.Shared.Next(Constants.SHOWDOWN_MIN_ACCURACY, Constants.SHOWDOWN_MAX_ACCURACY + 1);
         Range = Constants.DEFAULT_RANGE;
         EnergyData = new EnergyData
         {
@@ -203,7 +203,7 @@ public class Player
 
             if (newAccuracy != Accuracy)
             {
-                float t = Math.Clamp(newAccuracy / (float)Constants.ROULETTE_MAX_ACCURACY, 0f, 1f);
+                float t = Math.Clamp(newAccuracy / (float)Constants.SHOWDOWN_MAX_ACCURACY, 0f, 1f);
                 Range = Constants.MAX_RANGE + t * (Constants.MIN_RANGE - Constants.MAX_RANGE);
                 Console.WriteLine($"[정확도] 플레이어 {Id}의 사거리 변경: {Range}");
 

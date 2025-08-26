@@ -87,7 +87,7 @@ public class AugmentDoneCommand : IGameCommand
         if (gameManager.augmentSelectionDonePlayers.Count >= alivePlayers.Count)
         {
             Console.WriteLine("[증강] 모든 플레이어가 증강 선택 완료 - 다음 라운드 시작");
-            await gameManager.StartRouletteStateAsync();
+            await gameManager.StartShowdownStateAsync();
         }
     }
 

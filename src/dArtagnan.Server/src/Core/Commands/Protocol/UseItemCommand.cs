@@ -117,7 +117,7 @@ public class UseItemCommand : IGameCommand
                 
             case ItemId.AccuracyReset:
                 // 정확도 재설정 (25~75 사이 랜덤)
-                int newAccuracy = Random.Shared.Next(Constants.ROULETTE_MIN_ACCURACY, Constants.ROULETTE_MAX_ACCURACY + 1);
+                int newAccuracy = Random.Shared.Next(Constants.SHOWDOWN_MIN_ACCURACY, Constants.SHOWDOWN_MAX_ACCURACY + 1);
                 user.Accuracy = newAccuracy;
                 user.UpdateMinEnergyToShoot();
                 
@@ -138,7 +138,7 @@ public class UseItemCommand : IGameCommand
                 });
                 
                 // 사거리 변경 브로드캐스트
-                float t = Math.Clamp(newAccuracy / (float)Constants.ROULETTE_MAX_ACCURACY, 0f, 1f);
+                float t = Math.Clamp(newAccuracy / (float)Constants.SHOWDOWN_MAX_ACCURACY, 0f, 1f);
                 user.Range = Constants.MAX_RANGE + t * (Constants.MIN_RANGE - Constants.MAX_RANGE);
                 
                 await gameManager.BroadcastToAll(new UpdateRangeBroadcast

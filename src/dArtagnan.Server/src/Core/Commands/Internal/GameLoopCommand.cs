@@ -36,7 +36,11 @@ public class GameLoopCommand : IGameCommand
                 await UpdateBotAI(gameManager, DeltaTime);
                 break;
 
-            case GameState.Roulette:
+            case GameState.Showdown:
+                // 쇼다운 상태: 3초 타이머 카운트다운
+                await UpdateShowdownTimer(gameManager);
+                break;
+                
             case GameState.Augment:
                 break;
         }
@@ -290,6 +294,19 @@ public class GameLoopCommand : IGameCommand
             await bot.UpdateAI(deltaTime);
         }
     }
-
-
+    
+    /// <summary>
+    /// 쇼다운 상태에서 타이머를 업데이트하고 시간이 되면 자동으로 라운드를 시작합니다
+    /// </summary>
+    private async Task UpdateShowdownTimer(GameManager gameManager)
+    {
+        gameManager.ShowdownTimer += DeltaTime;
+        
+        if (gameManager.ShowdownTimer >= GameManager.SHOWDOWN_DURATION)
+        {
+            // 타이머 완료 - 라운드 시작
+            Console.WriteLine("[게임] 쇼다운 시간 종료 - 자동으로 라운드 1 시작!");
+            await gameManager.StartRoundStateAsync(1);
+        }
+    }
 }

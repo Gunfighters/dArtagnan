@@ -47,9 +47,8 @@ namespace dArtagnan.Shared
     [Union(27, typeof(UpdateMaxEnergyBroadcast))]
     [Union(28, typeof(UpdateMinEnergyToShootBroadcast))]
     
-    // 룰렛 시스템
-    [Union(29, typeof(RouletteStartFromServer))]
-    [Union(30, typeof(RouletteDoneFromClient))]
+    // 쇼다운 시스템
+    [Union(29, typeof(ShowdownStartFromServer))]
     
     // 증강 시스템
     [Union(31, typeof(AugmentStartFromServer))]
@@ -479,28 +478,19 @@ namespace dArtagnan.Shared
     
     #endregion
     
-    #region 룰렛 시스템 패킷들
+    #region 쇼다운 시스템 패킷들
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// 너의 정확도는 YourAccuracy이다. 등장가능한 정확도 풀은 AccuracyPool과 같다
+    /// 쇼다운 시작 - 정확도 배정 완료, 3초 후 자동으로 라운드 시작
+    /// YourAccuracy: 할당받은 정확도
+    /// AccuracyPool: 게임에서 사용되는 전체 정확도 풀 (UI 표시용)
     /// </summary>
     [MessagePackObject]
-    public struct RouletteStartFromServer : IPacket
+    public struct ShowdownStartFromServer : IPacket
     {
         [Key(0)] public int YourAccuracy;
         [Key(1)] public List<int> AccuracyPool;
-    }
-
-    /// <summary>
-    /// [클라이언트 => 서버]
-    /// 룰렛을 돌려 나의 명중률을 확인하였다
-    /// TrialCount는 현재 안쓰이는 변수이지만 빈 패킷끼리 구분을 못하는 버그 때문에 임시로 존재
-    /// </summary>
-    [MessagePackObject]
-    public struct RouletteDoneFromClient : IPacket
-    {
-        [Key(0)] public int TrialCount;
     }
     
     #endregion

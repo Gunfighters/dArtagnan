@@ -135,13 +135,6 @@ public class ClientConnection
                     };
                     break;
 
-                case RouletteDoneFromClient:
-                    command = new RouletteDoneCommand
-                    {
-                        PlayerId = Id
-                    };
-                    break;
-
                 case AugmentDoneFromClient augmentDone:
                     command = new AugmentDoneCommand
                     {

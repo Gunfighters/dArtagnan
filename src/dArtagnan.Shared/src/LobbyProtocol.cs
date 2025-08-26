@@ -8,7 +8,6 @@ namespace dArtagnan.Shared
     /// HTTP API: POST /login
     /// WebSocket API: auth -> create_room/join_room -> 게임서버 TCP 연결
     /// 
-    /// 방 상태: 0=Waiting, 1=Round, 2=Roulette, 3=Augment
     /// </summary>
     public static class LobbyProtocol
     {
@@ -32,7 +31,7 @@ namespace dArtagnan.Shared
         {
             Waiting = 0,
             Round = 1,
-            Roulette = 2,
+            Showdown = 2,
             Augment = 3
         }
 

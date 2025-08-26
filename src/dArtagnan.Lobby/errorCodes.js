@@ -25,6 +25,6 @@ export const ErrorCodes = {
 export const RoomState = {
   WAITING: 0,
   ROUND: 1,
-  ROULETTE: 2,
+  SHOWDOWN: 2,
   AUGMENT: 3
 };

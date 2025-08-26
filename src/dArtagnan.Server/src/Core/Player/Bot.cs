@@ -164,10 +164,6 @@ public class Bot : Player
         // 대부분의 패킷은 무시하지만, 선택이 필요한 패킷들은 자동으로 처리
         switch (packet)
         {
-            case RouletteStartFromServer accuracyPacket:
-                // 룰렛 완료 자동 처리
-                await HandleRouletteCompletion();
-                break;
                 
             case AugmentStartFromServer augmentPacket:
                 // 증강 선택 자동 처리 (첫 번째 증강 선택)
@@ -183,19 +179,6 @@ public class Bot : Player
         }
     }
 
-    /// <summary>
-    /// 룰렛 완료를 자동으로 처리합니다
-    /// </summary>
-    private async Task HandleRouletteCompletion()
-    {
-        Console.WriteLine($"[봇 AI] {Nickname}이 룰렛을 자동 완료합니다");
-        
-        // RouletteDoneCommand 직접 실행
-        await gameManager.EnqueueCommandAsync(new RouletteDoneCommand 
-        { 
-            PlayerId = Id 
-        });
-    }
 
     /// <summary>
     /// 증강 선택을 자동으로 처리합니다
