@@ -1,6 +1,8 @@
 using dArtagnan.Shared;
 using Game.Items;
+using Game.Player.Data;
 using Game.Player.UI;
+using R3;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,45 +13,31 @@ namespace Game.Player.Components
         [SerializeField] private CraftSlider slider;
         [SerializeField] private Image itemIcon;
         [SerializeField] private ItemSo itemCollection;
-        private PlayerCore _core;
-        public bool Crafting { get; private set; }
 
-        private void Awake()
+        public void Initialize(PlayerInfoModel model)
         {
-            _core = GetComponent<PlayerCore>();
+            model.Crafting.Subscribe(ToggleCraft);
+            model.CurrentItem.Subscribe(id =>
+            {
+                if (id != ItemId.None)
+                    SetItem(itemCollection.items.Find(i => i.data.Id == id));
+                ToggleItem(id != ItemId.None);
+                LocalEventChannel.InvokeOnLocalPlayerNewItem(model.CurrentItem.CurrentValue);
+            });
         }
 
-        private void SetMotion(bool dig)
+        private void ToggleCraft(bool craft)
         {
-            if (dig)
-                _core.Model.Craft();
-            else
-                _core.Model.Idle();
-        }
-
-        public void Initialize(PlayerInformation info)
-        {
-            ToggleCraft(info.IsCreatingItem);
-            if (info.CurrentItem != -1)
-                SetItem(itemCollection.items.Find(i => i.data.Id == (ItemId)info.CurrentItem));
-            ToggleItem(info.CurrentItem != -1);
-            LocalEventChannel.InvokeOnLocalPlayerNewItem((ItemId)info.CurrentItem);
-        }
-
-        public void ToggleCraft(bool craft)
-        {
-            Crafting = craft;
             slider.SetProgress(0);
             slider.gameObject.SetActive(craft);
-            SetMotion(Crafting);
         }
 
-        public void SetItem(InGameItem item)
+        private void SetItem(InGameItem item)
         {
             itemIcon.sprite = item.icon;
         }
 
-        public void ToggleItem(bool toggle)
+        private void ToggleItem(bool toggle)
         {
             itemIcon.enabled = toggle;
         }
