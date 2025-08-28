@@ -3,7 +3,7 @@ namespace Game
     public enum GameScreen
     {
         HUD,
-        Roulette,
+        ShowdownLoading,
         Connection,
         AugmentationSelection,
         NetworkFailure

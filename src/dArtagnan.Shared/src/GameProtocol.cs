@@ -12,18 +12,18 @@ namespace dArtagnan.Shared
     [Union(4, typeof(LeaveBroadcast))]
     [Union(5, typeof(PingPacket))]
     [Union(6, typeof(PongPacket))]
-    
+
     // 이동 및 위치
     [Union(7, typeof(MovementDataFromClient))]
     [Union(8, typeof(MovementDataBroadcast))]
-    
+
     // 전투 시스템
     [Union(9, typeof(ShootingFromClient))]
     [Union(10, typeof(ShootingBroadcast))]
     [Union(11, typeof(PlayerIsTargetingFromClient))]
     [Union(12, typeof(PlayerIsTargetingBroadcast))]
     [Union(13, typeof(UpdatePlayerAlive))]
-    
+
     // 게임 상태 관리
     [Union(14, typeof(StartGameFromClient))]
     [Union(15, typeof(WaitingStartFromServer))]
@@ -32,7 +32,7 @@ namespace dArtagnan.Shared
     [Union(18, typeof(RoundWinnerBroadcast))]
     [Union(19, typeof(GameWinnerBroadcast))]
     [Union(25, typeof(BettingDeductionBroadcast))]
-    
+
     // 플레이어 스탯
     [Union(20, typeof(BalanceUpdateBroadcast))]
     [Union(21, typeof(UpdateAccuracyStateFromClient))]
@@ -41,36 +41,35 @@ namespace dArtagnan.Shared
     [Union(24, typeof(UpdateRangeBroadcast))]
     [Union(40, typeof(UpdateSpeedBroadcast))]
     [Union(41, typeof(UpdateActiveEffectsBroadcast))]
-    
+
     // 에너지 시스템
     [Union(26, typeof(UpdateCurrentEnergyBroadcast))]
     [Union(27, typeof(UpdateMaxEnergyBroadcast))]
     [Union(28, typeof(UpdateMinEnergyToShootBroadcast))]
-    
+
     // 쇼다운 시스템
     [Union(29, typeof(ShowdownStartFromServer))]
-    
+
     // 증강 시스템
     [Union(31, typeof(AugmentStartFromServer))]
     [Union(32, typeof(AugmentDoneFromClient))]
-    
+
     // 아이템 시스템
     [Union(33, typeof(UpdateItemCreatingStateFromClient))]
     [Union(34, typeof(UpdateCreatingStateBroadcast))]
     [Union(35, typeof(ItemAcquiredBroadcast))]
     [Union(36, typeof(UseItemFromClient))]
     [Union(37, typeof(ItemUsedBroadcast))]
-    
+
     // 채팅 시스템
     [Union(38, typeof(ChatFromClient))]
     [Union(39, typeof(ChatBroadcast))]
-    
     public interface IPacket
     {
     }
 
     #region 공통 데이터 구조
-    
+
     /// <summary>
     /// 특정 플레이어의 정보를 담은 구조체
     /// </summary>
@@ -105,7 +104,7 @@ namespace dArtagnan.Shared
     {
         [Key(0)] public int Direction;
         [Key(1)] public Vector2 Position;
-        [Key(2)] public float Speed;                //시뮬되어야 하는 최종 계산된 speed
+        [Key(2)] public float Speed; //시뮬되어야 하는 최종 계산된 speed
     }
 
     /// <summary>
@@ -117,9 +116,9 @@ namespace dArtagnan.Shared
         [Key(0)] public int MaxEnergy; // 최대 에너지 (정수)
         [Key(1)] public float CurrentEnergy; // 현재 에너지 (소수점 단위)
     }
-    
+
     #endregion
-    
+
     #region 연결 및 세션 관리 패킷들
 
     /// <summary>
@@ -169,7 +168,7 @@ namespace dArtagnan.Shared
     {
         [Key(0)] public int PlayerId;
     }
-    
+
     /// <summary>
     /// [클라이언트 => 서버]
     /// 연결 상태 확인을 위한 핑 패킷
@@ -187,9 +186,9 @@ namespace dArtagnan.Shared
     public struct PongPacket : IPacket
     {
     }
-    
+
     #endregion
-    
+
     #region 이동 및 위치 패킷들
 
     /// <summary>
@@ -213,9 +212,9 @@ namespace dArtagnan.Shared
         [Key(0)] public int PlayerId;
         [Key(1)] public MovementData MovementData;
     }
-    
+
     #endregion
-    
+
     #region 전투 시스템 패킷들
 
     /// <summary>
@@ -240,7 +239,7 @@ namespace dArtagnan.Shared
         [Key(2)] public bool Hit;
         [Key(3)] public int ShooterCurrentEnergy;
     }
-    
+
     /// <summary>
     /// [클라이언트 => 서버]
     /// TargetId번 플레이어를 겨누고 있음
@@ -272,9 +271,9 @@ namespace dArtagnan.Shared
         [Key(0)] public int PlayerId;
         [Key(1)] public bool Alive;
     }
-    
+
     #endregion
-    
+
     #region 게임 상태 관리 패킷들
 
     /// <summary>
@@ -357,9 +356,9 @@ namespace dArtagnan.Shared
         [Key(0)] public int DeductedAmount; // 차감된 베팅금
         [Key(1)] public int TotalPrizeMoney; // 업데이트된 총 판돈
     }
-    
+
     #endregion
-    
+
     #region 플레이어 스탯 패킷들
 
     /// <summary>
@@ -438,9 +437,9 @@ namespace dArtagnan.Shared
         [Key(0)] public int PlayerId;
         [Key(1)] public List<int> ActiveEffects; // 활성 효과 ID 목록
     }
-    
+
     #endregion
-    
+
     #region 에너지 시스템 패킷들
 
     /// <summary>
@@ -475,26 +474,24 @@ namespace dArtagnan.Shared
         [Key(0)] public int PlayerId;
         [Key(1)] public int MinEnergyToShoot;
     }
-    
+
     #endregion
-    
+
     #region 쇼다운 시스템 패킷들
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// 쇼다운 시작 - 정확도 배정 완료, 3초 후 자동으로 라운드 시작
-    /// YourAccuracy: 할당받은 정확도
-    /// AccuracyPool: 게임에서 사용되는 전체 정확도 풀 (UI 표시용)
+    /// 쇼다운 시작 - 정확도 배정 완료, Countdown초 후 자동으로 라운드 시작
     /// </summary>
     [MessagePackObject]
     public struct ShowdownStartFromServer : IPacket
     {
-        [Key(0)] public int YourAccuracy;
-        [Key(1)] public List<int> AccuracyPool;
+        [Key(0)] public Dictionary<int, int> AccuracyPool;
+        [Key(1)] public int Countdown;
     }
-    
+
     #endregion
-    
+
     #region 증강 시스템 패킷들
 
     /// <summary>
@@ -517,9 +514,9 @@ namespace dArtagnan.Shared
     {
         [Key(0)] public int SelectedAugmentID; // 선택한 증강의 번호
     }
-    
+
     #endregion
-    
+
     #region 아이템 시스템 패킷들
 
     /// <summary>
@@ -574,9 +571,9 @@ namespace dArtagnan.Shared
         [Key(0)] public int PlayerId; // 아이템을 사용한 플레이어
         [Key(1)] public int ItemId; // 사용한 아이템의 ID
     }
-    
+
     #endregion
-    
+
     #region 채팅 시스템 패킷들
 
     /// <summary>
@@ -599,6 +596,6 @@ namespace dArtagnan.Shared
         [Key(0)] public int PlayerId; // 시스템 메시지일 경우 -1
         [Key(1)] public string Message;
     }
-    
+
     #endregion
 }

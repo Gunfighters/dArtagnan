@@ -569,12 +569,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6426857778861590384, guid: 2b7c7121e3cef40329f11e98b96d8787, type: 3}
       propertyPath: m_fontSize
-      value: 60.25
+      value: 65.65
       objectReference: {fileID: 0}
+    - target: {fileID: 6426857778861590384, guid: 2b7c7121e3cef40329f11e98b96d8787, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: bf2a5b9afa7994d099b55297f60ef244, type: 2}
     - target: {fileID: 6426857778861590384, guid: 2b7c7121e3cef40329f11e98b96d8787, type: 3}
       propertyPath: m_sharedMaterial
       value: 
-      objectReference: {fileID: 236201533220674961, guid: 1b2d1d8844f0c4c0babca102402502ef, type: 2}
+      objectReference: {fileID: 2349985575473332477, guid: bf2a5b9afa7994d099b55297f60ef244, type: 2}
     - target: {fileID: 6426857778861590384, guid: 2b7c7121e3cef40329f11e98b96d8787, type: 3}
       propertyPath: m_enableAutoSizing
       value: 1
