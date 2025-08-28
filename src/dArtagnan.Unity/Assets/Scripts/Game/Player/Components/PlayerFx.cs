@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using dArtagnan.Shared;
+using Game.Player.Data;
 using Game.Player.UI.Fx;
 using UnityEngine;
 
@@ -9,14 +10,9 @@ namespace Game.Player.Components
     {
         [SerializeField] private ActiveFx activeFx;
 
-        public void Initialize(PlayerInformation info)
+        public void Initialize(PlayerInfoModel model)
         {
-            UpdateFx(info.ActiveEffects);
-        }
-
-        public void UpdateFx(List<int> activeEffects)
-        {
-            activeFx.Initialize(activeEffects);
+            activeFx.Initialize(model.ActiveFx);
         }
     }
 }

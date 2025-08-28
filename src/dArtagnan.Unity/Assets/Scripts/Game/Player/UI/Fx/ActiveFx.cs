@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using ObservableCollections;
+using R3;
 using UnityEngine;
 
 namespace Game.Player.UI.Fx
@@ -6,11 +8,6 @@ namespace Game.Player.UI.Fx
     public class ActiveFx : MonoBehaviour
     {
         [SerializeField] private FxIcon iconPrefab;
-
-        private void Awake()
-        {
-            ClearAll();
-        }
 
         private void ClearAll()
         {
@@ -20,10 +17,10 @@ namespace Game.Player.UI.Fx
             }
         }
 
-        public void Initialize(List<int> effectIds)
+        public void Initialize(ObservableList<int> activeFx)
         {
-            ClearAll();
-            effectIds.ForEach(id => Instantiate(iconPrefab, transform).Setup(id));
+            activeFx.ObserveClear().Subscribe(_ => ClearAll());
+            activeFx.ObserveAdd().Subscribe(id => Instantiate(iconPrefab, transform).Setup(id.Value));
         }
     }
 }
