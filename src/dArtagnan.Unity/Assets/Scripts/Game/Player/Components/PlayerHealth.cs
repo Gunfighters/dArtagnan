@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
+using Game.Player.Data;
 using R3;
 using UnityEngine;
 
@@ -7,39 +8,26 @@ namespace Game.Player.Components
 {
     public class PlayerHealth : MonoBehaviour
     {
-        public readonly ReactiveProperty<bool> Alive = new();
-        private PlayerCore _core;
         [SerializeField] private Canvas infoUICanvas;
+        private PlayerInfoModel _model;
 
-        private void Awake()
+        public void Initialize(PlayerInfoModel model)
         {
-            _core = GetComponent<PlayerCore>();
+            _model = model;
+            gameObject.SetActive(_model.Alive.CurrentValue);
+            _model.Alive.Subscribe(SetAlive);
         }
 
-        public void Initialize(PlayerInformation info)
+        private void SetAlive(bool newAlive)
         {
-            gameObject.SetActive(info.Alive);
-            SetAlive(info.Alive);
-        }
-
-        public void SetAlive(bool newAlive)
-        {
-            Alive.Value = newAlive;
-            if (Alive.CurrentValue)
-                _core.Model.Idle();
-            else
-            {
-                _core.Model.Die();
-                ScheduleDeactivation().Forget();
-            }
-
-            infoUICanvas.gameObject.SetActive(Alive.CurrentValue);
+            infoUICanvas.gameObject.SetActive(newAlive);
+            if (!newAlive) ScheduleDeactivation().Forget();
         }
 
         private async UniTask ScheduleDeactivation()
         {
             await UniTask.WaitForSeconds(2);
-            gameObject.SetActive(Alive.CurrentValue);
+            gameObject.SetActive(_model.Alive.CurrentValue);
         }
     }
 }
