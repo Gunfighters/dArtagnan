@@ -19,7 +19,6 @@ namespace Networking
             PacketChannel.On<PlayerIsTargetingFromClient>(Send);
             PacketChannel.On<StartGameFromClient>(Send);
             PacketChannel.On<UpdateAccuracyStateFromClient>(Send);
-            PacketChannel.On<RouletteDoneFromClient>(Send);
             PacketChannel.On<AugmentDoneFromClient>(Send);
             PacketChannel.On<UpdateItemCreatingStateFromClient>(Send);
             PacketChannel.On<UseItemFromClient>(Send);

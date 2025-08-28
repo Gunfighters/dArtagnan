@@ -12,30 +12,8 @@ namespace dArtagnan.Server;
 /// </summary>
 public class GameManager
 {
-    // 방 정보
-    public readonly ConcurrentDictionary<int, Player> Players = new();
-    public readonly ConcurrentDictionary<int, ClientConnection> Clients = new();
-    public Player? Host;
-    public GameState CurrentGameState = GameState.Waiting;
-    public int Round = 0;
-
-    // 베팅금/판돈 시스템
-    public int TotalPrizeMoney = 0; // 총 판돈
-    public readonly int[] BettingAmounts = { 10, 20, 30, 40 }; // 라운드별 베팅금
-    public int BettingAmount = 0;
-    public float BettingTimer = 0f; // 베팅금 차감 타이머 constants.BETTING_PERIOD 마다
-    
-    // 쇼다운 상태 타이머
-    public float ShowdownTimer = 0f;
     public const float SHOWDOWN_DURATION = 3.0f; // 3초 대기
-
-    // 증강 시스템
-    public Dictionary<int, List<int>> playerAugmentOptions = []; // 플레이어별 증강 옵션 저장
-    
-    // 서버 종료 타이머
-    public float emptyServerTimer = 0f;
     public const float EMPTY_SERVER_TIMEOUT = 10f;
-    public HashSet<int> augmentSelectionDonePlayers = []; // 증강 선택을 완료한 플레이어 ID
 
 
     // 커맨드 시스템
@@ -45,6 +23,31 @@ public class GameManager
             SingleReader = true, // 단일 소비자
             SingleWriter = false // 다중 생산자
         });
+
+    public readonly int[] BettingAmounts = { 10, 20, 30, 40 }; // 라운드별 베팅금
+
+    public readonly ConcurrentDictionary<int, ClientConnection> Clients = new();
+
+    // 방 정보
+    public readonly ConcurrentDictionary<int, Player> Players = new();
+    public HashSet<int> augmentSelectionDonePlayers = []; // 증강 선택을 완료한 플레이어 ID
+    public int BettingAmount = 0;
+    public float BettingTimer = 0f; // 베팅금 차감 타이머 constants.BETTING_PERIOD 마다
+    public GameState CurrentGameState = GameState.Waiting;
+
+    // 서버 종료 타이머
+    public float emptyServerTimer = 0f;
+    public Player? Host;
+
+    // 증강 시스템
+    public Dictionary<int, List<int>> playerAugmentOptions = []; // 플레이어별 증강 옵션 저장
+    public int Round = 0;
+
+    // 쇼다운 상태 타이머
+    public float ShowdownTimer = 0f;
+
+    // 베팅금/판돈 시스템
+    public int TotalPrizeMoney = 0; // 총 판돈
 
     public GameManager()
     {
@@ -136,7 +139,7 @@ public class GameManager
     internal async Task RemoveClientInternal(int clientId)
     {
         Console.WriteLine($"[DEBUG] RemoveClientInternal called for client {clientId}");
-        Console.WriteLine($"[DEBUG] Current thread: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
+        Console.WriteLine($"[DEBUG] Current thread: {Thread.CurrentThread.ManagedThreadId}");
         Console.WriteLine($"[DEBUG] Stack trace: {Environment.StackTrace}");
         var player = GetPlayerById(clientId);
 
@@ -162,7 +165,8 @@ public class GameManager
         {
             var nextHost = Players.Values.FirstOrDefault(p => p.Alive && p is not Bot);
             await SetHost(nextHost);
-        } 
+        }
+
         var realPlayers = Players.Values.Where(p => p is not Bot).ToList();
         if (realPlayers.Count == 0)
         {
@@ -270,15 +274,16 @@ public class GameManager
             });
 
             // 증강 이름도 함께 로그 출력
-            var optionNames = augmentOptions.Select(id => 
+            var optionNames = augmentOptions.Select(id =>
             {
                 if (id == -1) return "없음";
                 if (AugmentConstants.Augments.TryGetValue((AugmentId)id, out var augmentData))
                     return $"{augmentData.Name}({id})";
                 return id.ToString();
             });
-            
-            Console.WriteLine($"[증강] {player.Id}번 플레이어({player.Nickname})에게 증강 선택 옵션 전송: [{string.Join(", ", optionNames)}]");
+
+            Console.WriteLine(
+                $"[증강] {player.Id}번 플레이어({player.Nickname})에게 증강 선택 옵션 전송: [{string.Join(", ", optionNames)}]");
         }
     }
 
@@ -305,7 +310,7 @@ public class GameManager
             var availableAugmentData = AugmentConstants.Augments
                 .Where(kvp => tempAvailable.Contains((int)kvp.Key))
                 .ToList();
-            
+
             if (availableAugmentData.Count == 0) break;
 
             var totalWeight = availableAugmentData.Sum(kvp => kvp.Value.Weight);
@@ -313,7 +318,7 @@ public class GameManager
 
             var currentWeight = 0;
             AugmentId selectedAugment = AugmentId.None;
-            
+
             foreach (var kvp in availableAugmentData)
             {
                 currentWeight += kvp.Value.Weight;
@@ -429,7 +434,7 @@ public class GameManager
             {
                 await AnnounceGameWinner();
                 await Task.Delay(2500);
-              await Task.Delay(2500);
+                await Task.Delay(2500);
                 await StartWaitingStateAsync();
             }
             else
@@ -482,7 +487,7 @@ public class GameManager
         // 게임 상태 변경
         CurrentGameState = GameState.Waiting;
     }
-    
+
     /// <summary>
     /// 라운드 상태로 초기화 (파산하지 않은 플레이어 + 라운드 상태)
     /// </summary>
@@ -573,7 +578,7 @@ public class GameManager
         var oldState = CurrentGameState;
 
         InitToWaiting();
-        
+
         // 서버 종료 타이머 리셋
         emptyServerTimer = 0f;
 
@@ -611,7 +616,7 @@ public class GameManager
         Console.WriteLine($"[게임] {SHOWDOWN_DURATION}초 후 자동으로 라운드 시작...");
 
         // 모든 플레이어에게 쇼다운 시작 브로드캐스트
-        await BroadcastShowdownStart(accuracyPool);
+        await BroadcastShowdownStart();
 
         LobbyReporter.ReportState(2);
     }
@@ -619,13 +624,12 @@ public class GameManager
     /// <summary>
     /// 모든 클라이언트에게 쇼다운 시작을 알립니다
     /// </summary>
-    private async Task BroadcastShowdownStart(List<int> accuracyPool)
+    private async Task BroadcastShowdownStart()
     {
         var broadcastTasks = Players.Values
             .Select(player => SendToPlayer(player.Id, new ShowdownStartFromServer
             {
-                AccuracyPool = accuracyPool,
-                YourAccuracy = player.Accuracy
+                AccuracyPool = Players.Select(p => new KeyValuePair<int, int>(p.Key, p.Value.Accuracy)).ToDictionary()
             }));
 
         await Task.WhenAll(broadcastTasks);
@@ -672,7 +676,7 @@ public class GameManager
                 $"[정확도] {player.Nickname}: {player.Accuracy}% (사거리: {player.Range:F2}, 최소필요에너지: {player.MinEnergyToShoot})");
         }
     }
-    
+
     /// <summary>
     /// 라운드 승리자에게 판돈을 지급합니다
     /// </summary>
@@ -768,7 +772,7 @@ public class GameManager
     public static ItemId GetRandomItemByWeight()
     {
         var totalWeight = ItemConstants.Items.Values.Sum(item => item.Weight);
-        var randomValue = System.Random.Shared.Next(totalWeight);
+        var randomValue = Random.Shared.Next(totalWeight);
 
         var currentWeight = 0;
         foreach (var item in ItemConstants.Items.Values)
@@ -789,7 +793,7 @@ public class GameManager
     public static AugmentId GetRandomAugmentByWeight()
     {
         var totalWeight = AugmentConstants.Augments.Values.Sum(augment => augment.Weight);
-        var randomValue = System.Random.Shared.Next(totalWeight);
+        var randomValue = Random.Shared.Next(totalWeight);
 
         var currentWeight = 0;
         foreach (var augment in AugmentConstants.Augments.Values)

@@ -1,7 +1,7 @@
 using UI.AlertMessage;
 using UI.AugmentationSelection;
 using UI.HUD.Controls.ItemCraft;
-using UI.Roulette;
+using UI.ShowdownLoading;
 using UnityEngine;
 
 namespace Game.Misc
@@ -11,7 +11,7 @@ namespace Game.Misc
         private void Awake()
         {
             AugmentationSelectionModel.Initialize();
-            RouletteModel.Initialize();
+            ShowdownLoadingModel.Initialize();
             AlertMessageModel.Initialize();
             ItemCraftButtonModel.Initialize();
         }

@@ -1,12 +1,10 @@
 ﻿using System.Diagnostics;
-using System.Linq;
 using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Numerics;
-using dArtagnan.Shared;
 using System.Text;
 using System.Text.Json;
-using System.Net.Http;
+using dArtagnan.Shared;
 
 namespace dArtagnan.ClientTest;
 
@@ -34,9 +32,11 @@ internal class Program
     {
         try
         {
-            var playerDirection = new MovementDataFromClient { Direction = direction, MovementData = { Direction = direction, Position = position, Speed = speed} };
+            var playerDirection = new MovementDataFromClient
+                { Direction = direction, MovementData = { Direction = direction, Position = position, Speed = speed } };
             await NetworkUtils.SendPacketAsync(stream, playerDirection);
-            Console.WriteLine($"이동 데이터 패킷 전송: 방향 {playerDirection.Direction}, 위치 {playerDirection.MovementData.Position} 속도: {playerDirection.MovementData.Speed}");
+            Console.WriteLine(
+                $"이동 데이터 패킷 전송: 방향 {playerDirection.Direction}, 위치 {playerDirection.MovementData.Position} 속도: {playerDirection.MovementData.Speed}");
         }
         catch (Exception ex)
         {
@@ -95,12 +95,12 @@ internal class Program
                 case "login":
                     string nick = "test";
                     string url = "http://localhost:3000";
-                    
+
                     if (parts.Length >= 2)
                         nick = parts[1];
                     if (parts.Length >= 3)
                         url = parts[2];
-                    
+
                     lobbyUrl = url;
                     await LobbyLogin(nick, lobbyUrl);
                     break;
@@ -122,15 +122,15 @@ internal class Program
                 case "connect":
                     string host = "localhost";
                     int port = 3000;
-                    
+
                     if (parts.Length >= 2)
                         host = parts[1];
                     if (parts.Length >= 3)
                         port = int.Parse(parts[2]);
-                    
+
                     await ConnectToServer(host, port);
                     break;
-                
+
                 case "s":
                 case "start":
                     await StartGame();
@@ -147,8 +147,9 @@ internal class Program
                     {
                         Console.WriteLine("사용법: d/dir [direction]");
                     }
+
                     break;
-                
+
                 case "sh":
                 case "shoot":
                     if (parts.Length >= 2)
@@ -160,6 +161,7 @@ internal class Program
                     {
                         Console.WriteLine("사용법: sh/shoot [targetId]");
                     }
+
                     break;
 
                 case "a":
@@ -173,6 +175,7 @@ internal class Program
                     {
                         Console.WriteLine("사용법: a/accuracy [state] (-1: 감소, 0: 유지, 1: 증가)");
                     }
+
                     break;
 
                 case "au":
@@ -186,6 +189,7 @@ internal class Program
                     {
                         Console.WriteLine("사용법: au/augment [index] (0, 1, 2 중 하나)");
                     }
+
                     break;
 
                 case "ic":
@@ -199,6 +203,7 @@ internal class Program
                     {
                         await SendItemCreating(true); // 기본값: 제작 시작
                     }
+
                     break;
 
                 case "iu":
@@ -213,6 +218,7 @@ internal class Program
                     {
                         await SendUseItem(-1); // 기본값: 타겟 없음
                     }
+
                     break;
 
                 case "m":
@@ -227,6 +233,7 @@ internal class Program
                     {
                         Console.WriteLine("사용법: m/msg/chat [message]");
                     }
+
                     break;
 
                 case "l":
@@ -241,6 +248,7 @@ internal class Program
                     {
                         await lobbyWs.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
                     }
+
                     isRunning = false; // isConnected 대신 isRunning을 사용하도록 변경
                     break;
 
@@ -262,8 +270,8 @@ internal class Program
         {
             using var http = new HttpClient();
             var payload = new { nickname };
-            var json = System.Text.Json.JsonSerializer.Serialize(payload);
-            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            var json = JsonSerializer.Serialize(payload);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
             var resp = await http.PostAsync(new Uri(new Uri(lobbyEndpoint), "/login"), content);
             var body = await resp.Content.ReadAsStringAsync();
             if (!resp.IsSuccessStatusCode)
@@ -271,7 +279,8 @@ internal class Program
                 Console.WriteLine($"로그인 실패: {resp.StatusCode} {body}");
                 return;
             }
-            var doc = System.Text.Json.JsonDocument.Parse(body);
+
+            var doc = JsonDocument.Parse(body);
             sessionId = doc.RootElement.GetProperty("sessionId").GetString();
             Console.WriteLine($"로그인 성공. sessionId={sessionId}");
         }
@@ -298,11 +307,11 @@ internal class Program
             lobbyWs = new ClientWebSocket();
             var wsUrl = lobbyUrl.Replace("http://", "ws://").Replace("https://", "wss://");
             await lobbyWs.ConnectAsync(new Uri(wsUrl), CancellationToken.None);
-            
+
             // 인증 메시지 전송
             var authMsg = JsonSerializer.Serialize(new { type = "auth", sessionId });
             await SendWebSocketMessage(lobbyWs, authMsg);
-            
+
             Console.WriteLine("[로비] WebSocket 연결됨");
         }
         catch (Exception ex)
@@ -335,7 +344,7 @@ internal class Program
                 {
                     var buffer = new ArraySegment<byte>(new byte[4096]);
                     var result = await lobbyWs.ReceiveAsync(buffer, CancellationToken.None);
-                    
+
                     if (result.MessageType == WebSocketMessageType.Text)
                     {
                         var message = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
@@ -361,19 +370,23 @@ internal class Program
         {
             var doc = JsonDocument.Parse(message);
             var type = doc.RootElement.GetProperty("type").GetString();
-            
+
             switch (type)
             {
                 case "auth_success":
                     Console.WriteLine("[로비] 인증 성공");
                     break;
-                    
+
                 case "error":
-                    var errorCode = doc.RootElement.TryGetProperty("code", out var codeEl) ? codeEl.GetString() : "unknown";
-                    var errorMsg = doc.RootElement.TryGetProperty("message", out var msgEl) ? msgEl.GetString() : "알 수 없는 오류";
+                    var errorCode = doc.RootElement.TryGetProperty("code", out var codeEl)
+                        ? codeEl.GetString()
+                        : "unknown";
+                    var errorMsg = doc.RootElement.TryGetProperty("message", out var msgEl)
+                        ? msgEl.GetString()
+                        : "알 수 없는 오류";
                     Console.WriteLine($"[로비] 오류: {errorMsg} (code: {errorCode})");
                     break;
-                    
+
                 case "create_room_response":
                     var ok = doc.RootElement.GetProperty("ok").GetBoolean();
                     if (ok)
@@ -384,8 +397,9 @@ internal class Program
                         Console.WriteLine($"방 생성 성공 roomId={roomId} {ip}:{port}");
                         await ConnectToServer(ip!, port);
                     }
+
                     break;
-                    
+
                 case "join_room_response":
                     ok = doc.RootElement.GetProperty("ok").GetBoolean();
                     if (ok)
@@ -396,11 +410,14 @@ internal class Program
                         Console.WriteLine($"방 참가 성공 roomId={roomId} {ip}:{port}");
                         await ConnectToServer(ip!, port);
                     }
+
                     break;
-                    
+
                 case "auth_error":
                     // 하위 호환성을 위해 auth_error도 지원
-                    var error = doc.RootElement.TryGetProperty("error", out var errorEl) ? errorEl.GetString() : "인증 실패";
+                    var error = doc.RootElement.TryGetProperty("error", out var errorEl)
+                        ? errorEl.GetString()
+                        : "인증 실패";
                     Console.WriteLine($"[로비] 인증 실패: {error}");
                     break;
             }
@@ -418,7 +435,7 @@ internal class Program
             Console.WriteLine("로비 WebSocket이 연결되지 않음");
             return;
         }
-        
+
         var msg = JsonSerializer.Serialize(new { type = "create_room" });
         await SendWebSocketMessage(lobbyWs, msg);
     }
@@ -430,11 +447,11 @@ internal class Program
             Console.WriteLine("로비 WebSocket이 연결되지 않음");
             return;
         }
-        
-        object data = string.IsNullOrEmpty(roomId) 
-            ? new { type = "join_room" } 
+
+        object data = string.IsNullOrEmpty(roomId)
+            ? new { type = "join_room" }
             : new { type = "join_room", roomId };
-        
+
         var msg = JsonSerializer.Serialize(data);
         await SendWebSocketMessage(lobbyWs, msg);
     }
@@ -451,15 +468,15 @@ internal class Program
 
             client = new TcpClient();
             await client.ConnectAsync(host, port);
-            
+
             // TCP NoDelay 설정 (Nagle's algorithm 비활성화)
             client.NoDelay = true;
-            
+
             stream = client.GetStream();
             isConnected = true;
 
             Console.WriteLine($"서버에 연결되었습니다: {host}:{port}");
-            
+
             // 연결 상태 모니터링 시작
             _ = Task.Run(async () => await MonitorConnection());
         }
@@ -468,7 +485,7 @@ internal class Program
             Console.WriteLine($"서버 연결 실패: {ex.Message}");
         }
     }
-    
+
     static async Task MonitorConnection()
     {
         try
@@ -477,7 +494,7 @@ internal class Program
             {
                 // 연결 상태 확인을 위한 작은 딜레이
                 await Task.Delay(1000);
-                
+
                 // 스트림이 읽기 가능한지 확인
                 if (stream != null && !stream.CanRead)
                 {
@@ -554,7 +571,7 @@ internal class Program
             {
                 AccuracyState = state
             });
-            
+
             string stateText = state switch
             {
                 -1 => "감소",
@@ -562,7 +579,7 @@ internal class Program
                 1 => "증가",
                 _ => "알 수 없음"
             };
-            
+
             Console.WriteLine($"정확도 상태 변경 패킷 전송: {state} ({stateText})");
         }
         catch (Exception ex)
@@ -607,7 +624,7 @@ internal class Program
             {
                 IsCreatingItem = isCreating
             });
-            
+
             var action = isCreating ? "시작" : "취소";
             Console.WriteLine($"아이템 제작 {action} 패킷 전송");
         }
@@ -631,7 +648,7 @@ internal class Program
             {
                 TargetPlayerId = targetId
             });
-            
+
             var targetText = targetId == -1 ? "타겟 없음" : $"타겟 {targetId}";
             Console.WriteLine($"아이템 사용 패킷 전송: {targetText}");
         }
@@ -719,26 +736,30 @@ internal class Program
                 case YouAreFromServer youAre:
                     Console.WriteLine($"서버에서 플레이어 ID 할당: {youAre.PlayerId}");
                     break;
-                        
+
                 case JoinBroadcast joinBroadcast:
                     Console.WriteLine($"플레이어 {joinBroadcast.PlayerInfo.PlayerId} 참가!");
                     break;
-                        
+
                 case MovementDataBroadcast movementDataBroadcast:
-                    Console.WriteLine($"{movementDataBroadcast.PlayerId}번 플레이어 이동 데이터 갱신: 방향 {movementDataBroadcast.MovementData.Direction}, 위치 {movementDataBroadcast.MovementData.Position} 속도 {movementDataBroadcast.MovementData.Speed}");
+                    Console.WriteLine(
+                        $"{movementDataBroadcast.PlayerId}번 플레이어 이동 데이터 갱신: 방향 {movementDataBroadcast.MovementData.Direction}, 위치 {movementDataBroadcast.MovementData.Position} 속도 {movementDataBroadcast.MovementData.Speed}");
                     break;
-                        
+
                 case WaitingStartFromServer gameWaiting:
                     Console.WriteLine($"=== 현재 방 상태 ===");
                     foreach (var info in gameWaiting.PlayersInfo)
                     {
                         Console.WriteLine($"  플레이어 {info.PlayerId}: {info.Nickname}");
                         Console.WriteLine($"    소지금: {info.Balance}달러");
-                        Console.WriteLine($"    위치: ({info.MovementData.Position.X:F2}, {info.MovementData.Position.Y:F2})");
+                        Console.WriteLine(
+                            $"    위치: ({info.MovementData.Position.X:F2}, {info.MovementData.Position.Y:F2})");
                         Console.WriteLine($"    명중률: {info.Accuracy}%");
-                        Console.WriteLine($"    정확도 상태: {info.AccuracyState} ({GetAccuracyStateText(info.AccuracyState)})");
+                        Console.WriteLine(
+                            $"    정확도 상태: {info.AccuracyState} ({GetAccuracyStateText(info.AccuracyState)})");
                         Console.WriteLine($"    속도: {info.MovementData.Speed:F2}");
-                        Console.WriteLine($"    에너지: {info.EnergyData.CurrentEnergy:F1}/{info.EnergyData.MaxEnergy} (최소필요: {info.MinEnergyToShoot})");
+                        Console.WriteLine(
+                            $"    에너지: {info.EnergyData.CurrentEnergy:F1}/{info.EnergyData.MaxEnergy} (최소필요: {info.MinEnergyToShoot})");
                         Console.WriteLine($"    생존: {(info.Alive ? "생존" : "사망")}");
                         Console.WriteLine($"    속도 배율: {info.SpeedMultiplier:F2}x");
                         Console.WriteLine($"    피해 가드: {(info.HasDamageShield ? "보유" : "없음")}");
@@ -746,14 +767,17 @@ internal class Program
                         {
                             Console.WriteLine($"    증강: [{string.Join(", ", info.Augments)}]");
                         }
-                        Console.WriteLine($"    아이템: {(info.CurrentItem == -1 ? "없음" : $"{GetItemName(info.CurrentItem)}(ID: {info.CurrentItem})")}");
+
+                        Console.WriteLine(
+                            $"    아이템: {(info.CurrentItem == -1 ? "없음" : $"{GetItemName(info.CurrentItem)}(ID: {info.CurrentItem})")}");
                         if (info.IsCreatingItem)
                         {
                             Console.WriteLine($"    제작 중: {info.CreatingRemainingTime:F1}초 남음");
                         }
                     }
+
                     break;
-                        
+
                 case RoundStartFromServer gamePlaying:
                     Console.WriteLine($"=== 게임 진행 중 (라운드 {gamePlaying.Round}) ===");
                     Console.WriteLine($"베팅금: {gamePlaying.BettingAmount}달러/10초");
@@ -761,11 +785,14 @@ internal class Program
                     {
                         Console.WriteLine($"  플레이어 {info.PlayerId}: {info.Nickname}");
                         Console.WriteLine($"    소지금: {info.Balance}달러");
-                        Console.WriteLine($"    위치: ({info.MovementData.Position.X:F2}, {info.MovementData.Position.Y:F2})");
+                        Console.WriteLine(
+                            $"    위치: ({info.MovementData.Position.X:F2}, {info.MovementData.Position.Y:F2})");
                         Console.WriteLine($"    명중률: {info.Accuracy}%");
-                        Console.WriteLine($"    정확도 상태: {info.AccuracyState} ({GetAccuracyStateText(info.AccuracyState)})");
+                        Console.WriteLine(
+                            $"    정확도 상태: {info.AccuracyState} ({GetAccuracyStateText(info.AccuracyState)})");
                         Console.WriteLine($"    속도: {info.MovementData.Speed:F2}");
-                        Console.WriteLine($"    에너지: {info.EnergyData.CurrentEnergy:F1}/{info.EnergyData.MaxEnergy} (최소필요: {info.MinEnergyToShoot})");
+                        Console.WriteLine(
+                            $"    에너지: {info.EnergyData.CurrentEnergy:F1}/{info.EnergyData.MaxEnergy} (최소필요: {info.MinEnergyToShoot})");
                         Console.WriteLine($"    생존: {(info.Alive ? "생존" : "사망")}");
                         Console.WriteLine($"    속도 배율: {info.SpeedMultiplier:F2}x");
                         Console.WriteLine($"    피해 가드: {(info.HasDamageShield ? "보유" : "없음")}");
@@ -773,70 +800,76 @@ internal class Program
                         {
                             Console.WriteLine($"    증강: [{string.Join(", ", info.Augments)}]");
                         }
-                        Console.WriteLine($"    아이템: {(info.CurrentItem == -1 ? "없음" : $"{GetItemName(info.CurrentItem)}(ID: {info.CurrentItem})")}");
+
+                        Console.WriteLine(
+                            $"    아이템: {(info.CurrentItem == -1 ? "없음" : $"{GetItemName(info.CurrentItem)}(ID: {info.CurrentItem})")}");
                         if (info.IsCreatingItem)
                         {
                             Console.WriteLine($"    제작 중: {info.CreatingRemainingTime:F1}초 남음");
                         }
                     }
+
                     break;
-                        
+
                 case ShootingBroadcast shooting:
                     var hitMsg = shooting.Hit ? "명중!" : "빗나감";
-                    Console.WriteLine($"플레이어 {shooting.ShooterId}가 플레이어 {shooting.TargetId}를 공격 - {hitMsg} (사격자 현재 에너지: {shooting.ShooterCurrentEnergy})");
+                    Console.WriteLine(
+                        $"플레이어 {shooting.ShooterId}가 플레이어 {shooting.TargetId}를 공격 - {hitMsg} (사격자 현재 에너지: {shooting.ShooterCurrentEnergy})");
                     break;
-                        
+
                 case UpdatePlayerAlive aliveUpdate:
                     var statusMsg = aliveUpdate.Alive ? "부활" : "사망";
                     Console.WriteLine($"플레이어 {aliveUpdate.PlayerId} {statusMsg}");
                     break;
-                    
+
                 case NewHostBroadcast newHost:
                     Console.WriteLine($"새로운 방장: {newHost.HostId}");
                     break;
-                        
+
                 case LeaveBroadcast leaveBroadcast:
                     Console.WriteLine($"플레이어 {leaveBroadcast.PlayerId}가 게임을 떠났습니다");
                     break;
-                        
+
                 case UpdateAccuracyStateBroadcast accuracyStateBroadcast:
-                    Console.WriteLine($"플레이어 {accuracyStateBroadcast.PlayerId}의 정확도 상태 변경: {accuracyStateBroadcast.AccuracyState} ({GetAccuracyStateText(accuracyStateBroadcast.AccuracyState)})");
+                    Console.WriteLine(
+                        $"플레이어 {accuracyStateBroadcast.PlayerId}의 정확도 상태 변경: {accuracyStateBroadcast.AccuracyState} ({GetAccuracyStateText(accuracyStateBroadcast.AccuracyState)})");
                     break;
-                        
+
                 case ShowdownStartFromServer showdownStart:
                     Console.WriteLine($"=== 게임 쇼다운 시작 ===");
-                    Console.WriteLine($"할당받은 정확도: {showdownStart.YourAccuracy}%");
                     Console.WriteLine($"전체 정확도 풀: [{string.Join(", ", showdownStart.AccuracyPool)}]");
                     Console.WriteLine($"[자동화] 3초 후 서버에서 자동으로 라운드를 시작합니다...");
                     break;
-                
+
                 case BettingDeductionBroadcast bettingDeduction:
                     Console.WriteLine($"🎯 [베팅금 차감] {bettingDeduction.DeductedAmount}달러씩 차감됨");
                     Console.WriteLine($"💰 현재 총 판돈: {bettingDeduction.TotalPrizeMoney}달러");
                     break;
-                    
+
                 case BalanceUpdateBroadcast balanceUpdate:
                     Console.WriteLine($"💳 플레이어 {balanceUpdate.PlayerId}의 소지금 업데이트: {balanceUpdate.Balance}달러");
                     break;
-                    
+
                 case RoundWinnerBroadcast roundWinner:
                     if (roundWinner.PlayerIds != null && roundWinner.PlayerIds.Count > 0)
                     {
-                        var winnerText = roundWinner.PlayerIds.Count == 1 
+                        var winnerText = roundWinner.PlayerIds.Count == 1
                             ? $"플레이어 {roundWinner.PlayerIds[0]}"
                             : $"플레이어 [{string.Join(", ", roundWinner.PlayerIds)}]";
-                        Console.WriteLine($"🏆 [라운드 {roundWinner.Round} 승리] {winnerText}가 {roundWinner.PrizeMoney}달러 획득!");
+                        Console.WriteLine(
+                            $"🏆 [라운드 {roundWinner.Round} 승리] {winnerText}가 {roundWinner.PrizeMoney}달러 획득!");
                     }
                     else
                     {
                         Console.WriteLine($"🏆 [라운드 {roundWinner.Round}] 승리자 없음!");
                     }
+
                     break;
-                    
+
                 case GameWinnerBroadcast gameWinner:
                     if (gameWinner.PlayerIds != null && gameWinner.PlayerIds.Count > 0)
                     {
-                        var winnerText = gameWinner.PlayerIds.Count == 1 
+                        var winnerText = gameWinner.PlayerIds.Count == 1
                             ? $"플레이어 {gameWinner.PlayerIds[0]}"
                             : $"플레이어 [{string.Join(", ", gameWinner.PlayerIds)}]";
                         Console.WriteLine($"🎊 [게임 최종 승리] {winnerText}가 게임에서 승리했습니다!");
@@ -845,6 +878,7 @@ internal class Program
                     {
                         Console.WriteLine($"🎊 [게임 종료] 승리자 없음!");
                     }
+
                     break;
 
                 case AugmentStartFromServer augmentStart:
@@ -853,6 +887,7 @@ internal class Program
                     {
                         Console.WriteLine($"  {i}: 증강 ID {augmentStart.AugmentOptions[i]}");
                     }
+
                     Console.WriteLine($"명령어 'au [ID]'로 증강을 선택하세요.");
                     break;
 
@@ -863,12 +898,14 @@ internal class Program
 
                 case ItemAcquiredBroadcast itemAcquired:
                     var acquiredItemName = GetItemName(itemAcquired.ItemId);
-                    Console.WriteLine($"📦 [아이템 획득] 플레이어 {itemAcquired.PlayerId}가 {acquiredItemName}(ID: {itemAcquired.ItemId})를 획득했습니다!");
+                    Console.WriteLine(
+                        $"📦 [아이템 획득] 플레이어 {itemAcquired.PlayerId}가 {acquiredItemName}(ID: {itemAcquired.ItemId})를 획득했습니다!");
                     break;
 
                 case ItemUsedBroadcast itemUsed:
                     var itemName = GetItemName(itemUsed.ItemId);
-                    Console.WriteLine($"⚡ [아이템 사용] 플레이어 {itemUsed.PlayerId}가 {itemName}(ID: {itemUsed.ItemId})를 사용했습니다");
+                    Console.WriteLine(
+                        $"⚡ [아이템 사용] 플레이어 {itemUsed.PlayerId}가 {itemName}(ID: {itemUsed.ItemId})를 사용했습니다");
                     break;
 
                 case ChatBroadcast chatBroadcast:
@@ -880,10 +917,12 @@ internal class Program
                     {
                         Console.WriteLine($"💬 [플레이어 {chatBroadcast.PlayerId}] {chatBroadcast.Message}");
                     }
+
                     break;
 
                 case UpdateCurrentEnergyBroadcast energyUpdate:
-                    Console.WriteLine($"⚡ [에너지 업데이트] 플레이어 {energyUpdate.PlayerId}의 현재 에너지: {energyUpdate.CurrentEnergy:F1}");
+                    Console.WriteLine(
+                        $"⚡ [에너지 업데이트] 플레이어 {energyUpdate.PlayerId}의 현재 에너지: {energyUpdate.CurrentEnergy:F1}");
                     break;
 
                 case UpdateAccuracyBroadcast accuracyUpdate:
@@ -895,13 +934,15 @@ internal class Program
                     break;
 
                 case UpdateMaxEnergyBroadcast maxEnergyUpdate:
-                    Console.WriteLine($"🔋 [최대 에너지 업데이트] 플레이어 {maxEnergyUpdate.PlayerId}의 최대 에너지: {maxEnergyUpdate.MaxEnergy}");
+                    Console.WriteLine(
+                        $"🔋 [최대 에너지 업데이트] 플레이어 {maxEnergyUpdate.PlayerId}의 최대 에너지: {maxEnergyUpdate.MaxEnergy}");
                     break;
 
                 case UpdateMinEnergyToShootBroadcast minEnergyUpdate:
-                    Console.WriteLine($"💥 [사격 최소 필요 에너지 업데이트] 플레이어 {minEnergyUpdate.PlayerId}의 사격 최소 필요 에너지: {minEnergyUpdate.MinEnergyToShoot}");
+                    Console.WriteLine(
+                        $"💥 [사격 최소 필요 에너지 업데이트] 플레이어 {minEnergyUpdate.PlayerId}의 사격 최소 필요 에너지: {minEnergyUpdate.MinEnergyToShoot}");
                     break;
-                        
+
                 default:
                     Console.WriteLine($"처리되지 않은 패킷 타입: {packet}");
                     break;

@@ -30,12 +30,12 @@ namespace Game
 
             PacketChannel.On<WaitingStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
             PacketChannel.On<RoundStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
-            PacketChannel.On<RouletteStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
+            PacketChannel.On<ShowdownStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
             PacketChannel.On<AugmentStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
 
             PacketChannel.On<RoundStartFromServer>(_ => State.Value = GameState.Round);
             PacketChannel.On<WaitingStartFromServer>(_ => State.Value = GameState.Waiting);
-            PacketChannel.On<RouletteStartFromServer>(_ => State.Value = GameState.Roulette);
+            PacketChannel.On<ShowdownStartFromServer>(_ => State.Value = GameState.Showdown);
         }
 
         public IEnumerable<PlayerCore> Survivors =>
