@@ -1,5 +1,6 @@
 using Game.Player.Data;
 using R3;
+using R3.Triggers;
 using UnityEngine;
 
 namespace Game.Player.Components

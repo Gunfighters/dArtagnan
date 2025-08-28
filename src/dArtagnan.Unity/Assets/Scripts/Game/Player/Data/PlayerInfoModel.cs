@@ -65,7 +65,7 @@ namespace Game.Player.Data
         /// 다음 위치를 구하는 함수.
         /// </summary>
         /// <returns>다음 틱에 이동할 위치.</returns>
-        private Vector2 NextPosition()
+        public Vector2 NextPosition()
         {
             if (!_needToCorrect)
                 return Position.CurrentValue
