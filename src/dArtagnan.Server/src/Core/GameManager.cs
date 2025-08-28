@@ -626,13 +626,13 @@ public class GameManager
     /// </summary>
     private async Task BroadcastShowdownStart()
     {
-        var broadcastTasks = Players.Values
-            .Select(player => SendToPlayer(player.Id, new ShowdownStartFromServer
-            {
-                AccuracyPool = Players.Select(p => new KeyValuePair<int, int>(p.Key, p.Value.Accuracy)).ToDictionary()
-            }));
+        Dictionary<int, int> e = new();
+        foreach (var pair in Players)
+        {
+            e[pair.Key] = pair.Value.Accuracy;
+        }
 
-        await Task.WhenAll(broadcastTasks);
+        await BroadcastToAll(new ShowdownStartFromServer { AccuracyPool = e, Countdown = (int)SHOWDOWN_DURATION });
         Console.WriteLine($"[쇼다운] 모든 플레이어에게 쇼다운 시작 알림 전송 완료");
     }
 

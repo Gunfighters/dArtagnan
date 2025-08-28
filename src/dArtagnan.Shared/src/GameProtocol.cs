@@ -481,12 +481,13 @@ namespace dArtagnan.Shared
 
     /// <summary>
     /// [서버 => 클라이언트]
-    /// 쇼다운 시작 - 정확도 배정 완료, 3초 후 자동으로 라운드 시작
+    /// 쇼다운 시작 - 정확도 배정 완료, Countdown초 후 자동으로 라운드 시작
     /// </summary>
     [MessagePackObject]
     public struct ShowdownStartFromServer : IPacket
     {
         [Key(0)] public Dictionary<int, int> AccuracyPool;
+        [Key(1)] public int Countdown;
     }
 
     #endregion
