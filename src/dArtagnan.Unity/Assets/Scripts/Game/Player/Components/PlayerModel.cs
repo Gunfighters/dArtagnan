@@ -8,6 +8,9 @@ using Assets.HeroEditor4D.Common.Scripts.Enums;
 using Assets.HeroEditor4D.InventorySystem.Scripts.Data;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
+using Game.Misc;
+using Game.Player.Data;
+using R3;
 using UnityEngine;
 using Utils;
 
@@ -15,6 +18,7 @@ namespace Game.Player.Components
 {
     public class PlayerModel : MonoBehaviour
     {
+        [SerializeField] private ColorPool colorPool;
         public SpriteCollection spriteCollection;
         public FirearmCollection firearmCollection;
         private readonly List<ParticleSystem> _instances = new();
@@ -33,20 +37,30 @@ namespace Game.Player.Components
             _shovelSprite = spriteCollection.MeleeWeapon2H.Find(item => item.Name == "Shovel");
         }
 
-        public void Initialize(PlayerInformation info)
+        public void Initialize(PlayerInfoModel model)
         {
-            SetState(info.Alive ? CharacterState.Idle : CharacterState.Death);
-            SetDirection(info.MovementData.Direction.IntToDirection());
-            _actualModel.SetExpression(info.Alive ? "Default" : "Dead");
-            _gunSprite = spriteCollection.GunSpriteByAccuracy(info.Accuracy);
-            _equipmentPartType = spriteCollection.Firearm1H.Contains(_gunSprite)
-                ? EquipmentPart.Firearm1H
-                : EquipmentPart.Firearm2H;
-            _actualModel.Equip(_gunSprite, _equipmentPartType);
-            InitializeFirearmMuzzle();
+            model.ID.Subscribe(id => SetColor(colorPool.colors[id - 1]));
+            model.Alive.Subscribe(newAlive => SetState(newAlive ? CharacterState.Idle : CharacterState.Death));
+            model.Alive.Subscribe(newAlive => _actualModel.SetExpression(newAlive ? "Default" : "Dead"));
+            model.Velocity.Subscribe(SetDirection);
+            model.Accuracy.Subscribe(newAcc =>
+            {
+                _gunSprite = spriteCollection.GunSpriteByAccuracy(newAcc);
+                _equipmentPartType = spriteCollection.Firearm1H.Contains(_gunSprite)
+                    ? EquipmentPart.Firearm1H
+                    : EquipmentPart.Firearm2H;
+                _actualModel.Equip(_gunSprite, _equipmentPartType);
+                InitializeFirearmMuzzle();
+            });
+            model.Crafting.Subscribe(newCrafting =>
+            {
+                if (newCrafting) Craft();
+                else Idle();
+            });
+            model.Fire.Subscribe(_ => Fire());
         }
 
-        public void SetColor(Color color)
+        private void SetColor(Color color)
         {
             _actualModel.SetHatColor(color);
         }
@@ -56,18 +70,13 @@ namespace Game.Player.Components
             _actualModel.SetState(state);
         }
 
-        public void SetDirection(Vector2 newDir)
+        private void SetDirection(Vector2 newDir)
         {
             if (newDir == Vector2.zero) return;
             _actualModel.SetDirection(newDir.SnapToCardinalDirection());
         }
 
-        public void Walk()
-        {
-            SetState(CharacterState.Walk);
-        }
-
-        public void Idle()
+        private void Idle()
         {
             if (_equipped != _gunSprite)
             {
@@ -79,7 +88,7 @@ namespace Game.Player.Components
             SetState(CharacterState.Idle);
         }
 
-        public void Fire()
+        private void Fire()
         {
             if (_equipped != _gunSprite)
             {
@@ -92,12 +101,7 @@ namespace Game.Player.Components
             CreateFirearmMuzzleAndPlayShotSound();
         }
 
-        public void Die()
-        {
-            _actualModel.SetState(CharacterState.Death);
-        }
-
-        public void Craft()
+        private void Craft()
         {
             if (_equipped != _shovelSprite)
             {

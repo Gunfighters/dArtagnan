@@ -1,14 +1,14 @@
 using dArtagnan.Shared;
 using Game.Misc;
+using Game.Player.Data;
+using R3;
 using UnityEngine;
 
 namespace Game.Player.Components
 {
     public class PlayerCore : MonoBehaviour
     {
-        [SerializeField] private ColorPool colorPool;
-        public int ID { get; private set; }
-        public string Nickname { get; private set; }
+        public PlayerInfoModel InfoModel { get; private set; }
         public PlayerModel Model { get; private set; }
         public PlayerHealth Health { get; private set; }
         public PlayerPhysics Physics { get; private set; }
@@ -19,8 +19,6 @@ namespace Game.Player.Components
         public PlayerTrajectory Trajectory { get; private set; }
         public PlayerCraft Craft { get; private set; }
         public PlayerFx Fx { get; private set; }
-
-        public Color MyColor => colorPool.colors[ID - 1];
 
         private void Awake()
         {
@@ -36,32 +34,20 @@ namespace Game.Player.Components
             Fx = GetComponent<PlayerFx>();
         }
 
-        private void SetNickname(string newNickname)
+        public void Initialize(PlayerInfoModel model)
         {
-            Nickname = newNickname;
-            gameObject.name = Nickname;
-        }
-
-        private void SetColor(Color color)
-        {
-            Model.SetColor(color);
-        }
-
-        public void Initialize(PlayerInformation info)
-        {
-            ID = info.PlayerId;
-            SetNickname(info.Nickname);
-            SetColor(MyColor);
-            Model.Initialize(info);
-            Health.Initialize(info);
-            Physics.Initialize(info);
-            Shoot.Initialize(info);
-            Accuracy.Initialize(info);
-            Energy.Initialize(info);
-            Balance.Initialize(info);
-            Trajectory.Initialize(info);
-            Craft.Initialize(info);
-            Fx.Initialize(info);
+            InfoModel = model;
+            model.Nickname.Subscribe(newName => gameObject.name = newName);
+            Model.Initialize(model);
+            Health.Initialize(model);
+            Physics.Initialize(model);
+            Shoot.Initialize(model);
+            Accuracy.Initialize(model);
+            Energy.Initialize(model);
+            Balance.Initialize(model);
+            Trajectory.Initialize(model);
+            Craft.Initialize(model);
+            Fx.Initialize(model);
         }
     }
 }

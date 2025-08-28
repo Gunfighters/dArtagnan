@@ -26,6 +26,7 @@ namespace Game.Player.Data
         public readonly ReactiveProperty<float> CraftingRemainingTime = new();
         public readonly ReactiveProperty<bool> Immune = new();
         public readonly ObservableList<int> ActiveFx = new();
+        public readonly Subject<bool> Fire = new();
 
         public PlayerInfoModel(PlayerInformation info)
         {
