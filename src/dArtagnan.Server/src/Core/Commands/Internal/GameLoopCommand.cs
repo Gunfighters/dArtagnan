@@ -302,11 +302,11 @@ public class GameLoopCommand : IGameCommand
     {
         gameManager.ShowdownTimer += DeltaTime;
         
-        if (gameManager.ShowdownTimer >= GameManager.SHOWDOWN_DURATION)
+        if (gameManager.ShowdownTimer >= Constants.SHOWDOWN_DURATION)
         {
-            // 타이머 완료 - 라운드 시작
-            Console.WriteLine("[게임] 쇼다운 시간 종료 - 자동으로 라운드 1 시작!");
-            await gameManager.StartRoundStateAsync(1);
+            // 타이머 완료 - 다음 라운드 시작
+            Console.WriteLine($"[게임] 쇼다운 시간 종료 - 자동으로 라운드 {gameManager.Round + 1} 시작!");
+            await gameManager.StartRoundStateAsync(gameManager.Round + 1);
         }
     }
 }

@@ -1,10 +1,14 @@
+import 'dotenv/config';
 import express from 'express';
 import Docker from 'dockerode';
 import net from 'node:net';
 import http from 'http';
 import { WebSocketServer } from 'ws';
 import crypto from 'crypto';
+import session from 'express-session';
 import { ErrorCodes, RoomState } from './errorCodes.js';
+import { initDB, findUserByProvider, createUser, checkNicknameDuplicate, setUserNickname, generateTempNickname } from './db.js';
+import passport from './auth.js';
 
 // --- 로깅 유틸리티 ---
 const logger = {
@@ -43,7 +47,17 @@ const logger = {
 const app = express();
 const httpServer = http.createServer(app);
 const wss = new WebSocketServer({ server: httpServer });
+
+// 미들웨어 설정
 app.use(express.json());
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'your-secret-key-change-this',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 24 * 60 * 60 * 1000 } // 24시간
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 // WebSocket 연결 관리
 const connections = new Map(); // ws -> { sessionId, nickname }
@@ -132,7 +146,61 @@ function generateRoomId() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
-// 로그인
+// === OAuth 로그인 API ===
+
+// 구글 로그인 시작
+app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+// 구글 로그인 콜백 (구글에서 돌아올 때)
+app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), async (req, res) => {
+    try {
+        const { provider, providerId, email, name } = req.user;
+        logger.info(`[OAuth] ${provider} 로그인 성공: ${email}`);
+
+        // DB에서 기존 사용자 찾기
+        let user = await findUserByProvider(provider, providerId);
+        let isTemporary = false;
+
+        if (!user) {
+            // 신규 사용자 → 즉시 임시 닉네임으로 회원가입
+            const tempNickname = generateTempNickname();
+            const userId = await createUser(provider, providerId, tempNickname);
+            
+            user = { id: userId, nickname: tempNickname };
+            isTemporary = true;
+            logger.info(`[OAuth] 신규 사용자 자동 회원가입: ${email} → ${tempNickname}`);
+        } else {
+            // 기존 사용자 - 임시 닉네임인지 확인
+            isTemporary = user.nickname.startsWith('User') && /^User[a-z0-9]+$/.test(user.nickname);
+            logger.info(`[OAuth] 기존 사용자 로그인: ${email} → ${user.nickname}`);
+        }
+
+        // sessionId 발급
+        const sessionId = Math.random().toString(36).slice(2);
+        users.set(sessionId, {
+            id: user.id,
+            nickname: user.nickname,
+            isTemporary,
+            provider,
+            providerId,
+            email,
+            name
+        });
+
+        logger.info(`[OAuth] 로그인 처리 완료: ${user.nickname} (${sessionId})`);
+        res.json({
+            success: true,
+            sessionId,
+            nickname: user.nickname,
+            isTemporary
+        });
+    } catch (error) {
+        logger.error(`[OAuth] 로그인 처리 중 오류:`, error);
+        res.status(500).json({ error: '로그인 처리 중 오류가 발생했습니다.' });
+    }
+});
+
+// === 기존 닉네임 로그인 (호환성 유지) ===
 app.post('/login', (req, res) => {
     logger.info(`[로그인] 요청 수신:`, req.body);
     const nickname = (req.body?.nickname || '').trim();
@@ -153,6 +221,7 @@ app.post('/login', (req, res) => {
     logger.info(`[로그인] 성공: ${nickname} (세션ID: ${sessionId})`);
     res.json({ sessionId, nickname });
 });
+
 
 // 게임서버 상태 업데이트
 app.post('/internal/rooms/:roomId/state', (req, res) => {
@@ -244,9 +313,17 @@ wss.on('connection', (ws, req) => {
                     return;
                 }
                 authenticated = true;
-                connections.set(ws, { sessionId, nickname: users.get(sessionId).nickname });
-                sendMessage(ws, 'auth_success', { ok: true });
-                logger.info(`[WebSocket ${connectionId}] 인증 성공: ${users.get(sessionId).nickname} (${sessionId})`);
+                const user = users.get(sessionId);
+                connections.set(ws, { sessionId, nickname: user.nickname });
+                
+                // 닉네임 및 임시 여부 포함하여 응답
+                sendMessage(ws, 'auth_success', { 
+                    ok: true, 
+                    nickname: user.nickname,
+                    isTemporary: user.isTemporary || false,
+                    needNickname: !user.nickname || user.isTemporary
+                });
+                logger.info(`[WebSocket ${connectionId}] 인증 성공: ${user.nickname || '닉네임미설정'} (${sessionId})`);
                 return;
             }
 
@@ -257,6 +334,49 @@ wss.on('connection', (ws, req) => {
             }
 
             const { nickname } = connections.get(ws);
+
+            if (data.type === 'set_nickname') {
+                const requestedNickname = data.nickname?.trim();
+                if (!requestedNickname || requestedNickname.length < 1 || requestedNickname.length > 16) {
+                    sendError(ws, ErrorCodes.INVALID_NICKNAME);
+                    return;
+                }
+
+                try {
+                    const user = users.get(sessionId);
+                    
+                    // 닉네임 중복 체크
+                    const isDuplicate = await checkNicknameDuplicate(requestedNickname);
+                    if (isDuplicate) {
+                        sendError(ws, ErrorCodes.DUPLICATE_NICKNAME);
+                        return;
+                    }
+
+                    if (user.provider && user.providerId) {
+                        // OAuth 사용자 - DB에 저장
+                        if (user.id) {
+                            // 기존 사용자 닉네임 업데이트
+                            await setUserNickname(user.provider, user.providerId, requestedNickname);
+                        } else {
+                            // 신규 사용자 생성
+                            const userId = await createUser(user.provider, user.providerId, requestedNickname);
+                            user.id = userId;
+                        }
+                    }
+                    
+                    // 메모리 업데이트
+                    user.nickname = requestedNickname;
+                    user.isTemporary = false;  // 이제 임시 닉네임이 아님
+                    connections.get(ws).nickname = requestedNickname;
+                    
+                    sendMessage(ws, 'nickname_set', { success: true, nickname: requestedNickname });
+                    logger.info(`[닉네임설정] ${requestedNickname} (${sessionId})`);
+                } catch (error) {
+                    logger.error(`[닉네임설정] 오류:`, error);
+                    sendMessage(ws, 'nickname_set', { success: false, error: '닉네임 설정에 실패했습니다.' });
+                }
+                return;
+            }
 
             if (data.type === 'create_room') {
                 logger.info(`[${nickname}] 방 생성 요청`);
@@ -340,4 +460,22 @@ wss.on('connection', (ws, req) => {
 });
 
 const PORT = 3000;
-httpServer.listen(PORT, () => logger.info(`로비 서버가 포트 ${PORT}에서 실행됩니다.`));
+
+// 서버 시작
+async function startServer() {
+    try {
+        // DB 초기화
+        await initDB();
+
+        // 서버 시작
+        httpServer.listen(PORT, () => {
+            logger.info(`🚀 로비 서버가 포트 ${PORT}에서 실행됩니다.`);
+            logger.info(`🔗 Google OAuth: http://localhost:${PORT}/auth/google`);
+        });
+    } catch (error) {
+        logger.error('서버 시작 실패:', error);
+        process.exit(1);
+    }
+}
+
+startServer();

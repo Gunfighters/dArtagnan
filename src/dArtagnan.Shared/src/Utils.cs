@@ -56,5 +56,6 @@ namespace dArtagnan.Shared
         public const float SPAWN_RADIUS = 1.5f;
         public const float BETTING_PERIOD = 10.0f;
         public const float CREATING_DURATION = 3.0f;
+        public const float SHOWDOWN_DURATION = 3.0f;
     }
 }
