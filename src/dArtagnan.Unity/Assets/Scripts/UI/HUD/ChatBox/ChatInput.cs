@@ -13,14 +13,6 @@ namespace UI.HUD.ChatBox
         {
             _inputField = GetComponent<TMP_InputField>();
             _inputField
-                .onSelect
-                .AsObservable()
-                .Subscribe(_ => _inputField.placeholder.gameObject.SetActive(false));
-            _inputField
-                .onDeselect
-                .AsObservable()
-                .Subscribe(_ => _inputField.placeholder.gameObject.SetActive(true));
-            _inputField
                 .onSubmit
                 .AsObservable()
                 .Subscribe(value => PacketChannel.Raise(new ChatFromClient { Message = value }));

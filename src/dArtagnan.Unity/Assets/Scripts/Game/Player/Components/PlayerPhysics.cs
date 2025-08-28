@@ -38,6 +38,8 @@ namespace Game.Player.Components
 
         public void Initialize(PlayerInformation info)
         {
+            Debug.Log(info.MovementData.Position);
+            Debug.Log(info.MovementData.Direction);
             transform.position = info.MovementData.Position.ToUnityVec();
             _speed = info.MovementData.Speed;
             _direction = info.MovementData.Direction.IntToDirection();
@@ -93,6 +95,7 @@ namespace Game.Player.Components
 
         public void UpdateRemotePlayerMovement(MovementData data)
         {
+            Debug.Log($"Player #{_core.Nickname} : {data.Position}");
             _needToCorrect = true;
             _lastUpdatedPosition = data.Position.ToUnityVec();
             _lastServerUpdateTimestamp = Time.time;

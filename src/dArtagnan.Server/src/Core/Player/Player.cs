@@ -145,6 +145,7 @@ public class Player
     /// </summary>
     public static Vector2 GetSpawnPosition(int index)
     {
+        return Vector2.Zero;
         var angle = index * (360f / Constants.MAX_PLAYER_COUNT) * (float)(Math.PI / 180);
         return new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * Constants.SPAWN_RADIUS;
     }

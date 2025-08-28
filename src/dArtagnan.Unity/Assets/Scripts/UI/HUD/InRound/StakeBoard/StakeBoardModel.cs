@@ -1,6 +1,5 @@
 using dArtagnan.Shared;
 using R3;
-using UnityEngine;
 
 namespace UI.HUD.InRound.StakeBoard
 {
@@ -8,7 +7,6 @@ namespace UI.HUD.InRound.StakeBoard
     {
         public static readonly ReactiveProperty<int> Amount = new();
 
-        [RuntimeInitializeOnLoadMethod]
         public static void Initialize()
         {
             PacketChannel.On<RoundStartFromServer>(e => { Amount.Value = 0; });

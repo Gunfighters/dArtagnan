@@ -1,6 +1,7 @@
 using UI.AlertMessage;
 using UI.AugmentationSelection;
 using UI.HUD.Controls.ItemCraft;
+using UI.HUD.InRound.StakeBoard;
 using UI.ShowdownLoading;
 using UnityEngine;
 
@@ -14,6 +15,7 @@ namespace Game.Misc
             ShowdownLoadingModel.Initialize();
             AlertMessageModel.Initialize();
             ItemCraftButtonModel.Initialize();
+            StakeBoardModel.Initialize();
         }
     }
 }

@@ -401,7 +401,7 @@ MonoBehaviour:
   m_text: "\u200B"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 1b2d1d8844f0c4c0babca102402502ef, type: 2}
-  m_sharedMaterial: {fileID: 7374927986402738804, guid: c1482dbce654844b9ba1c753cbea5d80, type: 2}
+  m_sharedMaterial: {fileID: 236201533220674961, guid: 1b2d1d8844f0c4c0babca102402502ef, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -838,7 +838,6 @@ GameObject:
   - component: {fileID: 1622815775707364424}
   - component: {fileID: 1770016483326030972}
   - component: {fileID: 3040474471725353950}
-  - component: {fileID: 6465906334082204882}
   m_Layer: 5
   m_Name: IPInputField
   m_TagString: Untagged
@@ -908,23 +907,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &6465906334082204882
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8263995139322543980}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a3774f76e7974c35835f0280defa30e3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  config: {fileID: 11400000, guid: 6c934d44d01dd432aa117b578669fa39, type: 2}
-  ipEndpointInputField: {fileID: 8340858011541542533}
-  connectButton: {fileID: 7500095029105627043}
-  setLocalHostButton: {fileID: 5735856977165715420}
-  setAwsButton: {fileID: 9177418300687294445}
 --- !u!1 &8398317515688431201
 GameObject:
   m_ObjectHideFlags: 0
