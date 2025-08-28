@@ -2,7 +2,9 @@ using System;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
+using Game.Player.Data;
 using JetBrains.Annotations;
+using R3;
 using TMPro;
 using UnityEngine;
 
@@ -16,55 +18,24 @@ namespace Game.Player.Components
         [SerializeField] private Color missTextColor;
         [SerializeField] private float hitMissShowingDuration;
         public Transform _rangeCircleTransform;
-        private readonly RaycastHit2D[] _hits = new RaycastHit2D[2];
-        private Collider2D _collider2D;
-        private ContactFilter2D _contactFilter2D;
-        private PlayerCore _core;
-        [CanBeNull] public PlayerCore Target { get; private set; }
-        public float Range { get; private set; }
 
         private void Awake()
         {
-            _core = GetComponent<PlayerCore>();
-            _collider2D = GetComponent<Collider2D>();
-            _contactFilter2D.useLayerMask = true;
-            _contactFilter2D.layerMask = LayerMask.GetMask("Player", "Obstacle");
             HighlightAsTarget(false);
-            hitMissText.enabled = false;
         }
 
-        public void Initialize(PlayerInformation info)
+        public void Initialize(PlayerInfoModel model)
         {
-            SetRange(info.Range);
+            model.Range.Subscribe(SetRange);
+            model.Fire.Subscribe(ShowHitOrMiss);
         }
 
-        public void SetRange(float newRange)
+        private void SetRange(float newRange)
         {
-            Range = newRange;
-            _rangeCircleTransform.localScale = new Vector3(Range * 2, Range * 2, 1);
+            _rangeCircleTransform.localScale = new Vector3(newRange * 2, newRange * 2, 1);
         }
 
-        public void SetTarget([CanBeNull] PlayerCore newTarget)
-        {
-            Target = newTarget;
-        }
-
-        public void Fire(PlayerCore target)
-        {
-            _core.Model.SetDirection(target.transform.position - transform.position);
-            _core.Model.Fire();
-            _core.Trajectory.Flash(target.transform);
-        }
-
-        private bool CanShoot(PlayerCore target)
-        {
-            if (Vector2.Distance(target.transform.position, transform.position) > Range) return false;
-            _collider2D.Raycast(target.transform.position - transform.position, _contactFilter2D, _hits, Range);
-            Array.Sort(_hits, (x, y) => x.distance.CompareTo(y.distance));
-            return _hits[0].transform == target.transform;
-        }
-
-        public void HighlightAsTarget(bool show)
+        private void HighlightAsTarget(bool show)
         {
             targetHighlightCircle.enabled = show;
         }
@@ -81,30 +52,6 @@ namespace Game.Player.Components
         {
             await UniTask.WaitForSeconds(1);
             hitMissText.enabled = false;
-        }
-
-        [CanBeNull]
-        public PlayerCore CalculateTarget(Vector2 aim)
-        {
-            var targetPool = GameService
-                .Survivors
-                .Where(target => target.transform != transform)
-                .Where(CanShoot)
-                .ToArray();
-            if (!targetPool.Any()) return null;
-            if (aim == Vector2.zero)
-                return targetPool
-                    .Aggregate((a, b) =>
-                        Vector2.Distance(a.transform.position, transform.position)
-                        < Vector2.Distance(b.transform.position, transform.position)
-                            ? a
-                            : b);
-            return targetPool
-                .Aggregate((a, b) =>
-                    Vector2.Angle(aim, a.transform.position - transform.position)
-                    < Vector2.Angle(aim, b.transform.position - transform.position)
-                        ? a
-                        : b);
         }
     }
 }

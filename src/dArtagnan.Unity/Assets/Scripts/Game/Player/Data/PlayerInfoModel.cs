@@ -1,4 +1,7 @@
+using System;
+using System.Linq;
 using dArtagnan.Shared;
+using JetBrains.Annotations;
 using ObservableCollections;
 using R3;
 using UnityEngine;
@@ -31,8 +34,8 @@ namespace Game.Player.Data
         private bool _needToCorrect;
         private float _lastServerUpdateTimestamp;
         private Vector2 _lastUpdatedPosition;
-        
         private const float PositionCorrectionThreshold = 4;
+        private readonly RaycastHit2D[] _raycastHits = new RaycastHit2D[20];
 
         public PlayerInfoModel(PlayerInformation info)
         {
@@ -80,6 +83,41 @@ namespace Game.Player.Data
                 predictedPosition,
                 Time.fixedDeltaTime * Velocity.CurrentValue.magnitude
                 ); // 현재 위치에서 예상 위치로 이동한다. 단, 한 틱에 움직일 수 있는 최대 거리를 초과해서는 움직일 수 없다. 
+        }
+
+        private bool CanShoot(PlayerInfoModel target)
+        {
+            if (Vector2.Distance(target.Position.CurrentValue, Position.CurrentValue) > Range.CurrentValue) return false;
+            var targetTransform = GameService.GetPlayer(target.ID.CurrentValue)!.transform;
+            Physics2D.RaycastNonAlloc(Position.CurrentValue, target.Position.CurrentValue - Position.CurrentValue,
+                _raycastHits, Range.CurrentValue, LayerMask.GetMask("Player", "Obstacle"));
+            Array.Sort(_raycastHits, (x, y) => x.distance.CompareTo(y.distance));
+            return _raycastHits[1].transform == targetTransform;
+        }
+        
+        [CanBeNull]
+        public PlayerInfoModel CalculateTarget(Vector2 aim)
+        {
+            var self = GameService.GetPlayer(ID.CurrentValue)!;
+            var targetPool = GameService
+                .Survivors
+                .Where(target => target.transform != self.transform)
+                .Where(target => CanShoot(target.InfoModel))
+                .ToArray();
+            if (!targetPool.Any()) return null;
+            if (aim == Vector2.zero)
+                return targetPool
+                    .Aggregate((a, b) =>
+                        Vector2.Distance(a.transform.position, self.transform.position)
+                        < Vector2.Distance(b.transform.position, self.transform.position)
+                            ? a
+                            : b).InfoModel;
+            return targetPool
+                .Aggregate((a, b) =>
+                    Vector2.Angle(aim, a.transform.position - self.transform.position)
+                    < Vector2.Angle(aim, b.transform.position - self.transform.position)
+                        ? a
+                        : b).InfoModel;
         }
     }
 }
