@@ -1,6 +1,9 @@
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
+using Game.Player.Data;
 using JetBrains.Annotations;
+using R3;
+using R3.Triggers;
 using UnityEngine;
 
 namespace Game.Player.Components
@@ -9,7 +12,6 @@ namespace Game.Player.Components
     {
         [SerializeField] private float duration;
         private LineRenderer _lineRenderer;
-        [CanBeNull] private Transform _target;
 
         private void Awake()
         {
@@ -19,29 +21,24 @@ namespace Game.Player.Components
 
         private void Update()
         {
-            if (_target)
+            _lineRenderer.SetPosition(1, transform.position);
+        }
+
+        public void Initialize(PlayerInfoModel model)
+        {
+            this.UpdateAsObservable().Subscribe(_ =>
             {
-                _lineRenderer.SetPosition(0, _target.position);
-                _lineRenderer.SetPosition(1, transform.position);
-            }
+                var found = GameService.GetPlayer(model.Targeting.CurrentValue);
+                if (found)
+                    _lineRenderer.SetPosition(0, found.InfoModel.Position.CurrentValue);
+            });
+            model.Fire.Subscribe(_ => Flash().Forget());
         }
 
-        public void Initialize(PlayerInformation info)
+        private async UniTask Flash()
         {
-            _target = GameService.GetPlayer(info.Targeting)?.transform;
-        }
-
-        public void Flash(Transform newTarget)
-        {
-            _Flash(newTarget).Forget();
-        }
-
-        private async UniTask _Flash(Transform newTarget)
-        {
-            _target = newTarget;
             _lineRenderer.enabled = true;
             await UniTask.WaitForSeconds(duration);
-            _target = null;
             _lineRenderer.enabled = false;
         }
     }
