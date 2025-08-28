@@ -143,6 +143,9 @@ PlayerSettings:
   bundleVersion: 1.0.2
   preloadedAssets:
   - {fileID: 11400000, guid: eca8e77114a724e5986b1e6896bd55be, type: 2}
+  - {fileID: -3945042862860104492, guid: 6b381de777df3d2419d7e9bb507b915e, type: 2}
+  - {fileID: 11400000, guid: 6dd3da3ce82a4f544aa676fca46e0417, type: 2}
+  - {fileID: 11400000, guid: c201248b38dface468ea04aca09a6f1c, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -260,16 +263,16 @@ PlayerSettings:
   templateDefaultScene: Assets/Scenes/SampleScene.unity
   useCustomMainManifest: 0
   useCustomLauncherManifest: 0
-  useCustomMainGradleTemplate: 0
+  useCustomMainGradleTemplate: 1
   useCustomLauncherGradleManifest: 0
   useCustomBaseGradleTemplate: 0
-  useCustomGradlePropertiesTemplate: 0
-  useCustomGradleSettingsTemplate: 0
+  useCustomGradlePropertiesTemplate: 1
+  useCustomGradleSettingsTemplate: 1
   useCustomProguardFile: 0
   AndroidTargetArchitectures: 3
   AndroidSplashScreenScale: 0
   androidSplashScreen: {fileID: 0}
-  AndroidKeystoreName: '{dedicated}: Downloads/dArtagnan.keystore'
+  AndroidKeystoreName: '{inproject}: dArtagnan.keystore'
   AndroidKeyaliasName: uploaddartagnan
   AndroidEnableArmv9SecurityFeatures: 0
   AndroidEnableArm64MTE: 0

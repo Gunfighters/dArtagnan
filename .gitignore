@@ -7,4 +7,5 @@ riderModule.iml
 **/.claude/
 **/node_modules/
 **/publish/
-**/.env
+*.keystore
+*.env*

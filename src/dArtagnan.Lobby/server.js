@@ -9,6 +9,7 @@ import session from 'express-session';
 import { ErrorCodes, RoomState } from './errorCodes.js';
 import { initDB, findUserByProvider, createUser, checkNicknameDuplicate, setUserNickname, generateTempNickname } from './db.js';
 import passport from './auth.js';
+import { OAuth2Client } from 'google-auth-library';
 
 // --- 로깅 유틸리티 ---
 const logger = {
@@ -148,7 +149,74 @@ function generateRoomId() {
 
 // === OAuth 로그인 API ===
 
-// 구글 로그인 시작
+// Google OAuth 클라이언트 설정
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Unity에서 Google ID Token 검증용 API
+app.post('/auth/google/verify-token', async (req, res) => {
+    try {
+        const { idToken } = req.body;
+        
+        if (!idToken) {
+            return res.status(400).json({ error: 'ID Token이 필요합니다.' });
+        }
+
+        // Google ID Token 검증
+        const ticket = await googleClient.verifyIdToken({
+            idToken: idToken,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+        
+        const payload = ticket.getPayload();
+        const { sub: providerId, email, name } = payload;
+        
+        logger.info(`[Unity OAuth] Google 토큰 검증 성공: ${email}`);
+
+        // 기존 OAuth 콜백과 동일한 로직
+        let user = await findUserByProvider('google', providerId);
+        let isTemporary = false;
+
+        if (!user) {
+            // 신규 사용자 → 즉시 임시 닉네임으로 회원가입
+            const tempNickname = generateTempNickname();
+            const userId = await createUser('google', providerId, tempNickname);
+            
+            user = { id: userId, nickname: tempNickname };
+            isTemporary = true;
+            logger.info(`[Unity OAuth] 신규 사용자 자동 회원가입: ${email} → ${tempNickname}`);
+        } else {
+            // 기존 사용자 - 임시 닉네임인지 확인
+            isTemporary = user.nickname.startsWith('User') && /^User[a-z0-9]+$/.test(user.nickname);
+            logger.info(`[Unity OAuth] 기존 사용자 로그인: ${email} → ${user.nickname}`);
+        }
+
+        // sessionId 발급
+        const sessionId = Math.random().toString(36).slice(2);
+        users.set(sessionId, {
+            id: user.id,
+            nickname: user.nickname,
+            isTemporary,
+            provider: 'google',
+            providerId,
+            email,
+            name
+        });
+
+        logger.info(`[Unity OAuth] 로그인 처리 완료: ${user.nickname} (${sessionId})`);
+        res.json({
+            success: true,
+            sessionId,
+            nickname: user.nickname,
+            isTemporary
+        });
+
+    } catch (error) {
+        logger.error(`[Unity OAuth] 토큰 검증 실패:`, error);
+        res.status(401).json({ error: '유효하지 않은 토큰입니다.' });
+    }
+});
+
+// 구글 로그인 시작 (기존 웹 방식 유지)
 app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 // 구글 로그인 콜백 (구글에서 돌아올 때)
@@ -469,8 +537,9 @@ async function startServer() {
 
         // 서버 시작
         httpServer.listen(PORT, () => {
+            const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
             logger.info(`🚀 로비 서버가 포트 ${PORT}에서 실행됩니다.`);
-            logger.info(`🔗 Google OAuth: http://localhost:${PORT}/auth/google`);
+            logger.info(`🔗 Google OAuth: ${baseUrl}/auth/google`);
         });
     } catch (error) {
         logger.error('서버 시작 실패:', error);
