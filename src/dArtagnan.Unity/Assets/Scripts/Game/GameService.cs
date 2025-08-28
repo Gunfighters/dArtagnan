@@ -19,8 +19,8 @@ namespace Game
         public static ReadOnlyReactiveProperty<int> HostPlayerId =>
             _instance?.HostPlayerId.ToReadOnlyReactiveProperty();
 
-        public static PlayerCore LocalPlayer => _instance?.LocalPlayerCore;
-        public static PlayerCore HostPlayer => _instance?.HostPlayerCore;
+        public static PlayerCore LocalPlayer => _instance?.LocalPlayer;
+        public static PlayerCore HostPlayer => _instance?.HostPlayer;
 
         public static ObservableDictionary<int, PlayerCore> Players => _instance?.Players;
         public static IEnumerable<PlayerCore> Survivors => _instance?.Survivors;

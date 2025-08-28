@@ -10,7 +10,7 @@ namespace Game.Player.Components
     {
         [SerializeField] private ActiveFx activeFx;
 
-        public void Initialize(PlayerInfoModel model)
+        public void Initialize(PlayerModel model)
         {
             activeFx.Initialize(model.ActiveFx);
         }

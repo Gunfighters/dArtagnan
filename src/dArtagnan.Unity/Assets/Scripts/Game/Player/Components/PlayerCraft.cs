@@ -14,7 +14,7 @@ namespace Game.Player.Components
         [SerializeField] private Image itemIcon;
         [SerializeField] private ItemSo itemCollection;
 
-        public void Initialize(PlayerInfoModel model)
+        public void Initialize(PlayerModel model)
         {
             model.Crafting.Subscribe(ToggleCraft);
             model.CurrentItem.Subscribe(id =>

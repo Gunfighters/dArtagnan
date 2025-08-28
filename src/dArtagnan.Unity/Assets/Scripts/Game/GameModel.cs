@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using dArtagnan.Shared;
-using Game.Player.Components;
+using Game.Player.Data;
 using JetBrains.Annotations;
 using ObservableCollections;
 using R3;
@@ -15,7 +15,7 @@ namespace Game
         public readonly ReactiveProperty<int> HostPlayerId = new();
         public readonly ReactiveProperty<int> LocalPlayerId = new();
 
-        public readonly ObservableDictionary<int, PlayerCore> Players = new();
+        public readonly ObservableDictionary<int, PlayerModel> Players = new();
         public readonly ReactiveProperty<GameState> State = new();
 
         public GameModel()
@@ -27,24 +27,25 @@ namespace Game
 
             PacketChannel.On<WaitingStartFromServer>(e => ResetEveryone(e.PlayersInfo));
             PacketChannel.On<RoundStartFromServer>(e => ResetEveryone(e.PlayersInfo));
-
-            PacketChannel.On<WaitingStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
-            PacketChannel.On<RoundStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
-            PacketChannel.On<ShowdownStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
-            PacketChannel.On<AugmentStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
+            
+            // TODO
+            // PacketChannel.On<WaitingStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
+            // PacketChannel.On<RoundStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
+            // PacketChannel.On<ShowdownStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
+            // PacketChannel.On<AugmentStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
 
             PacketChannel.On<RoundStartFromServer>(_ => State.Value = GameState.Round);
             PacketChannel.On<WaitingStartFromServer>(_ => State.Value = GameState.Waiting);
             PacketChannel.On<ShowdownStartFromServer>(_ => State.Value = GameState.Showdown);
         }
 
-        public IEnumerable<PlayerCore> Survivors =>
+        public IEnumerable<PlayerModel> Survivors =>
             Players
-                .Where(pair => pair.Value.Health.Alive.CurrentValue)
+                .Where(pair => pair.Value.Alive.CurrentValue)
                 .Select(pair => pair.Value);
 
-        public PlayerCore LocalPlayerCore => GetPlayer(LocalPlayerId.Value);
-        public PlayerCore HostPlayerCore => GetPlayer(HostPlayerId.Value);
+        public PlayerModel LocalPlayer => GetPlayer(LocalPlayerId.Value);
+        public PlayerModel HostPlayer => GetPlayer(HostPlayerId.Value);
 
         public void Dispose()
         {
@@ -52,7 +53,7 @@ namespace Game
         }
 
         [CanBeNull]
-        public PlayerCore GetPlayer(int id)
+        public PlayerModel GetPlayer(int id)
         {
             return Players.GetValueOrDefault(id, null);
         }
@@ -69,38 +70,38 @@ namespace Game
         {
             LocalPlayerId.Value = e.PlayerId;
             if (e.PlayerId == HostPlayerId.Value)
-                LocalEventChannel.InvokeOnNewHost(HostPlayerCore, HostPlayerCore == LocalPlayerCore);
+                LocalEventChannel.InvokeOnNewHost(HostPlayer, HostPlayer == LocalPlayer);
         }
 
         private void OnNewHost(NewHostBroadcast e)
         {
             HostPlayerId.Value = e.HostId;
-            LocalEventChannel.InvokeOnNewHost(HostPlayerCore, HostPlayerCore == LocalPlayerCore);
+            LocalEventChannel.InvokeOnNewHost(HostPlayer, HostPlayer == LocalPlayer);
         }
 
         private void CreatePlayer(PlayerInformation info)
         {
-            var p = PlayerPoolManager.Instance.Pool.Get();
-            p.Initialize(info);
-
-            Players.Add(info.PlayerId, p);
+            var view = PlayerPoolManager.Instance.Pool.Get();
+            var model = new PlayerModel(info);
+            PlayerPresenter.Initialize(model, view);
+            Players.Add(info.PlayerId, model);
         }
 
         private void OnLocalPlayerSet()
         {
             LocalEventChannel.InvokeOnNewCameraTarget(
-                LocalPlayerCore.Health.Alive.CurrentValue
-                    ? LocalPlayerCore
-                    : Players.First(p => p.Value.Health.Alive.CurrentValue).Value);
-            LocalEventChannel.InvokeOnLocalPlayerAlive(LocalPlayerCore.Health.Alive.CurrentValue);
-            LocalEventChannel.InvokeOnLocalPlayerBalanceUpdate(LocalPlayerCore.Balance.Balance);
+                LocalPlayer.Alive.CurrentValue
+                    ? LocalPlayer
+                    : Players.First(p => p.Value.Alive.CurrentValue).Value);
+            LocalEventChannel.InvokeOnLocalPlayerAlive(LocalPlayer.Alive.CurrentValue);
+            LocalEventChannel.InvokeOnLocalPlayerBalanceUpdate(LocalPlayer.Balance.CurrentValue);
         }
 
         private void RemovePlayer(int playerId)
         {
             if (Players.Remove(playerId, out var removed))
             {
-                PlayerPoolManager.Instance.Pool.Release(removed);
+                PlayerPoolManager.Instance.Pool.Release(GameService.GetPlayer(removed.ID.CurrentValue));
             }
         }
 
@@ -119,14 +120,8 @@ namespace Game
         {
             foreach (var p in Players.ToArray())
             {
-                RemovePlayer(p.Value.ID);
+                RemovePlayer(p.Value.ID.CurrentValue);
             }
-        }
-
-        private void StopLocalPlayerAndUpdateToServer()
-        {
-            LocalPlayerCore.Physics.Stop();
-            PacketChannel.Raise(LocalPlayerCore.Physics.MovementData);
         }
     }
 }

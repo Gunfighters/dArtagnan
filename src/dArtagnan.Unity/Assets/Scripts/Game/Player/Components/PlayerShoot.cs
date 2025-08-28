@@ -24,7 +24,7 @@ namespace Game.Player.Components
             HighlightAsTarget(false);
         }
 
-        public void Initialize(PlayerInfoModel model)
+        public void Initialize(PlayerModel model)
         {
             model.Range.Subscribe(SetRange);
             model.Fire.Subscribe(ShowHitOrMiss);

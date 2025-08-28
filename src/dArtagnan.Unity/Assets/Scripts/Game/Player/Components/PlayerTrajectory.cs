@@ -24,13 +24,13 @@ namespace Game.Player.Components
             _lineRenderer.SetPosition(1, transform.position);
         }
 
-        public void Initialize(PlayerInfoModel model)
+        public void Initialize(PlayerModel model)
         {
             this.UpdateAsObservable().Subscribe(_ =>
             {
                 var found = GameService.GetPlayer(model.Targeting.CurrentValue);
                 if (found)
-                    _lineRenderer.SetPosition(0, found.InfoModel.Position.CurrentValue);
+                    _lineRenderer.SetPosition(0, found.Model.Position.CurrentValue);
             });
             model.Fire.Subscribe(_ => Flash().Forget());
         }

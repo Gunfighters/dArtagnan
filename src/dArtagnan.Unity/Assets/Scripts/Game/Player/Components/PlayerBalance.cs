@@ -10,7 +10,7 @@ namespace Game.Player.Components
     {
         [SerializeField] private TextMeshProUGUI balanceText;
 
-        public void Initialize(PlayerInfoModel model)
+        public void Initialize(PlayerModel model)
         {
             model.Balance.Pairwise().Subscribe(tuple => SetBalance(tuple.Previous, tuple.Current));
         }

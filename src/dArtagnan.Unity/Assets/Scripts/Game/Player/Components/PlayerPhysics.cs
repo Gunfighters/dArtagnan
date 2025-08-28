@@ -17,7 +17,7 @@ namespace Game.Player.Components
             Rb = GetComponent<Rigidbody2D>();
         }
 
-        public void Initialize(PlayerInfoModel model)
+        public void Initialize(PlayerModel model)
         {
             model.Position.Subscribe(Rb.MovePosition);
         }

@@ -1,15 +1,16 @@
 using System;
 using dArtagnan.Shared;
 using Game.Player.Components;
+using Game.Player.Data;
 using UnityEngine;
 
 public static class LocalEventChannel
 {
-    public static event Action<PlayerCore> OnNewCameraTarget;
-    public static void InvokeOnNewCameraTarget(PlayerCore playerCore) => OnNewCameraTarget?.Invoke(playerCore);
+    public static event Action<PlayerModel> OnNewCameraTarget;
+    public static void InvokeOnNewCameraTarget(PlayerModel playerCore) => OnNewCameraTarget?.Invoke(playerCore);
 
-    public static event Action<PlayerCore, bool> OnNewHost;
-    public static void InvokeOnNewHost(PlayerCore newHost, bool youAreHost) => OnNewHost?.Invoke(newHost, youAreHost);
+    public static event Action<PlayerModel, bool> OnNewHost;
+    public static void InvokeOnNewHost(PlayerModel newHost, bool youAreHost) => OnNewHost?.Invoke(newHost, youAreHost);
 
     public static event Action<bool> OnLocalPlayerAlive;
     public static void InvokeOnLocalPlayerAlive(bool alive) => OnLocalPlayerAlive?.Invoke(alive);

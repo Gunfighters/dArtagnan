@@ -9,9 +9,9 @@ namespace Game.Player.Components
     public class PlayerHealth : MonoBehaviour
     {
         [SerializeField] private Canvas infoUICanvas;
-        private PlayerInfoModel _model;
+        private PlayerModel _model;
 
-        public void Initialize(PlayerInfoModel model)
+        public void Initialize(PlayerModel model)
         {
             _model = model;
             gameObject.SetActive(_model.Alive.CurrentValue);

@@ -10,7 +10,7 @@ namespace Game.Player.Components
     {
         [SerializeField] private TextMeshProUGUI accuracyText;
 
-        public void Initialize(PlayerInfoModel model)
+        public void Initialize(PlayerModel model)
         {
             model.Accuracy.Subscribe(SetAccuracy);
             model.AccuracyState.Subscribe(SetAccuracyState);

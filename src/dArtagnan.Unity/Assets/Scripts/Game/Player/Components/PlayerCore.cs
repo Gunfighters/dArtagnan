@@ -8,8 +8,8 @@ namespace Game.Player.Components
 {
     public class PlayerCore : MonoBehaviour
     {
-        public PlayerInfoModel InfoModel { get; private set; }
         public PlayerModel Model { get; private set; }
+        public PlayerCharacter Character { get; private set; }
         public PlayerHealth Health { get; private set; }
         public PlayerPhysics Physics { get; private set; }
         public PlayerShoot Shoot { get; private set; }
@@ -22,7 +22,7 @@ namespace Game.Player.Components
 
         private void Awake()
         {
-            Model = GetComponent<PlayerModel>();
+            Character = GetComponent<PlayerCharacter>();
             Health = GetComponent<PlayerHealth>();
             Physics = GetComponent<PlayerPhysics>();
             Shoot = GetComponent<PlayerShoot>();
@@ -34,11 +34,11 @@ namespace Game.Player.Components
             Fx = GetComponent<PlayerFx>();
         }
 
-        public void Initialize(PlayerInfoModel model)
+        public void Initialize(PlayerModel model)
         {
-            InfoModel = model;
+            Model = model;
             model.Nickname.Subscribe(newName => gameObject.name = newName);
-            Model.Initialize(model);
+            Character.Initialize(model);
             Health.Initialize(model);
             Physics.Initialize(model);
             Shoot.Initialize(model);

@@ -20,7 +20,7 @@ namespace Game.Player.UI
             _slider.minValue = 0;
         }
 
-        public void Initialize(PlayerInfoModel model)
+        public void Initialize(PlayerModel model)
         {
             model.MinEnergyToShoot.Subscribe(SetThreshold);
             model.EnergyData.Subscribe(data => _slider.maxValue = data.MaxEnergy);

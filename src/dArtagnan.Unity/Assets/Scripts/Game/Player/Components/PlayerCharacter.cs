@@ -16,7 +16,7 @@ using Utils;
 
 namespace Game.Player.Components
 {
-    public class PlayerModel : MonoBehaviour
+    public class PlayerCharacter : MonoBehaviour
     {
         [SerializeField] private ColorPool colorPool;
         public SpriteCollection spriteCollection;
@@ -37,7 +37,7 @@ namespace Game.Player.Components
             _shovelSprite = spriteCollection.MeleeWeapon2H.Find(item => item.Name == "Shovel");
         }
 
-        public void Initialize(PlayerInfoModel model)
+        public void Initialize(PlayerModel model)
         {
             model.ID.Subscribe(id => SetColor(colorPool.colors[id - 1]));
             model.Alive.Subscribe(newAlive => SetState(newAlive ? CharacterState.Idle : CharacterState.Death));
