@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
-using dArtagnan.Shared;
+using Game.Player.Data;
+using R3;
 using TMPro;
 using UnityEngine;
 
@@ -8,18 +9,16 @@ namespace Game.Player.Components
     public class PlayerBalance : MonoBehaviour
     {
         [SerializeField] private TextMeshProUGUI balanceText;
-        public int Balance { get; private set; }
 
-        public void Initialize(PlayerInformation info)
+        public void Initialize(PlayerInfoModel model)
         {
-            SetBalance(info.Balance);
+            model.Balance.Pairwise().Subscribe(tuple => SetBalance(tuple.Previous, tuple.Current));
         }
 
-        public void SetBalance(int newBalance)
+        public void SetBalance(int oldBalance, int newBalance)
         {
-            var gain = newBalance >= Balance;
-            Balance = newBalance;
-            balanceText.text = Balance.ToString();
+            var gain = newBalance >= oldBalance;
+            balanceText.text = newBalance.ToString();
             balanceText.color = gain ? Color.green : Color.red;
             ResetBalanceTextColor().Forget();
         }
