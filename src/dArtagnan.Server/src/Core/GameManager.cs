@@ -12,7 +12,6 @@ namespace dArtagnan.Server;
 /// </summary>
 public class GameManager
 {
-    public const float SHOWDOWN_DURATION = 3.0f; // 3초 대기
     public const float EMPTY_SERVER_TIMEOUT = 10f;
 
 
@@ -613,7 +612,7 @@ public class GameManager
         ShowdownTimer = 0f; // 타이머 초기화
 
         Console.WriteLine($"[게임] 게임 상태 변경: {oldState} -> {CurrentGameState}");
-        Console.WriteLine($"[게임] {SHOWDOWN_DURATION}초 후 자동으로 라운드 시작...");
+        Console.WriteLine($"[게임] {Constants.SHOWDOWN_DURATION}초 후 자동으로 라운드 시작...");
 
         // 모든 플레이어에게 쇼다운 시작 브로드캐스트
         await BroadcastShowdownStart();
@@ -632,7 +631,7 @@ public class GameManager
             e[pair.Key] = pair.Value.Accuracy;
         }
 
-        await BroadcastToAll(new ShowdownStartFromServer { AccuracyPool = e, Countdown = (int)SHOWDOWN_DURATION });
+        await BroadcastToAll(new ShowdownStartFromServer { AccuracyPool = e, Countdown = (int)Constants.SHOWDOWN_DURATION });
         Console.WriteLine($"[쇼다운] 모든 플레이어에게 쇼다운 시작 알림 전송 완료");
     }
 
