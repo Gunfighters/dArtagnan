@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UI.HUD.Playing
 {
-    public static class AccuracyStateTabMenuModel
+    public static class AccuracyStateWheelModel
     {
         public static readonly ReactiveProperty<int> State = new();
 

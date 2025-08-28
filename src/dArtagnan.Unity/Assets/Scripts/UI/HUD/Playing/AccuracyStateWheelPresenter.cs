@@ -5,11 +5,11 @@ using R3;
 
 namespace UI.HUD.Playing
 {
-    public static class AccuracyStateTabMenuPresenter
+    public static class AccuracyStateWheelPresenter
     {
-        public static void Initialize(AccuracyStateTabMenuView view)
+        public static void Initialize(AccuracyStateWheelView view)
         {
-            AccuracyStateTabMenuModel.State.Subscribe(newState =>
+            AccuracyStateWheelModel.State.Subscribe(newState =>
             {
                 var activated = newState switch
                 {
