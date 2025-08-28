@@ -1,4 +1,5 @@
 using dArtagnan.Shared;
+using Game.Player.Data;
 using R3;
 using TMPro;
 using UnityEngine;
@@ -7,26 +8,22 @@ namespace Game.Player.Components
 {
     public class PlayerAccuracy : MonoBehaviour
     {
-        public readonly ReactiveProperty<int> Accuracy = new();
-        public int AccuracyState { get; private set; }
         [SerializeField] private TextMeshProUGUI accuracyText;
 
-        public void Initialize(PlayerInformation info)
+        public void Initialize(PlayerInfoModel model)
         {
-            SetAccuracy(info.Accuracy);
-            SetAccuracyState(info.AccuracyState);
+            model.Accuracy.Subscribe(SetAccuracy);
+            model.AccuracyState.Subscribe(SetAccuracyState);
         }
 
         public void SetAccuracy(int newAccuracy)
         {
-            Accuracy.Value = newAccuracy;
-            accuracyText.text = $"{Accuracy}%";
+            accuracyText.text = $"{newAccuracy}%";
         }
 
         public void SetAccuracyState(int newAccuracyState)
         {
-            AccuracyState = newAccuracyState;
-            accuracyText.color = AccuracyState switch
+            accuracyText.color = newAccuracyState switch
             {
                 1 => new Color32(250, 85, 50, 255),
                 -1 => new Color32(75, 150, 220, 255),
