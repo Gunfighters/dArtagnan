@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Game.Player.Components;
+using Game.Player.Data;
 using UnityEngine;
 
 namespace UI.HUD.PlayerList
@@ -20,16 +20,16 @@ namespace UI.HUD.PlayerList
             PlayerListPresenter.Initialize(new PlayerListModel(), this);
         }
 
-        public void Add(PlayerCore player)
+        public void Add(PlayerModel player)
         {
             var obj = Instantiate(itemPrefab, transform);
             obj.Initialize(player);
             _pool.Add(obj);
         }
 
-        public void Remove(PlayerCore player)
+        public void Remove(PlayerModel player)
         {
-            var removed = _pool.Single(item => item.ID == player.ID);
+            var removed = _pool.Single(item => item.PlayerModel.ID == player.ID);
             _pool.Remove(removed);
             Destroy(removed.gameObject);
         }

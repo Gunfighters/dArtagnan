@@ -13,12 +13,12 @@ namespace UI.ShowdownLoading
             ShowdownLoadingModel.Players.ObserveAdd().Subscribe(newPlayer =>
             {
                 var instance = Object.Instantiate(
-                    newPlayer.Value.Key == GameService.LocalPlayer.ID
+                    newPlayer.Value.Key == GameService.LocalPlayer.ID.CurrentValue
                         ? view.localPlayerFramePrefab
                         : view.enemyPlayerFramePrefab,
                     view.frameGroup);
                 instance.Initialize(newPlayer.Value.Key, newPlayer.Value.Value,
-                    GameService.GetPlayer(newPlayer.Value.Key)!.Nickname);
+                    GameService.GetPlayerModel(newPlayer.Value.Key)!.Nickname.CurrentValue);
             });
             ShowdownLoadingModel.Players.ObserveRemove().Subscribe(removedPlayer =>
             {

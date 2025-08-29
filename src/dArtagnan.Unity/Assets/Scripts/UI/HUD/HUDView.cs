@@ -12,7 +12,7 @@ namespace UI.HUD
         public Canvas inRound;
         public Canvas isHost;
 
-        private void Awake()
+        private void Start()
         {
             HUDPresenter.Initialize(this, new HUDModel());
         }

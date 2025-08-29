@@ -515,7 +515,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   triangleSprite: {fileID: 21300000, guid: b23e7bd2faaff3749bdd6b4aefa264d3, type: 3}
   circleSprite: {fileID: 21300000, guid: 535673d3292e04b449b63e2d699f99ef, type: 3}
-  core: {fileID: 780900379496419894}
+  view: {fileID: 780900379496419894}
 --- !u!212 &4935362693182482194
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -847,6 +847,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 027c860dc99d41dd9113db2d4b4f89e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  colorPool: {fileID: 11400000, guid: 34d95f020286b4dcfa425d5b6a55505d, type: 2}
   spriteCollection: {fileID: 11400000, guid: 91824a520d391974a88f36ad4936d63a, type: 2}
   firearmCollection: {fileID: 11400000, guid: 28e732d5a6846604db331fadf9eec50e, type: 2}
 --- !u!82 &6662508905315568004
@@ -1065,7 +1066,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20909caaa4ec41dc9b49832144beb1c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  colorPool: {fileID: 11400000, guid: 34d95f020286b4dcfa425d5b6a55505d, type: 2}
 --- !u!114 &1970536077426956921
 MonoBehaviour:
   m_ObjectHideFlags: 0

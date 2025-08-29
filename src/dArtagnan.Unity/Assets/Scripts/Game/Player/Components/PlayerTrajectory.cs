@@ -28,9 +28,9 @@ namespace Game.Player.Components
         {
             this.UpdateAsObservable().Subscribe(_ =>
             {
-                var found = GameService.GetPlayer(model.Targeting.CurrentValue);
-                if (found)
-                    _lineRenderer.SetPosition(0, found.Model.Position.CurrentValue);
+                var found = GameService.GetPlayerModel(model.Targeting.CurrentValue);
+                if (found is not null)
+                    _lineRenderer.SetPosition(0, found.Position.CurrentValue);
             });
             model.Fire.Subscribe(_ => Flash().Forget());
         }

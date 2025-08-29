@@ -26,17 +26,21 @@ namespace UI.HUD.Controls.ItemCraft
 
         private void Awake()
         {
-            ItemCraftButtonPresenter.Initialize(this);
             descriptionBox.SetActive(false);
             currentItemIcon.enabled = false;
             costText.text = Constants.CRAFT_ENERGY_COST.ToString();
+        }
+
+        private void Start()
+        {
+            ItemCraftButtonPresenter.Initialize(this);
         }
 
         private void Update()
         {
             if (_hasItem)
             {
-                filler.fillAmount = GameService.LocalPlayer.Energy.EnergyData.CurrentEnergy / _item.data.EnergyCost;
+                filler.fillAmount = GameService.LocalPlayer.EnergyData.CurrentValue.CurrentEnergy / _item.data.EnergyCost;
                 if (filler.fillAmount >= 1)
                 {
                     outline.color = Color.green;
@@ -48,19 +52,19 @@ namespace UI.HUD.Controls.ItemCraft
                     costIcon.color = costText.color = currentItemIcon.color = Color.grey;
                 }
             }
-            else if (GameService.LocalPlayer.Craft.Crafting)
+            else if (GameService.LocalPlayer.Crafting.CurrentValue)
                 filler.fillAmount = 1;
             else
             {
                 var ratio = GameService
                                 .LocalPlayer
-                                .Energy
                                 .EnergyData
+                                .CurrentValue
                                 .CurrentEnergy /
                             Constants.CRAFT_ENERGY_COST;
                 filler.fillAmount = ratio;
                 craftIcon.color = costIcon.color = costText.color = ratio >= 1 ? Color.white : Color.grey;
-                outline.color = ratio >= 1 && !GameService.LocalPlayer.Craft.Crafting
+                outline.color = ratio >= 1 && !GameService.LocalPlayer.Crafting.CurrentValue
                     ? Color.green
                     : Color.grey;
             }
@@ -70,19 +74,19 @@ namespace UI.HUD.Controls.ItemCraft
         {
             if (_hasItem)
             {
-                if (GameService.LocalPlayer.Energy.EnergyData.CurrentEnergy < _item.data.EnergyCost)
-                    LocalEventChannel.InvokeOnAlertMessage("에너지가 부족합니다", Color.yellow);
+                if (GameService.LocalPlayer.EnergyData.CurrentValue.CurrentEnergy < _item.data.EnergyCost)
+                    GameService.AlertMessage.OnNext("에너지가 부족합니다");
                 else
                     PacketChannel.Raise(new UseItemFromClient());
             }
             else
             {
-                if (GameService.LocalPlayer.Energy.EnergyData.CurrentEnergy < Constants.CRAFT_ENERGY_COST)
-                    LocalEventChannel.InvokeOnAlertMessage("에너지가 부족합니다", Color.yellow);
+                if (GameService.LocalPlayer.EnergyData.CurrentValue.CurrentEnergy < Constants.CRAFT_ENERGY_COST)
+                    GameService.AlertMessage.OnNext("에너지가 부족합니다");
                 else
                 {
-                    GameService.LocalPlayer.Physics.Stop();
-                    PacketChannel.Raise(GameService.LocalPlayer.Physics.MovementData);
+                    GameService.LocalPlayer.Direction.Value = Vector2.zero;
+                    PacketChannel.Raise(GameService.LocalPlayer.GetMovementDataFromClient());
                     PacketChannel.Raise(new UpdateItemCreatingStateFromClient { IsCreatingItem = true });
                 }
             }

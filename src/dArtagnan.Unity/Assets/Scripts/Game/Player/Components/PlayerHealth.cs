@@ -1,5 +1,4 @@
 using Cysharp.Threading.Tasks;
-using dArtagnan.Shared;
 using Game.Player.Data;
 using R3;
 using UnityEngine;
@@ -21,7 +20,8 @@ namespace Game.Player.Components
         private void SetAlive(bool newAlive)
         {
             infoUICanvas.gameObject.SetActive(newAlive);
-            if (!newAlive) ScheduleDeactivation().Forget();
+            if (newAlive) gameObject.SetActive(true);
+            else ScheduleDeactivation().Forget();
         }
 
         private async UniTask ScheduleDeactivation()

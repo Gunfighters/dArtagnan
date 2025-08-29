@@ -1,6 +1,7 @@
 using dArtagnan.Shared;
 using Game;
 using Game.Player.Components;
+using Game.Player.Data;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -11,27 +12,24 @@ namespace UI.HUD.Controls
         private VariableJoystick _variableJoystick;
         private bool Moving => _variableJoystick.Direction != Vector2.zero;
         private Vector2 InputVectorSnapped => _variableJoystick.Direction.DirectionToInt().IntToDirection();
-        private PlayerCore LocalPlayer => GameService.LocalPlayer;
+        private PlayerModel LocalPlayer => GameService.LocalPlayer;
 
         private void Awake() => _variableJoystick = GetComponent<VariableJoystick>();
 
         private void Update()
         {
+            if (LocalPlayer == null) return;
             var newDirection = GetInputDirection();
-            if (LocalPlayer.Craft.Crafting)
+            if (LocalPlayer.Crafting.CurrentValue)
             {
-                if (newDirection != LocalPlayer.Physics.MovementData.Direction.IntToDirection() &&
-                    newDirection != Vector2.zero)
-                {
+                if (newDirection != LocalPlayer.Direction.CurrentValue && newDirection != Vector2.zero)
                     PacketChannel.Raise(new UpdateItemCreatingStateFromClient { IsCreatingItem = false });
-                }
-
                 newDirection = Vector2.zero;
             }
 
-            if (newDirection == LocalPlayer.Physics.MovementData.Direction.IntToDirection()) return;
-            LocalPlayer.Physics.SetDirection(newDirection.normalized);
-            PacketChannel.Raise(LocalPlayer.Physics.MovementData);
+            if (newDirection == LocalPlayer.Direction.CurrentValue) return;
+            LocalPlayer.Direction.Value = newDirection.normalized;
+            PacketChannel.Raise(LocalPlayer.GetMovementDataFromClient());
         }
 
         private void OnDisable() => _variableJoystick.OnPointerUp(new PointerEventData(EventSystem.current));

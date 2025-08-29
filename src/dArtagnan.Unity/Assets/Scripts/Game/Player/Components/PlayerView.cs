@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Game.Player.Components
 {
-    public class PlayerCore : MonoBehaviour
+    public class PlayerView : MonoBehaviour
     {
         public PlayerModel Model { get; private set; }
         public PlayerCharacter Character { get; private set; }

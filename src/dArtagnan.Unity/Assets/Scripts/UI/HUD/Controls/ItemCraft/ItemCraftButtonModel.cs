@@ -10,15 +10,15 @@ namespace UI.HUD.Controls.ItemCraft
 
         public static void Initialize()
         {
-            LocalEventChannel.OnLocalPlayerNewItem += id => ItemId.Value = id;
+            GameService.LocalPlayerNewItem.Subscribe(id => ItemId.Value = id);
             PacketChannel.On<ItemAcquiredBroadcast>(e =>
             {
-                if (e.PlayerId == GameService.LocalPlayer.ID)
+                if (e.PlayerId == GameService.LocalPlayer.ID.CurrentValue)
                     ItemId.Value = (ItemId)e.ItemId;
             });
             PacketChannel.On<ItemUsedBroadcast>(e =>
             {
-                if (e.PlayerId == GameService.LocalPlayer.ID)
+                if (e.PlayerId == GameService.LocalPlayer.ID.CurrentValue)
                     ItemId.Value = dArtagnan.Shared.ItemId.None;
             });
         }

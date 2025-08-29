@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Game.Player.Components;
+using Game.Player.Data;
 using UnityEngine;
 
 namespace UI.HUD.ChatBox
@@ -24,10 +25,10 @@ namespace UI.HUD.ChatBox
             ChatBoxPresenter.Initialize(new ChatBoxModel(), this);
         }
 
-        public void AddChat(PlayerCore messenger, string message)
+        public void AddChat(PlayerModel messenger, string message)
         {
             var added = Instantiate(chatPrefab, chatLineContainer);
-            added.SetLine($"{messenger.Nickname}: {message}");
+            added.SetLine($"{messenger.Nickname.CurrentValue}: {message}");
             _chatLines.Add(added);
             UniTask.WaitForSeconds(fadeOutDuration).ContinueWith(() =>
             {

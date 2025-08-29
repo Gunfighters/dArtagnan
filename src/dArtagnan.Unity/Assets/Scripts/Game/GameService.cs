@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using dArtagnan.Shared;
 using Game.Player.Components;
+using Game.Player.Data;
 using JetBrains.Annotations;
 using ObservableCollections;
 using R3;
@@ -11,25 +12,22 @@ namespace Game
     {
         private static GameModel _instance;
 
-        public static ReadOnlyReactiveProperty<GameState> State => _instance.State.ToReadOnlyReactiveProperty();
+        public static ReadOnlyReactiveProperty<GameState> State => _instance.State;
 
-        public static ReadOnlyReactiveProperty<int> LocalPlayerId =>
-            _instance?.LocalPlayerId.ToReadOnlyReactiveProperty();
+        public static PlayerModel LocalPlayer => _instance?.LocalPlayer;
+        
+        public static ObservableDictionary<int, PlayerModel> PlayerModels => _instance?.PlayerModels;
+        public static IEnumerable<PlayerModel> Survivors => _instance?.Survivors;
 
-        public static ReadOnlyReactiveProperty<int> HostPlayerId =>
-            _instance?.HostPlayerId.ToReadOnlyReactiveProperty();
+        [CanBeNull] public static PlayerModel GetPlayerModel(int id) => _instance?.GetPlayerModel(id);
+        [CanBeNull] public static PlayerView GetPlayerView(int id) => _instance?.GetPlayerView(id);
 
-        public static PlayerCore LocalPlayer => _instance?.LocalPlayer;
-        public static PlayerCore HostPlayer => _instance?.HostPlayer;
-
-        public static ObservableDictionary<int, PlayerCore> Players => _instance?.Players;
-        public static IEnumerable<PlayerCore> Survivors => _instance?.Survivors;
-
-        [CanBeNull]
-        public static PlayerCore GetPlayer(int id)
-        {
-            return _instance?.GetPlayer(id);
-        }
+        public static ReactiveProperty<PlayerModel> CameraTarget => _instance?.CameraTarget;
+        public static Subject<bool> ConnectionFailure => _instance?.ConnectionFailure;
+        public static Subject<string> AlertMessage => _instance?.AlertMessage;
+        public static Subject<bool> LocalPlayerAlive => _instance?.LocalPlayerAlive;
+        public static Subject<ItemId> LocalPlayerNewItem => _instance?.LocalPlayerNewItem;
+        public static Subject<PlayerModel> NewHost => _instance?.NewHost;
 
         public static void SetInstance(GameModel gameModel)
         {

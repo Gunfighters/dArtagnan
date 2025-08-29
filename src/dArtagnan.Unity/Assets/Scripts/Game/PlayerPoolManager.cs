@@ -9,12 +9,12 @@ namespace Game
     {
         public static PlayerPoolManager Instance { get; private set; }
         public PlayerPoolConfig config;
-        public IObjectPool<PlayerCore> Pool;
+        public IObjectPool<PlayerView> Pool;
 
         private void Awake()
         {
             Instance = this;
-            Pool = new ObjectPool<PlayerCore>(
+            Pool = new ObjectPool<PlayerView>(
                 CreateGameObjectBase,
                 ActionOnGet,
                 ActionOnRelease,
@@ -23,27 +23,27 @@ namespace Game
             );
         }
 
-        private PlayerCore CreateGameObjectBase()
+        private PlayerView CreateGameObjectBase()
         {
-            var gameObjectBase = GameObject.Instantiate(config.playerPrefab).GetComponent<PlayerCore>();
+            var gameObjectBase = GameObject.Instantiate(config.playerPrefab).GetComponent<PlayerView>();
             gameObjectBase.transform.SetParent(transform);
             return gameObjectBase;
         }
 
-        private static void ActionOnGet(PlayerCore playerCore)
+        private static void ActionOnGet(PlayerView playerView)
         {
-            playerCore.gameObject.SetActive(true);
-            playerCore.transform.localPosition = Vector3.zero;
+            playerView.gameObject.SetActive(true);
+            playerView.transform.localPosition = Vector3.zero;
         }
 
-        private static void ActionOnRelease(PlayerCore playerCore)
+        private static void ActionOnRelease(PlayerView playerView)
         {
-            playerCore.gameObject.SetActive(false);
+            playerView.gameObject.SetActive(false);
         }
 
-        private static void ActionOnDestroy(PlayerCore playerCore)
+        private static void ActionOnDestroy(PlayerView playerView)
         {
-            Destroy(playerCore.gameObject);
+            Destroy(playerView.gameObject);
         }
     }
 }

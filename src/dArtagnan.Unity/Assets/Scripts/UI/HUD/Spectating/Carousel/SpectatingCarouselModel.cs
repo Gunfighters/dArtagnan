@@ -1,17 +1,16 @@
-using Game.Player.Components;
+using Game;
+using Game.Player.Data;
 using R3;
-using UnityEngine;
 
 namespace UI.HUD.Spectating.Carousel
 {
     public static class SpectatingCarouselModel
     {
-        public static readonly ReactiveProperty<PlayerCore> SpectateTarget = new();
+        public static readonly ReactiveProperty<PlayerModel> SpectateTarget = new();
 
-        [RuntimeInitializeOnLoadMethod]
-        private static void Initialize()
+        public static void Initialize()
         {
-            LocalEventChannel.OnNewCameraTarget += target => SpectateTarget.Value = target;
+            GameService.CameraTarget.Subscribe(target => SpectateTarget.Value = target);
         }
     }
 }

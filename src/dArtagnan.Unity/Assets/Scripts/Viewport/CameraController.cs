@@ -1,72 +1,75 @@
 using System.Linq;
 using dArtagnan.Shared;
 using Game;
-using Game.Player.Components;
+using Game.Player.Data;
+using R3;
 using UnityEngine;
 
-[RequireComponent(typeof(Camera))]
-public class CameraController : MonoBehaviour
+namespace Viewport
 {
-    public PlayerCore target;
-    public SpriteRenderer groundRenderer;
-    public Vector3 offset = new(0, 0, -10);
-    public Camera cam;
-    [SerializeField] public float cameraMoveSpeed;
-    public float height;
-    public float width;
-    public Vector2 mapSize;
-    public Vector2 center;
-
-    private void Awake()
+    [RequireComponent(typeof(Camera))]
+    public class CameraController : MonoBehaviour
     {
-        LocalEventChannel.OnNewCameraTarget += Follow;
-        PacketChannel.On<UpdatePlayerAlive>(OnUpdatePlayerAlive);
-        cam = GetComponent<Camera>();
-        mapSize = groundRenderer.bounds.size / 2;
-        height = cam.orthographicSize;
-        width = height * cam.aspect;
-    }
+        private PlayerModel _targetModel;
+        public SpriteRenderer groundRenderer;
+        public Vector3 offset = new(0, 0, -10);
+        public Camera cam;
+        [SerializeField] public float cameraMoveSpeed;
+        public float height;
+        public float width;
+        public Vector2 mapSize;
+        public Vector2 center;
 
-    private void Update()
-    {
-        if (target)
+        private void Awake()
         {
-            LimitCameraArea();
+            PacketChannel.On<UpdatePlayerAlive>(OnUpdatePlayerAlive);
+            cam = GetComponent<Camera>();
+            mapSize = groundRenderer.bounds.size / 2;
+            height = cam.orthographicSize;
+            width = height * cam.aspect;
         }
-    }
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireCube(center, mapSize * 2);
-    }
-
-    private void OnUpdatePlayerAlive(UpdatePlayerAlive e)
-    {
-        if (!e.Alive && e.PlayerId == target.ID)
+        private void Start()
         {
-            var newTarget = GameService.Survivors.FirstOrDefault(p => p != target);
-            if (newTarget is not null)
-                LocalEventChannel.InvokeOnNewCameraTarget(newTarget);
+            GameService.CameraTarget.Subscribe(target => _targetModel = target);
         }
-    }
 
-    private void Follow(PlayerCore newTarget)
-    {
-        target = newTarget;
-    }
+        private void Update()
+        {
+            if (_targetModel is not null)
+            {
+                LimitCameraArea();
+            }
+        }
 
-    private void LimitCameraArea()
-    {
-        transform.position = Vector3.Lerp(transform.position,
-            target.transform.position + offset,
-            Time.deltaTime * cameraMoveSpeed);
-        var lx = mapSize.x - width;
-        var clampX = Mathf.Clamp(transform.position.x, -lx + center.x, lx + center.x);
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireCube(center, mapSize * 2);
+        }
 
-        var ly = mapSize.y - height;
-        var clampY = Mathf.Clamp(transform.position.y, -ly + center.y, ly + center.y);
+        private void OnUpdatePlayerAlive(UpdatePlayerAlive e)
+        {
+            if (!e.Alive && e.PlayerId == _targetModel.ID.CurrentValue)
+            {
+                var newTarget = GameService.Survivors.FirstOrDefault(p => p != _targetModel);
+                if (newTarget is not null)
+                    GameService.CameraTarget.Value = newTarget;
+            }
+        }
 
-        transform.position = new Vector3(clampX, clampY, -10f);
+        private void LimitCameraArea()
+        {
+            transform.position = Vector3.Lerp(transform.position,
+                _targetModel.Position.CurrentValue + (Vector2) offset,
+                Time.deltaTime * cameraMoveSpeed);
+            var lx = mapSize.x - width;
+            var clampX = Mathf.Clamp(transform.position.x, -lx + center.x, lx + center.x);
+
+            var ly = mapSize.y - height;
+            var clampY = Mathf.Clamp(transform.position.y, -ly + center.y, ly + center.y);
+
+            transform.position = new Vector3(clampX, clampY, -10f);
+        }
     }
 }

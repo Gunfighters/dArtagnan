@@ -8,7 +8,7 @@ namespace UI.HUD.Minimap
     {
         public Sprite triangleSprite;
         public Sprite circleSprite;
-        [SerializeField] private PlayerCore core;
+        [SerializeField] private PlayerView view;
         private SpriteRenderer _spriteRenderer;
 
         private void Awake()
@@ -18,9 +18,9 @@ namespace UI.HUD.Minimap
 
         private void Update()
         {
-            _spriteRenderer.sprite = core == GameService.LocalPlayer ? triangleSprite : circleSprite;
-            _spriteRenderer.color = core.MyColor;
-            var t = Mathf.Clamp01(core.Accuracy.Accuracy.Value / 100f);
+            _spriteRenderer.sprite = view.Model == GameService.LocalPlayer ? triangleSprite : circleSprite;
+            _spriteRenderer.color = view.Model.Color;
+            var t = Mathf.Clamp01(view.Model.Accuracy.CurrentValue / 100f);
             var scaleMultiplier = Mathf.Lerp(0.5f, 1.5f, t);
             _spriteRenderer.transform.localScale = Vector3.one * scaleMultiplier;
         }

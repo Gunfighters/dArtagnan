@@ -1,5 +1,6 @@
 using Game;
 using Game.Player.Components;
+using Game.Player.Data;
 using ObservableCollections;
 using R3;
 
@@ -7,16 +8,16 @@ namespace UI.HUD.PlayerList
 {
     public class PlayerListModel
     {
-        public readonly ObservableList<PlayerCore> PlayerList = new();
+        public readonly ObservableList<PlayerModel> PlayerList = new();
 
         public PlayerListModel()
         {
             GameService
-                .Players
+                .PlayerModels
                 .ObserveDictionaryAdd()
                 .Subscribe(e => PlayerList.Add(e.Value));
             GameService
-                .Players
+                .PlayerModels
                 .ObserveDictionaryRemove()
                 .Subscribe(e => PlayerList.Remove(e.Value));
         }

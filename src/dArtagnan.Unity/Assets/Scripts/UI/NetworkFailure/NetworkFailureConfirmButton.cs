@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace UI.NetworkFailure
@@ -10,7 +11,7 @@ namespace UI.NetworkFailure
         private void Awake()
         {
             _btn = GetComponent<Button>();
-            _btn.onClick.AddListener(LocalEventChannel.InvokeOnBackToConnection);
+            _btn.onClick.AddListener(() => SceneManager.LoadScene("Lobby"));
         }
     }
 }

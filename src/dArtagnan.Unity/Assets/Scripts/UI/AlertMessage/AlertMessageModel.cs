@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using Game;
 using R3;
 using UnityEngine;
 
@@ -13,16 +14,15 @@ namespace UI.AlertMessage
 
         public static void Initialize()
         {
-            LocalEventChannel.OnAlertMessage += (msg, color) =>
+            GameService.AlertMessage.Subscribe(msg =>
             {
                 Message.Value = msg;
-                Color.Value = color;
                 ShowMsg.Value = true;
                 var currentCount = ++_messageCounter;
                 UniTask
                     .WaitForSeconds(0.5f)
                     .ContinueWith(() => ShowMsg.Value = currentCount != _messageCounter);
-            };
+            });
         }
     }
 }

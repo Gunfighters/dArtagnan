@@ -16,7 +16,7 @@ namespace UI.HUD.ChatBox
                     if (e.Value.PlayerId == -1)
                         view.AddSystemMessage(e.Value.Message);
                     else
-                        view.AddChat(GameService.GetPlayer(e.Value.PlayerId), e.Value.Message);
+                        view.AddChat(GameService.GetPlayerModel(e.Value.PlayerId), e.Value.Message);
                 })
                 .AddTo(view);
         }

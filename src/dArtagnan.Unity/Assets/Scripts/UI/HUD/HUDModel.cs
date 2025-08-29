@@ -19,7 +19,7 @@ namespace UI.HUD
             {
                 InRound.Value = true;
                 Waiting.Value = false;
-                Playing.Value = GameService.LocalPlayer.Health.Alive.CurrentValue;
+                Playing.Value = GameService.LocalPlayer.Alive.CurrentValue;
             });
             PacketChannel.On<WaitingStartFromServer>(_ =>
             {
@@ -27,13 +27,13 @@ namespace UI.HUD
                 Waiting.Value = true;
                 Playing.Value = false;
             });
-            LocalEventChannel.OnLocalPlayerAlive += alive =>
+            GameService.NewHost.Subscribe(newHost => IsHost.Value = GameService.LocalPlayer == newHost);
+            GameService.LocalPlayerAlive.Subscribe(newAlive =>
             {
-                Controlling.Value = alive;
-                Spectating.Value = !alive;
-                Playing.Value = alive && InRound.Value;
-            };
-            LocalEventChannel.OnNewHost += (_, isLocalPlayerHost) => { IsHost.Value = isLocalPlayerHost; };
+                Controlling.Value = newAlive;
+                Spectating.Value = !newAlive;
+                Playing.Value = newAlive && InRound.Value;
+            });
         }
     }
 }

@@ -7,7 +7,7 @@ namespace UI.CanvasManager
     {
         public List<CanvasMetaData> canvasList;
 
-        private void Awake()
+        private void Start()
         {
             CanvasManagerPresenter.Initialize(this, new CanvasManagerModel());
         }

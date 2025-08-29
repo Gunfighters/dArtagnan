@@ -10,8 +10,7 @@ namespace UI.CanvasManager
 
         public CanvasManagerModel()
         {
-            LocalEventChannel.OnConnectionFailure += () => Screen.Value = GameScreen.NetworkFailure;
-            LocalEventChannel.BackToConnection += () => Screen.Value = GameScreen.Connection;
+            GameService.ConnectionFailure.Subscribe(_ => Screen.Value = GameScreen.NetworkFailure);
             PacketChannel.On<WaitingStartFromServer>(_ => Screen.Value = GameScreen.HUD);
             PacketChannel.On<RoundStartFromServer>(_ => Screen.Value = GameScreen.HUD);
             PacketChannel.On<ShowdownStartFromServer>(_ => Screen.Value = GameScreen.ShowdownLoading);

@@ -18,7 +18,6 @@ namespace Game.Player.Components
 {
     public class PlayerCharacter : MonoBehaviour
     {
-        [SerializeField] private ColorPool colorPool;
         public SpriteCollection spriteCollection;
         public FirearmCollection firearmCollection;
         private readonly List<ParticleSystem> _instances = new();
@@ -39,10 +38,10 @@ namespace Game.Player.Components
 
         public void Initialize(PlayerModel model)
         {
-            model.ID.Subscribe(id => SetColor(colorPool.colors[id - 1]));
+            model.ID.Subscribe(id => SetColor(model.Color));
             model.Alive.Subscribe(newAlive => SetState(newAlive ? CharacterState.Idle : CharacterState.Death));
             model.Alive.Subscribe(newAlive => _actualModel.SetExpression(newAlive ? "Default" : "Dead"));
-            model.Velocity.Subscribe(SetDirection);
+            model.Direction.Subscribe(SetDirection);
             model.Accuracy.Subscribe(newAcc =>
             {
                 _gunSprite = spriteCollection.GunSpriteByAccuracy(newAcc);
@@ -72,8 +71,12 @@ namespace Game.Player.Components
 
         private void SetDirection(Vector2 newDir)
         {
-            if (newDir == Vector2.zero) return;
-            _actualModel.SetDirection(newDir.SnapToCardinalDirection());
+            if (newDir == Vector2.zero) Idle();
+            else
+            {
+                _actualModel.SetDirection(newDir.SnapToCardinalDirection());
+                SetState(CharacterState.Walk);
+            }
         }
 
         private void Idle()

@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
+using Game;
 using UnityEngine;
 
 namespace Networking
@@ -61,7 +62,7 @@ namespace Networking
             }
             catch (Exception e)
             {
-                LocalEventChannel.InvokeOnConnectionFailure();
+                GameService.ConnectionFailure.OnNext(true);
                 Debug.LogException(e);
                 return;
             }
@@ -77,7 +78,7 @@ namespace Networking
             }
             catch
             {
-                LocalEventChannel.InvokeOnConnectionFailure();
+                GameService.ConnectionFailure.OnNext(true);
             }
         }
 
@@ -95,7 +96,7 @@ namespace Networking
             catch
             {
                 await UniTask.SwitchToMainThread();
-                LocalEventChannel.InvokeOnConnectionFailure();
+                GameService.ConnectionFailure.OnNext(true);
             }
         }
     }

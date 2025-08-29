@@ -18,7 +18,6 @@ namespace UI.HUD.Splashes
         public static readonly ReactiveProperty<bool> GameOver = new();
         public static readonly ReactiveProperty<List<string>> Winners = new(new List<string>());
 
-        [RuntimeInitializeOnLoadMethod]
         public static void Initialize()
         {
             PacketChannel.On<RoundStartFromServer>(e =>
@@ -40,7 +39,9 @@ namespace UI.HUD.Splashes
 
         private static void SetWinners(List<int> ids)
         {
-            Winners.Value = ids.Select(GameService.GetPlayer).Select(p => p.Nickname).ToList();
+            Winners.Value = ids
+                .Select(GameService.GetPlayerModel)
+                .Select(p => p.Nickname.CurrentValue).ToList();
         }
 
         private static void Flash(ReactiveProperty<bool> splash)

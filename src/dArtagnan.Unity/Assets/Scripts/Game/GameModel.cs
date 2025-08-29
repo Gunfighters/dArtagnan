@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using dArtagnan.Shared;
+using Game.Player.Components;
 using Game.Player.Data;
 using JetBrains.Annotations;
 using ObservableCollections;
@@ -15,8 +16,26 @@ namespace Game
         public readonly ReactiveProperty<int> HostPlayerId = new();
         public readonly ReactiveProperty<int> LocalPlayerId = new();
 
-        public readonly ObservableDictionary<int, PlayerModel> Players = new();
+        public readonly ObservableDictionary<int, PlayerModel> PlayerModels = new();
         public readonly ReactiveProperty<GameState> State = new();
+        
+        public IEnumerable<PlayerModel> Survivors =>
+            PlayerModels
+                .Where(pair => pair.Value.Alive.CurrentValue)
+                .Select(pair => pair.Value);
+
+        public PlayerModel LocalPlayer => GetPlayerModel(LocalPlayerId.Value);
+        public PlayerModel HostPlayer => GetPlayerModel(HostPlayerId.Value);
+
+        private readonly Dictionary<int, PlayerView> _playerViews = new();
+        public PlayerView GetPlayerView(int id) => _playerViews[id];
+
+        public readonly ReactiveProperty<PlayerModel> CameraTarget = new();
+        public readonly Subject<bool> ConnectionFailure = new();
+        public readonly Subject<string> AlertMessage = new();
+        public readonly Subject<bool> LocalPlayerAlive = new();
+        public readonly Subject<PlayerModel> NewHost = new();
+        public readonly Subject<ItemId> LocalPlayerNewItem = new();
 
         public GameModel()
         {
@@ -39,23 +58,15 @@ namespace Game
             PacketChannel.On<ShowdownStartFromServer>(_ => State.Value = GameState.Showdown);
         }
 
-        public IEnumerable<PlayerModel> Survivors =>
-            Players
-                .Where(pair => pair.Value.Alive.CurrentValue)
-                .Select(pair => pair.Value);
-
-        public PlayerModel LocalPlayer => GetPlayer(LocalPlayerId.Value);
-        public PlayerModel HostPlayer => GetPlayer(HostPlayerId.Value);
-
         public void Dispose()
         {
             _disposables?.Dispose();
         }
 
         [CanBeNull]
-        public PlayerModel GetPlayer(int id)
+        public PlayerModel GetPlayerModel(int id)
         {
-            return Players.GetValueOrDefault(id, null);
+            return PlayerModels.GetValueOrDefault(id, null);
         }
 
         private void OnJoin(JoinBroadcast e)
@@ -69,14 +80,13 @@ namespace Game
         private void OnYouAre(YouAreFromServer e)
         {
             LocalPlayerId.Value = e.PlayerId;
-            if (e.PlayerId == HostPlayerId.Value)
-                LocalEventChannel.InvokeOnNewHost(HostPlayer, HostPlayer == LocalPlayer);
+            NewHost.OnNext(HostPlayer);
         }
 
         private void OnNewHost(NewHostBroadcast e)
         {
             HostPlayerId.Value = e.HostId;
-            LocalEventChannel.InvokeOnNewHost(HostPlayer, HostPlayer == LocalPlayer);
+            NewHost.OnNext(HostPlayer);
         }
 
         private void CreatePlayer(PlayerInformation info)
@@ -84,25 +94,23 @@ namespace Game
             var view = PlayerPoolManager.Instance.Pool.Get();
             var model = new PlayerModel(info);
             PlayerPresenter.Initialize(model, view);
-            Players.Add(info.PlayerId, model);
+            PlayerModels.Add(info.PlayerId, model);
+            _playerViews.Add(info.PlayerId, view);
         }
 
         private void OnLocalPlayerSet()
         {
-            LocalEventChannel.InvokeOnNewCameraTarget(
-                LocalPlayer.Alive.CurrentValue
-                    ? LocalPlayer
-                    : Players.First(p => p.Value.Alive.CurrentValue).Value);
-            LocalEventChannel.InvokeOnLocalPlayerAlive(LocalPlayer.Alive.CurrentValue);
-            LocalEventChannel.InvokeOnLocalPlayerBalanceUpdate(LocalPlayer.Balance.CurrentValue);
+            CameraTarget.Value = LocalPlayer.Alive.CurrentValue
+                ? LocalPlayer
+                : PlayerModels.First(p => p.Value.Alive.CurrentValue).Value;
+            LocalPlayerAlive.OnNext(LocalPlayer.Alive.CurrentValue);
         }
 
         private void RemovePlayer(int playerId)
         {
-            if (Players.Remove(playerId, out var removed))
-            {
-                PlayerPoolManager.Instance.Pool.Release(GameService.GetPlayer(removed.ID.CurrentValue));
-            }
+            if (PlayerModels.Remove(playerId, out var model))
+                if (_playerViews.Remove(playerId, out var view))
+                    PlayerPoolManager.Instance.Pool.Release(view);
         }
 
         private void ResetEveryone(IEnumerable<PlayerInformation> infoList)
@@ -118,7 +126,7 @@ namespace Game
 
         private void RemovePlayerAll()
         {
-            foreach (var p in Players.ToArray())
+            foreach (var p in PlayerModels.ToArray())
             {
                 RemovePlayer(p.Value.ID.CurrentValue);
             }

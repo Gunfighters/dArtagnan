@@ -20,32 +20,28 @@ namespace UI.HUD.Controls
         public TextMeshProUGUI costText;
 
         private readonly Color _orange = Color.Lerp(Color.red, Color.yellow, 0.5f);
-
-        private bool _aiming = false;
-        private bool _reloading = true;
-        private PlayerCore LocalPlayer => GameService.LocalPlayer;
-
-        private float RemainingReloadTime => Mathf.Max(0,
-            LocalPlayer.Energy.MinEnergyToShoot - LocalPlayer.Energy.EnergyData.CurrentEnergy);
-
-        private float TotalReloadTime => LocalPlayer.Energy.MinEnergyToShoot;
-        private bool Shootable => RemainingReloadTime <= 0;
+        private float ReloadRatio => GameService.LocalPlayer.EnergyData.CurrentValue.CurrentEnergy /
+                                    GameService.LocalPlayer.MinEnergyToShoot.CurrentValue;
+        private bool Shootable => ReloadRatio >= 1;
+        private bool _aiming;
+        private bool _reloading;
 
         private void Update()
         {
-            if (!LocalPlayer) return;
-            var target = _aiming ? LocalPlayer.Shoot.CalculateTarget(shootingJoystick.Direction) : null;
-            if (target != LocalPlayer.Shoot.Target)
+            if (GameService.LocalPlayer is null) return;
+            var newTargetModel = _aiming ? GameService.LocalPlayer.CalculateTarget(shootingJoystick.Direction) : null;
+            if (newTargetModel?.ID.CurrentValue != GameService.LocalPlayer.Targeting.CurrentValue)
             {
-                LocalPlayer.Shoot.Target?.Shoot.HighlightAsTarget(false);
-                LocalPlayer.Shoot.SetTarget(target);
-                LocalPlayer.Shoot.Target?.Shoot.HighlightAsTarget(true);
-                PacketChannel.Raise(new PlayerIsTargetingFromClient { TargetId = target?.ID ?? -1 });
+                var targetModel = GameService.GetPlayerModel(GameService.LocalPlayer.Targeting.CurrentValue);
+                if (targetModel != null) targetModel.Highlighted.Value = false;
+                GameService.LocalPlayer.Targeting.Value = newTargetModel?.ID.CurrentValue ?? -1;
+                if (newTargetModel != null) newTargetModel.Highlighted.Value = true;
+                PacketChannel.Raise(new PlayerIsTargetingFromClient { TargetId = GameService.LocalPlayer.Targeting.CurrentValue });
             }
-
-            if (!Shootable)
+            
+            if (Shootable)
                 HandleOutline.color = Icon.color = costEnergyIcon.color = costText.color = Color.grey;
-            else if (LocalPlayer.Shoot.CalculateTarget(Vector2.zero) is null)
+            else if (GameService.LocalPlayer.CalculateTarget(Vector2.zero) is null)
                 HandleOutline.color = Icon.color = costEnergyIcon.color = costText.color = _orange;
             else
             {
@@ -54,7 +50,7 @@ namespace UI.HUD.Controls
             }
 
             shootingJoystick.enabled = Shootable;
-            cooldownImage.fillAmount = RemainingReloadTime <= 0 ? 1 : 1f - RemainingReloadTime / TotalReloadTime;
+            cooldownImage.fillAmount = ReloadRatio;
             if (_reloading && Shootable)
             {
                 reloadSound.Play();
@@ -64,7 +60,8 @@ namespace UI.HUD.Controls
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (!Shootable) return;
+            if (GameService.LocalPlayer.EnergyData.CurrentValue.CurrentEnergy <
+                GameService.LocalPlayer.MinEnergyToShoot.CurrentValue) return;
             JoystickAxis.enabled = true;
             _aiming = true;
         }
@@ -73,12 +70,12 @@ namespace UI.HUD.Controls
         {
             JoystickAxis.enabled = false;
             _aiming = false;
-            if (GameService.LocalPlayer.Energy.EnergyData.CurrentEnergy <
-                LocalPlayer.Energy.MinEnergyToShoot)
-                LocalEventChannel.InvokeOnAlertMessage("에너지가 부족합니다.", Color.yellow);
-            if (Shootable && GameService.LocalPlayer.Shoot.Target)
+            if (GameService.LocalPlayer.EnergyData.CurrentValue.CurrentEnergy <
+                GameService.LocalPlayer.MinEnergyToShoot.CurrentValue)
+                GameService.AlertMessage.OnNext("에너지가 부족합니다");
+            else if (GameService.LocalPlayer.Targeting.CurrentValue != -1)
                 PacketChannel.Raise(new ShootingFromClient
-                    { TargetId = GameService.LocalPlayer.Shoot.Target.ID });
+                    { TargetId = GameService.LocalPlayer.Targeting.CurrentValue });
         }
     }
 }

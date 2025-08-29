@@ -19,15 +19,11 @@ namespace Game.Player.Components
         [SerializeField] private float hitMissShowingDuration;
         public Transform _rangeCircleTransform;
 
-        private void Awake()
-        {
-            HighlightAsTarget(false);
-        }
-
         public void Initialize(PlayerModel model)
         {
             model.Range.Subscribe(SetRange);
             model.Fire.Subscribe(ShowHitOrMiss);
+            model.Highlighted.Subscribe(HighlightAsTarget);
         }
 
         private void SetRange(float newRange)
@@ -40,7 +36,7 @@ namespace Game.Player.Components
             targetHighlightCircle.enabled = show;
         }
 
-        public void ShowHitOrMiss(bool hit)
+        private void ShowHitOrMiss(bool hit)
         {
             hitMissText.text = hit ? "HIT!" : "MISS!";
             hitMissText.color = hit ? hitTextColor : missTextColor;

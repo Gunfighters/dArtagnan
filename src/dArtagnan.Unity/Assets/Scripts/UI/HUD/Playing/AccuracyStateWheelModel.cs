@@ -10,8 +10,7 @@ namespace UI.HUD.Playing
     {
         public static readonly ReactiveProperty<int> State = new();
 
-        [RuntimeInitializeOnLoadMethod]
-        private static void Initialize()
+        public static void Initialize()
         {
             PacketChannel.On<RoundStartFromServer>(OnGamePlaying);
             PacketChannel.On<UpdateAccuracyStateBroadcast>(OnStateBroadcast);
@@ -20,13 +19,13 @@ namespace UI.HUD.Playing
         private static void OnGamePlaying(RoundStartFromServer e)
         {
             State.Value = e.PlayersInfo
-                .Single(i => i.PlayerId == GameService.LocalPlayer.ID)
+                .Single(i => i.PlayerId == GameService.LocalPlayer.ID.CurrentValue)
                 .AccuracyState;
         }
 
         private static void OnStateBroadcast(UpdateAccuracyStateBroadcast e)
         {
-            if (GameService.LocalPlayer.ID == e.PlayerId)
+            if (GameService.LocalPlayer.ID.CurrentValue == e.PlayerId)
                 State.Value = e.AccuracyState;
         }
     }

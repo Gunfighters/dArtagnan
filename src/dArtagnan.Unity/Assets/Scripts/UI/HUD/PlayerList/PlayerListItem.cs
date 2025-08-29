@@ -1,4 +1,4 @@
-using Game.Player.Components;
+using Game.Player.Data;
 using R3;
 using TMPro;
 using UnityEngine;
@@ -13,17 +13,16 @@ namespace UI.HUD.PlayerList
         [SerializeField] private TextMeshProUGUI nicknameText;
         [Range(0, 1)] [SerializeField] private float aliveOpacity;
         [Range(0, 1)] [SerializeField] private float deadOpacity;
-        public int ID { get; private set; }
-
-        public void Initialize(PlayerCore player)
+        public PlayerModel PlayerModel { get; private set; }
+        
+        public void Initialize(PlayerModel model)
         {
-            name = player.Nickname;
-            ID = player.ID;
-            gameObject.name = nicknameText.text = player.Nickname;
-            var color = player.MyColor;
+            PlayerModel = model;
+            model.Nickname.Subscribe(newNick => name = nicknameText.text = newNick);
+            var color = model.Color;
             backgroundImage.color = color;
-            player.Accuracy.Accuracy.Subscribe(newAcc => accuracyText.text = $"{newAcc}%").AddTo(this);
-            player.Health.Alive.Subscribe(newAlive =>
+            model.Accuracy.Subscribe(newAcc => accuracyText.text = $"{newAcc}%").AddTo(this);
+            model.Alive.Subscribe(newAlive =>
             {
                 backgroundImage.color = newAlive ? color : Color.grey;
                 var nicknameTextColor = nicknameText.color;

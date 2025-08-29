@@ -14,33 +14,31 @@ namespace UI.HUD.Spectating.Carousel
                 {
                     if (target is not null)
                     {
-                        view.colorSlot.color = target.MyColor;
-                        view.textSlot.text = target.Nickname;
+                        view.colorSlot.color = target.Color;
+                        view.textSlot.text = target.Nickname.CurrentValue;
                     }
                 });
             view
                 .leftButton
                 .onClick
-                .AddListener(() => LocalEventChannel
-                    .InvokeOnNewCameraTarget(
-                        GameService
-                            .Survivors
-                            .SkipWhile(s => s != SpectatingCarouselModel.SpectateTarget.Value)
-                            .Skip(1)
-                            .DefaultIfEmpty(GameService.Survivors.First())
-                            .FirstOrDefault()));
+                .AddListener(() =>
+                    GameService.CameraTarget.Value = GameService
+                        .Survivors
+                        .SkipWhile(s => s != SpectatingCarouselModel.SpectateTarget.Value)
+                        .Skip(1)
+                        .DefaultIfEmpty(GameService.Survivors.First())
+                        .FirstOrDefault());
             view
                 .rightButton
                 .onClick
-                .AddListener(() => LocalEventChannel
-                    .InvokeOnNewCameraTarget(
-                        GameService
-                            .Survivors
-                            .Reverse()
-                            .SkipWhile(s => s != SpectatingCarouselModel.SpectateTarget.Value)
-                            .Skip(1)
-                            .DefaultIfEmpty(GameService.Survivors.Reverse().First())
-                            .FirstOrDefault()));
+                .AddListener(() =>
+                    GameService.CameraTarget.Value = GameService
+                        .Survivors
+                        .Reverse()
+                        .SkipWhile(s => s != SpectatingCarouselModel.SpectateTarget.Value)
+                        .Skip(1)
+                        .DefaultIfEmpty(GameService.Survivors.Reverse().First())
+                        .FirstOrDefault());
         }
     }
 }

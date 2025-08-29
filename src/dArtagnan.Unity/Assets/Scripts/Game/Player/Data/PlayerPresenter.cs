@@ -7,7 +7,7 @@ namespace Game.Player.Data
 {
     public static class PlayerPresenter
     {
-        public static void Initialize(PlayerModel model, PlayerCore view)
+        public static void Initialize(PlayerModel model, PlayerView view)
         {
             view.Initialize(model);
             Observable

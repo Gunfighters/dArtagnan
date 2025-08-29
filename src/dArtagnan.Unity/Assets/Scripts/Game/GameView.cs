@@ -8,7 +8,7 @@ namespace Game
         private void Awake()
         {
             var model = new GameModel().AddTo(this);
-            GamePresenter.Initialize(this, model);
+            GamePresenter.Initialize(model, this);
             GameService.SetInstance(model);
         }
 
