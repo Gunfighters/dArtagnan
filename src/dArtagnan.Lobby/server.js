@@ -166,11 +166,28 @@ app.post('/auth/google/verify-token', async (req, res) => {
 
         logger.info(`[Unity OAuth] Received Auth Code: ${authCode.substring(0, 10)}...`);
 
-        // Authorization Code를 Access Token으로 교환
-        const { tokens } = await googleClient.getToken({
-            code: authCode,
-            redirect_uri: 'urn:ietf:wg:oauth:2.0:oob'  // Google Play Games 표준 redirect URI
+        // Google Play Games Authorization Code를 직접 처리
+        // 방법 1: HTTP 직접 요청으로 토큰 교환
+        const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                code: authCode,
+                client_id: process.env.GOOGLE_CLIENT_ID,
+                client_secret: process.env.GOOGLE_CLIENT_SECRET,
+                grant_type: 'authorization_code'
+            })
         });
+
+        const tokens = await tokenResponse.json();
+        
+        if (!tokens.id_token) {
+            throw new Error('No ID token received from Google');
+        }
+
+        logger.info(`[Unity OAuth] Token exchange successful`);
 
         // ID Token에서 사용자 정보 추출
         const ticket = await googleClient.verifyIdToken({
