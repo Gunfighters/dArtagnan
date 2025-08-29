@@ -149,8 +149,11 @@ function generateRoomId() {
 
 // === OAuth 로그인 API ===
 
-// Google OAuth 클라이언트 설정
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+// Google OAuth 클라이언트 설정 (Client Secret 포함)
+const googleClient = new OAuth2Client(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET
+);
 
 // Unity에서 Google Authorization Code 검증용 API
 app.post('/auth/google/verify-token', async (req, res) => {
