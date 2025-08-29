@@ -36,14 +36,14 @@ public class OAuthLoginButton : MonoBehaviour
             googleLoginButton.onClick.AddListener(OnGoogleLoginButtonClick);
         }
 
-        // 초기 상태 설정
-        SetStatusText("Google 계정으로 로그인해주세요.");
+        // Initial status setup
+        SetStatusText("Please login with your Google account");
         SetGoogleLoginButtonEnabled(true);
 
-        // AWS 서버 강제 설정 (OAuth 씬은 항상 배포용)
+        // Force AWS server setting (OAuth scene is always for deployment)
         if (LobbyManager.Instance != null)
         {
-            LobbyManager.Instance.SetServerType(true); // AWS 서버 사용
+            LobbyManager.Instance.SetServerType(true); // Use AWS server
         }
     }
 
@@ -73,7 +73,7 @@ public class OAuthLoginButton : MonoBehaviour
     /// </summary>
     private void OnGoogleLoginButtonClick()
     {
-        SetStatusText("Google 로그인 중...");
+        SetStatusText("Google login in progress...");
         SetGoogleLoginButtonEnabled(false);
 
         if (googleOAuthManager != null)
@@ -82,9 +82,9 @@ public class OAuthLoginButton : MonoBehaviour
         }
         else
         {
-            SetStatusText("Google OAuth Manager가 설정되지 않았습니다.");
+            SetStatusText("Google OAuth Manager is not configured");
             SetGoogleLoginButtonEnabled(true);
-            Debug.LogError("[OAuthLoginButton] GoogleOAuthManager가 할당되지 않았습니다!");
+            Debug.LogError("[OAuthLoginButton] GoogleOAuthManager is not assigned!");
         }
     }
 
@@ -95,21 +95,21 @@ public class OAuthLoginButton : MonoBehaviour
     {
         if (success)
         {
-            SetStatusText("서버 토큰 검증 중...");
-            // ID Token을 LobbyManager로 전달
+            SetStatusText("Verifying server token...");
+            // Send ID Token to LobbyManager
             if (LobbyManager.Instance != null)
             {
                 LobbyManager.Instance.LoginWithOAuth(result);
             }
             else
             {
-                SetStatusText("LobbyManager를 찾을 수 없습니다.");
+                SetStatusText("Cannot find LobbyManager");
                 SetGoogleLoginButtonEnabled(true);
             }
         }
         else
         {
-            SetStatusText($"Google 로그인 실패: {result}");
+            SetStatusText($"Google login failed: {result}");
             SetGoogleLoginButtonEnabled(true);
         }
     }
@@ -121,12 +121,12 @@ public class OAuthLoginButton : MonoBehaviour
     {
         if (success)
         {
-            SetStatusText("서버에 연결하는 중...");
-            // 웹소켓 연결은 LobbyManager에서 자동으로 처리됨
+            SetStatusText("Connecting to server...");
+            // WebSocket connection handled automatically by LobbyManager
         }
         else
         {
-            SetStatusText($"서버 로그인 실패: {message}");
+            SetStatusText($"Server login failed: {message}");
             SetGoogleLoginButtonEnabled(true);
         }
     }
@@ -136,18 +136,18 @@ public class OAuthLoginButton : MonoBehaviour
     /// </summary>
     private void OnAuthComplete()
     {
-        SetStatusText("로그인 성공! 로비로 이동합니다...");
+        SetStatusText("Login successful! Moving to lobby...");
 
-        // 1초 후 로비 씬으로 이동
+        // Move to lobby scene after 1 second
         Invoke(nameof(GoToLobby), 1f);
     }
 
     /// <summary>
-    /// 에러 발생 시 호출
+    /// Called when error occurs
     /// </summary>
     private void OnError(string errorMessage)
     {
-        SetStatusText($"오류 발생: {errorMessage}");
+        SetStatusText($"Error occurred: {errorMessage}");
         SetGoogleLoginButtonEnabled(true);
     }
 

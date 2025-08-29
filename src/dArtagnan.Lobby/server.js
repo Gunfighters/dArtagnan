@@ -152,25 +152,33 @@ function generateRoomId() {
 // Google OAuth 클라이언트 설정
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-// Unity에서 Google ID Token 검증용 API
+// Unity에서 Google Authorization Code 검증용 API
 app.post('/auth/google/verify-token', async (req, res) => {
     try {
-        const { idToken } = req.body;
+        const { authCode } = req.body;
         
-        if (!idToken) {
-            return res.status(400).json({ error: 'ID Token이 필요합니다.' });
+        if (!authCode) {
+            return res.status(400).json({ error: 'Authorization Code is required.' });
         }
 
-        // Google ID Token 검증
+        logger.info(`[Unity OAuth] Received Auth Code: ${authCode.substring(0, 10)}...`);
+
+        // Authorization Code를 Access Token으로 교환
+        const { tokens } = await googleClient.getToken({
+            code: authCode,
+            redirect_uri: 'urn:ietf:wg:oauth:2.0:oob'  // Google Play Games 표준 redirect URI
+        });
+
+        // ID Token에서 사용자 정보 추출
         const ticket = await googleClient.verifyIdToken({
-            idToken: idToken,
+            idToken: tokens.id_token,
             audience: process.env.GOOGLE_CLIENT_ID
         });
         
         const payload = ticket.getPayload();
         const { sub: providerId, email, name } = payload;
         
-        logger.info(`[Unity OAuth] Google 토큰 검증 성공: ${email}`);
+        logger.info(`[Unity OAuth] Google token verification successful: ${email}`);
 
         // 기존 OAuth 콜백과 동일한 로직
         let user = await findUserByProvider('google', providerId);
@@ -183,11 +191,11 @@ app.post('/auth/google/verify-token', async (req, res) => {
             
             user = { id: userId, nickname: tempNickname };
             isTemporary = true;
-            logger.info(`[Unity OAuth] 신규 사용자 자동 회원가입: ${email} → ${tempNickname}`);
+            logger.info(`[Unity OAuth] New user auto registration: ${email} → ${tempNickname}`);
         } else {
             // 기존 사용자 - 임시 닉네임인지 확인
             isTemporary = user.nickname.startsWith('User') && /^User[a-z0-9]+$/.test(user.nickname);
-            logger.info(`[Unity OAuth] 기존 사용자 로그인: ${email} → ${user.nickname}`);
+            logger.info(`[Unity OAuth] Existing user login: ${email} → ${user.nickname}`);
         }
 
         // sessionId 발급
@@ -202,7 +210,7 @@ app.post('/auth/google/verify-token', async (req, res) => {
             name
         });
 
-        logger.info(`[Unity OAuth] 로그인 처리 완료: ${user.nickname} (${sessionId})`);
+        logger.info(`[Unity OAuth] Login processing complete: ${user.nickname} (${sessionId})`);
         res.json({
             success: true,
             sessionId,
@@ -211,8 +219,8 @@ app.post('/auth/google/verify-token', async (req, res) => {
         });
 
     } catch (error) {
-        logger.error(`[Unity OAuth] 토큰 검증 실패:`, error);
-        res.status(401).json({ error: '유효하지 않은 토큰입니다.' });
+        logger.error(`[Unity OAuth] Token verification failed:`, error);
+        res.status(401).json({ error: 'Invalid authorization code or token.' });
     }
 });
 

@@ -97,17 +97,17 @@ public class LobbyManager : MonoBehaviour
     }
 
     /// <summary>
-    /// OAuth ID Token으로 로그인 요청을 보내고 sessionId를 받음
+    /// OAuth Authorization Code로 로그인 요청을 보내고 sessionId를 받음
     /// </summary>
-    public void LoginWithOAuth(string idToken)
+    public void LoginWithOAuth(string authCode)
     {
-        if (string.IsNullOrEmpty(idToken))
+        if (string.IsNullOrEmpty(authCode))
         {
-            OnOAuthLoginComplete?.Invoke(false, "ID Token이 필요합니다.");
+            OnOAuthLoginComplete?.Invoke(false, "Authorization Code is required.");
             return;
         }
 
-        StartCoroutine(OAuthLoginCoroutine(idToken));
+        StartCoroutine(OAuthLoginCoroutine(authCode));
     }
 
     private IEnumerator LoginCoroutine(string inputNickname)
@@ -160,9 +160,9 @@ public class LobbyManager : MonoBehaviour
         }
     }
 
-    private IEnumerator OAuthLoginCoroutine(string idToken)
+    private IEnumerator OAuthLoginCoroutine(string authCode)
     {
-        var oAuthRequest = new OAuthTokenRequest { idToken = idToken };
+        var oAuthRequest = new OAuthTokenRequest { authCode = authCode };
         string jsonData = JsonUtility.ToJson(oAuthRequest);
 
         Debug.Log($"Sending OAuth JSON: {jsonData}");
@@ -438,7 +438,7 @@ public class LobbyManager : MonoBehaviour
 [System.Serializable]
 public class OAuthTokenRequest
 {
-    public string idToken;
+    public string authCode;  // Authorization Code (not ID Token)
 }
 
 [System.Serializable]

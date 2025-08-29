@@ -33,15 +33,15 @@ public class GoogleOAuthManager : MonoBehaviour
             PlayGamesPlatform.Activate();
             
             isInitialized = true;
-            LogDebug("Google Play Games 초기화 완료");
+            LogDebug("Google Play Games initialized successfully");
             
-            // 자동 로그인 시도
+            // Auto authenticate attempt
             TryAutoAuthenticate();
         }
         catch (Exception e)
         {
-            LogError($"Google Play Games 초기화 실패: {e.Message}");
-            OnOAuthComplete?.Invoke(false, "Google Play Games 초기화 실패");
+            LogError($"Google Play Games initialization failed: {e.Message}");
+            OnOAuthComplete?.Invoke(false, "Google Play Games initialization failed");
         }
     }
     
@@ -52,13 +52,13 @@ public class GoogleOAuthManager : MonoBehaviour
     {
         if (!isInitialized)
         {
-            LogWarning("Google Play Games가 초기화되지 않음");
+            LogWarning("Google Play Games not initialized");
             return;
         }
         
-        LogDebug("자동 인증 시도 중...");
+        LogDebug("Attempting auto authentication...");
         
-        // 최신 API: Authenticate로 자동 로그인 확인
+        // Latest API: Check auto login with Authenticate
         PlayGamesPlatform.Instance.Authenticate(ProcessAuthentication);
     }
     
@@ -69,14 +69,14 @@ public class GoogleOAuthManager : MonoBehaviour
     {
         if (!isInitialized)
         {
-            LogError("Google Play Games가 초기화되지 않음");
-            OnOAuthComplete?.Invoke(false, "Google Play Games 초기화 필요");
+            LogError("Google Play Games not initialized");
+            OnOAuthComplete?.Invoke(false, "Google Play Games initialization required");
             return;
         }
         
-        LogDebug("수동 Google 로그인 시작");
+        LogDebug("Starting manual Google login");
         
-        // 최신 API: ManuallyAuthenticate 사용
+        // Latest API: Use ManuallyAuthenticate
         PlayGamesPlatform.Instance.ManuallyAuthenticate(ProcessAuthentication);
     }
     
@@ -88,15 +88,15 @@ public class GoogleOAuthManager : MonoBehaviour
         if (status == SignInStatus.Success)
         {
             string userName = Social.localUser.userName ?? "Unknown User";
-            LogDebug($"Google 로그인 성공: {userName}");
+            LogDebug($"Google login successful: {userName}");
             
-            // 서버용 Auth Code 요청
+            // Request Auth Code for server
             RequestServerSideAccess();
         }
         else
         {
-            LogError($"Google 로그인 실패: {status}");
-            OnOAuthComplete?.Invoke(false, $"Google 로그인 실패: {status}");
+            LogError($"Google login failed: {status}");
+            OnOAuthComplete?.Invoke(false, $"Google login failed: {status}");
         }
     }
     
@@ -105,20 +105,20 @@ public class GoogleOAuthManager : MonoBehaviour
     /// </summary>
     private void RequestServerSideAccess()
     {
-        LogDebug("서버 사이드 액세스 코드 요청 중...");
+        LogDebug("Requesting server-side access code...");
         
-        // forceRefreshToken = true로 설정하여 새로운 토큰 요청
+        // Set forceRefreshToken = true to request new token
         PlayGamesPlatform.Instance.RequestServerSideAccess(true, (string authCode) =>
         {
             if (!string.IsNullOrEmpty(authCode))
             {
-                LogDebug("Auth Code 획득 성공");
+                LogDebug("Auth Code obtained successfully");
                 OnOAuthComplete?.Invoke(true, authCode);
             }
             else
             {
-                LogError("Auth Code 획득 실패");
-                OnOAuthComplete?.Invoke(false, "Auth Code 획득 실패");
+                LogError("Failed to obtain Auth Code");
+                OnOAuthComplete?.Invoke(false, "Failed to obtain Auth Code");
             }
         });
     }
@@ -128,9 +128,9 @@ public class GoogleOAuthManager : MonoBehaviour
     /// </summary>
     public void Logout()
     {
-        LogDebug("Google Play Games Plugin v11+ 에서는 직접적인 로그아웃이 지원되지 않습니다.");
-        // 최신 버전에서는 SignOut이 제거되어 직접적인 로그아웃 불가능
-        // 대신 앱 재시작이나 계정 전환은 시스템 레벨에서 처리됨
+        LogDebug("Direct logout is not supported in Google Play Games Plugin v11+");
+        // SignOut method removed in latest version - no direct logout possible
+        // App restart or account switching handled at system level
     }
     
     /// <summary>
