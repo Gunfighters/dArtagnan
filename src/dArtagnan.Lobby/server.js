@@ -204,21 +204,43 @@ app.post('/auth/google/verify-token', async (req, res) => {
 
         logger.info(`[Unity OAuth] Token exchange successful - Access token received`);
 
-        // Access Token으로 사용자 정보 직접 요청
-        logger.info(`[Unity OAuth] Fetching user info with access token`);
+        // Google Play Games API를 사용하여 플레이어 정보 가져오기
+        logger.info(`[Unity OAuth] Fetching player info with Google Play Games API`);
+        logger.info(`[Unity OAuth] Access token (first 20 chars): ${tokens.access_token.substring(0, 20)}...`);
         
-        const userInfoResponse = await fetch(`https://www.googleapis.com/oauth2/v2/userinfo?access_token=${tokens.access_token}`);
+        // Google Play Games Player API 사용
+        const playerInfoUrl = `https://www.googleapis.com/games/v1/players/me`;
+        logger.info(`[Unity OAuth] Requesting player info from Play Games API`);
         
-        if (!userInfoResponse.ok) {
-            throw new Error(`Failed to fetch user info: ${userInfoResponse.status}`);
+        const playerInfoResponse = await fetch(playerInfoUrl, {
+            headers: {
+                'Authorization': `Bearer ${tokens.access_token}`
+            }
+        });
+        
+        logger.info(`[Unity OAuth] Player info response status: ${playerInfoResponse.status}`);
+        logger.info(`[Unity OAuth] Player info response headers:`, Object.fromEntries(playerInfoResponse.headers));
+        
+        const playerInfoText = await playerInfoResponse.text();
+        logger.info(`[Unity OAuth] Player info raw response: ${playerInfoText}`);
+        
+        if (!playerInfoResponse.ok) {
+            throw new Error(`Failed to fetch player info: ${playerInfoResponse.status} - ${playerInfoText}`);
         }
         
-        const userInfo = await userInfoResponse.json();
-        logger.info(`[Unity OAuth] User info response:`, userInfo);
+        const playerInfo = JSON.parse(playerInfoText);
+        logger.info(`[Unity OAuth] Player info parsed:`, playerInfo);
         
-        const { id: providerId, email, name } = userInfo;
+        // Google Play Games API는 playerId와 displayName을 제공
+        const providerId = playerInfo.playerId;
+        const name = playerInfo.displayName;
+        const email = null; // Play Games API는 이메일을 제공하지 않음
         
-        logger.info(`[Unity OAuth] Google token verification successful: ${email}`);
+        if (!providerId) {
+            throw new Error(`No player ID in Play Games response: ${playerInfoText}`);
+        }
+        
+        logger.info(`[Unity OAuth] Google Play Games player info retrieved - ID: ${providerId}, DisplayName: ${name || 'N/A'}`);
 
         // 기존 OAuth 콜백과 동일한 로직
         let user = await findUserByProvider('google', providerId);
