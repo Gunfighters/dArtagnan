@@ -49,6 +49,7 @@ public class LobbyManager : MonoBehaviour
 
     // Events
     public event Action<bool, string> OnLoginComplete; // success, message
+    public event Action<bool, string> OnOAuthLoginComplete; // success, message - OAuth 전용
     public event Action OnAuthComplete;
     public event Action<string> OnError;
     public event Action<LobbyProtocol.CreateRoomResult> OnCreateRoomResult;
@@ -93,6 +94,20 @@ public class LobbyManager : MonoBehaviour
         }
 
         StartCoroutine(LoginCoroutine(inputNickname));
+    }
+
+    /// <summary>
+    /// OAuth ID Token으로 로그인 요청을 보내고 sessionId를 받음
+    /// </summary>
+    public void LoginWithOAuth(string idToken)
+    {
+        if (string.IsNullOrEmpty(idToken))
+        {
+            OnOAuthLoginComplete?.Invoke(false, "ID Token이 필요합니다.");
+            return;
+        }
+
+        StartCoroutine(OAuthLoginCoroutine(idToken));
     }
 
     private IEnumerator LoginCoroutine(string inputNickname)
@@ -140,6 +155,63 @@ public class LobbyManager : MonoBehaviour
                 catch
                 {
                     OnLoginComplete?.Invoke(false, $"Login failed: {request.responseCode}");
+                }
+            }
+        }
+    }
+
+    private IEnumerator OAuthLoginCoroutine(string idToken)
+    {
+        var oAuthRequest = new OAuthTokenRequest { idToken = idToken };
+        string jsonData = JsonUtility.ToJson(oAuthRequest);
+
+        Debug.Log($"Sending OAuth JSON: {jsonData}");
+
+        using (UnityWebRequest request = new UnityWebRequest($"{GetCurrentServerUrl()}/auth/google/verify-token", "POST"))
+        {
+            request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(jsonData));
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            yield return request.SendWebRequest();
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                try
+                {
+                    var response = JsonUtility.FromJson<OAuthLoginResponse>(request.downloadHandler.text);
+                    if (response.success)
+                    {
+                        sessionId = response.sessionId;
+                        nickname = response.nickname;
+
+                        Debug.Log($"OAuth Login successful: {nickname} (Session: {sessionId}) - Temporary: {response.isTemporary}");
+                        OnOAuthLoginComplete?.Invoke(true, "OAuth login successful.");
+
+                        // 웹소켓 연결 시작
+                        ConnectWebSocket();
+                    }
+                    else
+                    {
+                        OnOAuthLoginComplete?.Invoke(false, "OAuth verification failed.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Error parsing OAuth response: {e.Message}");
+                    OnOAuthLoginComplete?.Invoke(false, "An error occurred while processing the OAuth response.");
+                }
+            }
+            else
+            {
+                try
+                {
+                    var errorResponse = JsonUtility.FromJson<ErrorResponse>(request.downloadHandler.text);
+                    OnOAuthLoginComplete?.Invoke(false, errorResponse.code);
+                }
+                catch
+                {
+                    OnOAuthLoginComplete?.Invoke(false, $"OAuth login failed: {request.responseCode}");
                 }
             }
         }
@@ -360,4 +432,20 @@ public class LobbyManager : MonoBehaviour
 
         SceneManager.LoadScene("Game"); // 게임 씬 이름에 맞게 수정
     }
+}
+
+// OAuth 관련 요청/응답 클래스
+[System.Serializable]
+public class OAuthTokenRequest
+{
+    public string idToken;
+}
+
+[System.Serializable]
+public class OAuthLoginResponse
+{
+    public bool success;
+    public string sessionId;
+    public string nickname;
+    public bool isTemporary;
 }
