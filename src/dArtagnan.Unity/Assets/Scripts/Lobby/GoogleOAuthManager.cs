@@ -1,7 +1,10 @@
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 using GooglePlayGames;
 using GooglePlayGames.BasicApi;
 using System;
+using System.Collections;
 
 /// <summary>
 /// Google Play Games를 이용한 OAuth 로그인을 관리하는 컴포넌트
@@ -9,17 +12,53 @@ using System;
 /// </summary>
 public class GoogleOAuthManager : MonoBehaviour
 {
+    [Header("UI References")]
+    [SerializeField] private Button googleLoginButton;
+    [SerializeField] private TextMeshProUGUI statusText;
+
     [Header("Debug Settings")]
     [SerializeField] private bool enableDebugLog = true;
-    
-    // Events
-    public event Action<bool, string> OnOAuthComplete; // success, message or authCode
     
     private bool isInitialized = false;
     
     void Start()
     {
+        // 버튼 이벤트 연결
+        if (googleLoginButton != null)
+        {
+            googleLoginButton.onClick.AddListener(StartGoogleLogin);
+        }
+
+        // LobbyManager 이벤트 구독 (WebSocket 관련)
+        if (LobbyManager.Instance != null)
+        {
+            LobbyManager.Instance.OnAuthComplete += OnAuthComplete;
+            LobbyManager.Instance.OnError += OnError;
+            
+            // Force AWS server setting (OAuth scene is always for deployment)
+            LobbyManager.Instance.SetServerType(true);
+        }
+
+        // Initial UI setup
+        SetStatusText("Please login with your Google account");
+        SetGoogleLoginButtonEnabled(true);
+        
         InitializeGooglePlayGames();
+    }
+
+    void OnDestroy()
+    {
+        // 이벤트 구독 해제
+        if (LobbyManager.Instance != null)
+        {
+            LobbyManager.Instance.OnAuthComplete -= OnAuthComplete;
+            LobbyManager.Instance.OnError -= OnError;
+        }
+
+        if (googleLoginButton != null)
+        {
+            googleLoginButton.onClick.RemoveListener(StartGoogleLogin);
+        }
     }
     
     /// <summary>
@@ -41,7 +80,7 @@ public class GoogleOAuthManager : MonoBehaviour
         catch (Exception e)
         {
             LogError($"Google Play Games initialization failed: {e.Message}");
-            OnOAuthComplete?.Invoke(false, "Google Play Games initialization failed");
+            HandleOAuthResult(false, "", "Google Play Games initialization failed");
         }
     }
     
@@ -67,10 +106,13 @@ public class GoogleOAuthManager : MonoBehaviour
     /// </summary>
     public void StartGoogleLogin()
     {
+        SetStatusText("Google login in progress...");
+        SetGoogleLoginButtonEnabled(false);
+        
         if (!isInitialized)
         {
             LogError("Google Play Games not initialized");
-            OnOAuthComplete?.Invoke(false, "Google Play Games initialization required");
+            HandleOAuthResult(false, "", "Google Play Games initialization required");
             return;
         }
         
@@ -96,7 +138,7 @@ public class GoogleOAuthManager : MonoBehaviour
         else
         {
             LogError($"Google login failed: {status}");
-            OnOAuthComplete?.Invoke(false, $"Google login failed: {status}");
+            HandleOAuthResult(false, "", $"Google login failed: {status}");
         }
     }
     
@@ -113,14 +155,98 @@ public class GoogleOAuthManager : MonoBehaviour
             if (!string.IsNullOrEmpty(authCode))
             {
                 LogDebug("Auth Code obtained successfully");
-                OnOAuthComplete?.Invoke(true, authCode);
+                // 서버에 Auth Code 전송
+                StartCoroutine(SendAuthCodeToServer(authCode));
             }
             else
             {
                 LogError("Failed to obtain Auth Code");
-                OnOAuthComplete?.Invoke(false, "Failed to obtain Auth Code");
+                HandleOAuthResult(false, "", "Failed to obtain Auth Code");
             }
         });
+    }
+    
+    /// <summary>
+    /// 서버에 Authorization Code 전송하여 OAuth 로그인 완료
+    /// </summary>
+    private IEnumerator SendAuthCodeToServer(string authCode)
+    {
+        SetStatusText("Verifying server token...");
+        LogDebug("Sending Auth Code to server for verification");
+        
+        // LobbyManager에서 서버 URL 가져오기
+        string serverUrl = LobbyManager.Instance.GetCurrentServerUrl();
+        
+        var oAuthRequest = new OAuthTokenRequest { authCode = authCode };
+        string jsonData = JsonUtility.ToJson(oAuthRequest);
+
+        using (UnityEngine.Networking.UnityWebRequest request = 
+               new UnityEngine.Networking.UnityWebRequest($"{serverUrl}/auth/google/verify-token", "POST"))
+        {
+            request.uploadHandler = new UnityEngine.Networking.UploadHandlerRaw(System.Text.Encoding.UTF8.GetBytes(jsonData));
+            request.downloadHandler = new UnityEngine.Networking.DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            yield return request.SendWebRequest();
+
+            if (request.result == UnityEngine.Networking.UnityWebRequest.Result.Success)
+            {
+                try
+                {
+                    var response = JsonUtility.FromJson<OAuthLoginResponse>(request.downloadHandler.text);
+                    if (response.success)
+                    {
+                        LogDebug($"Server OAuth verification successful: {response.nickname}");
+                        HandleOAuthResult(true, response.sessionId, response.nickname);
+                    }
+                    else
+                    {
+                        LogError("Server OAuth verification failed");
+                        HandleOAuthResult(false, "", "Server OAuth verification failed");
+                    }
+                }
+                catch (Exception e)
+                {
+                    LogError($"Error parsing server response: {e.Message}");
+                    HandleOAuthResult(false, "", "Error parsing server response");
+                }
+            }
+            else
+            {
+                LogError($"Server request failed: {request.responseCode}");
+                HandleOAuthResult(false, "", $"Server request failed: {request.responseCode}");
+            }
+        }
+    }
+    
+    /// <summary>
+    /// OAuth 결과 처리 - LobbyManager 직접 호출
+    /// </summary>
+    private void HandleOAuthResult(bool success, string sessionId, string message)
+    {
+        if (success)
+        {
+            SetStatusText("Connecting to server...");
+            LogDebug($"OAuth login successful, connecting to WebSocket: {message} ({sessionId})");
+            
+            // LobbyManager에 직접 연결 요청
+            if (LobbyManager.Instance != null)
+            {
+                LobbyManager.Instance.ConnectWithSession(sessionId, message); // message = nickname
+            }
+            else
+            {
+                LogError("LobbyManager not found!");
+                SetStatusText("Cannot find LobbyManager");
+                SetGoogleLoginButtonEnabled(true);
+            }
+        }
+        else
+        {
+            LogError($"OAuth login failed: {message}");
+            SetStatusText($"OAuth login failed: {message}");
+            SetGoogleLoginButtonEnabled(true);
+        }
     }
     
     /// <summary>
@@ -157,6 +283,61 @@ public class GoogleOAuthManager : MonoBehaviour
         return IsAuthenticated() ? Social.localUser.id ?? "" : "";
     }
     
+    /// <summary>
+    /// 웹소켓 인증 완료 시 호출 (로비로 이동)
+    /// </summary>
+    private void OnAuthComplete()
+    {
+        SetStatusText("Login successful! Moving to lobby...");
+
+        // Move to lobby scene after 1 second
+        Invoke(nameof(GoToLobby), 1f);
+    }
+
+    /// <summary>
+    /// Called when error occurs
+    /// </summary>
+    private void OnError(string errorMessage)
+    {
+        SetStatusText($"Error occurred: {errorMessage}");
+        SetGoogleLoginButtonEnabled(true);
+    }
+
+    /// <summary>
+    /// 로비 씬으로 이동
+    /// </summary>
+    private void GoToLobby()
+    {
+        if (LobbyManager.Instance != null)
+        {
+            LobbyManager.Instance.GoToLobby();
+        }
+    }
+
+    /// <summary>
+    /// 상태 텍스트 업데이트
+    /// </summary>
+    private void SetStatusText(string text)
+    {
+        if (statusText != null)
+        {
+            statusText.text = text;
+        }
+
+        LogDebug($"Status: {text}");
+    }
+
+    /// <summary>
+    /// Google 로그인 버튼 활성화/비활성화
+    /// </summary>
+    private void SetGoogleLoginButtonEnabled(bool enabled)
+    {
+        if (googleLoginButton != null)
+        {
+            googleLoginButton.interactable = enabled;
+        }
+    }
+    
     #region Debug Logging
     private void LogDebug(string message)
     {
@@ -179,4 +360,20 @@ public class GoogleOAuthManager : MonoBehaviour
         Debug.LogError($"[GoogleOAuth] {message}");
     }
     #endregion
+}
+
+// OAuth 관련 데이터 클래스들
+[System.Serializable]
+public class OAuthTokenRequest
+{
+    public string authCode;
+}
+
+[System.Serializable]
+public class OAuthLoginResponse
+{
+    public bool success;
+    public string sessionId;
+    public string nickname;
+    public bool isTemporary;
 }

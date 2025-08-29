@@ -728,6 +728,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 426c58bb388aa89408af45fcc3227e63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  googleLoginButton: {fileID: 69511753}
+  statusText: {fileID: 1398242850}
   enableDebugLog: 1
 --- !u!4 &1748674634
 Transform:
