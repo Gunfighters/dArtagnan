@@ -167,36 +167,56 @@ app.post('/auth/google/verify-token', async (req, res) => {
         logger.info(`[Unity OAuth] Received Auth Code: ${authCode.substring(0, 10)}...`);
 
         // Google Play Games Authorization Code를 직접 처리
-        // 방법 1: HTTP 직접 요청으로 토큰 교환
+        logger.info(`[Unity OAuth] Starting token exchange with Google`);
+        logger.info(`[Unity OAuth] Using Client ID: ${process.env.GOOGLE_CLIENT_ID ? 'SET' : 'NOT_SET'}`);
+        logger.info(`[Unity OAuth] Using Client Secret: ${process.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'NOT_SET'}`);
+
+        const tokenRequestBody = {
+            code: authCode,
+            client_id: process.env.GOOGLE_CLIENT_ID,
+            client_secret: process.env.GOOGLE_CLIENT_SECRET,
+            grant_type: 'authorization_code'
+        };
+
+        logger.info(`[Unity OAuth] Token request body:`, tokenRequestBody);
+
         const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: new URLSearchParams({
-                code: authCode,
-                client_id: process.env.GOOGLE_CLIENT_ID,
-                client_secret: process.env.GOOGLE_CLIENT_SECRET,
-                grant_type: 'authorization_code'
-            })
+            body: new URLSearchParams(tokenRequestBody)
         });
+
+        logger.info(`[Unity OAuth] Token response status: ${tokenResponse.status}`);
+        logger.info(`[Unity OAuth] Token response headers:`, Object.fromEntries(tokenResponse.headers));
 
         const tokens = await tokenResponse.json();
+        logger.info(`[Unity OAuth] Token response body:`, tokens);
         
-        if (!tokens.id_token) {
-            throw new Error('No ID token received from Google');
+        if (!tokenResponse.ok) {
+            throw new Error(`Google token exchange failed: ${JSON.stringify(tokens)}`);
+        }
+        
+        if (!tokens.access_token) {
+            throw new Error('No access token received from Google');
         }
 
-        logger.info(`[Unity OAuth] Token exchange successful`);
+        logger.info(`[Unity OAuth] Token exchange successful - Access token received`);
 
-        // ID Token에서 사용자 정보 추출
-        const ticket = await googleClient.verifyIdToken({
-            idToken: tokens.id_token,
-            audience: process.env.GOOGLE_CLIENT_ID
-        });
+        // Access Token으로 사용자 정보 직접 요청
+        logger.info(`[Unity OAuth] Fetching user info with access token`);
         
-        const payload = ticket.getPayload();
-        const { sub: providerId, email, name } = payload;
+        const userInfoResponse = await fetch(`https://www.googleapis.com/oauth2/v2/userinfo?access_token=${tokens.access_token}`);
+        
+        if (!userInfoResponse.ok) {
+            throw new Error(`Failed to fetch user info: ${userInfoResponse.status}`);
+        }
+        
+        const userInfo = await userInfoResponse.json();
+        logger.info(`[Unity OAuth] User info response:`, userInfo);
+        
+        const { id: providerId, email, name } = userInfo;
         
         logger.info(`[Unity OAuth] Google token verification successful: ${email}`);
 
