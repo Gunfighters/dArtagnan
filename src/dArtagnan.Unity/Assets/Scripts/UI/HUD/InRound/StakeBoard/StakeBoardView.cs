@@ -14,10 +14,11 @@ namespace UI.HUD.InRound.StakeBoard
         public TextMeshProUGUI text;
         public float beatDuration;
         public List<StakeBoardIconMeta> iconPool;
+        public Transform itemContainer;
 
         private void Awake()
         {
-            StakeBoardPresenter.Initialize(this);
+            StakeBoardPresenter.Initialize(new StakeBoardModel(), this);
         }
 
         public async UniTask Beat()

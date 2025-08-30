@@ -18,7 +18,6 @@ namespace Game.Misc
             ShowdownLoadingModel.Initialize();
             AlertMessageModel.Initialize();
             ItemCraftButtonModel.Initialize();
-            StakeBoardModel.Initialize();
             SplashModel.Initialize();
             SpectatingCarouselModel.Initialize();
             AccuracyStateWheelModel.Initialize();
