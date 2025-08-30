@@ -13,7 +13,7 @@ namespace Game
         private static GameModel _instance;
 
         public static ReadOnlyReactiveProperty<GameState> State => _instance.State;
-
+        public static ReadOnlyReactiveProperty<int> LocalPlayerID => _instance?.LocalPlayerId;
         public static PlayerModel LocalPlayer => _instance?.LocalPlayer;
         
         public static ObservableDictionary<int, PlayerModel> PlayerModels => _instance?.PlayerModels;

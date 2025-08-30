@@ -19,11 +19,17 @@ namespace Game.Player.Components
         [SerializeField] private float hitMissShowingDuration;
         public Transform _rangeCircleTransform;
 
+        private void Awake()
+        {
+            hitMissText.enabled = false;
+        }
+
         public void Initialize(PlayerModel model)
         {
             model.Range.Subscribe(SetRange);
-            model.Fire.Subscribe(ShowHitOrMiss);
+            model.Fire.Skip(1).Subscribe(ShowHitOrMiss);
             model.Highlighted.Subscribe(HighlightAsTarget);
+            GameService.LocalPlayerID.Subscribe(newID => _rangeCircleTransform.gameObject.SetActive(model.ID.CurrentValue == newID));
         }
 
         private void SetRange(float newRange)

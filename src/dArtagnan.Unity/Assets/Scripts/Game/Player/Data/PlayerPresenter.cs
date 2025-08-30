@@ -1,6 +1,7 @@
 using dArtagnan.Shared;
 using Game.Player.Components;
 using R3;
+using R3.Triggers;
 using UnityEngine;
 
 namespace Game.Player.Data
@@ -10,9 +11,6 @@ namespace Game.Player.Data
         public static void Initialize(PlayerModel model, PlayerView view)
         {
             view.Initialize(model);
-            Observable
-                .EveryUpdate(UnityFrameProvider.FixedUpdate)
-                .Subscribe(_ => model.Position.Value = model.NextPosition());
             Observable
                 .EveryUpdate()
                 .Subscribe(_ =>

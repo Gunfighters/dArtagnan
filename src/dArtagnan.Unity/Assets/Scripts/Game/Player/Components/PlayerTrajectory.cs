@@ -12,6 +12,7 @@ namespace Game.Player.Components
     {
         [SerializeField] private float duration;
         private LineRenderer _lineRenderer;
+        private PlayerModel _model;
 
         private void Awake()
         {
@@ -22,19 +23,17 @@ namespace Game.Player.Components
         private void Update()
         {
             _lineRenderer.SetPosition(1, transform.position);
+            var found = GameService.GetPlayerModel(_model.Targeting.CurrentValue);
+            if (found is not null)
+                _lineRenderer.SetPosition(0, found.Position.CurrentValue);
         }
 
         public void Initialize(PlayerModel model)
         {
-            this.UpdateAsObservable().Subscribe(_ =>
-            {
-                var found = GameService.GetPlayerModel(model.Targeting.CurrentValue);
-                if (found is not null)
-                    _lineRenderer.SetPosition(0, found.Position.CurrentValue);
-            });
+            _model = model;
             model.Fire.Subscribe(_ => Flash().Forget());
         }
-
+        
         private async UniTask Flash()
         {
             _lineRenderer.enabled = true;

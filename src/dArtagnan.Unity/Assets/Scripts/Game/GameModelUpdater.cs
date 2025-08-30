@@ -33,8 +33,11 @@ namespace Game
         {
             var targetPlayer = GameService.GetPlayerModel(e.PlayerId)!;
             if (targetPlayer == GameService.LocalPlayer) return;
-            targetPlayer.Position.Value = e.MovementData.Position.ToUnityVec();
-            targetPlayer.Direction.Value = e.MovementData.Direction.IntToDirection().normalized * e.MovementData.Speed;
+            targetPlayer.PositionFromServer.Value = e.MovementData.Position.ToUnityVec();
+            targetPlayer.Direction.Value = e.MovementData.Direction.IntToDirection();
+            targetPlayer.Speed.Value = e.MovementData.Speed;
+            targetPlayer.LastServerPositionUpdateTimestamp.Value = Time.time;
+            targetPlayer.NeedToCorrectPosition = true;
         }
 
         private void OnPlayerIsTargeting(PlayerIsTargetingBroadcast e)
