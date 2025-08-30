@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS users (
     provider VARCHAR(10) NOT NULL,
     provider_id VARCHAR(255) NOT NULL,
     nickname VARCHAR(50) UNIQUE,
+    is_guest BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
     UNIQUE KEY unique_provider (provider, provider_id),

@@ -20,6 +20,7 @@ public class GoogleOAuthManager : MonoBehaviour
     [SerializeField] private bool enableDebugLog = true;
     
     private bool isInitialized = false;
+    private const string LAST_PROVIDER_KEY = "last_used_provider";
     
     void Start()
     {
@@ -39,10 +40,11 @@ public class GoogleOAuthManager : MonoBehaviour
             LobbyManager.Instance.SetServerType(true);
         }
 
-        // Initial UI setup
-        SetStatusText("Please login with your Google account");
-        SetGoogleLoginButtonEnabled(true);
+        // Initial UI setup - 로그인 확인 중 상태로 시작
+        SetStatusText("Checking login...");
+        SetGoogleLoginButtonEnabled(false); // 초기에는 버튼 비활성화
         
+        // Google Play Games 초기화 먼저 실행
         InitializeGooglePlayGames();
     }
 
@@ -62,6 +64,47 @@ public class GoogleOAuthManager : MonoBehaviour
     }
     
     /// <summary>
+    /// 저장된 Provider를 체크하고 자동 로그인 시도 또는 수동 로그인 대기 상태로 전환
+    /// </summary>
+    private void CheckSavedProviderAndProceed()
+    {
+        string savedProvider = PlayerPrefs.GetString(LAST_PROVIDER_KEY, "");
+        
+        if (!string.IsNullOrEmpty(savedProvider))
+        {
+            LogDebug($"Found saved provider: {savedProvider}");
+            
+            if (savedProvider.Equals("google", System.StringComparison.OrdinalIgnoreCase))
+            {
+                // Google Provider가 저장되어 있으면 자동 로그인 시도
+                SetStatusText("Signing in with Google...");
+                TryAutoAuthenticate();
+            }
+            else
+            {
+                // 다른 Provider가 저장되어 있으면 (향후 Apple 등)
+                LogWarning($"Unsupported saved provider: {savedProvider}. Showing login buttons.");
+                ShowManualLoginOptions();
+            }
+        }
+        else
+        {
+            // 저장된 Provider가 없으면 수동 로그인 옵션 표시
+            LogDebug("No saved provider found. Showing login buttons.");
+            ShowManualLoginOptions();
+        }
+    }
+    
+    /// <summary>
+    /// 수동 로그인 옵션을 표시 (버튼 활성화)
+    /// </summary>
+    private void ShowManualLoginOptions()
+    {
+        SetStatusText("Please login with your Google account");
+        SetGoogleLoginButtonEnabled(true);
+    }
+    
+    /// <summary>
     /// Google Play Games 초기화 (2024 최신 방식)
     /// </summary>
     private void InitializeGooglePlayGames()
@@ -74,13 +117,15 @@ public class GoogleOAuthManager : MonoBehaviour
             isInitialized = true;
             LogDebug("Google Play Games initialized successfully");
             
-            // Auto authenticate attempt
-            TryAutoAuthenticate();
+            // 초기화 완료 후 Provider 체크 및 자동 로그인 시도
+            CheckSavedProviderAndProceed();
         }
         catch (Exception e)
         {
             LogError($"Google Play Games initialization failed: {e.Message}");
-            HandleOAuthResult(false, "", "Google Play Games initialization failed");
+            isInitialized = false;
+            // 초기화 실패 시 수동 로그인 옵션 표시
+            ShowManualLoginOptions();
         }
     }
     
@@ -112,7 +157,8 @@ public class GoogleOAuthManager : MonoBehaviour
         if (!isInitialized)
         {
             LogError("Google Play Games not initialized");
-            HandleOAuthResult(false, "", "Google Play Games initialization required");
+            SetStatusText("Google Play Games initialization failed");
+            SetGoogleLoginButtonEnabled(true);
             return;
         }
         
@@ -138,7 +184,17 @@ public class GoogleOAuthManager : MonoBehaviour
         else
         {
             LogError($"Google login failed: {status}");
-            HandleOAuthResult(false, "", $"Google login failed: {status}");
+            
+            // 자동 로그인 실패 시 수동 로그인 옵션 표시
+            if (!string.IsNullOrEmpty(PlayerPrefs.GetString(LAST_PROVIDER_KEY, "")))
+            {
+                LogDebug("Auto authentication failed. Showing manual login options.");
+                ShowManualLoginOptions();
+            }
+            else
+            {
+                HandleOAuthResult(false, "", $"Google login failed: {status}");
+            }
         }
     }
     
@@ -229,6 +285,11 @@ public class GoogleOAuthManager : MonoBehaviour
             SetStatusText("Connecting to server...");
             LogDebug($"OAuth login successful, connecting to WebSocket: {message} ({sessionId})");
             
+            // 로그인 성공 시 Google Provider 저장
+            PlayerPrefs.SetString(LAST_PROVIDER_KEY, "google");
+            PlayerPrefs.Save();
+            LogDebug("Saved Google as last used provider");
+            
             // LobbyManager에 직접 연결 요청
             if (LobbyManager.Instance != null)
             {
@@ -244,7 +305,7 @@ public class GoogleOAuthManager : MonoBehaviour
         else
         {
             LogError($"OAuth login failed: {message}");
-            SetStatusText($"OAuth login failed: {message}");
+            SetStatusText($"Login failed: {message}");
             SetGoogleLoginButtonEnabled(true);
         }
     }
@@ -252,11 +313,19 @@ public class GoogleOAuthManager : MonoBehaviour
     /// <summary>
     /// 로그아웃 (2024 버전에서는 SignOut 메소드가 제거됨)
     /// </summary>
-    public void Logout()
+    public void Logout(bool clearSavedProvider = true)
     {
         LogDebug("Direct logout is not supported in Google Play Games Plugin v11+");
         // SignOut method removed in latest version - no direct logout possible
         // App restart or account switching handled at system level
+        
+        // 저장된 Provider 정보 삭제 (옵션)
+        if (clearSavedProvider)
+        {
+            PlayerPrefs.DeleteKey(LAST_PROVIDER_KEY);
+            PlayerPrefs.Save();
+            LogDebug("Cleared saved provider on logout");
+        }
     }
     
     /// <summary>
