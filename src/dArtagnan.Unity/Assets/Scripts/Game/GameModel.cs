@@ -8,6 +8,7 @@ using Game.Player.Data;
 using JetBrains.Annotations;
 using ObservableCollections;
 using R3;
+using Unity.VisualScripting;
 using UnityEngine;
 using Utils;
 
@@ -19,7 +20,8 @@ namespace Game
         public readonly ReactiveProperty<int> Round = new();
         public readonly Subject<RoundWinnerBroadcast> RoundWinners = new();
         public readonly Subject<GameWinnerBroadcast> GameWinners = new();
-        public readonly Subject<ShowdownStartFromServer> ShowdownStartData = new();
+        public readonly ObservableDictionary<int, int> ShowdownStartData = new();
+        public readonly ReactiveProperty<int> StateCountdown = new();
         public readonly ObservableList<AugmentId>  AugmentationOptionPool = new();
         public readonly ReactiveProperty<int> HostPlayerId = new();
         public readonly ReactiveProperty<int> LocalPlayerId = new();
@@ -54,7 +56,14 @@ namespace Game
             PacketChannel.On<RoundStartFromServer>(e => UpdatePlayerModelsByInfoList(e.PlayersInfo));
             PacketChannel.On<RoundStartFromServer>(_ => State.Value = GameState.Round);
             PacketChannel.On<WaitingStartFromServer>(_ => State.Value = GameState.Waiting);
-            PacketChannel.On<ShowdownStartFromServer>(_ => State.Value = GameState.Showdown);
+            PacketChannel.On<ShowdownStartFromServer>(e =>
+            {
+                State.Value = GameState.Showdown;
+                Debug.Log(e);
+                StateCountdown.Value = e.Countdown;
+                ShowdownStartData.Clear();
+                ShowdownStartData.AddRange(e.AccuracyPool);
+            });
             LocalPlayerSet.Subscribe(p => CameraTarget.Value = p);
             PacketChannel.On<MovementDataBroadcast>(OnPlayerMovementData);
             PacketChannel.On<PlayerIsTargetingBroadcast>(OnPlayerIsTargeting);

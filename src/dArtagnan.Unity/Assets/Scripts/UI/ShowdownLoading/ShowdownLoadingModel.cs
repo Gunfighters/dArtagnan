@@ -3,6 +3,7 @@ using dArtagnan.Shared;
 using Game;
 using ObservableCollections;
 using R3;
+using UnityEngine;
 
 namespace UI.ShowdownLoading
 {
@@ -13,17 +14,21 @@ namespace UI.ShowdownLoading
 
         public ShowdownLoadingModel()
         {
-            GameService.ShowdownStartData.Subscribe(e =>
+            GameService.ShowdownStartData.ObserveAdd().Subscribe(e =>
             {
-                Players.Clear();
-                foreach (var keyValuePair in e.AccuracyPool)
+                Players[e.Value.Key] = e.Value.Value;
+            });
+            GameService.ShowdownStartData.ObserveRemove().Subscribe(e =>
+            {
+                Players.Remove(e.Value.Key);
+            });
+            GameService.State.Subscribe(state =>
+            {
+                if (state == GameState.Showdown)
                 {
-                    Players[keyValuePair.Key] = keyValuePair.Value;
+                    Countdown.Value = GameService.StateCountdown.CurrentValue;
+                    Count().Forget();
                 }
-
-                Countdown.Value = e.Countdown;
-                Count().Forget();
-                
             });
         }
 

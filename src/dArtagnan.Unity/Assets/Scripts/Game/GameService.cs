@@ -15,8 +15,8 @@ namespace Game
         public static ReadOnlyReactiveProperty<int> Round => _instance.Round;
         public static Subject<RoundWinnerBroadcast> RoundWinners => _instance.RoundWinners;
         public static Subject<GameWinnerBroadcast>  GameWinners => _instance.GameWinners;
-        public static Subject<ShowdownStartFromServer> ShowdownStartData => _instance.ShowdownStartData;
-
+        public static ObservableDictionary<int, int> ShowdownStartData => _instance.ShowdownStartData;
+        public static ReadOnlyReactiveProperty<int> StateCountdown => _instance.StateCountdown;
         public static IReadOnlyObservableList<AugmentId> AugmentationOptionPool => _instance.AugmentationOptionPool;
         public static ReadOnlyReactiveProperty<GameState> State => _instance.State;
         public static ReadOnlyReactiveProperty<int> LocalPlayerID => _instance?.LocalPlayerId;
