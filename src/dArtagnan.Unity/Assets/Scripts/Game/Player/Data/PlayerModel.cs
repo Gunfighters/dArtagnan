@@ -32,7 +32,7 @@ namespace Game.Player.Data
         public readonly ReactiveProperty<float> CraftingRemainingTime = new();
         public readonly ReactiveProperty<bool> Immune = new();
         public readonly ObservableList<int> ActiveFx = new();
-        public readonly Subject<bool> Fire = new();
+        public readonly Subject<FireInfo> Fire = new();
         public readonly ReactiveProperty<bool> Highlighted = new();
         public readonly ReactiveProperty<float> LastServerPositionUpdateTimestamp = new();
         public bool NeedToCorrectPosition;

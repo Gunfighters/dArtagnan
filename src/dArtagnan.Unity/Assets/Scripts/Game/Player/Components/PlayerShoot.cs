@@ -27,7 +27,7 @@ namespace Game.Player.Components
         public void Initialize(PlayerModel model)
         {
             model.Range.Subscribe(SetRange);
-            model.Fire.Skip(1).Subscribe(ShowHitOrMiss);
+            model.Fire.Subscribe(ShowHitOrMiss);
             model.Highlighted.Subscribe(HighlightAsTarget);
             GameService.LocalPlayerID.Subscribe(newID => _rangeCircleTransform.gameObject.SetActive(model.ID.CurrentValue == newID));
         }
@@ -42,10 +42,10 @@ namespace Game.Player.Components
             targetHighlightCircle.enabled = show;
         }
 
-        private void ShowHitOrMiss(bool hit)
+        private void ShowHitOrMiss(FireInfo info)
         {
-            hitMissText.text = hit ? "HIT!" : "MISS!";
-            hitMissText.color = hit ? hitTextColor : missTextColor;
+            hitMissText.text = info.Hit ? "HIT!" : "MISS!";
+            hitMissText.color = info.Hit ? hitTextColor : missTextColor;
             hitMissText.enabled = true;
             HideHitMissFx().Forget();
         }

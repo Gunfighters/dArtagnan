@@ -64,10 +64,7 @@ namespace Game
         }
 
         [CanBeNull]
-        public PlayerModel GetPlayerModel(int id)
-        {
-            return PlayerModels.GetValueOrDefault(id, null);
-        }
+        public PlayerModel GetPlayerModel(int id) => PlayerModels.GetValueOrDefault(id, null);
 
         private void OnJoin(JoinBroadcast e)
         {

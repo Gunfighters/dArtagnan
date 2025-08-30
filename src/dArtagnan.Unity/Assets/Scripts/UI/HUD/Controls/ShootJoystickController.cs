@@ -39,7 +39,7 @@ namespace UI.HUD.Controls
                 PacketChannel.Raise(new PlayerIsTargetingFromClient { TargetId = GameService.LocalPlayer.Targeting.CurrentValue });
             }
             
-            if (Shootable)
+            if (!Shootable)
                 HandleOutline.color = Icon.color = costEnergyIcon.color = costText.color = Color.grey;
             else if (GameService.LocalPlayer.CalculateTarget(Vector2.zero) is null)
                 HandleOutline.color = Icon.color = costEnergyIcon.color = costText.color = _orange;

@@ -1,5 +1,6 @@
 using dArtagnan.Shared;
 using Game.Items;
+using Game.Player.Data;
 using UnityEngine;
 using Utils;
 
@@ -50,7 +51,7 @@ namespace Game
         private void OnPlayerShoot(ShootingBroadcast e)
         {
             var shooter = GameService.GetPlayerModel(e.ShooterId)!;
-            shooter.Fire.OnNext(e.Hit);
+            shooter.Fire.OnNext(new FireInfo { Hit = e.Hit, Target = GameService.GetPlayerModel(e.TargetId) });
             var data = shooter.EnergyData.Value;
             data.CurrentEnergy = e.ShooterCurrentEnergy;
             shooter.EnergyData.Value = data;
