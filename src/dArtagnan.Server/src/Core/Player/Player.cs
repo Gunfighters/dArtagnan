@@ -314,19 +314,16 @@ public class Player
         float oldEnergy = EnergyData.CurrentEnergy;
         float newEnergy = Math.Min(EnergyData.MaxEnergy, EnergyData.CurrentEnergy + Constants.ENERGY_RECOVERY_RATE * deltaTime);
         
-        if (Math.Abs(newEnergy - oldEnergy) > 0.001f) // 미세한 변화도 감지
+        EnergyData = new EnergyData
         {
-            EnergyData = new EnergyData
-            {
-                MaxEnergy = EnergyData.MaxEnergy,
-                CurrentEnergy = newEnergy
-            };
-            
-            // 정수 단위로 넘어갈 때만 로그 출력
-            if ((int)newEnergy > (int)oldEnergy)
-            {
-                Console.WriteLine($"[에너지] 플레이어 {Id}의 에너지 회복: {EnergyData.CurrentEnergy:F1}/{EnergyData.MaxEnergy}");
-            }
+            MaxEnergy = EnergyData.MaxEnergy,
+            CurrentEnergy = newEnergy
+        };
+        
+        // 정수 단위로 넘어갈 때만 로그 출력
+        if ((int)newEnergy > (int)oldEnergy)
+        {
+            Console.WriteLine($"[에너지] 플레이어 {Id}의 에너지 회복: {EnergyData.CurrentEnergy:F1}/{EnergyData.MaxEnergy}");
         }
     }
 
