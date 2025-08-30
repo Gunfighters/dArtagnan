@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class LoginButton : MonoBehaviour
+public class LoginButtonForDev : MonoBehaviour
 {
     [Header("UI 요소")] [SerializeField] private TMP_InputField nicknameInputField;
 
@@ -116,7 +116,7 @@ public class LoginButton : MonoBehaviour
             statusText.text = text;
         }
 
-        Debug.Log($"[LoginButton] {text}");
+        Debug.Log($"[LoginButtonForDev] {text}");
     }
 
     /// <summary>

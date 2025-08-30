@@ -3,20 +3,43 @@ import mysql from 'mysql2/promise';
 // DB 연결 설정
 let connection;
 
-// DB 연결 테스트
+// DB 연결 테스트 및 데이터베이스 자동 생성
 async function testConnection() {
     try {
+        // 1. 데이터베이스 없이 MySQL 연결
+        const rootConnection = await mysql.createConnection({
+            host: process.env.DB_HOST || 'localhost',
+            user: process.env.DB_USER || 'root', 
+            password: process.env.DB_PASSWORD || '',
+            // database 없이 연결
+        });
+        
+        // 2. 데이터베이스 존재 확인 및 생성
+        const dbName = process.env.DB_NAME || 'dartagnan';
+        await rootConnection.execute(`
+            CREATE DATABASE IF NOT EXISTS ${dbName} 
+            CHARACTER SET utf8mb4 
+            COLLATE utf8mb4_unicode_ci
+        `);
+        console.log(`✅ 데이터베이스 '${dbName}' 확인/생성 완료`);
+        
+        await rootConnection.end();
+        
+        // 3. 실제 데이터베이스에 연결
         connection = await mysql.createConnection({
             host: process.env.DB_HOST || 'localhost',
             user: process.env.DB_USER || 'root', 
             password: process.env.DB_PASSWORD || '',
-            database: process.env.DB_NAME || 'dartagnan'
+            database: dbName
         });
         
         await connection.execute('SELECT 1');
         console.log('✅ MySQL 연결 성공');
     } catch (error) {
         console.error('❌ MySQL 연결 실패:', error.message);
+        if (error.message.includes('Unknown database')) {
+            console.log('💡 해결방법: scripts/setup-db.bat 실행 또는 수동으로 데이터베이스 생성');
+        }
         process.exit(1);
     }
 }
@@ -29,6 +52,7 @@ async function createTables() {
             provider VARCHAR(10) NOT NULL,
             provider_id VARCHAR(255) NOT NULL,
             nickname VARCHAR(50) UNIQUE,
+            is_guest BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             
             UNIQUE KEY unique_provider (provider, provider_id),
@@ -58,11 +82,11 @@ export async function findUserByProvider(provider, providerId) {
     }
 }
 
-export async function createUser(provider, providerId, nickname) {
+export async function createUser(provider, providerId, nickname, isGuest = false) {
     try {
         const [result] = await connection.execute(
-            'INSERT INTO users (provider, provider_id, nickname) VALUES (?, ?, ?)',
-            [provider, providerId, nickname]
+            'INSERT INTO users (provider, provider_id, nickname, is_guest) VALUES (?, ?, ?, ?)',
+            [provider, providerId, nickname, isGuest]
         );
         return result.insertId;
     } catch (error) {

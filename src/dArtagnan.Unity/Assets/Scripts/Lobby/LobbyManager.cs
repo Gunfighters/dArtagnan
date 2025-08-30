@@ -95,9 +95,21 @@ public class LobbyManager : MonoBehaviour
         StartCoroutine(LoginCoroutine(inputNickname));
     }
 
+    /// <summary>
+    /// OAuth가 완료된 후 세션 정보로 WebSocket 연결
+    /// </summary>
+    public void ConnectWithSession(string sessionId, string nickname)
+    {
+        this.sessionId = sessionId;
+        this.nickname = nickname;
+        
+        Debug.Log($"Connecting with session: {nickname} ({sessionId})");
+        ConnectWebSocket();
+    }
+
     private IEnumerator LoginCoroutine(string inputNickname)
     {
-        var loginRequest = new LoginRequest { nickname = inputNickname };
+        var loginRequest = new LoginRequest { providerId = inputNickname };
         string jsonData = JsonUtility.ToJson(loginRequest);
 
         Debug.Log($"Sending JSON: {jsonData}");
