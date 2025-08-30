@@ -435,6 +435,14 @@ PrefabInstance:
       propertyPath: ipEndpointInputField
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 2271879916826015815, guid: 2b7c7121e3cef40329f11e98b96d8787, type: 3}
+      propertyPath: m_text
+      value: ID
+      objectReference: {fileID: 0}
+    - target: {fileID: 2271879916826015815, guid: 2b7c7121e3cef40329f11e98b96d8787, type: 3}
+      propertyPath: m_fontSize
+      value: 60.25
+      objectReference: {fileID: 0}
     - target: {fileID: 2729359887087913693, guid: 2b7c7121e3cef40329f11e98b96d8787, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
       value: 1

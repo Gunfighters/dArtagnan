@@ -5,7 +5,7 @@ import { WebSocketServer } from 'ws';
 import crypto from 'crypto';
 import { ErrorCodes, RoomState } from './errorCodes.js';
 import { initDB, checkNicknameDuplicate, setUserNickname, createUser } from './db.js';
-import { processUnityOAuth } from './oauth.js';
+import { processUnityOAuth, processDevLogin } from './oauth.js';
 import { 
     createRoom, 
     pickRandomWaitingRoom, 
@@ -44,30 +44,28 @@ app.post('/auth/google/verify-token', async (req, res) => {
     }
 });
 
-// === 닉네임 로그인 (개발용) ===
-app.post('/login', (req, res) => {
-    logger.info(`[로그인] 요청 수신:`, req.body);
-    const nickname = (req.body?.nickname || '').trim();
-    
-    if (!nickname) {
-        return res.status(400).json({ code: ErrorCodes.NULL_NICKNAME, message: '닉네임을 입력해주세요.' });
-    }
-    if (nickname.length < 1 || nickname.length > 16) {
-        return res.status(400).json({ code: ErrorCodes.INVALID_NICKNAME, message: '닉네임은 1자 이상 16자 이하로 입력해주세요.' });
-    }
-    
-    // 중복 검사
-    for (const user of users.values()) {
-        if (user.nickname === nickname) {
-            logger.warn(`[로그인] 닉네임 중복 시도: ${nickname}`);
-            return res.status(409).json({ code: ErrorCodes.DUPLICATE_NICKNAME, message: '이미 사용 중인 닉네임입니다.' });
+// === 개발용 로그인 (OAuth 구조 사용) ===
+app.post('/login', async (req, res) => {
+    try {
+        const { providerId } = req.body;
+        const result = await processDevLogin(providerId, users);
+        res.json(result);
+    } catch (error) {
+        let statusCode = 400;
+        let errorCode = ErrorCodes.INVALID_NICKNAME;
+        
+        if (error.message.includes('Nickname is required')) {
+            errorCode = ErrorCodes.NULL_NICKNAME;
+        } else if (error.message.includes('already exists')) {
+            statusCode = 409;
+            errorCode = ErrorCodes.DUPLICATE_NICKNAME;
         }
+        
+        res.status(statusCode).json({ 
+            error: error.message,
+            code: errorCode 
+        });
     }
-    
-    const sessionId = Math.random().toString(36).slice(2);
-    users.set(sessionId, { nickname });
-    logger.info(`[로그인] 성공: ${nickname} (세션ID: ${sessionId})`);
-    res.json({ sessionId, nickname });
 });
 
 // === 게임서버 상태 업데이트 ===
@@ -126,8 +124,8 @@ wss.on('connection', (ws, req) => {
                 sendMessage(ws, 'auth_success', { 
                     ok: true, 
                     nickname: user.nickname,
-                    isTemporary: user.isTemporary || false,
-                    needNickname: !user.nickname || user.isTemporary
+                    needSetNickname: user.needSetNickname || false,
+                    needNickname: !user.nickname || user.needSetNickname
                 });
                 logger.info(`[WebSocket ${connectionId}] 인증 성공: ${user.nickname || '닉네임미설정'} (${sessionId})`);
                 return;
@@ -165,14 +163,14 @@ wss.on('connection', (ws, req) => {
                         if (user.id) {
                             await setUserNickname(user.provider, user.providerId, requestedNickname);
                         } else {
-                            const userId = await createUser(user.provider, user.providerId, requestedNickname);
+                            const userId = await createUser(user.provider, user.providerId, requestedNickname, user.is_guest || false);
                             user.id = userId;
                         }
                     }
                     
                     // 메모리 업데이트
                     user.nickname = requestedNickname;
-                    user.isTemporary = false;
+                    user.needSetNickname = false;
                     connections.get(ws).nickname = requestedNickname;
                     
                     sendMessage(ws, 'nickname_set', { success: true, nickname: requestedNickname });

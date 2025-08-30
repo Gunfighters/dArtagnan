@@ -109,7 +109,7 @@ public class LobbyManager : MonoBehaviour
 
     private IEnumerator LoginCoroutine(string inputNickname)
     {
-        var loginRequest = new LoginRequest { nickname = inputNickname };
+        var loginRequest = new LoginRequest { providerId = inputNickname };
         string jsonData = JsonUtility.ToJson(loginRequest);
 
         Debug.Log($"Sending JSON: {jsonData}");

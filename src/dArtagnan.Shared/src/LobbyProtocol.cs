@@ -62,7 +62,7 @@ namespace dArtagnan.Shared
     // ===========================
 
     // HTTP 메시지
-    [Serializable] public class LoginRequest { public string nickname; }
+    [Serializable] public class LoginRequest { public string providerId; }
     [Serializable] public class LoginResponse { public string sessionId; public string nickname; }
     [Serializable] public class ErrorResponse { public string code; public string message; }
 

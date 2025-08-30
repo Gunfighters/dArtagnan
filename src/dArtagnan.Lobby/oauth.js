@@ -1,5 +1,5 @@
 import { OAuth2Client } from 'google-auth-library';
-import { findUserByProvider, createUser, generateTempNickname } from './db.js';
+import { findUserByProvider, createUser, generateTempNickname, checkNicknameDuplicate } from './db.js';
 
 // Google OAuth 클라이언트 설정
 const googleClient = new OAuth2Client(
@@ -40,6 +40,66 @@ const logger = {
 };
 
 /**
+ * 개발용 로그인 처리 (OAuth와 동일한 구조 사용)
+ */
+export async function processDevLogin(providerId, users) {
+    try {
+        if (!providerId || providerId.trim().length === 0) {
+            throw new Error('ProviderId is required.');
+        }
+
+        const trimmedProviderId = providerId.trim();
+        
+        if (trimmedProviderId.length < 1 || trimmedProviderId.length > 16) {
+            throw new Error('ProviderId must be 1-16 characters.');
+        }
+
+        logger.info(`[Dev Login] Login request: ${trimmedProviderId}`);
+
+        // 개발용 provider 정보
+        const provider = 'dev';
+        const cleanProviderId = trimmedProviderId;
+        
+        // 기존 사용자 찾기 (OAuth와 동일한 패턴)
+        let user = await findUserByProvider(provider, cleanProviderId);
+        
+        if (!user) {
+            // 신규 사용자 생성 (providerId를 닉네임으로도 사용)
+            const userId = await createUser(provider, cleanProviderId, cleanProviderId, true);
+            user = { id: userId, nickname: cleanProviderId };
+            logger.info(`[Dev Login] New guest user created: ${cleanProviderId}`);
+        } else {
+            logger.info(`[Dev Login] Existing guest user login: ${cleanProviderId}`);
+        }
+
+        // 세션 생성 (OAuth와 동일한 구조)
+        const sessionId = Math.random().toString(36).slice(2);
+        users.set(sessionId, {
+            id: user.id,
+            nickname: user.nickname,
+            needSetNickname: false, // 개발용은 providerId를 직접 입력하므로 false
+            provider: provider,
+            providerId: cleanProviderId,
+            displayName: user.nickname,
+            is_guest: true
+        });
+
+        logger.info(`[Dev Login] Login complete: ${user.nickname} (${sessionId})`);
+        
+        return {
+            success: true,
+            sessionId,
+            nickname: user.nickname,
+            needSetNickname: false
+        };
+
+    } catch (error) {
+        logger.error(`[Dev Login] Failed:`, error);
+        throw error;
+    }
+}
+
+/**
  * Unity에서 받은 Authorization Code로 OAuth 로그인 처리
  */
 export async function processUnityOAuth(authCode, users) {
@@ -64,7 +124,7 @@ export async function processUnityOAuth(authCode, users) {
         users.set(sessionId, {
             id: user.id,
             nickname: user.nickname,
-            isTemporary: user.isTemporary,
+            needSetNickname: user.needSetNickname,
             provider: 'google',
             providerId: playerInfo.playerId,
             displayName: playerInfo.displayName
@@ -76,7 +136,7 @@ export async function processUnityOAuth(authCode, users) {
             success: true,
             sessionId,
             nickname: user.nickname,
-            isTemporary: user.isTemporary
+            needSetNickname: user.needSetNickname
         };
 
     } catch (error) {
@@ -160,21 +220,21 @@ async function findOrCreateUser(playerInfo) {
     const { playerId, displayName } = playerInfo;
     
     let user = await findUserByProvider('google', playerId);
-    let isTemporary = false;
+    let needSetNickName = false;
 
     if (!user) {
         // 신규 사용자 → 즉시 임시 닉네임으로 회원가입
         const tempNickname = generateTempNickname();
-        const userId = await createUser('google', playerId, tempNickname);
+        const userId = await createUser('google', playerId, tempNickname, false);
         
         user = { id: userId, nickname: tempNickname };
-        isTemporary = true;
+        needSetNickName = true;
         logger.info(`[Unity OAuth] New user auto registration: ${displayName} → ${tempNickname}`);
     } else {
         // 기존 사용자 - 임시 닉네임인지 확인
-        isTemporary = user.nickname.startsWith('User') && /^User[a-z0-9]+$/.test(user.nickname);
+        needSetNickName = user.nickname.startsWith('User') && /^User[a-z0-9]+$/.test(user.nickname);
         logger.info(`[Unity OAuth] Existing user login: ${displayName} → ${user.nickname}`);
     }
 
-    return { ...user, isTemporary };
+    return { ...user, needSetNickname: needSetNickName };
 }

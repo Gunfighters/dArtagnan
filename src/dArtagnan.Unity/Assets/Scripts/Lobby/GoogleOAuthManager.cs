@@ -375,5 +375,5 @@ public class OAuthLoginResponse
     public bool success;
     public string sessionId;
     public string nickname;
-    public bool isTemporary;
+    public bool needSetNickname;
 }

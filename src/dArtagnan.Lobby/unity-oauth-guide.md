@@ -337,10 +337,10 @@ public class GoogleOAuthManager : MonoBehaviour
         // sessionId 저장
         PlayerPrefs.SetString("SessionId", response.sessionId);
         PlayerPrefs.SetString("Nickname", response.nickname);
-        PlayerPrefs.SetInt("IsTemporary", response.isTemporary ? 1 : 0);
+        PlayerPrefs.SetInt("IsTemporary", response.needSetNickname ? 1 : 0);
         PlayerPrefs.Save();
         
-        if (response.isTemporary)
+        if (response.needSetNickname)
         {
             UpdateStatus($"로그인 완료! 임시 닉네임: {response.nickname}");
             // 임시 닉네임 변경 UI를 여기서 표시할 수 있음
@@ -413,7 +413,7 @@ public class LoginResponse
     public bool success;
     public string sessionId;
     public string nickname;
-    public bool isTemporary;
+    public bool needSetNickname;
 }
 ```
 

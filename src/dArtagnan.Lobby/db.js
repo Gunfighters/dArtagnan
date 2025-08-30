@@ -52,6 +52,7 @@ async function createTables() {
             provider VARCHAR(10) NOT NULL,
             provider_id VARCHAR(255) NOT NULL,
             nickname VARCHAR(50) UNIQUE,
+            is_guest BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             
             UNIQUE KEY unique_provider (provider, provider_id),
@@ -81,11 +82,11 @@ export async function findUserByProvider(provider, providerId) {
     }
 }
 
-export async function createUser(provider, providerId, nickname) {
+export async function createUser(provider, providerId, nickname, isGuest = false) {
     try {
         const [result] = await connection.execute(
-            'INSERT INTO users (provider, provider_id, nickname) VALUES (?, ?, ?)',
-            [provider, providerId, nickname]
+            'INSERT INTO users (provider, provider_id, nickname, is_guest) VALUES (?, ?, ?, ?)',
+            [provider, providerId, nickname, isGuest]
         );
         return result.insertId;
     } catch (error) {
