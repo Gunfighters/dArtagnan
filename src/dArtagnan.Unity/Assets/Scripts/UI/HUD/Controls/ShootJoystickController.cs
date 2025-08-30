@@ -34,8 +34,8 @@ namespace UI.HUD.Controls
             {
                 var targetModel = GameService.GetPlayerModel(GameService.LocalPlayer.Targeting.CurrentValue);
                 if (targetModel != null) targetModel.Highlighted.Value = false;
-                GameService.LocalPlayer.Targeting.Value = newTargetModel?.ID.CurrentValue ?? -1;
                 if (newTargetModel != null) newTargetModel.Highlighted.Value = true;
+                GameService.LocalPlayer.Targeting.Value = newTargetModel?.ID.CurrentValue ?? -1;
                 PacketChannel.Raise(new PlayerIsTargetingFromClient { TargetId = GameService.LocalPlayer.Targeting.CurrentValue });
             }
             

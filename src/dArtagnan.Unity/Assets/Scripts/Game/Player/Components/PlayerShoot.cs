@@ -46,6 +46,7 @@ namespace Game.Player.Components
         {
             hitMissText.text = info.Hit ? "HIT!" : "MISS!";
             hitMissText.color = info.Hit ? hitTextColor : missTextColor;
+            hitMissText.fontSize = info.Hit ? 0.6f : 0.4f;
             hitMissText.enabled = true;
             HideHitMissFx().Forget();
         }

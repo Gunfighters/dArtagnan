@@ -46,13 +46,6 @@ namespace Game
 
             PacketChannel.On<WaitingStartFromServer>(e => ResetEveryone(e.PlayersInfo));
             PacketChannel.On<RoundStartFromServer>(e => ResetEveryone(e.PlayersInfo));
-            
-            // TODO
-            // PacketChannel.On<WaitingStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
-            // PacketChannel.On<RoundStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
-            // PacketChannel.On<ShowdownStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
-            // PacketChannel.On<AugmentStartFromServer>(_ => StopLocalPlayerAndUpdateToServer());
-
             PacketChannel.On<RoundStartFromServer>(_ => State.Value = GameState.Round);
             PacketChannel.On<WaitingStartFromServer>(_ => State.Value = GameState.Waiting);
             PacketChannel.On<ShowdownStartFromServer>(_ => State.Value = GameState.Showdown);
@@ -89,7 +82,7 @@ namespace Game
         private void CreatePlayer(PlayerInformation info)
         {
             var view = PlayerPoolManager.Instance.Pool.Get();
-            var model = new PlayerModel(info);
+            var model = new PlayerModel(info, this);
             PlayerPresenter.Initialize(model, view);
             PlayerModels.Add(info.PlayerId, model);
             _playerViews.Add(info.PlayerId, view);

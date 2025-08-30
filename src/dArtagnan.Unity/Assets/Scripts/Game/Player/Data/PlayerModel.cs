@@ -46,7 +46,7 @@ namespace Game.Player.Data
 
         public Color Color => _colorPool[ID.CurrentValue % 8];
         
-        public PlayerModel(PlayerInformation info)
+        public PlayerModel(PlayerInformation info, GameModel gameModel)
         {
             ID.Value = info.PlayerId;
             Nickname.Value = info.Nickname;
@@ -71,6 +71,16 @@ namespace Game.Player.Data
             Immune.Value = info.HasDamageShield;
             ActiveFx.Clear();
             info.ActiveEffects.ForEach(ActiveFx.Add);
+
+            Alive.Subscribe(newAlive =>
+            {
+                if (!newAlive) Direction.Value = Vector2.zero;
+            });
+
+            gameModel.State.Subscribe(_ =>
+            {
+                Direction.Value = Vector2.zero;
+            });
         }
 
         public MovementDataFromClient GetMovementDataFromClient() => new()
