@@ -25,19 +25,42 @@ const wss = new WebSocketServer({ server: httpServer });
 // 미들웨어 설정
 app.use(express.json());
 
-// 연결 관리
-const connections = new Map(); // ws -> { sessionId, nickname }
-const users = new Map(); // sessionId -> { nickname, ... }
+// OAuth 전용 임시 세션 (HTTP → WebSocket 연결용)
+const oauthSessions = new Map(); // sessionId -> { user, createdAt }
 
 // 게임 서버 공개 주소 로그
 const PUBLIC_DOMAIN = process.env.PUBLIC_DOMAIN || '127.0.0.1';
 logger.info(`게임 서버 공개 주소: ${PUBLIC_DOMAIN}`);
 
+// OAuth 세션 TTL (5분)
+const OAUTH_SESSION_TIMEOUT = 5 * 60 * 1000; // 5분
+const OAUTH_CLEANUP_INTERVAL = 60 * 1000;    // 1분마다 체크
+
+function cleanupOAuthSessions() {
+    const now = Date.now();
+    let cleanedCount = 0;
+    
+    for (const [sessionId, session] of oauthSessions) {
+        if (now - session.createdAt > OAUTH_SESSION_TIMEOUT) {
+            oauthSessions.delete(sessionId);
+            cleanedCount++;
+        }
+    }
+    
+    if (cleanedCount > 0) {
+        logger.info(`[OAuth 세션 정리] ${cleanedCount}개의 미연결 세션을 정리했습니다.`);
+    }
+}
+
+// OAuth 세션 정기 정리 시작
+setInterval(cleanupOAuthSessions, OAUTH_CLEANUP_INTERVAL);
+logger.info(`[OAuth 세션 관리] 미연결 세션 자동 정리 시작 (${OAUTH_SESSION_TIMEOUT/60000}분 타임아웃)`);
+
 // === Unity OAuth API ===
 app.post('/auth/google/verify-token', async (req, res) => {
     try {
         const { authCode } = req.body;
-        const result = await processUnityOAuth(authCode, users);
+        const result = await processUnityOAuth(authCode, oauthSessions);
         res.json(result);
     } catch (error) {
         res.status(401).json({ error: 'Invalid authorization code or token.' });
@@ -48,7 +71,7 @@ app.post('/auth/google/verify-token', async (req, res) => {
 app.post('/login', async (req, res) => {
     try {
         const { providerId } = req.body;
-        const result = await processDevLogin(providerId, users);
+        const result = await processDevLogin(providerId, oauthSessions);
         res.json(result);
     } catch (error) {
         let statusCode = 400;
@@ -100,7 +123,7 @@ wss.on('connection', (ws, req) => {
     logger.info(`[WebSocket] 새로운 연결 수립: ${connectionId}`);
 
     let authenticated = false;
-    let sessionId = null;
+    let currentUser = null; // 사용자 정보 로컬 저장
 
     ws.on('message', async (message) => {
         try {
@@ -109,8 +132,10 @@ wss.on('connection', (ws, req) => {
 
             // 인증 처리
             if (data.type === 'auth') {
-                sessionId = data.sessionId;
-                if (!sessionId || !users.has(sessionId)) {
+                const sessionId = data.sessionId;
+                const session = oauthSessions.get(sessionId);
+                
+                if (!sessionId || !session) {
                     logger.error(`[WebSocket ${connectionId}] 인증 실패: 유효하지 않은 세션ID (${sessionId})`);
                     sendError(ws, ErrorCodes.UNAUTHORIZED);
                     ws.close();
@@ -118,27 +143,30 @@ wss.on('connection', (ws, req) => {
                 }
                 
                 authenticated = true;
-                const user = users.get(sessionId);
-                connections.set(ws, { sessionId, nickname: user.nickname });
+                currentUser = session.user; // 사용자 정보 복사
+                
+                // OAuth 세션 즉시 삭제 (목적 달성)
+                oauthSessions.delete(sessionId);
                 
                 sendMessage(ws, 'auth_success', { 
                     ok: true, 
-                    nickname: user.nickname,
-                    needSetNickname: user.needSetNickname || false,
-                    needNickname: !user.nickname || user.needSetNickname
+                    nickname: currentUser.nickname,
+                    needSetNickname: currentUser.needSetNickname || false,
+                    needNickname: !currentUser.nickname || currentUser.needSetNickname
                 });
-                logger.info(`[WebSocket ${connectionId}] 인증 성공: ${user.nickname || '닉네임미설정'} (${sessionId})`);
+                logger.info(`[WebSocket ${connectionId}] 인증 성공: ${currentUser.nickname || '닉네임미설정'} (${sessionId})`);
                 return;
             }
 
             // 인증되지 않은 요청 차단
-            if (!authenticated) {
+            if (!authenticated || !currentUser) {
                 logger.warn(`[WebSocket ${connectionId}] 인증되지 않은 요청 시도: ${data.type}`);
                 sendError(ws, ErrorCodes.NOT_AUTHENTICATED);
                 return;
             }
 
-            const { nickname } = connections.get(ws);
+            // 모든 로직에서 currentUser 직접 사용
+            const { nickname } = currentUser;
 
             // 닉네임 설정
             if (data.type === 'set_nickname') {
@@ -149,8 +177,6 @@ wss.on('connection', (ws, req) => {
                 }
 
                 try {
-                    const user = users.get(sessionId);
-                    
                     // 닉네임 중복 체크
                     const isDuplicate = await checkNicknameDuplicate(requestedNickname);
                     if (isDuplicate) {
@@ -158,23 +184,22 @@ wss.on('connection', (ws, req) => {
                         return;
                     }
 
-                    if (user.provider && user.providerId) {
+                    if (currentUser.provider && currentUser.providerId) {
                         // OAuth 사용자 - DB에 저장
-                        if (user.id) {
-                            await setUserNickname(user.provider, user.providerId, requestedNickname);
+                        if (currentUser.id) {
+                            await setUserNickname(currentUser.provider, currentUser.providerId, requestedNickname);
                         } else {
-                            const userId = await createUser(user.provider, user.providerId, requestedNickname, user.is_guest || false);
-                            user.id = userId;
+                            const userId = await createUser(currentUser.provider, currentUser.providerId, requestedNickname, currentUser.is_guest || false);
+                            currentUser.id = userId;
                         }
                     }
                     
-                    // 메모리 업데이트
-                    user.nickname = requestedNickname;
-                    user.needSetNickname = false;
-                    connections.get(ws).nickname = requestedNickname;
+                    // 로컬 사용자 정보 업데이트
+                    currentUser.nickname = requestedNickname;
+                    currentUser.needSetNickname = false;
                     
                     sendMessage(ws, 'nickname_set', { success: true, nickname: requestedNickname });
-                    logger.info(`[닉네임설정] ${requestedNickname} (${sessionId})`);
+                    logger.info(`[닉네임설정] ${requestedNickname} (${connectionId})`);
                 } catch (error) {
                     logger.error(`[닉네임설정] 오류:`, error);
                     sendMessage(ws, 'nickname_set', { success: false, error: '닉네임 설정에 실패했습니다.' });
@@ -253,17 +278,13 @@ wss.on('connection', (ws, req) => {
     ws.on('error', (err) => handleDisconnection(ws, 'error', err));
 
     function handleDisconnection(ws, reason, err = null) {
-        const connection = connections.get(ws);
-        if (connection) {
-            const { sessionId, nickname } = connection;
-            logger.info(`[WebSocket] 연결 해제: ${nickname} (${sessionId}), 사유: ${reason}${err ? `, 오류: ${err.message}` : ''}`);
-            users.delete(sessionId);
-            connections.delete(ws);
-            cleanupPendingRequests(ws);
+        if (authenticated && currentUser) {
+            logger.info(`[WebSocket] 연결 해제: ${currentUser.nickname} (${connectionId}), 사유: ${reason}${err ? `, 오류: ${err.message}` : ''}`);
         } else {
             logger.info(`[WebSocket ${connectionId}] 인증되지 않은 연결 해제, 사유: ${reason}`);
-            connections.delete(ws);
         }
+        
+        cleanupPendingRequests(ws);
     }
 });
 

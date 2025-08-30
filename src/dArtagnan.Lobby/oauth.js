@@ -42,7 +42,7 @@ const logger = {
 /**
  * 개발용 로그인 처리 (OAuth와 동일한 구조 사용)
  */
-export async function processDevLogin(providerId, users) {
+export async function processDevLogin(providerId, oauthSessions) {
     try {
         if (!providerId || providerId.trim().length === 0) {
             throw new Error('ProviderId is required.');
@@ -72,16 +72,19 @@ export async function processDevLogin(providerId, users) {
             logger.info(`[Dev Login] Existing guest user login: ${cleanProviderId}`);
         }
 
-        // 세션 생성 (OAuth와 동일한 구조)
+        // OAuth 세션 생성 (HTTP → WebSocket 연결용)
         const sessionId = Math.random().toString(36).slice(2);
-        users.set(sessionId, {
-            id: user.id,
-            nickname: user.nickname,
-            needSetNickname: false, // 개발용은 providerId를 직접 입력하므로 false
-            provider: provider,
-            providerId: cleanProviderId,
-            displayName: user.nickname,
-            is_guest: true
+        oauthSessions.set(sessionId, {
+            user: {
+                id: user.id,
+                nickname: user.nickname,
+                needSetNickname: false, // 개발용은 providerId를 직접 입력하므로 false
+                provider: provider,
+                providerId: cleanProviderId,
+                displayName: user.nickname,
+                is_guest: true
+            },
+            createdAt: Date.now()
         });
 
         logger.info(`[Dev Login] Login complete: ${user.nickname} (${sessionId})`);
@@ -102,7 +105,7 @@ export async function processDevLogin(providerId, users) {
 /**
  * Unity에서 받은 Authorization Code로 OAuth 로그인 처리
  */
-export async function processUnityOAuth(authCode, users) {
+export async function processUnityOAuth(authCode, oauthSessions) {
     try {
         if (!authCode) {
             throw new Error('Authorization Code is required.');
@@ -119,15 +122,19 @@ export async function processUnityOAuth(authCode, users) {
         // 3. DB에서 사용자 찾기/생성
         const user = await findOrCreateUser(playerInfo);
         
-        // 4. 세션 생성
+        // 4. OAuth 세션 생성 (HTTP → WebSocket 연결용)
         const sessionId = Math.random().toString(36).slice(2);
-        users.set(sessionId, {
-            id: user.id,
-            nickname: user.nickname,
-            needSetNickname: user.needSetNickname,
-            provider: 'google',
-            providerId: playerInfo.playerId,
-            displayName: playerInfo.displayName
+        oauthSessions.set(sessionId, {
+            user: {
+                id: user.id,
+                nickname: user.nickname,
+                needSetNickname: user.needSetNickname,
+                provider: 'google',
+                providerId: playerInfo.playerId,
+                displayName: playerInfo.displayName,
+                is_guest: false
+            },
+            createdAt: Date.now()
         });
 
         logger.info(`[Unity OAuth] Login processing complete: ${user.nickname} (${sessionId})`);
