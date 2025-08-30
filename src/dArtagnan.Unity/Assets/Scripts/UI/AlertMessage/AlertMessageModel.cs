@@ -5,14 +5,14 @@ using UnityEngine;
 
 namespace UI.AlertMessage
 {
-    public static class AlertMessageModel
+    public class AlertMessageModel
     {
-        public static readonly ReactiveProperty<string> Message = new();
-        public static readonly ReactiveProperty<Color> Color = new();
-        public static readonly ReactiveProperty<bool> ShowMsg = new();
-        private static int _messageCounter;
+        public readonly ReactiveProperty<string> Message = new();
+        public readonly ReactiveProperty<Color> Color = new();
+        public readonly ReactiveProperty<bool> ShowMsg = new();
+        private int _messageCounter;
 
-        public static void Initialize()
+        public AlertMessageModel()
         {
             GameService.AlertMessage.Subscribe(msg =>
             {

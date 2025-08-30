@@ -4,11 +4,11 @@ using R3;
 
 namespace UI.HUD.Spectating.Carousel
 {
-    public static class SpectatingCarouselModel
+    public class SpectatingCarouselModel
     {
-        public static readonly ReactiveProperty<PlayerModel> SpectateTarget = new();
+        public readonly ReactiveProperty<PlayerModel> SpectateTarget = new();
 
-        public static void Initialize()
+        public SpectatingCarouselModel()
         {
             GameService.CameraTarget.Subscribe(target => SpectateTarget.Value = target);
         }

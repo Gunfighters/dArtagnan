@@ -9,6 +9,6 @@ namespace UI.AugmentationSelection.Data
     {
         public List<Augmentation> augmentations;
 
-        public Augmentation GetAugmentationById(int id) => augmentations.Find(x => x.data.Id == (AugmentId)id);
+        public Augmentation GetAugmentationById(AugmentId id) => augmentations.Find(x => x.data.Id == id);
     }
 }

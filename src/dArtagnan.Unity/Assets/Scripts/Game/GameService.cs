@@ -12,9 +12,16 @@ namespace Game
     {
         private static GameModel _instance;
 
+        public static ReadOnlyReactiveProperty<int> Round => _instance.Round;
+        public static Subject<RoundWinnerBroadcast> RoundWinners => _instance.RoundWinners;
+        public static Subject<GameWinnerBroadcast>  GameWinners => _instance.GameWinners;
+        public static Subject<ShowdownStartFromServer> ShowdownStartData => _instance.ShowdownStartData;
+
+        public static IReadOnlyObservableList<AugmentId> AugmentationOptionPool => _instance.AugmentationOptionPool;
         public static ReadOnlyReactiveProperty<GameState> State => _instance.State;
         public static ReadOnlyReactiveProperty<int> LocalPlayerID => _instance?.LocalPlayerId;
         public static PlayerModel LocalPlayer => _instance?.LocalPlayer;
+        public static Subject<PlayerModel> LocalPlayerSet => _instance.LocalPlayerSet;
         
         public static ObservableDictionary<int, PlayerModel> PlayerModels => _instance?.PlayerModels;
         public static IEnumerable<PlayerModel> Survivors => _instance?.Survivors;
@@ -23,10 +30,8 @@ namespace Game
         [CanBeNull] public static PlayerView GetPlayerView(int id) => _instance?.GetPlayerView(id);
 
         public static ReactiveProperty<PlayerModel> CameraTarget => _instance?.CameraTarget;
-        public static Subject<bool> ConnectionFailure => _instance?.ConnectionFailure;
+        [CanBeNull] public static Subject<bool> ConnectionFailure => _instance?.ConnectionFailure;
         public static Subject<string> AlertMessage => _instance?.AlertMessage;
-        public static Subject<bool> LocalPlayerAlive => _instance?.LocalPlayerAlive;
-        public static Subject<ItemId> LocalPlayerNewItem => _instance?.LocalPlayerNewItem;
         public static Subject<PlayerModel> NewHost => _instance?.NewHost;
 
         public static void SetInstance(GameModel gameModel)

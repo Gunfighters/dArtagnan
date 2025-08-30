@@ -5,9 +5,9 @@ namespace UI.HUD.Controls.ItemCraft
 {
     public static class ItemCraftButtonPresenter
     {
-        public static void Initialize(ItemCraftButtonView view)
+        public static void Initialize(ItemCraftButtonModel model, ItemCraftButtonView view)
         {
-            ItemCraftButtonModel.ItemId.Subscribe(id =>
+            model.ItemId.Subscribe(id =>
             {
                 if (id == ItemId.None)
                     view.HideItem();

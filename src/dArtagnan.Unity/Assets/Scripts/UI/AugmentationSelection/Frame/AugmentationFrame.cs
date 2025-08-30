@@ -1,3 +1,4 @@
+using dArtagnan.Shared;
 using TMPro;
 using UI.AugmentationSelection.Data;
 using UnityEngine;
@@ -13,21 +14,14 @@ namespace UI.AugmentationSelection.Frame
         [SerializeField] private TextMeshProUGUI description;
         [SerializeField] private AugmentationCollection augmentationCollection;
         [SerializeField] private Toggle selectedToggle;
-        public Augmentation Augmentation { get; private set; }
 
-        private void Awake()
-        {
-            selectedToggle.onValueChanged.AddListener(value =>
-            {
-                if (value)
-                    AugmentationSelectionModel.SelectAugmentation(Augmentation.data.Id);
-            });
-        }
+        private AugmentationSelectionModel _model;
+        public Augmentation Augmentation { get; private set; }
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            if (AugmentationSelectionModel.IsSelectionComplete.Value) return;
-            AugmentationSelectionModel.SelectAugmentation(Augmentation.data.Id);
+            if (_model.IsSelectionComplete.Value) return;
+            _model.SelectAugmentation(Augmentation.data.Id);
         }
 
         public void OnPointerEnter(PointerEventData eventData)
@@ -40,12 +34,17 @@ namespace UI.AugmentationSelection.Frame
             transform.localScale = Vector3.one;
         }
 
-        public void Setup(int id)
+        public void Setup(AugmentationSelectionModel model, AugmentId id)
         {
+            _model = model;
+            selectedToggle.onValueChanged.AddListener(value =>
+            {
+                if (value)
+                    model.SelectAugmentation(Augmentation.data.Id);
+            });
             Augmentation = augmentationCollection.GetAugmentationById(id);
             nameText.text = Augmentation.data.Name;
             image.sprite = Augmentation.sprite;
-            ;
             description.text = Augmentation.data.Description;
             selectedToggle.isOn = false;
         }
@@ -58,7 +57,7 @@ namespace UI.AugmentationSelection.Frame
         public void SetInteractable(bool interactable)
         {
             var canvasGroup = GetComponent<CanvasGroup>();
-            if (canvasGroup == null)
+            if (!canvasGroup)
             {
                 canvasGroup = gameObject.AddComponent<CanvasGroup>();
             }

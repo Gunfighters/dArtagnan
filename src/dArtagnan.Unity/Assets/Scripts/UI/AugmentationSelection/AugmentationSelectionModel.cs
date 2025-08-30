@@ -1,31 +1,37 @@
-using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
+using Game;
+using ObservableCollections;
 using R3;
+using UnityEngine;
 
 namespace UI.AugmentationSelection
 {
-    public static class AugmentationSelectionModel
+    public class AugmentationSelectionModel
     {
-        public static readonly ReactiveProperty<List<int>> Options = new();
-        public static readonly ReactiveProperty<AugmentId> SelectedAugmentId = new(AugmentId.None);
-        public static readonly ReactiveProperty<bool> IsSelectionComplete = new(false);
+        public readonly ObservableList<AugmentId> Options = new();
+        public readonly ReactiveProperty<AugmentId> SelectedAugmentId = new(AugmentId.None);
+        public readonly ReactiveProperty<bool> IsSelectionComplete = new();
 
-        public static void Initialize()
+        public AugmentationSelectionModel()
         {
-            PacketChannel.On<AugmentStartFromServer>(OnAugmentationStartFromServer);
+            Debug.Log("Creating AugmentationSElectionModel");
+            GameService.AugmentationOptionPool.ObserveAdd().Subscribe(pair => Options.Add(pair.Value));
+            GameService.AugmentationOptionPool.ObserveRemove().Subscribe(pair => Options.Remove(pair.Value));
+            GameService.State.Subscribe(state =>
+            {
+                if (state == GameState.Augment)
+                {
+                    SelectedAugmentId.Value = AugmentId.None;
+                    IsSelectionComplete.Value = false;
+                    ScheduleForcedSelection().Forget();
+                }
+            });
+            Debug.Log("Done Creating AugmentationSElectionModel");
         }
 
-        private static void OnAugmentationStartFromServer(AugmentStartFromServer e)
-        {
-            Options.Value = e.AugmentOptions;
-            SelectedAugmentId.Value = AugmentId.None;
-            IsSelectionComplete.Value = false;
-            ScheduleForcedSelection().Forget();
-        }
-
-        public static void SelectAugmentation(AugmentId augmentId)
+        public void SelectAugmentation(AugmentId augmentId)
         {
             if (IsSelectionComplete.Value) return;
 
@@ -34,10 +40,10 @@ namespace UI.AugmentationSelection
             PacketChannel.Raise(new AugmentDoneFromClient { SelectedAugmentID = (int)augmentId });
         }
 
-        private static async UniTask ScheduleForcedSelection()
+        private async UniTask ScheduleForcedSelection()
         {
             await UniTask.WaitForSeconds(15);
-            SelectAugmentation((AugmentId)Options.Value.First());
+            SelectAugmentation(Options.First());
         }
     }
 }

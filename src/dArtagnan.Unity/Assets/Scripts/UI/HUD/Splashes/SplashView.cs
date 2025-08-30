@@ -10,9 +10,9 @@ namespace UI.HUD.Splashes
         public GameObject roundStartSplash;
         public GameObject roundOverSplash;
 
-        private void Awake()
+        private void Start()
         {
-            SplashPresenter.Initialize(this);
+            SplashPresenter.Initialize(new SplashModel(), this);
         }
     }
 }

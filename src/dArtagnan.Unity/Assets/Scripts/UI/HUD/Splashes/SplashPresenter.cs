@@ -6,15 +6,15 @@ namespace UI.HUD.Splashes
 {
     public static class SplashPresenter
     {
-        public static void Initialize(SplashView view)
+        public static void Initialize(SplashModel model, SplashView view)
         {
-            SplashModel
+            model
                 .RoundStart
                 .Subscribe(view.roundStartSplash.SetActive);
-            SplashModel
+            model
                 .RoundOver
                 .Subscribe(view.roundOverSplash.SetActive);
-            SplashModel
+            model
                 .Winners
                 .Subscribe(winners =>
                 {
@@ -25,7 +25,7 @@ namespace UI.HUD.Splashes
                         .GetComponentInChildren<TextMeshProUGUI>()
                         .text = joined + won;
                 });
-            SplashModel
+            model
                 .RoundIndex
                 .Subscribe(i =>
                     view.roundStartSplash

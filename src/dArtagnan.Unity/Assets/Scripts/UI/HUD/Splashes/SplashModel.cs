@@ -8,49 +8,52 @@ using UnityEngine;
 
 namespace UI.HUD.Splashes
 {
-    public static class SplashModel
+    public class SplashModel
     {
         private const float SplashDuration = 2.5f;
-        public static readonly ReactiveProperty<int> RoundIndex = new();
-        public static readonly ReactiveProperty<bool> GameStart = new();
-        public static readonly ReactiveProperty<bool> RoundStart = new();
-        public static readonly ReactiveProperty<bool> RoundOver = new();
-        public static readonly ReactiveProperty<bool> GameOver = new();
-        public static readonly ReactiveProperty<List<string>> Winners = new(new List<string>());
+        public readonly ReactiveProperty<int> RoundIndex = new();
+        public readonly ReactiveProperty<bool> RoundStart = new();
+        public readonly ReactiveProperty<bool> RoundOver = new();
+        public readonly ReactiveProperty<bool> GameOver = new();
+        public readonly ReactiveProperty<List<string>> Winners = new(new List<string>());
 
-        public static void Initialize()
+        public SplashModel()
         {
-            PacketChannel.On<RoundStartFromServer>(e =>
+            GameService.Round.Subscribe(r =>
             {
-                RoundIndex.Value = e.Round;
-                Flash(RoundStart);
+                RoundIndex.Value = r;
             });
-            PacketChannel.On<RoundWinnerBroadcast>(e =>
+            GameService.State.Subscribe(state =>
             {
-                SetWinners(e.PlayerIds);
+                if (state == GameState.Round)
+                    Flash(RoundStart);
+            });
+            GameService.RoundWinners.Subscribe(w =>
+            {
+                SetWinners(w.PlayerIds);
                 Flash(RoundOver);
             });
-            PacketChannel.On<GameWinnerBroadcast>(e =>
+            GameService.GameWinners.Subscribe(w =>
             {
-                SetWinners(e.PlayerIds);
+                SetWinners(w.PlayerIds);
                 Flash(GameOver);
             });
         }
 
-        private static void SetWinners(List<int> ids)
+        private void SetWinners(List<int> ids)
         {
             Winners.Value = ids
                 .Select(GameService.GetPlayerModel)
                 .Select(p => p.Nickname.CurrentValue).ToList();
         }
 
-        private static void Flash(ReactiveProperty<bool> splash)
+        private void Flash(ReactiveProperty<bool> splash)
         {
             splash.Value = true;
             ScheduleSplashRemoval(splash).Forget();
         }
 
-        private static async UniTask ScheduleSplashRemoval(ReactiveProperty<bool> splash)
+        private async UniTask ScheduleSplashRemoval(ReactiveProperty<bool> splash)
         {
             await UniTask.WaitForSeconds(SplashDuration);
             splash.Value = false;

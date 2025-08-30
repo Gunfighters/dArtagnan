@@ -22,7 +22,6 @@ namespace Viewport
 
         private void Awake()
         {
-            PacketChannel.On<UpdatePlayerAlive>(OnUpdatePlayerAlive);
             cam = GetComponent<Camera>();
             mapSize = groundRenderer.bounds.size / 2;
             height = cam.orthographicSize;
@@ -31,7 +30,16 @@ namespace Viewport
 
         private void Start()
         {
-            GameService.CameraTarget.Subscribe(target => _targetModel = target);
+            GameService.CameraTarget.Skip(1).Subscribe(target =>
+            {
+                _targetModel = target;
+                _targetModel.Alive.Subscribe(newAlive =>
+                {
+                    if (!newAlive)
+                        GameService.CameraTarget.Value =
+                            GameService.PlayerModels.FirstOrDefault(pair => pair.Value.Alive.Value).Value;
+                });
+            });
         }
 
         private void Update()
@@ -46,16 +54,6 @@ namespace Viewport
         {
             Gizmos.color = Color.red;
             Gizmos.DrawWireCube(center, mapSize * 2);
-        }
-
-        private void OnUpdatePlayerAlive(UpdatePlayerAlive e)
-        {
-            if (!e.Alive && e.PlayerId == _targetModel.ID.CurrentValue)
-            {
-                var newTarget = GameService.Survivors.FirstOrDefault(p => p != _targetModel);
-                if (newTarget is not null)
-                    GameService.CameraTarget.Value = newTarget;
-            }
         }
 
         private void LimitCameraArea()

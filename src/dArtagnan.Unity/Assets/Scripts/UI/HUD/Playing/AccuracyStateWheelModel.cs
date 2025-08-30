@@ -1,32 +1,23 @@
-using System.Linq;
 using dArtagnan.Shared;
 using Game;
 using R3;
-using UnityEngine;
 
 namespace UI.HUD.Playing
 {
-    public static class AccuracyStateWheelModel
+    public class AccuracyStateWheelModel
     {
-        public static readonly ReactiveProperty<int> State = new();
+        public readonly ReactiveProperty<int> State = new();
 
-        public static void Initialize()
+        public AccuracyStateWheelModel()
         {
-            PacketChannel.On<RoundStartFromServer>(OnGamePlaying);
-            PacketChannel.On<UpdateAccuracyStateBroadcast>(OnStateBroadcast);
-        }
-
-        private static void OnGamePlaying(RoundStartFromServer e)
-        {
-            State.Value = e.PlayersInfo
-                .Single(i => i.PlayerId == GameService.LocalPlayer.ID.CurrentValue)
-                .AccuracyState;
-        }
-
-        private static void OnStateBroadcast(UpdateAccuracyStateBroadcast e)
-        {
-            if (GameService.LocalPlayer.ID.CurrentValue == e.PlayerId)
-                State.Value = e.AccuracyState;
+            GameService.State.Subscribe(state =>
+            {
+                if (state == GameState.Round)
+                {
+                    State.Value = GameService.LocalPlayer.AccuracyState.Value;
+                }
+            });
+            GameService.LocalPlayerSet.Subscribe(player => player.AccuracyState.Subscribe(v => State.Value = v));
         }
     }
 }

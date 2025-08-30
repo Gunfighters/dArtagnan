@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,9 +11,9 @@ namespace UI.HUD.Playing
         public Image keep;
         public Image down;
 
-        private void Awake()
+        private void Start()
         {
-            AccuracyStateWheelPresenter.Initialize(this);
+            AccuracyStateWheelPresenter.Initialize(new AccuracyStateWheelModel(), this);
         }
 
         public event Action<int> OnSwitch;

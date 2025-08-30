@@ -8,9 +8,9 @@ namespace UI.ShowdownLoading
 {
     public static class ShowdownLoadingPresenter
     {
-        public static void Initialize(ShowdownLoadingView view)
+        public static void Initialize(ShowdownLoadingModel model, ShowdownLoadingView view)
         {
-            ShowdownLoadingModel.Players.ObserveAdd().Subscribe(newPlayer =>
+            model.Players.ObserveAdd().Subscribe(newPlayer =>
             {
                 var instance = Object.Instantiate(
                     newPlayer.Value.Key == GameService.LocalPlayer.ID.CurrentValue
@@ -20,12 +20,12 @@ namespace UI.ShowdownLoading
                 instance.Initialize(newPlayer.Value.Key, newPlayer.Value.Value,
                     GameService.GetPlayerModel(newPlayer.Value.Key)!.Nickname.CurrentValue);
             });
-            ShowdownLoadingModel.Players.ObserveRemove().Subscribe(removedPlayer =>
+            model.Players.ObserveRemove().Subscribe(removedPlayer =>
             {
                 Object.Destroy(view.frameGroup.GetComponentsInChildren<ShowdownLoadingFrame>()
                     .First(frame => frame.ID == removedPlayer.Value.Key).gameObject);
             });
-            ShowdownLoadingModel.Countdown.Subscribe(newCount =>
+            model.Countdown.Subscribe(newCount =>
                 view.countdown.text = $"게임 시작까지\n{newCount.ToString()}");
         }
     }

@@ -1,18 +1,20 @@
+using ObservableCollections;
 using R3;
+using UnityEngine;
 
 namespace UI.AugmentationSelection
 {
     public static class AugmentationSelectionPresenter
     {
-        public static void Initialize(AugmentationSelectionView view)
+        public static void Initialize(AugmentationSelectionModel model, AugmentationSelectionView view)
         {
-            AugmentationSelectionModel.Options.Subscribe(options =>
+            model.Options.ObserveAdd().Subscribe(added =>
             {
-                for (var i = 0; i < options.Count; i++)
-                    view.Frames[i].Setup(options[i]);
+                Debug.Log($"Adding augmentation: {added.Value}");
+                view.Frames[added.Index].Setup(model, added.Value);
             });
 
-            AugmentationSelectionModel.SelectedAugmentId.Subscribe(selectedId =>
+            model.SelectedAugmentId.Subscribe(selectedId =>
             {
                 foreach (var frame in view.Frames)
                 {
@@ -20,11 +22,11 @@ namespace UI.AugmentationSelection
                 }
             });
 
-            AugmentationSelectionModel.IsSelectionComplete.Subscribe(isComplete =>
+            model.IsSelectionComplete.Subscribe(isComplete =>
             {
                 if (isComplete)
                 {
-                    var selectedId = AugmentationSelectionModel.SelectedAugmentId.Value;
+                    var selectedId = model.SelectedAugmentId.Value;
                     foreach (var frame in view.Frames)
                     {
                         bool isSelected = frame.Augmentation.data.Id == selectedId;

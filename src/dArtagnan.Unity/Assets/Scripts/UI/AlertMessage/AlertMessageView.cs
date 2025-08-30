@@ -10,9 +10,9 @@ namespace UI.AlertMessage
         public TextMeshProUGUI messageText;
         public List<Image> decoImage;
 
-        private void Awake()
+        private void Start()
         {
-            AlertMessagePresenter.Initialize(this);
+            AlertMessagePresenter.Initialize(new AlertMessageModel(), this);
         }
     }
 }

@@ -15,7 +15,7 @@ namespace UI.HUD.ChatBox
         [SerializeField] private Transform chatLineContainer;
         private readonly List<ChatLine> _chatLines = new();
 
-        private void Awake()
+        private void Start()
         {
             foreach (var c in chatLineContainer.GetComponentsInChildren<ChatLine>())
             {

@@ -6,9 +6,9 @@ namespace UI.HUD.Spectating.Carousel
 {
     public static class SpectatingCarouselPresenter
     {
-        public static void Initialize(SpectatingCarouselView view)
+        public static void Initialize(SpectatingCarouselModel model, SpectatingCarouselView view)
         {
-            SpectatingCarouselModel
+            model
                 .SpectateTarget
                 .Subscribe(target =>
                 {
@@ -24,7 +24,7 @@ namespace UI.HUD.Spectating.Carousel
                 .AddListener(() =>
                     GameService.CameraTarget.Value = GameService
                         .Survivors
-                        .SkipWhile(s => s != SpectatingCarouselModel.SpectateTarget.Value)
+                        .SkipWhile(s => s != model.SpectateTarget.Value)
                         .Skip(1)
                         .DefaultIfEmpty(GameService.Survivors.First())
                         .FirstOrDefault());
@@ -35,7 +35,7 @@ namespace UI.HUD.Spectating.Carousel
                     GameService.CameraTarget.Value = GameService
                         .Survivors
                         .Reverse()
-                        .SkipWhile(s => s != SpectatingCarouselModel.SpectateTarget.Value)
+                        .SkipWhile(s => s != model.SpectateTarget.Value)
                         .Skip(1)
                         .DefaultIfEmpty(GameService.Survivors.Reverse().First())
                         .FirstOrDefault());

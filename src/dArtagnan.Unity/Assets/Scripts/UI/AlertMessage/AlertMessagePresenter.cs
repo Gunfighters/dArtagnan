@@ -4,15 +4,15 @@ namespace UI.AlertMessage
 {
     public static class AlertMessagePresenter
     {
-        public static void Initialize(AlertMessageView view)
+        public static void Initialize(AlertMessageModel model, AlertMessageView view)
         {
-            AlertMessageModel.Message.Subscribe(msg => view.messageText.text = msg);
-            AlertMessageModel.Color.Subscribe(color =>
+            model.Message.Subscribe(msg => view.messageText.text = msg);
+            model.Color.Subscribe(color =>
             {
                 view.messageText.color = color;
                 view.decoImage.ForEach(deco => deco.color = color);
             });
-            AlertMessageModel.ShowMsg.Subscribe(view.gameObject.SetActive);
+            model.ShowMsg.Subscribe(view.gameObject.SetActive);
         }
     }
 }

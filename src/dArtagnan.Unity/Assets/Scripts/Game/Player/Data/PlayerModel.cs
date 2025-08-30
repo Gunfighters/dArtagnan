@@ -35,7 +35,8 @@ namespace Game.Player.Data
         public readonly Subject<FireInfo> Fire = new();
         public readonly ReactiveProperty<bool> Highlighted = new();
         public readonly ReactiveProperty<float> LastServerPositionUpdateTimestamp = new();
-        public bool NeedToCorrectPosition;
+        public bool NeedToCorrect;
+        public bool ForceCorrectionNeeded;
         private readonly RaycastHit2D[] _raycastHits = new RaycastHit2D[20];
 
         private readonly List<Color> _colorPool = new List<Color>
@@ -47,6 +48,20 @@ namespace Game.Player.Data
         public Color Color => _colorPool[ID.CurrentValue % 8];
         
         public PlayerModel(PlayerInformation info, GameModel gameModel)
+        {
+            Initialize(info);
+            Alive.Subscribe(newAlive =>
+            {
+                if (!newAlive) Direction.Value = Vector2.zero;
+            });
+
+            gameModel.State.Subscribe(_ =>
+            {
+                Direction.Value = Vector2.zero;
+            });
+        }
+
+        public void Initialize(PlayerInformation info)
         {
             ID.Value = info.PlayerId;
             Nickname.Value = info.Nickname;
@@ -60,7 +75,8 @@ namespace Game.Player.Data
             Position.Value = PositionFromServer.Value = info.MovementData.Position.ToUnityVec();
             Direction.Value = info.MovementData.Direction.IntToDirection().normalized;
             Speed.Value = info.MovementData.Speed;
-            NeedToCorrectPosition = true;
+            NeedToCorrect = true;
+            ForceCorrectionNeeded = true;
             LastServerPositionUpdateTimestamp.Value = Time.time;
             Balance.Value = info.Balance;
             Augments.Clear();
@@ -72,15 +88,6 @@ namespace Game.Player.Data
             ActiveFx.Clear();
             info.ActiveEffects.ForEach(ActiveFx.Add);
 
-            Alive.Subscribe(newAlive =>
-            {
-                if (!newAlive) Direction.Value = Vector2.zero;
-            });
-
-            gameModel.State.Subscribe(_ =>
-            {
-                Direction.Value = Vector2.zero;
-            });
         }
 
         public MovementDataFromClient GetMovementDataFromClient() => new()

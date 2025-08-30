@@ -11,9 +11,9 @@ namespace UI.HUD.Spectating.Carousel
         public Image colorSlot;
         public TextMeshProUGUI textSlot;
 
-        private void Awake()
+        private void Start()
         {
-            SpectatingCarouselPresenter.Initialize(this);
+            SpectatingCarouselPresenter.Initialize(new SpectatingCarouselModel(), this);
         }
     }
 }

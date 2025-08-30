@@ -28,11 +28,15 @@ namespace UI.HUD
                 Playing.Value = false;
             });
             GameService.NewHost.Subscribe(newHost => IsHost.Value = GameService.LocalPlayer == newHost);
-            GameService.LocalPlayerAlive.Subscribe(newAlive =>
+            GameService.LocalPlayerSet.Subscribe(p =>
             {
-                Controlling.Value = newAlive;
-                Spectating.Value = !newAlive;
-                Playing.Value = newAlive && InRound.Value;
+                p.Alive.Subscribe(newAlive =>
+                {
+
+                    Controlling.Value = newAlive;
+                    Spectating.Value = !newAlive;
+                    Playing.Value = newAlive && InRound.Value;
+                });
             });
         }
     }

@@ -33,7 +33,7 @@ namespace UI.HUD.Controls.ItemCraft
 
         private void Start()
         {
-            ItemCraftButtonPresenter.Initialize(this);
+            ItemCraftButtonPresenter.Initialize(new ItemCraftButtonModel(), this);
         }
 
         private void Update()

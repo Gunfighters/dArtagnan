@@ -1,7 +1,6 @@
 using dArtagnan.Shared;
 using Game.Player.Components;
 using R3;
-using R3.Triggers;
 using UnityEngine;
 
 namespace Game.Player.Data

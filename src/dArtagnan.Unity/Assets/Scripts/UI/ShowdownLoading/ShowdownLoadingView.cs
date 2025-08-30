@@ -10,9 +10,9 @@ namespace UI.ShowdownLoading
         public Transform frameGroup;
         public TextMeshProUGUI countdown;
 
-        private void Awake()
+        private void Start()
         {
-            ShowdownLoadingPresenter.Initialize(this);
+            ShowdownLoadingPresenter.Initialize(new ShowdownLoadingModel(), this);
         }
     }
 }

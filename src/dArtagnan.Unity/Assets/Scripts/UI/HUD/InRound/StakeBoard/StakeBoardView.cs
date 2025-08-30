@@ -16,7 +16,7 @@ namespace UI.HUD.InRound.StakeBoard
         public List<StakeBoardIconMeta> iconPool;
         public Transform itemContainer;
 
-        private void Awake()
+        private void Start()
         {
             StakeBoardPresenter.Initialize(new StakeBoardModel(), this);
         }

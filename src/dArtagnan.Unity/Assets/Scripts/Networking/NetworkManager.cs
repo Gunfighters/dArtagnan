@@ -62,7 +62,7 @@ namespace Networking
             }
             catch (Exception e)
             {
-                GameService.ConnectionFailure.OnNext(true);
+                GameService.ConnectionFailure?.OnNext(true);
                 Debug.LogException(e);
                 return;
             }
@@ -78,7 +78,7 @@ namespace Networking
             }
             catch
             {
-                GameService.ConnectionFailure.OnNext(true);
+                GameService.ConnectionFailure?.OnNext(true);
             }
         }
 
@@ -96,7 +96,7 @@ namespace Networking
             catch
             {
                 await UniTask.SwitchToMainThread();
-                GameService.ConnectionFailure.OnNext(true);
+                GameService.ConnectionFailure?.OnNext(true);
             }
         }
     }

@@ -22,7 +22,6 @@ namespace Game.Player.Components
                 if (id != ItemId.None)
                     SetItem(itemCollection.items.Find(i => i.data.Id == id));
                 ToggleItem(id != ItemId.None);
-                GameService.LocalPlayerNewItem.OnNext(id);
             });
         }
 

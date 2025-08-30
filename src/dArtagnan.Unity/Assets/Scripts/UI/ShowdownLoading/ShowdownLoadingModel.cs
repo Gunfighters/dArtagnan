@@ -1,18 +1,19 @@
 using Cysharp.Threading.Tasks;
 using dArtagnan.Shared;
+using Game;
 using ObservableCollections;
 using R3;
 
 namespace UI.ShowdownLoading
 {
-    public static class ShowdownLoadingModel
+    public class ShowdownLoadingModel
     {
-        public static readonly ObservableDictionary<int, int> Players = new();
-        public static readonly ReactiveProperty<int> Countdown = new();
+        public readonly ObservableDictionary<int, int> Players = new();
+        public readonly ReactiveProperty<int> Countdown = new();
 
-        public static void Initialize()
+        public ShowdownLoadingModel()
         {
-            PacketChannel.On<ShowdownStartFromServer>(e =>
+            GameService.ShowdownStartData.Subscribe(e =>
             {
                 Players.Clear();
                 foreach (var keyValuePair in e.AccuracyPool)
@@ -22,10 +23,11 @@ namespace UI.ShowdownLoading
 
                 Countdown.Value = e.Countdown;
                 Count().Forget();
+                
             });
         }
 
-        private static async UniTask Count()
+        private async UniTask Count()
         {
             while (Countdown.Value > 0)
             {

@@ -7,9 +7,9 @@ namespace UI.HUD.Playing
 {
     public static class AccuracyStateWheelPresenter
     {
-        public static void Initialize(AccuracyStateWheelView view)
+        public static void Initialize(AccuracyStateWheelModel model, AccuracyStateWheelView view)
         {
-            AccuracyStateWheelModel.State.Subscribe(newState =>
+            model.State.Subscribe(newState =>
             {
                 var activated = newState switch
                 {

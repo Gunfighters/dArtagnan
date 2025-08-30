@@ -30,7 +30,7 @@ namespace UI.HUD.Controls
         {
             if (GameService.LocalPlayer is null) return;
             var newTargetModel = _aiming ? GameService.LocalPlayer.CalculateTarget(shootingJoystick.Direction) : null;
-            if (newTargetModel?.ID.CurrentValue != GameService.LocalPlayer.Targeting.CurrentValue)
+            if ((newTargetModel?.ID.CurrentValue ?? -1) != GameService.LocalPlayer.Targeting.CurrentValue)
             {
                 var targetModel = GameService.GetPlayerModel(GameService.LocalPlayer.Targeting.CurrentValue);
                 if (targetModel != null) targetModel.Highlighted.Value = false;
