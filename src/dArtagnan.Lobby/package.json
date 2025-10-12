@@ -1,0 +1,21 @@
+{
+  "name": "dartagnan-lobby",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dockerode": "^4.0.2",
+    "dotenv": "^17.2.1",
+    "express": "^4.19.2",
+    "express-session": "^1.18.2",
+    "google-auth-library": "^10.3.0",
+    "mysql2": "^3.14.3",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "pino": "^9.2.0",
+    "ws": "^8.16.0"
+  }
+}

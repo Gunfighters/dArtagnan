@@ -1,0 +1,13 @@
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+/.cursor/
+**/.claude/
+**/node_modules/
+**/publish/
+*.keystore
+*.env*
+logs/
+PORTFOLIO_SECURITY_CHANGES.md

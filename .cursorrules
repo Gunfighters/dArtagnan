@@ -1,0 +1,105 @@
+# D'Artagnan Game Project Rules
+
+# Project Structure
+src/
+  ├── dArtagnan.Unity/     # Unity client project
+  │   ├── Assets/
+  │   │   ├── Scripts/     # Client-side scripts
+  │   │   │   ├── Core/    # Core game mechanics
+  │   │   │   ├── UI/      # User interface
+  │   │   │   └── Network/ # Client networking
+  │   │   ├── Scenes/      # Unity scenes
+  │   │   ├── Prefabs/     # Game prefabs
+  │   │   ├── Materials/   # Materials and shaders
+  │   │   ├── Models/      # 3D models
+  │   │   ├── Animations/  # Animation files
+  │   │   ├── Audio/       # Sound effects and music
+  │   │   └── Resources/   # Runtime resources
+  │   └── ProjectSettings/ # Unity project settings
+  │
+  ├── dArtagnan.Server/    # Server project
+  │   ├── Core/           # Server core systems
+  │   ├── Network/        # Server networking
+  │   ├── Game/           # Game logic
+  │   └── Database/       # Database interactions
+  │
+  └── dArtagnan.Shared/   # Shared code between client and server
+      ├── Models/         # Shared data models
+      ├── Constants/      # Shared constants
+      └── Utils/          # Shared utilities
+
+# Coding Standards
+- Use PascalCase for class names
+- Use camelCase for method and variable names
+- Use UPPER_CASE for constants
+- Add XML documentation for public methods and classes
+- Keep methods under 50 lines when possible
+- Use meaningful variable and method names
+- Follow Unity's component-based architecture
+- Use async/await for network operations
+- Implement proper error handling
+
+# Game Rules
+- Player count: 3-8 players per game
+- Rounds continue until all but one player is bankrupt
+- Players start with random accuracy rates
+- Money drops on death (partial amount)
+- Shop phase after each round
+- Voice chat available throughout the game
+
+# File Naming Conventions
+- Script files: PascalCase.cs
+- Prefab files: PascalCase.prefab
+- Scene files: PascalCase.unity
+- Asset files: lowercase_with_underscores
+- Scriptable Objects: PascalCase.asset
+- Animation files: lowercase_with_underscores.anim
+- Material files: PascalCase.mat
+
+# Version Control
+- Use meaningful commit messages
+- Create feature branches for new features
+- Merge to main only after testing
+- Keep commits focused and atomic
+- Use .gitignore for Unity-specific files
+- Don't commit large binary files
+
+# Testing
+- Unit tests for core game mechanics
+- Integration tests for networking
+- Playtest new features before merging
+- Use Unity Test Framework
+- Test both client and server components
+
+# Documentation
+- Keep README.md updated
+- Document API changes
+- Maintain changelog
+- Comment complex game logic
+- Document Unity scene hierarchy
+- Document network protocols
+
+# Performance Guidelines
+- Optimize network calls
+- Use object pooling for frequently spawned objects
+- Cache frequently accessed data
+- Monitor memory usage
+- Optimize Unity scene loading
+- Use proper LOD (Level of Detail)
+- Implement asset bundling
+
+# Security
+- Validate all network inputs
+- Sanitize user inputs
+- Implement anti-cheat measures
+- Secure voice chat implementation
+- Use encryption for sensitive data
+- Implement proper authentication
+- Regular security audits
+
+# Build and Deployment
+- Maintain separate build configurations
+- Use CI/CD pipelines
+- Version control for builds
+- Automated testing before deployment
+- Backup system for server data 

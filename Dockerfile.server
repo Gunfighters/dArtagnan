@@ -1,0 +1,28 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+# Copy csproj and restore as distinct layers
+COPY src/dArtagnan.Shared/dArtagnan.Shared.csproj dArtagnan.Shared/
+COPY src/dArtagnan.Server/dArtagnan.Server.csproj dArtagnan.Server/
+RUN dotnet restore dArtagnan.Server/dArtagnan.Server.csproj
+
+# Copy source
+COPY src/dArtagnan.Shared/ dArtagnan.Shared/
+COPY src/dArtagnan.Server/ dArtagnan.Server/
+
+# Publish
+RUN dotnet publish dArtagnan.Server/dArtagnan.Server.csproj -c Release -o /app/publish /p:UseAppHost=false
+
+FROM mcr.microsoft.com/dotnet/runtime:9.0 AS final
+WORKDIR /app
+
+# 한국 시간대 설정
+ENV TZ=Asia/Seoul
+ENV PORT=7777
+EXPOSE 7777
+
+COPY --from=build /app/publish .
+
+ENTRYPOINT ["dotnet", "dArtagnan.Server.dll"]
+
+
