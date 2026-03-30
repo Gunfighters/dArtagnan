@@ -5,8 +5,7 @@
 # D'Artagnan
 [플레이스토어](https://play.google.com/store/apps/details?id=com.Gunfighters.dArtagnan)
 
-A real-time multiplayer probability-based battle royale game inspired by the "Gunslinger Theory" from StarCraft II Arcade.
-스타크래프트 II 아케이드의 '총잡이 이론'에서 영감을 받은 실시간 멀티플레이어 확률형 배틀로얄 게임입니다.
+실시간 멀티플레이어 확률형 배틀로얄 게임입니다.
 
 ## Quick Start | 빠른 시작
 
